@@ -1,0 +1,16 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../planner_tools/mutexs/shared_mutex.h
+mutex
+-
+
+/home/autolab/tiev2019/src/modules/planner/planner_tools/mutexs/shared_mutex.cpp
+mutexs/shared_mutex.h
+/home/autolab/tiev2019/src/modules/planner/planner_tools/mutexs/mutexs/shared_mutex.h
+

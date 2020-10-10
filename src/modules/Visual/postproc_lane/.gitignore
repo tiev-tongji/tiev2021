@@ -1,0 +1,5 @@
+*.so
+*.o
+TIEV2019
+core
+TIEV2019_IMU

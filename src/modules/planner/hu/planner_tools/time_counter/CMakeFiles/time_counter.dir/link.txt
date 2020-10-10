@@ -1,0 +1,2 @@
+/usr/bin/ar qc libtime_counter.a  CMakeFiles/time_counter.dir/time_counter.cpp.o
+/usr/bin/ranlib libtime_counter.a

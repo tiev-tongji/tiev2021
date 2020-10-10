@@ -1,0 +1,4 @@
+struct structSLAMCONTROL
+{
+    byte  mapping;//0x00 mapping 0x01 stop mapping 
+} 

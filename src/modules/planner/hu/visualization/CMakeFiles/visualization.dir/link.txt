@@ -1,0 +1,2 @@
+/usr/bin/ar qc libvisualization.a  CMakeFiles/visualization.dir/visualization.cpp.o
+/usr/bin/ranlib libvisualization.a

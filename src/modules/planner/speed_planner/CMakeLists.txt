@@ -1,0 +1,21 @@
+include_directories (path_time_heuristic)
+include_directories (speed)
+include_directories (path_time_graph)
+include_directories (math)
+include_directories (common)
+include_directories (speed_view)
+include_directories (splines)
+include_directories (qp_spline_speed_optimizer)
+add_subdirectory(path_time_heuristic)
+add_subdirectory(speed)
+add_subdirectory(path_time_graph)
+add_subdirectory(math)
+add_subdirectory(common)
+add_subdirectory(speed_view)
+add_subdirectory(qp_spline_speed_optimizer)
+
+set(speed_planner_src ${speed_planner_src} speed_optimizer.cpp)
+
+add_library(speed_planner ${speed_planner_src})                                                      
+
+target_link_libraries(speed_planner speed_view path_time_heuristic qp_spline_speed_optimizer path_time_graph speed math splines)

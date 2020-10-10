@@ -1,0 +1,6 @@
+struct structACC
+{
+    int64_t  timestamp;
+    int32_t  ACCspeedforward;
+    int32_t  ACCspeedbackward;
+}

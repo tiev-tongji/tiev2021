@@ -1,0 +1,62 @@
+/*
+ * Copyright (c) 2018 TiEV (Tongji Intelligent Electric Vehicle).
+ * 
+ * This file is part of TiEV Autonomous Driving Software
+ * (see cs1.tongji.edu.cn/tiev).
+ * 
+ * License: 3-clause BSD, see https://opensource.org/licenses/BSD-3-Clause
+ */
+//
+//  main.cpp
+//  sick
+//
+//  Created by 高昕宇 on 2017/9/28. modified by 吴岩 赵君峤 on 2017/10/20.
+//  Copyright © 2017年 Rizia. All rights reserved.
+//
+
+#include <iostream>
+#include <thread>
+#include <mutex>
+#include "sick.h"
+
+namespace TiEV
+{
+	void handleNAVINFOMessage(const zcm::ReceiveBuffer *rbuf, const std::string &chan, const structNAVINFO *msg)
+	{
+		int i;
+		printf("Received message on channel \"%s\":\n", chan.c_str());
+		pos_mutex.lock();
+		memcpy(&currentPose, msg, sizeof(structNAVINFO));
+		pos_mutex.unlock();
+	}
+
+	void zcm_func()
+	{
+		if (!myzcm.good())
+			return;
+		Handler handlerObject;
+		myzcm.subscribe("NAVINFO", &Handler::handleNAVINFOMessage, &handlerObject);
+		myzcm.run();
+	}
+}
+
+using namespace TiEV;
+
+int main(int argc, const char * argv[])
+{
+	// insert code here...
+	//zcm
+	std::thread Zcm_thread(zcm_func);
+	Zcm_thread.detach();
+	
+	//Sick
+	Sick sick;
+	sick.init_client("192.168.0.1",2112);//
+	while(1)
+	{
+		sick.start_recieve_client();
+	}
+	std::cout << "Hello, World!\n";
+
+	return 0;
+}

@@ -1,0 +1,22 @@
+struct SlotPoint
+{
+    double x;
+    double y;
+}
+
+struct Slot
+{
+    SlotPoint front_left;
+    SlotPoint front_right;
+    SlotPoint rear_left;
+    SlotPoint rear_right;
+}
+
+struct structPARKINGSLOTS
+{
+    int32_t num;
+    int32_t timestamp;
+    Slot parking_slots[num];
+    
+}
+

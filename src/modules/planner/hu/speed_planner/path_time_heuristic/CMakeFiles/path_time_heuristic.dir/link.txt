@@ -1,0 +1,2 @@
+/usr/bin/ar qc libpath_time_heuristic.a  CMakeFiles/path_time_heuristic.dir/dp_st_cost.cpp.o CMakeFiles/path_time_heuristic.dir/gridded_path_time_graph.cpp.o CMakeFiles/path_time_heuristic.dir/st_graph_point.cpp.o
+/usr/bin/ranlib libpath_time_heuristic.a

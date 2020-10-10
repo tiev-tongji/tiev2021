@@ -1,0 +1,6 @@
+struct structCANCONTROL
+{
+	int64_t timestamp; 
+    int32_t  aimsteer; //deg
+    int32_t  aimspeed; //kph
+}

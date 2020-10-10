@@ -1,0 +1,31 @@
+{
+	"vehiclePara" : {
+			"wheel_base" : 2.305,
+			"mass" : 1383,
+			"lf" : 1.117,
+			"lr" : 1.188,
+			"cornering_stiffness" : 35609.5,
+			"max_wheel_angle" : 0.52
+	},
+
+	"controlPara" : {
+			"k_lateral_front" : 0.8,
+			"k_lateral_rear" : 3.5,
+			"k_heading_dev" : 0.8,
+			"k_lateral_front_high" : 0.8,
+			"k_heading_dev_high" : 0.8,
+			"flag_dynamic" : 0.0,
+			"k_kappa_dev" : 1.0,
+			"v_switch_high" : 50.0,
+			"ay_max_high" : 0.3,
+			"ay_max_low" : 0.4,
+			"aim_dis_k" : 0.5,
+			"aim_dis_base_forward" : 0.8,
+			"aim_dis_base_backward" : -0.5
+	},
+
+	"filterPara" : {
+			"alfa_steering_angle" : 1,
+			"alfa_velocity" : 1 
+	}
+}

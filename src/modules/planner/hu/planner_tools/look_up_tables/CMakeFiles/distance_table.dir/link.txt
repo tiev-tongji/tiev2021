@@ -1,0 +1,2 @@
+/usr/bin/ar qc libdistance_table.a  CMakeFiles/distance_table.dir/distance_table.cpp.o
+/usr/bin/ranlib libdistance_table.a

@@ -1,0 +1,10 @@
+Connection 1 of 999
+Header: ICY 200 OK
+Header: Server: CPS 1.0
+Header: Date: 2019/11/05 13:23:31
+End Of Header
+Connection 1 of 999
+Header: ICY 200 OK
+Header: Server: CPS 1.0
+Header: Date: 2019/11/05 13:23:57
+End Of Header

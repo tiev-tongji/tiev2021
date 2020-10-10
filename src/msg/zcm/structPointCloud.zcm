@@ -1,0 +1,12 @@
+struct point3d
+{
+    float px_;
+    float py_;
+    float pz_;
+}
+struct  structPointCloud
+{
+    int64_t timestamp; 
+    int64_t total; 
+    point3d frame[100000];
+}

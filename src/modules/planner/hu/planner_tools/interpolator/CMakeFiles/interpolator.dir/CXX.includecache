@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/autolab/tiev2019/src/modules/planner/planner_tools/interpolator/interpolator.cpp
+vector
+-
+cmath
+-
+interpolator.h
+/home/autolab/tiev2019/src/modules/planner/planner_tools/interpolator/interpolator.h
+
+/home/autolab/tiev2019/src/modules/planner/planner_tools/interpolator/interpolator.h
+vector
+-
+

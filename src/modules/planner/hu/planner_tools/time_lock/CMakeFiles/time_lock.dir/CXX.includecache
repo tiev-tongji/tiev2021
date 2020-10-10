@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/autolab/tiev2019/src/modules/planner/planner_tools/time_lock/time_lock.cpp
+time_lock.h
+/home/autolab/tiev2019/src/modules/planner/planner_tools/time_lock/time_lock.h
+algorithm
+-
+
+/home/autolab/tiev2019/src/modules/planner/planner_tools/time_lock/time_lock.h
+iostream
+-
+ostream
+-
+sys/time.h
+-
+

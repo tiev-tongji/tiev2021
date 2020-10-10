@@ -1,0 +1,15 @@
+struct TrajectoryPoint {
+    double x;  //reconx(m)
+    double y;  //recony(m)
+    double theta; //heading of car(rad)
+    double t;  //time(s)
+    double k; //curvature(m^-1)
+    double v;  //always is map speed(m/s)
+    double a;  //accelaration(m/s^2)
+}
+
+struct structAIMPATH
+{
+    int32_t num_points;   
+	TrajectoryPoint points[num_points];
+}

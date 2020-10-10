@@ -1,0 +1,4 @@
+struct structREMOTECONTROL
+{
+    byte  enabled;//0x00 manual 0x01 automatic
+} 

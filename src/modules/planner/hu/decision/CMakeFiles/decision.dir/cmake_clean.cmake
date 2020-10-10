@@ -1,0 +1,28 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/decision.dir/back_tracking_state.cpp.o"
+  "CMakeFiles/decision.dir/decision.cpp.o"
+  "CMakeFiles/decision.dir/decision_event.cpp.o"
+  "CMakeFiles/decision.dir/decision_fsm.cpp.o"
+  "CMakeFiles/decision.dir/decision_state.cpp.o"
+  "CMakeFiles/decision.dir/decision_test.cpp.o"
+  "CMakeFiles/decision.dir/decision_view.cpp.o"
+  "CMakeFiles/decision.dir/foggy_driving_state.cpp.o"
+  "CMakeFiles/decision.dir/free_driving_state.cpp.o"
+  "CMakeFiles/decision.dir/global_planning_state.cpp.o"
+  "CMakeFiles/decision.dir/global_replanning_state.cpp.o"
+  "CMakeFiles/decision.dir/intersection_state.cpp.o"
+  "CMakeFiles/decision.dir/lane_driving_state.cpp.o"
+  "CMakeFiles/decision.dir/map_free_state.cpp.o"
+  "CMakeFiles/decision.dir/normal_driving_state.cpp.o"
+  "CMakeFiles/decision.dir/parking_state.cpp.o"
+  "CMakeFiles/decision.dir/stop_state.cpp.o"
+  "CMakeFiles/decision.dir/tracking_state.cpp.o"
+  "CMakeFiles/decision.dir/uturn_state.cpp.o"
+  "libdecision.a"
+  "libdecision.pdb"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/decision.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

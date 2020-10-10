@@ -1,0 +1,25 @@
+{
+    "caffe flavor": "NVIDIA",
+    "caffe version": "0.17.0",
+    "creation time": "2018-11-11 04:25:37.284329",
+    "dataset_id": "20181111-042344-0177",
+    "deploy file": "deploy.prototxt",
+    "digits version": "6.1.1",
+    "framework": "caffe",
+    "id": "20181111-042537-55d8",
+    "image dimensions": [
+        600,
+        800,
+        3
+    ],
+    "job id": "20181111-042537-55d8",
+    "mean file": "mean.binaryproto",
+    "mean subtraction": "none",
+    "model file": "original.prototxt",
+    "name": "TiEV_Warnning",
+    "snapshot file": "snapshot_iter_39200.caffemodel",
+    "solver file": "solver.prototxt",
+    "status": "Running",
+    "train_val file": "train_val.prototxt",
+    "username": "dingyongchao"
+}

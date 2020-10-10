@@ -1,0 +1,42 @@
+struct namedDoubleArray
+{
+    string name;
+    double val;
+}
+struct namedFloatArray
+{
+    string name;
+    float val;
+}
+struct namedIntArray
+{
+    string name;
+    int32_t val;
+}
+struct namedBoolArray
+{
+    string name;
+    boolean val;
+}
+struct namedMapArray
+{
+    string name;
+    byte cells[401][151]; //401*151 = about 6 Kb  
+}
+struct structVISUALINFO
+{
+    int64_t timestamp; //the time when send this data(:ms)
+
+    //Variables to be visualized
+    int16_t doubleArraySize;
+    namedDoubleArray doubleArray[doubleArraySize];
+    int16_t floatArraySize;
+    namedFloatArray floatArray[floatArraySize];
+    int16_t intArraySize;
+    namedIntArray intArray[intArraySize];
+    int16_t boolArraySize;
+    namedBoolArray boolArray[boolArraySize];
+    //Maps to be visualized
+    int16_t mapArraySize;
+    namedMapArray mapArray[mapArraySize];
+}

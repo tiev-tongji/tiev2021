@@ -1,0 +1,1 @@
+g++   -std=c++11 -pthread -o2 -O3 -DNDEBUG  -rdynamic CMakeFiles/generate_tables.dir/generate_tables.cpp.o  -o generate_tables  reeds_shepp_table/libreeds_shepp.a dubins_table/libdubins.a 

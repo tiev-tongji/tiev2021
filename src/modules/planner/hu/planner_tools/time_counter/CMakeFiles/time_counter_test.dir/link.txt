@@ -1,0 +1,1 @@
+g++   -std=c++11 -pthread -o2 -O3 -DNDEBUG  -rdynamic CMakeFiles/time_counter_test.dir/time_counter_test.cpp.o  -o time_counter_test  libtime_counter.a ../time_lock/libtime_lock.a 

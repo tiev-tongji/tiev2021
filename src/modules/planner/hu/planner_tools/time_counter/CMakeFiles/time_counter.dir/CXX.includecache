@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/autolab/tiev2019/src/modules/planner/planner_tools/time_counter/time_counter.cpp
+time_counter.h
+/home/autolab/tiev2019/src/modules/planner/planner_tools/time_counter/time_counter.h
+
+/home/autolab/tiev2019/src/modules/planner/planner_tools/time_counter/time_counter.h
+iostream
+-
+ostream
+-
+sys/time.h
+-
+

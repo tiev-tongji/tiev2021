@@ -1,0 +1,39 @@
+{
+	"roadmap_file": "/home/autolab/tiev2019/src/log/paths/gaojia2_edited.txt",
+	"!roadmap_file": "/home/autolab/tiev2019/src/log/zcmlogs/dashaceshi_1113/dashaceshi_1113.txt",
+	"!roadmap_file": "/home/autolab/tiev2019/src/log/paths/ceshi1112.txt",
+	"rs_distance_table_path": "/home/autolab/tiev2019/src/cfg/reeds_shepp_distance_table",
+	"dubins_distance_table_path": "/home/autolab/tiev2019/src/cfg/dubins_distance_table",
+	"control_mode": 0,
+	"debug_event_mode": 10,
+	"debug_speed_mode": 5,
+	"recommended_speeds": {
+		"BACK": -3,
+		"STOP": 0,
+		"VERYLOW": 8,
+		"LOW": 15,
+		"MID": 20,
+		"HIGH": 40,
+		"VERYHIGH": 60
+	},
+	"max_acceleration": 1.0,
+	"max_deceleration": -1.0,
+	"targets_num_limit": 5,
+	"plan_time_limit_ms": 50,
+	"car_away_limit_meter": 1.0,
+	"steering_ability_factor": 0.6,
+	"collision_detection_radius_meter": 1.5,
+	"collision_detection_axis_length_meter": 1.0,
+	"maintained_length_factor": 1.8,
+	"a_star_extention_step_meter": 0.2,
+	"a_star_analytic_expansion_param_k": 40,
+	"a_star_analytic_expansion_param_t": 50,
+	"a_star_analytic_expansion_max_N": 30,
+	"a_star_curvature_changed_punishment": 1,
+	"tasks" : [
+		{"task_points": [
+                            {"lon":120.780836945, "lat":31.5929711039, "heading":2.20438432693481}
+                         ]
+         }
+	]
+}

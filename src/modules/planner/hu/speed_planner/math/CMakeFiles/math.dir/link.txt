@@ -1,0 +1,2 @@
+/usr/bin/ar qc libmath.a  CMakeFiles/math.dir/linear_interpolation.cpp.o CMakeFiles/math.dir/path_matcher.cpp.o CMakeFiles/math.dir/box.cpp.o
+/usr/bin/ranlib libmath.a

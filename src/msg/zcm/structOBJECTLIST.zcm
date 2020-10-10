@@ -1,0 +1,34 @@
+struct POSITION
+{
+	float                   x;    //this obstacle pose (:m vehicle frame  right)
+	float                   y;    //vehicle frame forward (:m vehicle frame forward)
+}
+
+struct BOUNDINGBOX
+{
+	POSITION                p1;    //obj bounding box point(right up)
+	POSITION                p2;    //obj bounding box point(right bottom)
+	POSITION                p3;    //obj bounding box point(left bottom)
+	POSITION                p4;    //obj bounding box point(left op)     
+}
+
+struct OBJECT
+{
+	int16_t                 id;     //this obstacle id
+	byte                    obj_type;   //CAR = 0; BICYCLIST = 1; PEDESTRIAN = 2; UNKNOWN = 127; 
+	float                   v;      //this obstacle velocity( :m/s)
+	float                   theta;  //this obstacle theta( :rad)
+	float                   width;  //this obstacle size( :m)
+	float                   length; //this obstacle size( :m)
+	BOUNDINGBOX             corners;//this obstacle bounding box point
+	int8_t 			pathNum; 
+	POSITION                path[pathNum];//obstacle center prediction points, path[0] means current time, one point per second
+}
+
+struct structOBJECTLIST 
+{
+	int64_t		timestamp;
+	byte 		data_source; // 1 for multibeam 2 for vision
+	int8_t		count;       //obj nums
+	OBJECT 		obj[count];
+}

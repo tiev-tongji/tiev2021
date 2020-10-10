@@ -1,0 +1,2 @@
+/usr/bin/ar qc libspeed.a  CMakeFiles/speed.dir/speed_data.cpp.o CMakeFiles/speed.dir/speed_limit.cpp.o
+/usr/bin/ranlib libspeed.a

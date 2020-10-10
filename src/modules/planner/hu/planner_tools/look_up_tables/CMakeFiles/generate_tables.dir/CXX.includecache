@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../planner_tools/look_up_tables/dubins_table/dubins_table_helper.h
+string
+../planner_tools/look_up_tables/dubins_table/string
+
+../planner_tools/look_up_tables/reeds_shepp_table/reeds_shepp_table_helper.h
+string
+../planner_tools/look_up_tables/reeds_shepp_table/string
+
+/home/autolab/tiev2019/src/modules/planner/planner_tools/look_up_tables/generate_tables.cpp
+iostream
+/home/autolab/tiev2019/src/modules/planner/planner_tools/look_up_tables/iostream
+string
+-
+look_up_tables/reeds_shepp_table/reeds_shepp_table_helper.h
+/home/autolab/tiev2019/src/modules/planner/planner_tools/look_up_tables/look_up_tables/reeds_shepp_table/reeds_shepp_table_helper.h
+look_up_tables/dubins_table/dubins_table_helper.h
+/home/autolab/tiev2019/src/modules/planner/planner_tools/look_up_tables/look_up_tables/dubins_table/dubins_table_helper.h
+

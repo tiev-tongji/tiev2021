@@ -1,0 +1,197 @@
+#include <iostream>
+#include <algorithm>
+#include <limits>
+#include <cmath>
+
+#include "path_time_graph.h"
+#include "st_point.h"
+#include "../math/linear_interpolation.h"
+#include "../math/path_matcher.h"
+
+namespace TiEV {
+PathTimeGraph::PathTimeGraph(std::vector<Obstacle> &obstacles,
+        const std::vector<Point>& path,
+        const double s_start, const double s_end,
+        const double t_start, const double t_end) {
+    path_range_.first = s_start;
+    path_range_.second = s_end;
+    time_range_.first = t_start;
+    time_range_.second = t_end;
+    path_length_ = s_end - s_start;
+    total_time_ = t_end - t_start;
+    SetupObstacles(obstacles, path);
+}
+
+Point PathTimeGraph::GetPointAtTime(const Obstacle& obstacle, double time) const {
+    const std::vector<Point> points = obstacle.path;
+    if (points.size() < 2) return *points.begin();
+    auto comp = [](const Point p, const int64_t time) {
+        return p.t < time;
+    };
+
+    auto it_lower = std::lower_bound(points.begin(), points.end(), time, comp);
+
+    if (it_lower == points.begin()) {
+        return *points.begin();
+    } else if (it_lower == points.end()) {
+        return *points.rbegin();
+    }
+    return InterpolateUsingLinearApproximationWithT(
+            *(it_lower - 1), *it_lower, time);
+}
+
+Box PathTimeGraph::GetStaticBoundingBox(const Obstacle &obstacle) {
+    return Box(Vec(obstacle.path.front().x, obstacle.path.front().y), obstacle.length, obstacle.width,
+               obstacle.path.front().angle.getRad());
+}
+
+Box PathTimeGraph::GetDynamicBoundingBox(const Obstacle& obstacle, const Point& point) {
+    return Box(Vec(point.x, point.y), obstacle.length, obstacle.width,
+            point.angle.getRad());
+}
+
+SLBoundary PathTimeGraph::ComputeObstacleSLBoundary(const std::vector<Vec>& vertices,
+                                                    const std::vector<Point>& path) {
+    double start_s(std::numeric_limits<double>::max());
+    double end_s(std::numeric_limits<double>::lowest());
+    double start_l(std::numeric_limits<double>::max());
+    double end_l(std::numeric_limits<double>::lowest());
+
+    for (const auto& point : vertices) {
+        std::pair<double, double> sl_point = PathMatcher::GetPathFrenetCoordinate(path, point.x(), point.y());
+
+        start_s = std::fmin(start_s, sl_point.first);
+        end_s = std::fmax(end_s, sl_point.first);
+        start_l = std::fmin(start_l, sl_point.second);
+        end_l = std::fmax(end_l, sl_point.second);
+    }
+
+    SLBoundary sl_boundary;
+    sl_boundary.set_start_s(start_s);
+    sl_boundary.set_end_s(end_s);
+    sl_boundary.set_start_l(start_l);
+    sl_boundary.set_end_l(end_l);
+
+    return sl_boundary;
+}
+
+void PathTimeGraph::SetupObstacles(std::vector<Obstacle> &obstacles,
+                                   const std::vector<Point> &path) {
+    for (auto& obstacle : obstacles) {
+        if (obstacle.path.empty() || obstacle.path.front().v == 0) {
+            SetStaticObstacle(obstacle, path);
+        }
+        else {
+            SetDynamicObstacle(obstacle, path);
+        }
+    }
+    /*
+	for(auto st_boundary: st_boundaries_){
+	    std::cout << "st_boundary info: " << std::endl;
+		std::cout << st_boundary.bottom_left_point().s() << " " << st_boundary.bottom_left_point().t() << endl;
+		std::cout << st_boundary.bottom_right_point().s() << " " << st_boundary.bottom_right_point().t() << endl;
+		std::cout << st_boundary.upper_left_point().s() << " " << st_boundary.upper_left_point().t() << endl;
+		std::cout << st_boundary.upper_right_point().s() << " " << st_boundary.upper_right_point().t() << endl;
+	}
+    */
+}
+
+void PathTimeGraph::SetStaticObstacle(Obstacle& obstacle, const std::vector<Point> &path) {
+    const Box box = GetStaticBoundingBox(obstacle);
+
+    // Debug
+    /*
+    std::cout << "obstacle box: " << std::endl;
+    for (const auto &corner : box.corners()) {
+        std::cout << corner.x() << ' ' << corner.y() << std::endl;
+    }
+    */
+
+    SLBoundary sl_boundary = ComputeObstacleSLBoundary(box.corners(), path);
+
+    double left_width = Default_Path_Width_ * 0.5;
+    double right_width = Default_Path_Width_ * 0.5;
+
+    /*
+    cout << "s:" << sl_boundary.start_s() << " " << sl_boundary.end_s() << endl;
+    cout << "l:" << sl_boundary.start_l() << " " << sl_boundary.end_l() << endl;
+    cout << "path range:" << path_range_.second << " " << path_range_.first << endl;
+    cout << "width:" << left_width << " " << -right_width << endl;
+    */
+    // Out of path range
+    if (sl_boundary.start_s() > path_range_.second ||
+        sl_boundary.end_s() < path_range_.first ||
+        sl_boundary.start_l() > left_width ||
+        sl_boundary.end_l() < -right_width) {
+
+        return;
+    }
+
+    STPoint blp(sl_boundary.start_s(), 0);
+    STPoint brp(sl_boundary.start_s(), total_time_);
+    STPoint ulp(sl_boundary.end_s(), 0);
+    STPoint urp(sl_boundary.end_s(), total_time_);
+
+    STBoundary st_boundary(blp, brp, ulp, urp);
+    st_boundaries_.emplace_back(st_boundary);
+    obstacle.set_st_boundary(st_boundary);
+}
+
+void PathTimeGraph::SetDynamicObstacle(Obstacle &obstacle, const std::vector<Point> &path) {
+    double relative_time = time_range_.first;
+    STPoint bottom_left(0,0);
+    STPoint bottom_right(0, 0);
+    STPoint upper_left(0, 0);
+    STPoint upper_right(0, 0);
+
+    bool left_edge_set = false;
+    while (relative_time < time_range_.second) {
+        Point point = GetPointAtTime(obstacle, relative_time);
+        Box box = GetDynamicBoundingBox(obstacle, point);
+        SLBoundary sl_boundary = ComputeObstacleSLBoundary(box.corners(), path);
+
+        double left_width = Default_Path_Width_ * 0.5;
+        double right_width = Default_Path_Width_ * 0.5;
+
+        // If obstacle is out of lane at this time
+        if (sl_boundary.start_s() > path_range_.second ||
+            sl_boundary.end_s() < path_range_.first ||
+            sl_boundary.start_l() > left_width ||
+            sl_boundary.end_l() < -right_width) {
+            relative_time += Trajectory_Time_Resolution;
+            continue;
+        }
+
+        /*
+        cout << "s:" << sl_boundary.start_s() << " " << sl_boundary.end_s() << endl;
+        cout << "l:" << sl_boundary.start_l() << " " << sl_boundary.end_l() << endl;
+        cout << "path range:" << path_range_.second << " " << path_range_.first << endl;
+        cout << "width:" << left_width << " " << -right_width << endl;
+        */
+
+        if (!left_edge_set) {
+            bottom_left.set_s(sl_boundary.start_s());
+            bottom_left.set_t(relative_time);
+            upper_left.set_s(sl_boundary.end_s());
+            upper_left.set_t(relative_time);
+
+            bottom_right.set_s(sl_boundary.start_s());
+            bottom_right.set_t(relative_time);
+            upper_right.set_s(sl_boundary.end_s());
+            upper_right.set_t(relative_time);
+            left_edge_set = true;
+        } else {
+            bottom_right.set_s(sl_boundary.start_s());
+            bottom_right.set_t(relative_time);
+            upper_right.set_s(sl_boundary.end_s());
+            upper_right.set_t(relative_time);
+        }
+        relative_time += Trajectory_Time_Resolution;
+    }
+    if (left_edge_set) {
+        STBoundary st_boundary(bottom_left, bottom_right, upper_left, upper_right);
+        st_boundaries_.emplace_back(st_boundary);
+        obstacle.set_st_boundary(st_boundary);
+    }
+}
+} // namespace TiEV

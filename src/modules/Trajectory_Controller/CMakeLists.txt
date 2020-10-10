@@ -1,0 +1,31 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
+PROJECT(TrajectoryController)
+
+SET(CMAKE_BUILD_TYPE "Release")
+#SET(CMAKE_BUILD_TYPE "Debug")
+
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+SET(INCLUDE_PATH include  ../../common)
+#SET(MSG_SOURCE_DIR "/home/autolab/tiev/2018/src/msg")
+SET(MSG_SOURCE_DIR ../../msg/include) 
+SET(SRC_PATH src/)
+SET(TEST_PATH test/)
+
+FIND_PACKAGE(OpenCV REQUIRED opencv_highgui opencv_imgproc)
+
+INCLUDE_DIRECTORIES(${INCLUDE_PATH})
+INCLUDE_DIRECTORIES(${MSG_SOURCE_DIR})
+INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
+AUX_SOURCE_DIRECTORY(${SRC_PATH} SRC_LIST)
+AUX_SOURCE_DIRECTORY(${TEST_PATH} TEST_LIST)
+
+ADD_EXECUTABLE(trajectory_controller ${SRC_LIST})
+TARGET_LINK_LIBRARIES(trajectory_controller zcm pthread)
+
+SET(ENABLE_TEST ON)
+
+IF(ENABLE_TEST)
+	ADD_EXECUTABLE(test_controller ${TEST_LIST})
+	TARGET_LINK_LIBRARIES(test_controller zcm pthread ${OpenCV_LIBS} opencv_highgui opencv_imgproc)
+ENDIF(ENABLE_TEST)

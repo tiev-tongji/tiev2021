@@ -1,0 +1,6 @@
+struct structCANINFO
+{
+	int64_t timestamp; 
+    int32_t  carsteer; //Deg
+    int32_t  carspeed; //kph
+}

@@ -1,0 +1,16 @@
+struct structTRAFFICLIGHT
+{
+    int64_t  timestamp;
+    byte     raw_signal; 
+    //bit 0  1 green circle 		0 red/yellow circle 
+    //bit 1  1 green arrow left 	0  red/yellow arrow left 
+    //bit 2  1 green arrow right 	0  red/yellow arrow right 
+    //bit 3  1 green arrow straight 	0  red/yellow arrow straight 
+    //0x0f by default
+
+    byte     turn_signal; 
+    //bit 0 1 right allowed 	 0 right disallowed 	(disallowed: false == (raw_signal & 0x04))
+    //bit 1 1 straight allowed 0 straight disallowed  (disallowed: false == (raw_signal & 0x01) && (raw_signal & 0x08))
+    //bit 2 1 left allowed 	 0 left disallowed 		(disallowed: false == (raw_signal & 0x01) && (raw_signal & 0x02))
+    //0x07 by default
+}

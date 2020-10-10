@@ -1,0 +1,10 @@
+struct structSLAMLOC
+{
+	int64_t timestamp;
+
+	double x;
+	double y;
+	double mHeading;
+
+	byte SLAMStatus; // 1 valid 0 invalid
+}

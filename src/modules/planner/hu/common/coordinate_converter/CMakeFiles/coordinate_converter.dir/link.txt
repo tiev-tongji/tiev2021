@@ -1,0 +1,2 @@
+/usr/bin/ar qc libcoordinate_converter.a  CMakeFiles/coordinate_converter.dir/basic_coordinate_converter.cpp.o CMakeFiles/coordinate_converter.dir/coordinate_converter.cpp.o
+/usr/bin/ranlib libcoordinate_converter.a
