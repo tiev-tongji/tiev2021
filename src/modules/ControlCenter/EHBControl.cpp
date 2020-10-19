@@ -12,10 +12,10 @@
  */
 
 #include "EHBControl.hpp"
-
+#include "ControlCenterCommon.h"
 using namespace std;
 
-#define DEBUG 0
+#define _DEBUG 0
 
 #define SHOW(x) cout << #x << " = " << x+0 << endl
 
@@ -54,7 +54,7 @@ void EHBControl::init(){
 	INFO("Start to publish EHB info");
     static std::thread send_info(&EHBControl::canInfoSend, this);
 
-	return 0;
+	return;
 }
 
 // 读取EHB制动信息
@@ -150,7 +150,7 @@ void EHBControl::get_m_EHB_TX2(can_frame *frame){
 	ehbMessage_.BrakePedalTravel = frame->data[3];
 	ehbMessage_.EHBFaultCode = frame->data[4];
 	ehbMessage_.AimPressureAnswered = frame->data[5];
-	if(DEBUG == 1){
+	if(_DEBUG == 1){
 		SHOW(ehbMessage_.EHBStatus);
 		SHOW(ehbMessage_.ParkingBrakeRequest);
 		SHOW(ehbMessage_.ActualPressure);

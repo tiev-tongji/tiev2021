@@ -29,6 +29,7 @@
 #include <net/if.h>
 #include <termios.h> 
 #include <atomic>
+#include <thread>
 
 using namespace std;
 
@@ -63,7 +64,7 @@ public:
 		else return -1;
 	}
 private:
-	void canInfoRead();
+	int canInfoRead();
 	void canInfoSend();
 	void get_m_EHB_TX2(can_frame *frame);
 	void send_m_TX2_EHB(can_frame *frame);

@@ -50,6 +50,11 @@ STATE messageControl::get_veh_control_msg(veh_info_t* veh_info){
     return ret;
 }
 
+STATE messageControl::get_nav_info_msg(nav_info_t* nav_info){
+    STATE ret = msgHandle.get_nav_info_msg(nav_info);
+    return ret;
+}
+
 STATE messageControl::get_remote_control_msg(bool* remote_control){
     STATE ret = msgHandle.get_remote_control_msg(remote_control);
     return ret;
