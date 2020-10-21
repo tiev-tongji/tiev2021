@@ -2,9 +2,8 @@ project(CONTROL_CENTER)
 set (CMAKE_CXX_STANDARD 11)
 
 include_directories(${PROJECT_SOURCE_DIR}/../../msg/include)
-include_directories(${PROJECT_SOURCE_DIR}/../../common)
 
-set(SOURCES EHBControl.cpp ROEWECenterControl.cpp pidController.cpp messageControl.cpp sys_logger.cpp ESRControl.cpp main.cpp  ${PROJECT_SOURCE_DIR}/../../common/nature/timestamp.cpp)
+set(SOURCES main.cpp EHBControl.cpp ROEWECenterControl.cpp pidController.cpp messageControl.cpp sys_logger.cpp)
 add_executable(CONTROL ${SOURCES})
 add_executable(ZCM_TEST zcmUnitTest.cpp)
 

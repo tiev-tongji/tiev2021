@@ -25,8 +25,8 @@ const int8_t CC_OK = 0;
 const int8_t CC_ERR = -1;
 
 // 调试位
-const bool debug_flag = false;
-//const bool debug_flag = true;
+//const bool debug_flag = false;
+const bool debug_flag = true;
 
 #define DEBUG(info) if(debug_flag == true){ \
 						std::cout << info << std::endl;}
@@ -52,13 +52,6 @@ typedef struct control_params{
 	float steer_I = 0;
 	float steer_D = 0;
 } control_params_t;
-
-typedef struct nav_info{
-	double mHeading;
-	double utmX, utmY;
-	double speed, yawRate;
-	std::string timestamp;
-} nav_info_t;
 
 inline void assign_params(std::string& name, float& num, std::string param_name, float* assign_num){
 	if (name == param_name){

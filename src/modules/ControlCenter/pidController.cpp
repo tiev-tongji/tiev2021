@@ -46,10 +46,11 @@ inline void clamp(float& input, const float& hi){
 }
 
 STATE speed_pid_control(const float& veh_speed, float& desired_speed, const control_params_t& params, bool* is_break, float* control_output){
+	std::cout << "acc_P: " << params.acc_P << std::endl;
 	if(desired_speed == 0 || veh_speed * desired_speed < 0){
 	    INFO("stop car right now!");
 	    *is_break = true;
-	    *control_output = 20;
+	    *control_output = 10;
             *control_output += fabs(veh_speed) * params.break_P;
 	    return CC_OK;
 	}

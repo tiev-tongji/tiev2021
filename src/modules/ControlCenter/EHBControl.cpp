@@ -13,15 +13,16 @@
 
 #include "EHBControl.hpp"
 #include "ControlCenterCommon.h"
+
 using namespace std;
 
-#define _DEBUG 0
+#define DEBUG 0
 
 #define SHOW(x) cout << #x << " = " << x+0 << endl
 
 EHBControl::EHBControl(){
 	sendCount = 0;
-    openCAN = false;
+
 	struct sockaddr_can addr_can;
 	struct ifreq ifr_can;
 	CAN_PORT = socket(PF_CAN, SOCK_RAW, CAN_RAW);
@@ -36,11 +37,9 @@ EHBControl::EHBControl(){
 	struct can_filter rfilter_can[2];
 	//rfilter_can[0].can_id = 0x303;				//DCU
     //rfilter_can[0].can_mask = CAN_SFF_MASK;
-    //rfilter_can[0].can_id = 0x304;				//EHB
-    //rfilter_can[0].can_mask = CAN_SFF_MASK;
+    rfilter_can[0].can_id = 0x304;				//EHB
+    rfilter_can[0].can_mask = CAN_SFF_MASK;
     setsockopt(CAN_PORT, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter_can, sizeof(rfilter_can));
-
-    openCAN = true;
 }
 
 EHBControl::~EHBControl(){
@@ -58,7 +57,7 @@ void EHBControl::init(){
 }
 
 // 读取EHB制动信息
-int EHBControl::canInfoRead(){
+void EHBControl::canInfoRead(){
 	while(1){
 		int nbytes;
 		struct can_frame frame[1];
@@ -67,16 +66,15 @@ int EHBControl::canInfoRead(){
 		if ((frame)->can_id == 0x304)
 		{
 			get_m_EHB_TX2(frame);
-			return 0;
 		}
 		usleep(50*1000);
 	}
-	return -1;
+	return;
 }
 
 void EHBControl::canInfoSend(){
 	while(1){
-		usleep(50*1000);
+		usleep(10*1000);
 		if(dcuMessage_.AimPressure == 0){
 			continue;
 		}
@@ -92,6 +90,7 @@ void EHBControl::canInfoSend(){
 		}
 		
 	}
+	return;
 }
 
 void EHBControl::keyboardControl(){
@@ -150,7 +149,7 @@ void EHBControl::get_m_EHB_TX2(can_frame *frame){
 	ehbMessage_.BrakePedalTravel = frame->data[3];
 	ehbMessage_.EHBFaultCode = frame->data[4];
 	ehbMessage_.AimPressureAnswered = frame->data[5];
-	if(_DEBUG == 1){
+	if(DEBUG == 1){
 		SHOW(ehbMessage_.EHBStatus);
 		SHOW(ehbMessage_.ParkingBrakeRequest);
 		SHOW(ehbMessage_.ActualPressure);
@@ -167,6 +166,15 @@ void EHBControl::send_m_TX2_EHB(can_frame *frame){
 	for(int i=0; i<8;i++){
 		frame->data[i] = 0;
 	}
+
+        if(dcuMessage_.AimPressure == 0){
+		dcuMessage_.ParkingBrakeActive = 0;
+	}
+	else{
+		dcuMessage_.ParkingBrakeActive = 2;
+
+	}
+
 	frame->data[0] = dcuMessage_.BrakingMode & 0x0F;
 	frame->data[0] = frame->data[0] << 4;
 	frame->data[0] = frame->data[0] | (dcuMessage_.ParkingBrakeActive & 0x0F);

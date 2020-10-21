@@ -18,7 +18,6 @@
 #include "pidController.h"
 #include "messageControl.h"
 #include "EHBControl.hpp"
-#include "ESRControl.hpp"
 
 static control_params_t params;
 const std::string params_file = "parameters.txt";
@@ -38,11 +37,6 @@ int main(){
     EHBControl ehb_control;
     ehb_control.init();
     
-    //for esr
-    ESRControl esr_control(ehb_control.getCANPort());
-    esr_control.init();
-    nav_info_t veh_nav_info;
-    
     bool enable_pc_control = false;
     veh_info_t veh_pc_control_info;
 
@@ -55,22 +49,13 @@ int main(){
         // 获取ZCM发送过来的信息
         msgControl.get_remote_control_msg(&enable_pc_control);
         msgControl.get_veh_control_msg(&veh_pc_control_info);
-        msgControl.get_nav_info_msg(&veh_nav_info);
-        INFO("enable_pc_control:" << (int)enable_pc_control); 
         //enable_pc_control = true;
-        //veh_pc_control_info.speed = 5;
+        //veh_pc_control_info.speed = 0;
         //veh_pc_control_info.angle = 0;
-        
-        // 设置NAVINFO信息给ESR
-        esr_control.setNavInfo(veh_nav_info); 
-        // 获取ESR结果并发送
-        esr_control.esrMapLock();
-        msgControl.pub_esr_map_msg(esr_control.getEsrMapPtr());
-        esr_control.esrMapUnLock();
+	//std::cout << "$$$$$$: " <<  veh_pc_control_info.speed << std::endl;
 
-        // 获取车身CAN信息
+        //// 获取车身CAN信息
         veh_control.get_vehicle_info(&veh_info.speed, &veh_info.angle);
-        INFO("================== Speed: " << veh_info.speed);
         msgControl.pub_veh_status_msg(veh_info);
 
         // PID算法计算
@@ -80,19 +65,42 @@ int main(){
         // 车身控制信号CAN发送
         // 刹车控制
         DCUMessage dcuMsg;
+	//std::cout << "isbreak: " <<  is_break << std::endl;
+	//std::cout << "speed_torque: " <<  speed_torque << std::endl;
         if(is_break == true){
             dcuMsg.AimPressure = speed_torque;
             speed_torque = 0;
         }
         // 油门控制
         else{
-            dcuMsg.AimPressure = 0;
+            dcuMsg.AimPressure = 1;
         }
+        
+        if(!enable_pc_control){
+            dcuMsg.AimPressure = 0;
+	}
+        //DCUMessage dcuMsg;
+        //angle_torque = 0;
+        //enable_pc_control = 1;
+        //static int count = 0;
+        //if(count % 200 <= 100){
+	//   dcuMsg.AimPressure = 0;
+	//   speed_torque = 20;
+	//   std::cout << "ACC" << std::endl;
+        //}
+	//else{
+	//    dcuMsg.AimPressure = 0;
+	//    speed_torque = 0;
+	//   speed_torque = -20;
+	//    std::cout << "Break" << std::endl;
+	//}
+        //count++;
+
         ehb_control.sendDCUMessage(dcuMsg);
         veh_control.send_vehicle_control_info(speed_torque, angle_torque);
         veh_control.enable_vehicle_control(enable_pc_control);
 
-        usleep(10 * 1000);
+        usleep(20 * 1000);
     }
 
     return 0;
