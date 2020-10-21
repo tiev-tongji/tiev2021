@@ -123,5 +123,6 @@ void messageHandle::veh_navinfo(const zcm::ReceiveBuffer* rbuf, const std::strin
         nav_info_.utmY = msg->utmY;
         nav_info_.speed = msg->mSpeed3d;
         nav_info_.yawRate = msg->mAngularRateZ;
+        nav_info_.pitchDeg = msg->mPitch;
     }
 }

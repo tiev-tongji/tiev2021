@@ -58,7 +58,7 @@ int main(){
         msgControl.get_nav_info_msg(&veh_nav_info);
         INFO("enable_pc_control:" << (int)enable_pc_control); 
         //enable_pc_control = true;
-        //veh_pc_control_info.speed = 5;
+        //veh_pc_control_info.speed = 0;
         //veh_pc_control_info.angle = 0;
         
         // 设置NAVINFO信息给ESR
@@ -80,19 +80,24 @@ int main(){
         // 车身控制信号CAN发送
         // 刹车控制
         DCUMessage dcuMsg;
+        //std::cout<< "isbreak: " << is_break << std:endl;
+        //std::cout<< "speed_torque: " << speed_torque << std:endl;
         if(is_break == true){
             dcuMsg.AimPressure = speed_torque;
             speed_torque = 0;
         }
         // 油门控制
         else{
-            dcuMsg.AimPressure = 0;
+            dcuMsg.AimPressure = 1; //john: verify
         }
         ehb_control.sendDCUMessage(dcuMsg);
+        if(!enable_pc_control){
+            dcuMsg.AimPressure = 0;
+        }
         veh_control.send_vehicle_control_info(speed_torque, angle_torque);
         veh_control.enable_vehicle_control(enable_pc_control);
 
-        usleep(10 * 1000);
+        usleep(20 * 1000);
     }
 
     return 0;

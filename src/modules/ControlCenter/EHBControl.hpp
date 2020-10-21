@@ -47,7 +47,7 @@ struct DCUMessage{
 	unsigned char ParkingBrakeActive = 0;
 	float VehicleSlope = 0.0;
 	float VehicleSpeed = 0.0;
-	unsigned char AimPressure;
+	unsigned char AimPressure = 0;
 	float VehicleLongitudinalAcc = 0;
 };
 
@@ -59,7 +59,7 @@ public:
 	void init();
 	EHBMessage getEHBMessage();
 	void sendDCUMessage(DCUMessage msg);
-    int getCANPort(){//for ESR
+        int getCANPort(){//for ESR
 		if(openCAN) return CAN_PORT;
 		else return -1;
 	}
