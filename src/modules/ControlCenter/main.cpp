@@ -74,7 +74,8 @@ int main(){
         msgControl.pub_veh_status_msg(veh_info);
 
         // PID算法计算
-        speed_pid_control(veh_info.speed, veh_pc_control_info.speed, params, &is_break, &speed_torque);
+       // speed_pid_control(veh_info.speed, veh_pc_control_info.speed, params, &is_break, &speed_torque);
+        speed_pid_control(veh_info.speed, veh_pc_control_info.speed, veh_nav_info.angle_pitch, params, &is_break, &speed_torque);
         angle_pid_control(veh_info, veh_pc_control_info.angle, params, &angle_torque);
 
         // 车身控制信号CAN发送
