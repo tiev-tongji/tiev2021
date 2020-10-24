@@ -1,5 +1,7 @@
 //
 // Created by xlz on 17-9-27.
+// modified by xlz on 19-9-27 for indoor slam
+// Created by john on 20-9-27 for adding vlp16 and cleaning.
 //
 
 #include "node.h"
@@ -16,9 +18,9 @@ using ::cartographer::transform::Rigid3d;
 #include "structLASERMAP.hpp"
 #include "structPointCloud.hpp"
 #include "structSLAMLOC.hpp"
-//#include "structLUXMAP.hpp"
+#include "structLUXMAP.hpp"
+#include "structVLPMAP.hpp"
 #include "structNAVINFO.hpp"
-#include "structOBJECTLIST.hpp"
 #include "structSLAMCONTROL.hpp"
 
 
@@ -78,14 +80,19 @@ namespace TiEV{
 
     structLASERMAP LASER_temp;
     bool bRecvLASERMAP = false;
-//    structLUXMAP LUX_temp;
-//    bool bRecvLUXMAP = false;
+
+    structLUXMAP LUX_temp;
+    bool bRecvLUXMAP = false;
+
+    structVLPMAP VLP_temp;
+    bool bRecvVLPMAP = false;
+
     structSICKMAP SICK_temp;
     bool bRecvSICKMAP = false;
+
     structNAVINFO NAVI_temp;
     bool bRecvNAVINFO = false;
-    structOBJECTLIST OBJLIST_temp;
-    bool bRecvOBJLIST = false;
+
     structPointCloud PointCloud_temp;
     bool bRecvPointCloud = false;
 
@@ -93,10 +100,9 @@ namespace TiEV{
 
     mutex LASER_mtx;
     mutex SICK_mtx;
-//    mutex LUX_mtx;
-    mutex OBJLIST_mtx;
+    mutex LUX_mtx;
+    mutex VLP_mtx;
     mutex PointCloud_mtx;
-
     mutex NAVI_mtx;
     mutex FUSION_mtx;
 
@@ -135,25 +141,35 @@ namespace TiEV{
             SICK_mtx.unlock();
         }
 
-//        void handleMessage_LuxMap(const lcm::ReceiveBuffer* rbuf,
-//                                  const std::string& chan,
-//                                  const structLUXMAP* msg)
-//        {
-//            LUX_mtx.lock();
-//            memcpy(&LUX_temp, msg, sizeof(*msg));
-//            bRecvLUXMAP = true;
-//            LUX_mtx.unlock();
-//        }
-
-        void handleMessage_ObjList(const zcm::ReceiveBuffer* rbuf,
-                                   const std::string& chan,
-                                   const structOBJECTLIST* msg)
-        {
-            OBJLIST_mtx.lock();
-            OBJLIST_temp = *msg;
-            bRecvOBJLIST = true;
-            OBJLIST_mtx.unlock();
-        }
+       void handleMessage_LuxMap(const lcm::ReceiveBuffer* rbuf,
+                                 const std::string& chan,
+                                 const structLUXMAP* msg)
+       {
+           LUX_mtx.lock();
+           memcpy(&LUX_temp, msg, sizeof(*msg));
+           bRecvLUXMAP = true;
+           LUX_mtx.unlock();
+       }
+        
+       void handleMessage_VLPMap(const lcm::ReceiveBuffer* rbuf,
+                                 const std::string& chan,
+                                 const structVLPMAP* msg)
+       {
+           VLP_mtx.lock();
+           memcpy(&VLP_temp, msg, sizeof(*msg));
+           bRecvVLPMAP = true;
+           VLP_mtx.unlock();
+       }
+        // no longer needed, marked in Multibeam
+        // void handleMessage_ObjList(const zcm::ReceiveBuffer* rbuf,
+        //                            const std::string& chan,
+        //                            const structOBJECTLIST* msg)
+        // {
+        //     OBJLIST_mtx.lock();
+        //     OBJLIST_temp = *msg;
+        //     bRecvOBJLIST = true;
+        //     OBJLIST_mtx.unlock();
+        // }
 
         void handleMessage_PointCloud(const zcm::ReceiveBuffer* rbuf,
                                    const std::string& chan,
@@ -198,7 +214,8 @@ void zcm_ipc_func()
     zcm_ipc.subscribe("LASERMAP", &Handler::handleMessage_scan, &handlerObject);
     zcm_ipc.subscribe("SICKMAP", &Handler::handleMessage_SickMap, &handlerObject);
     zcm_ipc.subscribe("CLOUD", &Handler::handleMessage_PointCloud, &handlerObject);
-//    zcm_ipc.subscribe("LUXMAP", &Handler::handleMessage_LuxMap, &handlerObject);
+    zcm_ipc.subscribe("LUXMAP", &Handler::handleMessage_LuxMap, &handlerObject);
+    zcm_ipc.subscribe("VLPMAP", &Handler::handleMessage_VlpMap, &handlerObject);
     // while (0 == zcm_ipc.handle() );
     zcm_ipc.run();
 
@@ -216,7 +233,7 @@ void zcm_udpm_func()
 
     Handler handlerObject;
     zcm_udpm.subscribe("NAVINFO", &Handler::handleMessage_odom, &handlerObject);
-    zcm_udpm.subscribe("OBJECTLIST", &Handler::handleMessage_ObjList, &handlerObject);
+    //zcm_udpm.subscribe("OBJECTLIST", &Handler::handleMessage_ObjList, &handlerObject);
     //TODO：待确定消息
     zcm_udpm.subscribe("SLAMCONTROL", &Handler::handleMessage_SLAMCONTROL, &handlerObject);
     zcm_udpm.run();    
@@ -552,15 +569,25 @@ void * perception_Node::genFUSIONMap(void* __this)
             Sick_pos = pos(currentSick.utmX, currentSick.utmY, currentSick.mHeading);
         }
 
-//        structLUXMAP currentLux;
-//        pos Lux_pos(0, 0, 0);
-//        if (bRecvLUXMAP) {
-//            LUX_mtx.lock();
-//            currentLux = LUX_temp;
-//            array_trans(currentLux.cells, LUX_temp.cells, 0.93);
-//            LUX_mtx.unlock();
-//            Lux_pos = pos(currentLux.utmX, currentLux.utmY, currentLux.mHeading);
-//        }
+       structLUXMAP currentLux;
+       pos Lux_pos(0, 0, 0);
+       if (bRecvLUXMAP) {
+           LUX_mtx.lock();
+           currentLux = LUX_temp;
+           //array_trans(currentLux.cells, LUX_temp.cells, 0.93);
+           LUX_mtx.unlock();
+           Lux_pos = pos(currentLux.utmX, currentLux.utmY, currentLux.mHeading);
+       }
+
+       structVLPMAP currentVlp;
+       pos Vlp_pos(0, 0, 0);
+       if (bRecvVLPMAP) {
+           VLP_mtx.lock();
+           currentVlp = VLP_temp;
+           //array_trans(currentLux.cells, VLP_temp.cells, 0.93);
+           VLP_mtx.unlock();
+           Vlp_pos = pos(currentVlp.utmX, currentVlp.utmY, currentVlp.mHeading);
+       }
 
         structLASERMAP currentLaser;
         pos Laser_pos(0, 0, 0);
@@ -577,20 +604,26 @@ void * perception_Node::genFUSIONMap(void* __this)
         }
 
         cv::Mat SickMap_temp(GRID_ROW, GRID_COL, CV_8UC1, Scalar(0));
-//        cv::Mat LuxMap_temp(GRID_ROW, GRID_COL, CV_8UC1, Scalar(0));
+	cv::Mat LuxMap_temp(GRID_ROW, GRID_COL, CV_8UC1, Scalar(0));
+        cv::Mat VlpMap_temp(GRID_ROW, GRID_COL, CV_8UC1, Scalar(0));
         cv::Mat LaserMap_temp(GRID_ROW, GRID_COL, CV_8UC1, Scalar(0));
         cv::Mat OBJMAP_temp(GRID_ROW, GRID_COL, CV_8UC1, Scalar(0));
 
+	//Generate temp maps for messages to be fused
         for (int m = 0; m < GRID_ROW; m++) {
             for (int n = 0; n < GRID_COL; n++) {
                 if (bRecvSICKMAP && currentSick.cells[m][n] != 0) {
                     SickMap_temp.ptr<uchar>(m)[n] = 255;
                 }
-//                if (bRecvLUXMAP && currentLux.cells[m][n] != 0) {
-//                    LuxMap_temp.ptr<uchar>(m)[n] = 255;
-//                }
+                if (bRecvLUXMAP && currentLux.cells[m][n] != 0) {
+                    LuxMap_temp.ptr<uchar>(m)[n] = 255;
+                }
+                if (bRecvVLPMAP && currentVlp.cells[m][n] != 0) {
+                    VlpMap_temp.ptr<uchar>(m)[n] = 255;
+		}
                 if (bRecvLASERMAP && currentLaser.cells[m][n] != 0) {
                     // LaserMap_temp.ptr<uchar>(m)[n] = 255;
+                    //1 static 2 dynamic, marked in MultibeamLaser
                    if(currentLaser.cells[m][n] == 1)
                    {
                        LaserMap_temp.ptr<uchar>(m)[n] = 255;
@@ -620,14 +653,28 @@ void * perception_Node::genFUSIONMap(void* __this)
         {
            memset(current_map.data,0,GRID_ROW*GRID_COL* sizeof(uint8_t));
         }
+       
 
+       //fusion TODO JOHN
         if (bRecvSICKMAP) {
-            map_fusion(current_map, FusionMap_pos, SickMap_temp, Sick_pos, GRID_RESOLUTION,0.93, 0x08);
+            //bit 3
+            map_fusion(current_map, FusionMap_pos, SickMap_temp, Sick_pos, GRID_RESOLUTION, 0.93, 0x08);
             //TODO: testing
             // map_fusion_onestep(current_map, FusionMap_pos, SickMap_temp, Sick_pos, 0x08);
             // mapfusion_by_eigen(current_map, FusionMap_pos, SickMap_temp, Sick_pos, 0x08);
         }
 
+        if (bRecvLUXMAP) {
+            //bit 4
+            map_fusion(current_map, FusionMap_pos, LuxMap_temp, Lux_pos, GRID_RESOLUTION, 0.93, 0x10);
+        }
+
+        if (bRecvVLPMAP) {
+            //bit 5
+            map_fusion(current_map, FusionMap_pos, VlpMap_temp, Vlp_pos, GRID_RESOLUTION, 0.93, 0x20);
+        }
+
+	//historical map --- 0x01
         for (int i = 0; i < current_map.rows; ++i) {
             for (int j = 0; j < current_map.cols; ++j) {
                 if (current_map.ptr<uchar>(i)[j] > 0) {
@@ -637,7 +684,6 @@ void * perception_Node::genFUSIONMap(void* __this)
             }
         }
 
-        //esr 0x10
 
         if (bRecvLASERMAP) {
             //static obstacle --- 0x02
@@ -655,32 +701,10 @@ void * perception_Node::genFUSIONMap(void* __this)
         {
             debug_show(current_map, "current_map");
             debug_show(SickMap_temp, "SickMap_temp");
+            debug_show(LuxMap_temp, "LuxMap_temp");
+            debug_show(VlpMap_temp, "VlpMap_temp");
             debug_show(LaserMap_temp, "LaserMap_temp");
-/*
 
-            OBJLIST_mtx.lock();
-            structOBJECTLIST tracklists = OBJLIST_temp;
-            OBJLIST_mtx.unlock();
-            for (int i = 0; i < tracklists.count; ++i)
-            {
-                OBJECT obj = tracklists.obj[i];
-                BOUNDINGBOX corner = obj.corners;
-
-                Scalar sca = Scalar(255);
-
-                corner.p1.y -= 1.47;
-                corner.p2.y -= 1.47;
-                corner.p3.y -= 1.47;
-                corner.p4.y -= 1.47;
-
-                drawLine(corner.p1.x, corner.p1.y, corner.p2.x, corner.p2.y, sca);
-                drawLine(corner.p2.x, corner.p2.y, corner.p3.x, corner.p3.y, sca);
-                drawLine(corner.p3.x, corner.p3.y, corner.p4.x, corner.p4.y, sca);
-                drawLine(corner.p4.x, corner.p4.y, corner.p1.x, corner.p1.y, sca);
-            }
-            debug_show(current_map, "current_map");
-//            debug_show(LaserMap_temp, "LaserMap_temp");
-*/
         }
 
 
