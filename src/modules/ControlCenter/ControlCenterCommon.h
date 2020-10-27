@@ -60,7 +60,6 @@ typedef struct nav_info{
 	float angle_pitch;
 	double speed, yawRate;
 	std::string timestamp;
-        //float pitchDeg;
 } nav_info_t;
 
 inline void assign_params(std::string& name, float& num, std::string param_name, float* assign_num){

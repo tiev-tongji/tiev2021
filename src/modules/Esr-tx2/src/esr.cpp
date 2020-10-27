@@ -43,9 +43,9 @@ int stLstTop = 0;
 
 mutex  stLstTop_mutex;
 
-unsigned char stLst[MsgHeapSize][64][8];
+unsigned char TrackInfo[MsgHeapSize][64][8];
 
-unsigned char mvLst[70];//obj movable 64 objs
+unsigned char Tracks[70];//obj movable 64 objs
 
 InPathID ACC_FCW;
 
@@ -60,7 +60,7 @@ int fnum = 0;
 //int fnum = 0;
 
 int work(int num){
-	int workID;
+	int ObjectID;
 	int angle, range, width, rangespd, latspd, bridge;
 	double angleR, rangeR, widthR, rangespdR, latspdR;
 	double objX, objY, objB, objE;
@@ -78,39 +78,39 @@ int work(int num){
 		}
 
 	}
-	for (workID = 0; workID < NUM_OBJ; workID++){
+	for (ObjectID = 0; ObjectID < NUM_OBJ; ObjectID++){
 
-//        if (workID == ACC_FCW.path_id_CMBB_stat ||
-//            workID == ACC_FCW.path_id_CMBB_move ||
-//            workID == ACC_FCW.path_id_FCW_stat ||
-//            workID == ACC_FCW.path_id_FCW_move ||
-//            workID == ACC_FCW.path_id_ACC ||
-//            workID == ACC_FCW.path_id_ACC_stat)
-            // cout<<"mvLst[workID] & 0x20: "<<((mvLst[workID] & 0x20)>>5)<<endl;
-			//if ((((mvLst[workID] & 0x20)>>5) != 0 && (int)(mvLst[workID] & 0x80) != 0))
-		// || objWeights[workID] > 0){
-        if (((mvLst[workID] & 0x20)>>5) != 0)//is dynamic obj
+//        if (ObjectID == ACC_FCW.path_id_CMBB_stat ||
+//            ObjectID == ACC_FCW.path_id_CMBB_move ||
+//            ObjectID == ACC_FCW.path_id_FCW_stat ||
+//            ObjectID == ACC_FCW.path_id_FCW_move ||
+//            ObjectID == ACC_FCW.path_id_ACC ||
+//            ObjectID == ACC_FCW.path_id_ACC_stat)
+            // cout<<"Tracks[ObjectID] & 0x20: "<<((Tracks[ObjectID] & 0x20)>>5)<<endl;
+			//if ((((Tracks[ObjectID] & 0x20)>>5) != 0 && (int)(Tracks[ObjectID] & 0x80) != 0))
+		// || objWeights[ObjectID] > 0){
+        if (((Tracks[ObjectID] & 0x20)>>5) != 0)//is dynamic obj
         {
-            if (stLst[num][workID][0] == 0
-                && stLst[num][workID][1] == 0
-                && stLst[num][workID][2] == 0
-                && stLst[num][workID][3] == 0)
+            if (TrackInfo[messgeNum][ObjectID][0] == 0
+                && TrackInfo[messgeNum][ObjectID][1] == 0
+                && TrackInfo[messgeNum][ObjectID][2] == 0
+                && TrackInfo[messgeNum][ObjectID][3] == 0)
                 continue; //no data
 
 
             cout << "------------------------------------" << endl;
-            //if (((int)(mvLst[workID] & 0x20) != 0 && (int)(mvLst[workID] & 0x80) != 0)) {
-            cout << workID << " SEE A DYNAMIC OBJ!!!!!!!" << endl;
-            objWeights[workID] = FILTER;
+            //if (((int)(Tracks[ObjectID] & 0x20) != 0 && (int)(Tracks[ObjectID] & 0x80) != 0)) {
+            cout << ObjectID << " SEE A DYNAMIC OBJ!!!!!!!" << endl;
+            objWeights[ObjectID] = FILTER;
 
-            latspd = ((stLst[num][workID][0] & 0xFC) >> 2); //横向速度?
-            angle = ((stLst[num][workID][1] & 0x1F) << 5) + ((stLst[num][workID][2] & 0xF8) >> 3);
-            range = ((stLst[num][workID][2] & 0x07) << 8) + stLst[num][workID][3];//
-            width = ((stLst[num][workID][4] & 0x3C) >> 2);
-            bridge = ((stLst[num][workID][4] & 0x80) >> 7);
-            rangespd = ((stLst[num][workID][6] & 0x3F) << 8) + stLst[num][workID][7];
+            latspd = ((TrackInfo[messgeNum][ObjectID][0] & 0xFC) >> 2); //横向速度?
+            angle = ((TrackInfo[messgeNum][ObjectID][1] & 0x1F) << 5) + ((TrackInfo[messgeNum][ObjectID][2] & 0xF8) >> 3);
+            range = ((TrackInfo[messgeNum][ObjectID][2] & 0x07) << 8) + TrackInfo[messgeNum][ObjectID][3];//
+            width = ((TrackInfo[messgeNum][ObjectID][4] & 0x3C) >> 2);
+            bridge = ((TrackInfo[messgeNum][ObjectID][4] & 0x80) >> 7);
+            rangespd = ((TrackInfo[messgeNum][ObjectID][6] & 0x3F) << 8) + TrackInfo[messgeNum][ObjectID][7];
 
-            //	cout << "fast moving ID:  " << workID << endl;
+            //	cout << "fast moving ID:  " << ObjectID << endl;
             if (angle < (1 << 9))
                 angleR = angle * 0.1; //angle > 0
             else
@@ -139,27 +139,27 @@ int work(int num){
             objX = OriginX + rangeR * sin(angleR) / PerGrid;//get the X position of obj in gridmap
             objY = OriginY - rangeR * cos(angleR) / PerGrid;//get the Y position of obj in gridmap
 
-            if (sqrt((objArr[workID].objH - objX) * (objArr[workID].objH - objX) +
-                     (objArr[workID].objV - objY) * (objArr[workID].objV - objY))
+            if (sqrt((objArr[ObjectID].objH - objX) * (objArr[ObjectID].objH - objX) +
+                     (objArr[ObjectID].objV - objY) * (objArr[ObjectID].objV - objY))
                 > 25) //this obj distance moved from last frame to current frame > 25
             {
-            		//	cout << "left id:" << workID << " speedH:" << objArr[workID].speedH << " speedV:" << objArr[workID].speedV << endl;
-            	if (abs(objArr[workID].speedV) > TOL || abs(objArr[workID].speedH) > TOL)
+            		//	cout << "left id:" << ObjectID << " speedH:" << objArr[ObjectID].speedH << " speedV:" << objArr[ObjectID].speedV << endl;
+            	if (abs(objArr[ObjectID].speedV) > TOL || abs(objArr[ObjectID].speedH) > TOL)
             	{
-            		oldObj.push_back(objArr[workID]);
+            		oldObj.push_back(objArr[ObjectID]);
             	}
-                objArr[workID].objH = objX - 4;//update the position of current obj in gridmap but why x - 4 and y - 15
-                objArr[workID].objV = objY - 15;
+                objArr[ObjectID].objH = objX - 4;//update the position of current obj in gridmap but why x - 4 and y - 15
+                objArr[ObjectID].objV = objY - 15;
             } else //distance moved < 25
             {
-                objArr[workID].objH = 0.5 * (objX - 4) + 0.5 * objArr[workID].objH;//middle value?
-                objArr[workID].objV = 0.5 * (objY - 15) + 0.5 * objArr[workID].objV;
+                objArr[ObjectID].objH = 0.5 * (objX - 4) + 0.5 * objArr[ObjectID].objH;//middle value?
+                objArr[ObjectID].objV = 0.5 * (objY - 15) + 0.5 * objArr[ObjectID].objV;
             }
             ++numobj;
 
             //todo
-            objX = objArr[workID].objH;
-            objY = objArr[workID].objV;
+            objX = objArr[ObjectID].objH;
+            objY = objArr[ObjectID].objV;
             if (objY < 0) continue;  //y top not in map
             objB = objX - (widthR * 0.5 / PerGrid);
             if (objB < 0) continue;  //x left not in map
@@ -168,13 +168,13 @@ int work(int num){
 
 
 
-            // cout << workID << " SEE A DYNAMIC OBJ!!!!!!!" << endl;
-            cout << "objV: " << objArr[workID].objV << " objH: " << objArr[workID].objH << endl;
-            objArr[workID].speedH = rangespd_h;
-            objArr[workID].speedV = rangespd_v;
-            cout << "speedV: " << objArr[workID].speedV << ' ' << "speedH: " << objArr[workID].speedH << endl;
+            // cout << ObjectID << " SEE A DYNAMIC OBJ!!!!!!!" << endl;
+            cout << "objV: " << objArr[ObjectID].objV << " objH: " << objArr[ObjectID].objH << endl;
+            objArr[ObjectID].speedH = rangespd_h;
+            objArr[ObjectID].speedV = rangespd_v;
+            cout << "speedV: " << objArr[ObjectID].speedV << ' ' << "speedH: " << objArr[ObjectID].speedH << endl;
             cout << "width: " << widthR * 0.5 << endl;
-            cout << "ismove: " << ((mvLst[workID] & 0x20) >> 5) << endl;// 1
+            cout << "ismove: " << ((Tracks[ObjectID] & 0x20) >> 5) << endl;// 1
             cout << "current numobj: " << numobj << endl;
             //for (int j = 0; j <= abs((speed-rangespdR)/ SpdN) + 1; j++)
 
@@ -190,28 +190,28 @@ int work(int num){
 
         else
         {
-        	cout << workID << " NOT SEE  Weight: " << objWeights[workID] << endl;
-        	cout << "speedV: " << objArr[workID].speedV << ' ' << "speedH: " << objArr[workID].speedH << endl;
-        	objWeights[workID]--;
-        	objArr[workID].objV -= (objArr[workID].speedV * 0.05) / PerGrid;
-			//objArr[workID].objH -= (objArr[workID].speedH * 0.05) / PerGrid;
-        	cout << "objV: " << objArr[workID].objV << " objH: " << objArr[workID].objH << endl;
-        	if (abs(objArr[workID].speedV) < TOL && abs(objArr[workID].speedH) < TOL)
+        	cout << ObjectID << " NOT SEE  Weight: " << objWeights[ObjectID] << endl;
+        	cout << "speedV: " << objArr[ObjectID].speedV << ' ' << "speedH: " << objArr[ObjectID].speedH << endl;
+        	objWeights[ObjectID]--;
+        	objArr[ObjectID].objV -= (objArr[ObjectID].speedV * 0.05) / PerGrid;
+			//objArr[ObjectID].objH -= (objArr[ObjectID].speedH * 0.05) / PerGrid;
+        	cout << "objV: " << objArr[ObjectID].objV << " objH: " << objArr[ObjectID].objH << endl;
+        	if (abs(objArr[ObjectID].speedV) < TOL && abs(objArr[ObjectID].speedH) < TOL)
         	{
-        		objWeights[workID] = 0;
+        		objWeights[ObjectID] = 0;
         		cout << "speed 0" << endl;
         		continue;
         	}
-        	if (objArr[workID].objV < 0 || objArr[workID].objV > MapL || objArr[workID].objH < 0 || objArr[workID].objH > MapW)
+        	if (objArr[ObjectID].objV < 0 || objArr[ObjectID].objV > MapL || objArr[ObjectID].objH < 0 || objArr[ObjectID].objH > MapW)
         	{
-        		objWeights[workID] = 0;
+        		objWeights[ObjectID] = 0;
         		cout << "out of range" << endl;
         		continue;
         	}
         	else
         	{
-        		objX = objArr[workID].objH;
-        		objY = objArr[workID].objV;
+        		objX = objArr[ObjectID].objH;
+        		objY = objArr[ObjectID].objV;
         		if (objY < 0) continue;
         		objB = objX - (widthR*0.5 / PerGrid);
         		if (objB < 0) continue;
@@ -478,7 +478,7 @@ void Esr::canInfoRead(){
 				{
                 //group id range 0~9
 				// cout<<"group id: "<<((Message.DATA[0] & 0xF)* 7 + i) <<endl;
-					mvLst[(frame->data[0] & 0xF) * 7 + i] = frame->data[i + 1];//data[1~7] belong to isDynamicOrStatic flag
+					Tracks[(frame->data[0] & 0xF) * 7 + i] = frame->data[i + 1];//data[1~7] belong to isDynamicOrStatic flag
 					if((frame->data[0] & 0xF) == 9){
 						break;
 					}
@@ -486,7 +486,7 @@ void Esr::canInfoRead(){
 			}
 			else if(flag >= 0x500 && flag <= 0x53F){ //64 frame
 				for (int msgI = 0; msgI < 8; msgI++)
-					stLst[stLstTop][flag - 0x0500][msgI] = frame->data[msgI];//128 64 8
+					TrackInfo[stLstTop][flag - 0x0500][msgI] = frame->data[msgI];//128 64 8
 			}
 			else{
 			// printf("no Message ID  0x%x !!!!!!!!!\n",flag);

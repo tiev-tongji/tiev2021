@@ -1,10 +1,11 @@
 struct ESROBJECT
 {
-	byte m_objtype;               //0 Default 1 ACC 2 FCW
+	byte m_objtype;               //0 Default 1 ACC 2 FCW 3 CMbB
 	float m_vertical;             //vertical position, local coordinate y forward in meters
 	float m_horizon;              //horizontal position, local coordinate x right in meters
 	float m_vertical_velocity;    //vertical (y forward) speed m/s
 	float m_horizon_velocity;     //horizontal (x right) speed m/s
+	float m_width;                //object width m
 }
 
 struct structESROBJINFO
