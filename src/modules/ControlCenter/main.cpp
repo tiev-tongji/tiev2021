@@ -64,9 +64,9 @@ int main(){
         // 设置NAVINFO信息给ESR
         esr_control.setNavInfo(veh_nav_info); 
         // 获取ESR结果并发送
-        esr_control.esrMapLock();
-        msgControl.pub_esr_map_msg(esr_control.getEsrMapPtr());
-        esr_control.esrMapUnLock();
+        esr_control.esrObjInfoLock();
+        msgControl.pub_esr_objinfo_msg(esr_control.getEsrObjInfoPtr());
+        esr_control.esrObjInfoUnLock();
 
         // 获取车身CAN信息
         veh_control.get_vehicle_info(&veh_info.speed, &veh_info.angle);

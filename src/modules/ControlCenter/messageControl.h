@@ -24,7 +24,7 @@
 #include "structCANINFO.hpp"
 #include "structREMOTECONTROL.hpp"
 #include "structNAVINFO.hpp"
-#include "structESRMAP.hpp"
+#include "structESROBJINFO.hpp"
 
 class messageHandle{
 public:
@@ -56,7 +56,8 @@ public:
     STATE get_remote_control_msg(bool* remote_control);
     STATE pub_veh_status_msg(veh_info_t& veh_info);
     STATE get_nav_info_msg(nav_info_t* nav_info);
-    STATE pub_esr_map_msg(structESRMAP* esr_map);
+    //STATE pub_esr_map_msg(structESRMAP* esr_map);
+    STATE pub_esr_objinfo_msg(structESROBJINFO* esr_objinfo);
 private:
     STATE zcm_run();
 private:

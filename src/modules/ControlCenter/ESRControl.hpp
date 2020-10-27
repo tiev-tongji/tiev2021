@@ -99,9 +99,9 @@ public:
     //structESRMAP* getEsrMapPtr();
     structESROBJINFO* getEsrObjInfoPtr();
 	//void esrMapLock(){esr_map_lock.lock();}
-	void esrObjLock(){esr_objinfo_lock.lock();}
+	void esrObjInfoLock(){esr_objinfo_lock.lock();}
 	//void esrMapUnLock(){esr_map_lock.unlock();}
-	void esrObjUnLock(){esr_Objinfo_lock.unlock();}
+	void esrObjInfoUnLock(){esr_objinfo_lock.unlock();}
 private:
     void canInfoRead();
     void canInfoWrite();
