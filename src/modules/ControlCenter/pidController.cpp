@@ -47,6 +47,7 @@ inline void clamp(float& input, const float& hi){
 
 //STATE speed_pid_control(const float& veh_speed, float& desired_speed, const control_params_t& params, bool* is_break, float* control_output){
 STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& angle_pitch, const control_params_t& params, bool* is_break, float* control_output){
+        float FF_valve = 0;
         std::cout << "acc_P: " << params.acc_P << std::endl;
 	if(desired_speed == 0 || veh_speed * desired_speed < 0){
 	    INFO("stop car right now!");
@@ -121,7 +122,10 @@ STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& ang
         float I_contribute = I_speed * params.break_I;
         float D_contribute = D_speed * params.break_D;
         //*control_output = -(P_contribute + I_contribute + D_contribute);
+        float feedfoward_contribute = 0;
+        if (angle_pitch > FF_valve){
         float feedfoward_contribute = angle_pitch * params.break_FF;
+        }
         *control_output = -(feedfoward_contribute + P_contribute + I_contribute + D_contribute);
 
         //INFO("BREAK INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", " << "D: " << D_contribute);
