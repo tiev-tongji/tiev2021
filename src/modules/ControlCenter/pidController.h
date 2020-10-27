@@ -15,7 +15,8 @@
 
 #include "ControlCenterCommon.h"
 
-STATE speed_pid_control(const float& veh_speed, float& desired_speed, const control_params_t& params, bool* is_break, float* control_output);
+//STATE speed_pid_control(const float& veh_speed, float& desired_speed, const control_params_t& params, bool* is_break, float* control_output);
+STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& angle_pitch, const control_params_t& params, bool* is_break, float* control_output);
 
 STATE angle_pid_control(const veh_info_t& veh_info, float& desired_angle, const control_params_t& params, float* control_output);
 

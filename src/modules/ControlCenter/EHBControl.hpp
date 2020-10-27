@@ -59,7 +59,10 @@ public:
 	void init();
 	EHBMessage getEHBMessage();
 	void sendDCUMessage(DCUMessage msg);
-
+        int getCANPort(){//for ESR
+		if(openCAN) return CAN_PORT;
+		else return -1;
+	}
 private:
 	void canInfoRead();
 	void canInfoSend();

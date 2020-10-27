@@ -47,11 +47,20 @@ typedef struct control_params{
 	float break_P = 0;
 	float break_I = 0;
 	float break_D = 0;
+	float break_FF = 0;
 
 	float steer_P = 0;
 	float steer_I = 0;
 	float steer_D = 0;
 } control_params_t;
+
+typedef struct nav_info{
+	double mHeading;
+	double utmX, utmY;
+	float angle_pitch;
+	double speed, yawRate;
+	std::string timestamp;
+} nav_info_t;
 
 inline void assign_params(std::string& name, float& num, std::string param_name, float* assign_num){
 	if (name == param_name){
@@ -76,6 +85,7 @@ inline STATE load_params_file(const std::string& params_file, control_params_t* 
 		assign_params(name, number, "break_P", &params->break_P);
 		assign_params(name, number, "break_I", &params->break_I);
 		assign_params(name, number, "break_D", &params->break_D);
+		assign_params(name, number, "break_FF", &params->break_FF);
 		assign_params(name, number, "steer_P", &params->steer_P);
 		assign_params(name, number, "steer_I", &params->steer_I);
 		assign_params(name, number, "steer_D", &params->steer_D);

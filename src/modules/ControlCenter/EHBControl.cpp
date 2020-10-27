@@ -22,7 +22,6 @@ using namespace std;
 
 EHBControl::EHBControl(){
 	sendCount = 0;
-
 	struct sockaddr_can addr_can;
 	struct ifreq ifr_can;
 	CAN_PORT = socket(PF_CAN, SOCK_RAW, CAN_RAW);
@@ -36,10 +35,12 @@ EHBControl::EHBControl(){
 
 	struct can_filter rfilter_can[2];
 	//rfilter_can[0].can_id = 0x303;				//DCU
-    //rfilter_can[0].can_mask = CAN_SFF_MASK;
-    rfilter_can[0].can_id = 0x304;				//EHB
-    rfilter_can[0].can_mask = CAN_SFF_MASK;
-    setsockopt(CAN_PORT, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter_can, sizeof(rfilter_can));
+       //rfilter_can[0].can_mask = CAN_SFF_MASK;
+        rfilter_can[0].can_id = 0x304;				//EHB
+        rfilter_can[0].can_mask = CAN_SFF_MASK;
+        setsockopt(CAN_PORT, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter_can, sizeof(rfilter_can));
+
+        openCAN = true;
 }
 
 EHBControl::~EHBControl(){
@@ -90,7 +91,7 @@ void EHBControl::canInfoSend(){
 		}
 		
 	}
-	return;
+        return;
 }
 
 void EHBControl::keyboardControl(){
@@ -166,15 +167,14 @@ void EHBControl::send_m_TX2_EHB(can_frame *frame){
 	for(int i=0; i<8;i++){
 		frame->data[i] = 0;
 	}
-
-        if(dcuMessage_.AimPressure == 0){
-		dcuMessage_.ParkingBrakeActive = 0;
-	}
-	else{
-		dcuMessage_.ParkingBrakeActive = 2;
-
-	}
-
+       if(dcuMessage_.AimPressure == 0)
+        {
+                dcuMessage_.ParkingBrakeActive = 0;
+        }
+        else
+        {
+                dcuMessage_.ParkingBrakeActive = 2;
+        }
 	frame->data[0] = dcuMessage_.BrakingMode & 0x0F;
 	frame->data[0] = frame->data[0] << 4;
 	frame->data[0] = frame->data[0] | (dcuMessage_.ParkingBrakeActive & 0x0F);

@@ -52,28 +52,35 @@ int main(){
         //enable_pc_control = true;
         //veh_pc_control_info.speed = 0;
         //veh_pc_control_info.angle = 0;
-	//std::cout << "$$$$$$: " <<  veh_pc_control_info.speed << std::endl;
+       
+        // 设置NAVINFO信息给ESR
+        esr_control.setNavInfo(veh_nav_info); 
+        // 获取ESR结果并发送
+        esr_control.esrObjInfoLock();
+        msgControl.pub_esr_objinfo_msg(esr_control.getEsrObjInfoPtr());
+        esr_control.esrObjInfoUnLock();
 
         //// 获取车身CAN信息
         veh_control.get_vehicle_info(&veh_info.speed, &veh_info.angle);
         msgControl.pub_veh_status_msg(veh_info);
 
         // PID算法计算
-        speed_pid_control(veh_info.speed, veh_pc_control_info.speed, params, &is_break, &speed_torque);
+       // speed_pid_control(veh_info.speed, veh_pc_control_info.speed, params, &is_break, &speed_torque);
+        speed_pid_control(veh_info.speed, veh_pc_control_info.speed, veh_nav_info.angle_pitch, params, &is_break, &speed_torque);
         angle_pid_control(veh_info, veh_pc_control_info.angle, params, &angle_torque);
 
         // 车身控制信号CAN发送
         // 刹车控制
         DCUMessage dcuMsg;
-	//std::cout << "isbreak: " <<  is_break << std::endl;
-	//std::cout << "speed_torque: " <<  speed_torque << std::endl;
+        //std::cout<< "isbreak: " << is_break << std:endl;
+        //std::cout<< "speed_torque: " << speed_torque << std:endl;
         if(is_break == true){
             dcuMsg.AimPressure = speed_torque;
             speed_torque = 0;
         }
         // 油门控制
         else{
-            dcuMsg.AimPressure = 1;
+            dcuMsg.AimPressure = 1; //john: verify
         }
         
         if(!enable_pc_control){
@@ -97,6 +104,9 @@ int main(){
         //count++;
 
         ehb_control.sendDCUMessage(dcuMsg);
+        if(!enable_pc_control){
+            dcuMsg.AimPressure = 0;
+        }
         veh_control.send_vehicle_control_info(speed_torque, angle_torque);
         veh_control.enable_vehicle_control(enable_pc_control);
 

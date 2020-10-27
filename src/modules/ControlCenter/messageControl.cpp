@@ -70,10 +70,9 @@ STATE messageControl::pub_veh_status_msg(veh_info_t& veh_info){
     
     veh_status_pub.publish("CANINFO", &veh_status);
 }
-
-
-
-
+STATE messageControl::pub_esr_objinfo_msg(structESROBJINFO* esrObjInfo){
+    veh_status_pub.publish("ESROBJINFO", esrObjInfo);
+}
 STATE messageHandle::get_veh_control_msg(veh_info_t* veh_info){
     std::lock_guard<std::mutex> lk(veh_info_lock);
     *veh_info = veh_info_;
@@ -100,5 +99,18 @@ void messageHandle::veh_remote_control(const zcm::ReceiveBuffer* rbuf, const std
         std::lock_guard<std::mutex> lk(remote_control_lock);
         remote_control_ = msg->enabled;
     }
-    //INFO("ZCM INFO ==> remote_control: " << remote_control_);
+    INFO("ZCM INFO ==> remote_control: " << remote_control_);
+}
+
+void messageHandle::veh_navinfo(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structNAVINFO *msg){
+    {
+        std::lock_guard<std::mutex> lk(nav_info_lock);
+        nav_info_.mHeading = msg->mHeading;
+        nav_info_.angle_pitch = msg->mPitch;
+        nav_info_.utmX = msg->utmX;
+        nav_info_.utmY = msg->utmY;
+        nav_info_.speed = msg->mSpeed3d;
+        nav_info_.yawRate = msg->mAngularRateZ;
+        //nav_info_.pitchDeg = msg->mPitch;
+    }
 }
