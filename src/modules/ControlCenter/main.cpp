@@ -61,7 +61,7 @@ int main(){
         INFO("enable_pc_control:" << (int)enable_pc_control); 
         if (veh_nav_info.angle_pitch > pitch_max)
         pitch_max = veh_nav_info.angle_pitch;
-        std:cout << "angle_pitch:" << veh_nav_info.angle_pitch << "/tpitch_max:" << pitch_max << endl;
+        std::cout << "angle_pitch:" << veh_nav_info.angle_pitch << "/tpitch_max:" << pitch_max << std::endl;
         //enable_pc_control = true;
         //veh_pc_control_info.speed = 0;
         //veh_pc_control_info.angle = 0;
@@ -69,9 +69,9 @@ int main(){
         // 设置NAVINFO信息给ESR
         esr_control.setNavInfo(veh_nav_info); 
         // 获取ESR结果并发送
-        esr_control.esrObjInfoLock();
-        msgControl.pub_esr_objinfo_msg(esr_control.getEsrObjInfoPtr());
-        esr_control.esrObjInfoUnLock();
+        esr_control.esrMapLock();
+        msgControl.pub_esr_map_msg(esr_control.getEsrMapPtr());
+        esr_control.esrMapUnLock();
 
         // 获取车身CAN信息
         veh_control.get_vehicle_info(&veh_info.speed, &veh_info.angle);
@@ -81,7 +81,6 @@ int main(){
         // PID算法计算
        // speed_pid_control(veh_info.speed, veh_pc_control_info.speed, params, &is_break, &speed_torque);
         speed_pid_control(veh_info.speed, veh_pc_control_info.speed, veh_nav_info.angle_pitch, params, &is_break, &speed_torque);
-        std:cout << "angle_pitch:" << veh_nav_info.angle_pitch << std:endl;
         angle_pid_control(veh_info, veh_pc_control_info.angle, params, &angle_torque);
 
         // 车身控制信号CAN发送
