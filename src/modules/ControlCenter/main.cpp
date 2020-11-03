@@ -49,13 +49,19 @@ int main(){
     bool is_break = false;
     float speed_torque = 0;
     float angle_torque = 0;
+    float max_pitch = 0;
 
     veh_info_t veh_info;
     while(1){
         // 获取ZCM发送过来的信息
+
         msgControl.get_remote_control_msg(&enable_pc_control);
         msgControl.get_veh_control_msg(&veh_pc_control_info);
         msgControl.get_nav_info_msg(&veh_nav_info);
+        if(max_pitch < veh_nav_info.angle_pitch)
+        max_pitch = veh_nav_info.angle_pitch;
+        std::cout << "angle_pitch:" << veh_nav_info.angle_pitch << "max_pitch:" << max_pitch << std::endl;
+        
         INFO("enable_pc_control:" << (int)enable_pc_control); 
         //enable_pc_control = true;
         //veh_pc_control_info.speed = 0;
