@@ -177,7 +177,7 @@ int ESRControl::work(int messageNum){
         // Tracks[ObjectID] & 0x20)>>5 : Movable Slow   
         // Tracks[ObjectID] & 0x10)>>4 : Tracking power -10~21 dB the higher the better   
         //if (((Tracks[ObjectID] & 0x20)>>5) != 0)
-        cout<<"ObjectID: " << ObjectID << " Moving: " << Tracks[ObjectID] & 0x80)>>7<< " Movable Fast: " << Tracks[ObjectID] & 0x40)>>6<< " Movable Slow: " << Tracks[ObjectID] & 0x20)>>5<<endl;
+        cout<<"ObjectID: " << ObjectID << " Moving: " << (Tracks[ObjectID] & 0x80>>7) << " Movable Fast: " << (Tracks[ObjectID] & 0x40>>6)<< " Movable Slow: " << (Tracks[ObjectID] & 0x20>>5)<<endl;
 
         if (TrackInfo[messageNum][ObjectID][0] == 0 && TrackInfo[messageNum][ObjectID][1] == 0 && TrackInfo[messageNum][ObjectID][2] == 0 && TrackInfo[messageNum][ObjectID][3] == 0)
             continue; //no data
@@ -353,30 +353,19 @@ int ESRControl::work(int messageNum){
             myEsrObjInfo->objects[count].m_horizon_velocity = objArr[i].speedH;
             myEsrObjInfo->objects[count].m_vertical_velocity = objArr[i].speedV;
             myEsrObjInfo->objects[count].m_width = objArr[i].objWidth;
-            switch (i)
-            {
-            case ACC_FCW.path_id_ACC_stat:
+            myEsrObjInfo->objects[count].m_objtype = 0; 
+            if (i ==  ACC_FCW.path_id_ACC_stat)
                 myEsrObjInfo->objects[count].m_objtype = 1; 
-                break;
-            case ACC_FCW.path_id_ACC:
+            else if(i == ACC_FCW.path_id_ACC)
                 myEsrObjInfo->objects[count].m_objtype = 1; 
-                break;
-            case ACC_FCW.path_id_CMBB_move:
+            else if(i ==  ACC_FCW.path_id_CMBB_move)
                 myEsrObjInfo->objects[count].m_objtype = 3; 
-                break;
-            case ACC_FCW.path_id_CMBB_stat:
+            else if(i == ACC_FCW.path_id_CMBB_stat)
                 myEsrObjInfo->objects[count].m_objtype = 3; 
-                break;
-            case ACC_FCW.path_id_FCW_move:
+            else if(i == ACC_FCW.path_id_FCW_move)
                 myEsrObjInfo->objects[count].m_objtype = 2; 
-                break;
-            case ACC_FCW.path_id_FCW_stat:
+            else if(i == ACC_FCW.path_id_FCW_stat)
                 myEsrObjInfo->objects[count].m_objtype = 2; 
-                break;
-            default:
-                myEsrObjInfo->objects[count].m_objtype = 0; 
-                break;
-            }
             // if (++objNum == 64) break;
         }
     }
