@@ -30,16 +30,20 @@ class messageHandle{
 public:
     STATE get_veh_control_msg(veh_info_t* veh_info);
     STATE get_remote_control_msg(bool* remote_control);
+    STATE get_nav_info_msg(nav_info_t* nav_info);
 public:
     void veh_control_info(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structCANCONTROL *msg);
     void veh_remote_control(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structREMOTECONTROL *msg);
+    void veh_navinfo(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structNAVINFO *msg);
     // TODO: acc使用pending
     //void veh_acc_info(const zcm_recv_buf_t *rbuf, const char *channel, const msg_t *msg, void *usr);
 public:
     veh_info_t veh_info_;
+    nav_info_t nav_info_;
     bool remote_control_ = false;
     std::mutex veh_info_lock;
     std::mutex remote_control_lock;
+    std::mutex nav_info_lock;
 };
 
 class messageControl{

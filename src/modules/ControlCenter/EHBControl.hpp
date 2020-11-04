@@ -64,7 +64,7 @@ public:
 		else return -1;
 	}
 private:
-	void canInfoRead();
+	int canInfoRead();
 	void canInfoSend();
 	void get_m_EHB_TX2(can_frame *frame);
 	void send_m_TX2_EHB(can_frame *frame);
@@ -72,6 +72,7 @@ private:
 	void keyboardControl();
 	int getch();
 	int CAN_PORT;
+	bool openCAN;
 	int sendCount;
 	EHBMessage ehbMessage_;
 	DCUMessage dcuMessage_;

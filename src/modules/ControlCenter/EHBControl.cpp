@@ -13,7 +13,6 @@
 
 #include "EHBControl.hpp"
 #include "ControlCenterCommon.h"
-
 using namespace std;
 
 #define DEBUG 0
@@ -22,6 +21,7 @@ using namespace std;
 
 EHBControl::EHBControl(){
 	sendCount = 0;
+        openCAN = false;
 	struct sockaddr_can addr_can;
 	struct ifreq ifr_can;
 	CAN_PORT = socket(PF_CAN, SOCK_RAW, CAN_RAW);
@@ -35,7 +35,7 @@ EHBControl::EHBControl(){
 
 	struct can_filter rfilter_can[2];
 	//rfilter_can[0].can_id = 0x303;				//DCU
-       //rfilter_can[0].can_mask = CAN_SFF_MASK;
+        //rfilter_can[0].can_mask = CAN_SFF_MASK;
         rfilter_can[0].can_id = 0x304;				//EHB
         rfilter_can[0].can_mask = CAN_SFF_MASK;
         setsockopt(CAN_PORT, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter_can, sizeof(rfilter_can));
@@ -58,7 +58,7 @@ void EHBControl::init(){
 }
 
 // 读取EHB制动信息
-void EHBControl::canInfoRead(){
+int EHBControl::canInfoRead(){
 	while(1){
 		int nbytes;
 		struct can_frame frame[1];
@@ -67,10 +67,11 @@ void EHBControl::canInfoRead(){
 		if ((frame)->can_id == 0x304)
 		{
 			get_m_EHB_TX2(frame);
+			return 0;
 		}
 		usleep(50*1000);
 	}
-	return;
+	return -1;
 }
 
 void EHBControl::canInfoSend(){
@@ -167,7 +168,7 @@ void EHBControl::send_m_TX2_EHB(can_frame *frame){
 	for(int i=0; i<8;i++){
 		frame->data[i] = 0;
 	}
-       if(dcuMessage_.AimPressure == 0)
+        if(dcuMessage_.AimPressure == 0)
         {
                 dcuMessage_.ParkingBrakeActive = 0;
         }

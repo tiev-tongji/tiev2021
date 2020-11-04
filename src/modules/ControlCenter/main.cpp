@@ -18,6 +18,7 @@
 #include "pidController.h"
 #include "messageControl.h"
 #include "EHBControl.hpp"
+#include "ESRControl.hpp"
 
 static control_params_t params;
 const std::string params_file = "parameters.txt";
@@ -36,6 +37,11 @@ int main(){
     
     EHBControl ehb_control;
     ehb_control.init();
+    
+    //for esr
+    ESRControl esr_control(ehb_control.getCANPort());
+    esr_control.init();
+    nav_info_t veh_nav_info;
     
     bool enable_pc_control = false;
     veh_info_t veh_pc_control_info;
@@ -59,7 +65,7 @@ int main(){
         //enable_pc_control = true;
         //veh_pc_control_info.speed = 0;
         //veh_pc_control_info.angle = 0;
-       
+        
         // 设置NAVINFO信息给ESR
         esr_control.setNavInfo(veh_nav_info); 
 
@@ -68,8 +74,9 @@ int main(){
         msgControl.pub_esr_objinfo_msg(esr_control.getEsrObjInfoPtr());
         esr_control.esrObjInfoUnLock();
 
-        //// 获取车身CAN信息
+        // 获取车身CAN信息
         veh_control.get_vehicle_info(&veh_info.speed, &veh_info.angle);
+        INFO("================== Speed: " << veh_info.speed);
         msgControl.pub_veh_status_msg(veh_info);
 
         // PID算法计算
@@ -90,27 +97,6 @@ int main(){
         else{
             dcuMsg.AimPressure = 1; //john: verify
         }
-        
-        if(!enable_pc_control){
-            dcuMsg.AimPressure = 0;
-	}
-        //DCUMessage dcuMsg;
-        //angle_torque = 0;
-        //enable_pc_control = 1;
-        //static int count = 0;
-        //if(count % 200 <= 100){
-	//   dcuMsg.AimPressure = 0;
-	//   speed_torque = 20;
-	//   std::cout << "ACC" << std::endl;
-        //}
-	//else{
-	//    dcuMsg.AimPressure = 0;
-	//    speed_torque = 0;
-	//   speed_torque = -20;
-	//    std::cout << "Break" << std::endl;
-	//}
-        //count++;
-
         ehb_control.sendDCUMessage(dcuMsg);
         if(!enable_pc_control){
             dcuMsg.AimPressure = 0;

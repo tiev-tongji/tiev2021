@@ -33,6 +33,7 @@ STATE messageControl::init(){
 
     veh_control_sub.subscribe("CANCONTROL", &messageHandle::veh_control_info, &msgHandle);
     veh_control_sub.subscribe("REMOTECONTROL", &messageHandle::veh_remote_control, &msgHandle);
+    veh_control_sub.subscribe("NAVINFO", &messageHandle::veh_navinfo, &msgHandle);
 
     static std::thread zcmRun(&messageControl::zcm_run, this);
 
@@ -46,6 +47,11 @@ STATE messageControl::zcm_run(){
 
 STATE messageControl::get_veh_control_msg(veh_info_t* veh_info){
     STATE ret = msgHandle.get_veh_control_msg(veh_info);
+    return ret;
+}
+
+STATE messageControl::get_nav_info_msg(nav_info_t* nav_info){
+    STATE ret = msgHandle.get_nav_info_msg(nav_info);
     return ret;
 }
 
@@ -70,12 +76,19 @@ STATE messageControl::pub_veh_status_msg(veh_info_t& veh_info){
     
     veh_status_pub.publish("CANINFO", &veh_status);
 }
+
 STATE messageControl::pub_esr_objinfo_msg(structESROBJINFO* esrObjInfo){
     veh_status_pub.publish("ESROBJINFO", esrObjInfo);
 }
 STATE messageHandle::get_veh_control_msg(veh_info_t* veh_info){
     std::lock_guard<std::mutex> lk(veh_info_lock);
     *veh_info = veh_info_;
+    return CC_OK;
+}
+
+STATE messageHandle::get_nav_info_msg(nav_info_t* nav_info){
+    std::lock_guard<std::mutex> lk(nav_info_lock);
+    *nav_info = nav_info_;
     return CC_OK;
 }
 
@@ -91,7 +104,7 @@ void messageHandle::veh_control_info(const zcm::ReceiveBuffer* rbuf, const std::
         veh_info_.speed = msg->aimspeed;
         veh_info_.angle = msg->aimsteer;
     }
-    //INFO("ZCM INFO ==> Speed: " << veh_info_.speed << ", Angle: " << veh_info_.angle);
+    INFO("ZCM INFO ==> Speed: " << veh_info_.speed << ", Angle: " << veh_info_.angle);
 }
 
 void messageHandle::veh_remote_control(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structREMOTECONTROL *msg){
