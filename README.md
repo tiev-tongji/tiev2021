@@ -14,7 +14,7 @@
 ![image alt text](docs/pics/2020TiEV_data_flow.png)
 
 ### 途灵决策状态机
-![image alt text](docs/pics/TiEV2020_FSM_flat.png)
+![image alt text](docs/pics/TiEV2020_HFSM.png)
 
 ### 途灵E50 操作说明
 [操作说明](docs/TiEV_E50操作说明.md)
