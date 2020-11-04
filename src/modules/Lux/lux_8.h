@@ -587,7 +587,8 @@ namespace TiEV
 				}
 				//manually remove the outlier
 				cout << "errorpoints num: " <<errorpoi<< endl;
-				mapData.cells[288][75] = 0;
+				//mapData.cells[288][75] = 0;
+				mapData.cells[TiEV::CAR_CEN_ROW - 12][TiEV::CAR_CEN_COL] = 0;
 				// cout << "Send Message!" << endl;
 				myzcm_ipc.publish("LUXMAP", &mapData);
 				memset(mapData.cells,0,sizeof(mapData.cells));

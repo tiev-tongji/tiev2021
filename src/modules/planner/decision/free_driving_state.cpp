@@ -32,7 +32,7 @@ void FreeDriving::react(PlanningEvent const & e)  {
 	}else if(road_mode == RoadMode::TRACKING_MODE){
 		if(!reference_path.empty()){
 			Point p = reference_path.front();
-			if(fabs(p.x - 300) < 10 && fabs(p.y - 75) < 10){
+			if(fabs(p.x - CAR_CEN_ROW) < 10 && fabs(p.y - CAR_CEN_COL) < 10){
 				transit<Tracking>();
 				return;
 			}

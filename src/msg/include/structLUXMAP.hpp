@@ -6,12 +6,12 @@
 
 #include <zcm/zcm_coretypes.h>
 
-#ifndef __structFUSIONMAP_hpp__
-#define __structFUSIONMAP_hpp__
+#ifndef __structLUXMAP_hpp__
+#define __structLUXMAP_hpp__
 
 
 
-class structFUSIONMAP
+class structLUXMAP
 {
     public:
         int64_t    timestamp;
@@ -38,7 +38,7 @@ class structFUSIONMAP
         /**
          * Destructs a message properly if anything inherits from it
         */
-        virtual ~structFUSIONMAP() {}
+        virtual ~structLUXMAP() {}
 
         /**
          * Encode a message into binary form.
@@ -75,7 +75,7 @@ class structFUSIONMAP
         inline static int64_t getHash();
 
         /**
-         * Returns "structFUSIONMAP"
+         * Returns "structLUXMAP"
          */
         inline static const char* getTypeName();
 
@@ -86,7 +86,7 @@ class structFUSIONMAP
         inline static uint64_t _computeHash(const __zcm_hash_ptr* p);
 };
 
-int structFUSIONMAP::encode(void* buf, uint32_t offset, uint32_t maxlen) const
+int structLUXMAP::encode(void* buf, uint32_t offset, uint32_t maxlen) const
 {
     uint32_t pos = 0;
     int thislen;
@@ -101,7 +101,7 @@ int structFUSIONMAP::encode(void* buf, uint32_t offset, uint32_t maxlen) const
     return pos;
 }
 
-int structFUSIONMAP::decode(const void* buf, uint32_t offset, uint32_t maxlen)
+int structLUXMAP::decode(const void* buf, uint32_t offset, uint32_t maxlen)
 {
     uint32_t pos = 0;
     int thislen;
@@ -117,23 +117,23 @@ int structFUSIONMAP::decode(const void* buf, uint32_t offset, uint32_t maxlen)
     return pos;
 }
 
-uint32_t structFUSIONMAP::getEncodedSize() const
+uint32_t structLUXMAP::getEncodedSize() const
 {
     return 8 + _getEncodedSizeNoHash();
 }
 
-int64_t structFUSIONMAP::getHash()
+int64_t structLUXMAP::getHash()
 {
     static int64_t hash = _computeHash(NULL);
     return hash;
 }
 
-const char* structFUSIONMAP::getTypeName()
+const char* structLUXMAP::getTypeName()
 {
-    return "structFUSIONMAP";
+    return "structLUXMAP";
 }
 
-int structFUSIONMAP::_encodeNoHash(void* buf, uint32_t offset, uint32_t maxlen) const
+int structLUXMAP::_encodeNoHash(void* buf, uint32_t offset, uint32_t maxlen) const
 {
     uint32_t pos = 0;
     int thislen;
@@ -173,7 +173,7 @@ int structFUSIONMAP::_encodeNoHash(void* buf, uint32_t offset, uint32_t maxlen) 
     return pos;
 }
 
-int structFUSIONMAP::_decodeNoHash(const void* buf, uint32_t offset, uint32_t maxlen)
+int structLUXMAP::_decodeNoHash(const void* buf, uint32_t offset, uint32_t maxlen)
 {
     uint32_t pos = 0;
     int thislen;
@@ -213,7 +213,7 @@ int structFUSIONMAP::_decodeNoHash(const void* buf, uint32_t offset, uint32_t ma
     return pos;
 }
 
-uint32_t structFUSIONMAP::_getEncodedSizeNoHash() const
+uint32_t structLUXMAP::_getEncodedSizeNoHash() const
 {
     uint32_t enc_size = 0;
     enc_size += __int64_t_encoded_array_size(NULL, 1);
@@ -229,9 +229,9 @@ uint32_t structFUSIONMAP::_getEncodedSizeNoHash() const
     return enc_size;
 }
 
-uint64_t structFUSIONMAP::_computeHash(const __zcm_hash_ptr*)
+uint64_t structLUXMAP::_computeHash(const __zcm_hash_ptr*)
 {
-    uint64_t hash = (uint64_t)0x17ac376ea25ee2c9LL;
+    uint64_t hash = (uint64_t)0xa054e842c438d804LL;
     return (hash<<1) + ((hash>>63)&1);
 }
 

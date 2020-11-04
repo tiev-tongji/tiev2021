@@ -489,28 +489,29 @@ void set_object1(dgc_grid_p grid)
         if (i < -5) {
             for (int j = -5; j < 5; j++) {
 
-                cell = (dgc_perception_map_cell_p) dgc_grid_get_rc_local(grid, 300 + i, 75 + j);
+                cell = (dgc_perception_map_cell_p) dgc_grid_get_rc_local(grid, TiEV::CAR_CEN_ROW + i, TiEV::CAR_CEN_COL + j);
                 if (cell->obstacle > 0) {
                     cell->obstacle = 0;
                 }
             }
         } else if (i < 8) {
             for (int j = -7; j < 8; j++) {
-                cell = (dgc_perception_map_cell_p) dgc_grid_get_rc_local(grid, 300 + i, 75 + j);
+                cell = (dgc_perception_map_cell_p) dgc_grid_get_rc_local(grid, TiEV::CAR_CEN_ROW + i, TiEV::CAR_CEN_COL + j);
                 if (cell->obstacle > 0) {
                     cell->obstacle = 0;
                 }
             }
         } else if (i < 11) {
             for (int j = -5; j < 5; j++) {
-                cell = (dgc_perception_map_cell_p) dgc_grid_get_rc_local(grid, 300 + i, 75 + j);
+                cell = (dgc_perception_map_cell_p) dgc_grid_get_rc_local(grid, TiEV::CAR_CEN_ROW + i, TiEV::CAR_CEN_COL + j);
+                if (cell->obstacle > 0) {
                 if (cell->obstacle > 0) {
                     cell->obstacle = 0;
                 }
             }
         } else {
             for (int j = -2; j < 2; j++) {
-                cell = (dgc_perception_map_cell_p) dgc_grid_get_rc_local(grid, 300 + i, 75 + j);
+                cell = (dgc_perception_map_cell_p) dgc_grid_get_rc_local(grid, TiEV::CAR_CEN_ROW + i, TiEV::CAR_CEN_COL + j);
                 if (cell->obstacle > 0) {
                     cell->obstacle = 0;
                 }
@@ -546,10 +547,10 @@ void set_object1(dgc_grid_p grid)
                     pp.pz_ = cell_points[m].z;
                     sourceGridCloud.emplace_back(pp);
                 }
-                myzcm.myLaserMap.cells[400 - i][j] = cell->obstacle;//1 dynamic obstacle
-                myVisual.image1.at<Vec3b>(400 - i, j)[0] = 255;
-                myVisual.image1.at<Vec3b>(400 - i, j)[1] = 255;
-                myVisual.image1.at<Vec3b>(400 - i, j)[2] = 255;
+                myzcm.myLaserMap.cells[TiEV::GRID_ROW - 1 - i][j] = cell->obstacle;//1 dynamic obstacle
+                myVisual.image1.at<Vec3b>(TiEV::GRID_ROW - 1 - i, j)[0] = 255;
+                myVisual.image1.at<Vec3b>(TiEV::GRID_ROW - 1 - i, j)[1] = 255;
+                myVisual.image1.at<Vec3b>(TiEV::GRID_ROW - 1 - i, j)[2] = 255;
                 obstacles_s->cell[obstacles_s->num++] = cell;
             }
         }
@@ -563,9 +564,9 @@ void set_object1(dgc_grid_p grid)
     //draw car
     int carWidth = 5;
     int carHight = 15;
-    for (int i = 300; i < 300 + carHight + 1; ++i)
+    for (int i = TiEV::CAR_CEN_ROW; i < TiEV::CAR_CEN_ROW + carHight + 1; ++i)
     {
-        for (int j = 75 - carWidth; j < 75 + carWidth + 1; ++j)
+        for (int j = TiEV::CAR_CEN_COL - carWidth; j < TiEV::CAR_CEN_COL + carWidth + 1; ++j)
         {
             myVisual.image1.at<Vec3b>(i,j)[0]=255;
             myVisual.image1.at<Vec3b>(i,j)[1]=255;

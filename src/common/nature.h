@@ -12,11 +12,11 @@ This is the nature header of the TiEV autonomouse driving system
 
 namespace TiEV{
 
-const int GRID_ROW = 401;
-const int GRID_COL = 151;
+const int GRID_ROW = 501;
+const int GRID_COL = 251;
 const float GRID_RESOLUTION = 0.2;
-const int CAR_CEN_COL = 75;
-const int CAR_CEN_ROW = 300;
+const int CAR_CEN_COL = 126;
+const int CAR_CEN_ROW = 351;
 const float CAR_WHEEL_BASE = 2.3;
 const float CAR_LENGTH = 3.9; //(m)
 const float CAR_WIDTH = 2.0; //(m)

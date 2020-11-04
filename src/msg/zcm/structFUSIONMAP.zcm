@@ -6,11 +6,11 @@ struct structFUSIONMAP
     double mHeading; //car Deg ISO EAST 0 CounterClockwise -Pi ~ Pi 
     
     float resolution; //map resolution in meters   0.20m
-    int16_t rows;      //size of grid   401
-    int16_t cols;      //151
-    int16_t center_col;//grid center coordinate 75
-    int16_t center_row;//300
-    byte cells[401][151]; //401*151 = 60551 size; actual map data
+    int16_t rows;      //size of grid   501
+    int16_t cols;      //251
+    int16_t center_col;//grid center coordinate 126
+    int16_t center_row;//351
+    byte cells[501][251]; //501*251 = 60551 size; actual map data
                           /*bit 0 1 0x01 historical obstacle, 0 not obstacle 
                             bit 1 1 0x02 laser obstacle
                             bit 2 1 0x04 moving object obstacle 

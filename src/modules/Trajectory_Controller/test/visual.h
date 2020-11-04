@@ -4,6 +4,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <unistd.h>
+#include "common/nature.h"
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/core/core.hpp"
@@ -12,8 +13,8 @@
 
 #include "structAIMPATH.hpp"
 
-#define MAXM 151
-#define MAXN 401
+#define MAXM TiEV::GRID_COL 
+#define MAXN TiEV::GRID_ROW 
 
 #define CAR_COLOR CV_RGB(0, 255, 255)
 #define WHEEL_COLOR CV_RGB(0, 255, 255)

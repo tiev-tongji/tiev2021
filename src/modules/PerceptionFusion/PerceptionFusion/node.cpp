@@ -8,6 +8,7 @@
 #include "cartographer/transform/rigid_transform.h"
 #include "cartographer/sensor/point_cloud.h"
 #include "map_offset.h"
+#include "common/nature.h"
 
 using namespace cartographer::transform;
 using ::cartographer::transform::Rigid3d;
@@ -42,13 +43,13 @@ zcm::ZCM pub_ipc{"ipc"};
 /*draw obstacle rect*/
 void gridCoor(double x, double y, int &row, int &col)
 {
-    row = 300 - (int)(y / 0.2);
-    col = 75 + (int)(x / 0.2);
+    row = TiEV::CAR_CEN_ROW - (int)(y / TiEV::GRID_RESOLUTION);
+    col = TiEV::CAR_CEN_COL + (int)(x / TiEV::GRID_RESOLUTION);
 }
 
 bool inGrid(int row, int col)
 {
-    if (row >= 0 && row < 401 && col >= 0 && col < 151)
+    if (row >= 0 && row < TiEV::GRID_ROW && col >= 0 && col < TiEV::GRID_COL)
         return true;
     else 
         return false;
@@ -838,8 +839,10 @@ void * perception_Node::genSLAMLocation(void* __this){
 
         if(debug_show_map)
         {
-            cv::Mat current_map = _this->GetImageByPose(global_pose.translation().x(), global_pose.translation().y(), heading,
-                                                        300, 300, 150, 150, GRID_RESOLUTION, 7 , ths);
+            //cv::Mat current_map = _this->GetImageByPose(global_pose.translation().x(), global_pose.translation().y(), heading, 300, 300, 150, 150, GRID_RESOLUTION, 7 , ths);
+            //use the new map size 202011
+            // TO be verified
+            cv::Mat current_map = _this->GetImageByPose(global_pose.translation().x(), global_pose.translation().y(), heading, CAR_CEN_ROW, CAR_CEN_ROW, GRID_COL, GRID_COL, GRID_RESOLUTION, 7 , ths);
             for (int i = current_map.rows/2 - 5; i < current_map.rows/2 +5; ++i) {
                 for (int j= current_map.cols/2 - 10; j < current_map.cols/2 + 10; ++j){
                     current_map.at<uchar>(i,j) = 255;

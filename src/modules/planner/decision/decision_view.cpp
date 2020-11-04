@@ -1,6 +1,7 @@
 #include "decision_view.h"
 #include <math.h>
 #include "utils/utils.h"
+#include "common/nature.h"
 
 namespace TiEV{
 using namespace std;
@@ -12,13 +13,13 @@ void DecisionView::setViewInfo(ViewInfo const &_view_info){
 
 void DecisionView::draw(cv::Mat &planner_left_map, cv::Mat &planner_right_map){
 	unique_lock<mutex> lck(vi_mtx);
-	left_map = cv::Mat(401, 151, CV_8UC3, TiEV_BLACK);
-	right_map = cv::Mat(401, 151, CV_8UC3, TiEV_BLACK);
+	left_map = cv::Mat(TiEV::GRID_ROW, TIEV::GRID_COL, CV_8UC3, TiEV_BLACK);
+	right_map = cv::Mat(TiEV::GRID_ROW, TIEV::GRID_COL, CV_8UC3, TiEV_BLACK);
 
 	//draw lidar_map
 	if(view_info.lidar_map.detected){
-		for(int r = 0; r < 401; r++){
-			for(int c = 0; c < 151; c++){
+		for(int r = 0; r < TiEV::GRID_ROW; r++){
+			for(int c = 0; c < TiEV::GRID_COL; c++){
 				if(view_info.lidar_map.map[r][c] != 0) *left_map.ptr<cv::Vec3b>(r,c) = VEC_OBS_COLOR;
 			}
 		}

@@ -21,7 +21,7 @@ struct namedBoolArray
 struct namedMapArray
 {
     string name;
-    byte cells[401][151]; //401*151 = about 6 Kb  
+    byte cells[501][251]; //501*251 = about 6 Kb  
 }
 struct structVISUALINFO
 {

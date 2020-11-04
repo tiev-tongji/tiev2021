@@ -187,9 +187,9 @@ namespace TiEV
 			float Point_X[721] = { 0 };
 			float Point_Y[721] = { 0 };
 			double angle;
-			for (int k = 0; k < 401; k++)
+			for (int k = 0; k < TiEV::GRID_ROW; k++)//TiEV::GRID_ROW
 			{
-				for (int j = 0; j < 149; j++)
+				for (int j = 0; j < TiEV::GRID_COL; j++)//COL - 2?
 				{
 					mapData.cells[k][j] = 0;
 				}
@@ -218,9 +218,12 @@ namespace TiEV
 				}
 			}
 			//filter out wierd poind
-			mapData.cells[289][75] = 0;
-			mapData.cells[289][74] = 0;
-			mapData.cells[288][73] = 0;
+			//mapData.cells[289][75] = 0;
+			//mapData.cells[289][74] = 0;
+			//mapData.cells[288][73] = 0;
+			mapData.cells[TiEV::CAR_CEN_ROW - 11][TiEV::CAR_CEN_COL] = 0;
+			mapData.cells[TiEV::CAR_CEN_ROW - 11][TiEV::CAR_CEN_COL - 1] = 0;
+			mapData.cells[TiEV::CAR_CEN_ROW - 12][TiEV::CAR_CEN_COL - 2] = 0;
 			myzcm.publish("SICKMAP", &mapData);
 			memset(mapData.cells, 0, sizeof(mapData.cells));
 			cout << "send Sick" << endl;

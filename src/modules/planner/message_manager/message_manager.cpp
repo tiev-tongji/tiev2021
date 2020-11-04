@@ -54,9 +54,9 @@ bool MessageManager::getMap(LidarMap& lidar_map){
 
         memcpy(lidar_map.map, inner_handler.tmp_map.cells, sizeof(lidar_map.map));
 		/*
-		for(int r = 0; r < 401; r++){
+		for(int r = 0; r < TiEV::GRID_ROW; r++){
 			cout << "row" << r << ":";
-			for(int c = 0; c < 151; c++){
+			for(int c = 0; c < TiEV::GRID_COL; c++){
 				cout << " " << (int)lidar_map.map[r][c];
 			}
 			cout << endl;

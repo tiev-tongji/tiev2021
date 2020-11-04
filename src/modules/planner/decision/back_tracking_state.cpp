@@ -1,6 +1,6 @@
 
 #include "decision_state.h"
-
+#include "common/nature.h"
 namespace TiEV{
 
 /*a demo state implement*/
@@ -71,8 +71,8 @@ void BackTracking::react(PlanningEvent const & e){
 	view_info.reference_path = back_reference_path;
 	view_info.road_infoes = back_road_infoes;
 	Point car_point;
-	car_point.x = 300;
-	car_point.y = 75;
+	car_point.x = CAR_CEN_ROW;
+	car_point.y = CAR_CEN_COL;
 	view_info.start_point = car_point;
 	dv->setViewInfo(view_info);
 	vs->print_text("reference path len", back_reference_path.size());

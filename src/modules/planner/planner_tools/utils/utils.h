@@ -19,7 +19,7 @@ Point getLateralPoint(Point &start_point, double lateral_distance);
 //params: start point, the longitude distance, + is left, - is right
 Point getLongitudePoint(Point &start_point, double longitude_distance);
 
-//if point p is in our local map 401*151, return true
+//if point p is in our local map TiEV::GRID_ROW*TIEV::GRID_COL, return true
 bool isInLocalMap(const Point &p);
 
 void normalizeAngle(double &rad_angle);
