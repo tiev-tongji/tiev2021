@@ -252,13 +252,15 @@ void MainWindow::save_roadmap()
         ofstream f1(fileName.toStdString());           //打开文件用于写,若文件不存在就创建它
         if(!f1)return;                 //打开文件失败则结束运行
 
-        f1<<"Id Lon Lat heading curvature mode SpeedMode EventMode OppositeSideMode LaneNum LaneSeq LaneWidth"<<endl;
+        f1<<"Id Lon Lat utmX utmY heading curvature mode SpeedMode EventMode OppositeSideMode LaneNum LaneSeq LaneWidth"<<endl;
         for(int i = 0;i<data.size();i++)
         {
             f1<< fixed<< setprecision(14)
               << i <<" "
               << data[i].lon <<" "
               << data[i].lat <<" "
+              << data[i].utmX <<" "
+              << data[i].utmY <<" "
               << data[i].heading <<" "
               << data[i].curvature <<" "
               << data[i].mode <<" "
