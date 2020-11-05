@@ -23,22 +23,35 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <iostream>
+#include <fstream>
 #include <arpa/inet.h>
 #include <cstdlib>
 #include <math.h>
 #include <vector>
 #include <netdb.h>
 #include <zcm/zcm-cpp.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
 #include "msg/include/structSICKMAP.hpp"
 #include "msg/include/structNAVINFO.hpp"
 #include "common/nature.h"
 
 using namespace std;
 
+#define COE_POS 1		  //系数位置
+#define ANGLE_START_POS 3 //起始角度位置
+#define ANGLE_STEP_POS 4  //角分辨率位置
+#define DATA_NUM_POS 5	  //数据总数位置
+#define DATA_START_POS 6  //数据起始位置
+
+#define Y_SHIFT_FRONT -1 //前sick雷达Y轴偏移量
+#define Y_SHIFT_BACK 3.2 //后sick雷达Y轴偏移量
+
 namespace TiEV
 {
 	//zcm
-	zcm::ZCM        myzcm{"ipc"};
+	zcm::ZCM myzcm{"ipc"};
 	// lcm::LCM mylcm("udpm://239.255.76.67:7667?ttl=1");
 	structSICKMAP mapData;
 	structNAVINFO currentPose;
@@ -52,16 +65,7 @@ namespace TiEV
 		void handleNAVINFOMessage(const zcm::ReceiveBuffer *rbuf, const std::string &chan, const structNAVINFO *msg){};
 	};
 
-	const int SICK_DA_LEN = 761;
-	const int SICK_FILT = 20;
-	const int SICK_FILT_SA = 40;
-	const int SICK_FILT_SD = 500;
-	const double SICK_TS_OBDIS = 0.200;
-	const double SICK_PER_ANGLE = 0.5;
-	const double SICK_ANGLE = 190;
-	const double CABIRATE_SICK_ANGLE = 180;
-
-	void SplitString(const string& s, vector<string>& v, const string& c)
+	void SplitString(const string &s, vector<string> &v, const string &c)
 	{
 		string::size_type pos1, pos2;
 		pos2 = s.find(c);
@@ -76,16 +80,33 @@ namespace TiEV
 		if (pos1 != s.length())
 			v.push_back(s.substr(pos1));
 	}
+	void sickmap_init()
+	{
+		//lcm
+		mapData.resolution = TiEV::GRID_RESOLUTION;
+		mapData.rows = TiEV::GRID_ROW;
+		mapData.cols = TiEV::GRID_COL;
+		mapData.center_col = TiEV::CAR_CEN_COL;
+		mapData.center_row = TiEV::CAR_CEN_ROW;
 
+		for (int k = 0; k < TiEV::GRID_ROW; k++)
+		{
+			for (int j = 0; j < TiEV::GRID_COL; j++)
+			{
+				mapData.cells[k][j] = 0;
+			}
+		}
+	}
 	class Sick
 	{
 	private:
 		int sock_fd;
 		sockaddr_in server_addr;
 		char buf[80000];
-		int obds[SICK_DA_LEN];
+		int obds[1000];
+
 	public:
-		void init_client(char *ip, int port)
+		void init_client(char *ip, int port) //将sick雷达链接初始化
 		{
 			if ((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 			{
@@ -109,14 +130,16 @@ namespace TiEV
 				exit(3);
 			}
 			// cout << "after connect" << endl;
-			char send_buf[] = "\2sEN LMDscandata 1\3";
-			if (send(sock_fd, send_buf, strlen(send_buf), 0) != strlen(send_buf)) {
+			char send_buf[] = "\2sEN LMDscandata 1\3"; //连续测量：发送指令后，LMS 会实时返回其测量数据
+													   //指令 HEX: 02 73 45 4E 20 4C 4D 44 73 63 61 6E 64 61 74 61 20 31 03
+			if (send(sock_fd, send_buf, strlen(send_buf), 0) != strlen(send_buf))
+			{
 				perror("error in send");
 				return;
 			}
 		}
 
-		void start_recieve_client()
+		void start_recieve_client(bool kind) //kind = 0:front雷达代码解析，king=1:back雷达代码解析
 		{
 			int data_len = 0;
 			memset(buf, 0, sizeof(buf));
@@ -133,101 +156,126 @@ namespace TiEV
 				//zcm
 				mapData.timestamp = TiEV::getTimeStamp();
 				pos_mutex.lock();
-				mapData.utmX = currentPose.utmX;
-				mapData.utmY = currentPose.utmY;
-				mapData.mHeading = currentPose.mHeading;
+				// mapData.utmX = currentPose.utmX;
+				// mapData.utmY = currentPose.utmY;
+				// mapData.mHeading = currentPose.mHeading;
+				mapData.utmX = 0;
+				mapData.utmY = 0;
+				mapData.mHeading = 0;
 				pos_mutex.unlock();
 				//
-				DecodeSick();
+				DecodeSick(kind);
 			}
 		}
 
-		void DecodeSick()
+		void DecodeSick(bool kind) //kind = 0:front雷达代码解析，kind=1:back雷达代码解析
 		{
-			//lcm
-			mapData.resolution = TiEV::GRID_RESOLUTION;
-			mapData.rows = TiEV::GRID_ROW;
-			mapData.cols = TiEV::GRID_COL;
-			mapData.center_col = TiEV::CAR_CEN_COL;
-			mapData.center_row = TiEV::CAR_CEN_ROW;
+
 			//
 			string strSick = buf;
-			// cout << "buf[0]" << buf << endl;
 			auto loc = strSick.find("DIST");
 			if (loc == string::npos)
 			{
 				cout << "no DIST in message" << endl;
 				return;
 			}
-			memset(obds, 0, sizeof(int) * SICK_DA_LEN);
-			strSick.erase(0, loc);
+			memset(obds, 0, sizeof(int) * 761);
+			strSick.erase(0, loc); //除掉字符串DIST前面的无用信息
 			vector<string> ar;
-			SplitString(strSick, ar, " ");
-			
-			int i;
+			SplitString(strSick, ar, " "); //将数据进行处理，存入ar中
+
 			int len = ar.size();
-			for (i = SICK_FILT; i < SICK_DA_LEN - SICK_FILT&&i+6<len; i++)
-			{
-				//obds[i] = ToInt32(ar[i + 6]);
-				// try{
-				obds[i] = strtol(ar[i + 6].c_str(), NULL, 16);
+			cout << len << endl;
 
-					// throw 1;
-				// }
-				
-				// catch(int a){
-				// 	cout<<"split"<<endl;
-				// 	obds[i] = 1;
-				// }
-				if (i < SICK_FILT_SA || i > SICK_DA_LEN - SICK_FILT_SA - 1 && obds[i] < SICK_FILT_SD)
-					obds[i] = 0;
-			}
-			// cout<<"split"<<endl;
-			//filter out wierd poind
-			float Point_X[721] = { 0 };
-			float Point_Y[721] = { 0 };
-			double angle;
-			for (int k = 0; k < TiEV::GRID_ROW; k++)//TiEV::GRID_ROW
+			for (int i = 0; i < len; i++)
 			{
-				for (int j = 0; j < TiEV::GRID_COL; j++)//COL - 2?
-				{
-					mapData.cells[k][j] = 0;
-				}
+				obds[i] = strtoul(ar[i].c_str(), NULL, 16);
 			}
-			for (i = 40; i < 761; i++)
-			{
-				if (i == 760)
-				{
-					int j = 0;
-					j++;
-					j++;
-					j++;
-				}
-				angle = (i * SICK_PER_ANGLE - (SICK_ANGLE - CABIRATE_SICK_ANGLE) / 2 + 90) / 180 * TiEV::TiEV_PI;
-				// cout << angle;
 
-				Point_X[i - 40] = (-(float)(obds[i] * cos(angle) / 1000)) * 2;
-				Point_Y[i - 40] = ((float)(obds[i] * sin(angle) / 1000)) * 2;
-				int CALIB_X = 289, CALIB_Y = mapData.cols / 2;
-				int x = CALIB_X - (int)(Point_X[i - 40] * 5);
-				int y = CALIB_Y + (int)(Point_Y[i - 40] * 5);
-				
-				if (x >= 0 && x < mapData.rows && y >= 0 && y < mapData.cols)
+			int coe = 1, data_num, start_angle; //距离倍数，数据总量,起始角度
+
+			double angle, angle_step;
+
+			if (ar[COE_POS] == "40000000")
+				coe = 2;
+
+			data_num = obds[DATA_NUM_POS];
+			start_angle = obds[ANGLE_START_POS] / 10000;
+			angle_step = double(obds[ANGLE_STEP_POS]) / 10000;
+			if (kind)
+				cout << "FRONT:";
+			else
+				cout << "BACK:";
+
+			cout << "起始角度：" << start_angle << ' ' << "角分辨率：" << angle_step << " "
+				 << "数据总量" << data_num << "距离系数" << coe << endl;
+			vector<double> point_x;
+			vector<double> point_y;
+
+			for (int i = 0; i < data_num; i++)
+			{
+				angle = (i * angle_step + start_angle + kind * 180) / 180 * TiEV_PI;
+				double x = double(obds[i + DATA_START_POS]) * cos(angle) * coe / 1000;
+				double y = double(obds[i + DATA_START_POS]) * sin(angle) * coe / 1000;
+				point_x.push_back(x);
+				point_y.push_back(y);
+			}
+			if (!kind) //front雷达进行坐标变换
+			{
+
+				// 文件输出坐标
+				/* ofstream fp_x, fp_y;
+				fp_x.open("x_front.txt");
+
+				for (int i = 0; i < point_x.size(); i++)
 				{
-					mapData.cells[x][y] = 1;
+					fp_x << point_x[i] << endl;
+				}
+				fp_y.open("y_front.txt");
+
+				for (int i = 0; i < point_y.size(); i++)
+				{
+					fp_y << point_y[i] << endl;
+				}*/
+				for (int i = 0; i < data_num; i++)
+				{
+					int x = (int)(point_x[i] / TiEV::GRID_RESOLUTION) + TiEV::CAR_CEN_COL;
+					int y = -(int)(point_y[i] / TiEV::GRID_RESOLUTION) + TiEV::CAR_CEN_ROW + Y_SHIFT_FRONT / TiEV::GRID_RESOLUTION;
+
+					if (x >= 0 && x < mapData.cols && y >= 0 && y < mapData.rows)
+					{
+						mapData.cells[y][x] = 1;
+					}
 				}
 			}
-			//filter out wierd poind
-			//mapData.cells[289][75] = 0;
-			//mapData.cells[289][74] = 0;
-			//mapData.cells[288][73] = 0;
-			mapData.cells[TiEV::CAR_CEN_ROW - 11][TiEV::CAR_CEN_COL] = 0;
-			mapData.cells[TiEV::CAR_CEN_ROW - 11][TiEV::CAR_CEN_COL - 1] = 0;
-			mapData.cells[TiEV::CAR_CEN_ROW - 12][TiEV::CAR_CEN_COL - 2] = 0;
-			myzcm.publish("SICKMAP", &mapData);
-			memset(mapData.cells, 0, sizeof(mapData.cells));
-			cout << "send Sick" << endl;
+			else //back雷达进行坐标变换
+			{
+
+				// ofstream fp_x, fp_y;
+				// fp_x.open("x_back.txt");
+
+				// for (int i = 0; i < point_x.size(); i++)
+				// {
+				// 	fp_x << point_x[i] << endl;
+				// }
+				// fp_y.open("y_back.txt");
+
+				// for (int i = 0; i < point_y.size(); i++)
+				// {
+				// 	fp_y << point_y[i] << endl;
+				// }
+				for (int i = 0; i < data_num; i++)
+				{
+					int x = (int)(point_x[i] / TiEV::GRID_RESOLUTION) + TiEV::CAR_CEN_COL;
+					int y = -(int)(point_y[i] / TiEV::GRID_RESOLUTION) + TiEV::CAR_CEN_ROW + Y_SHIFT_BACK / TiEV::GRID_RESOLUTION;
+
+					if (x >= 0 && x < mapData.cols && y >= 0 && y < mapData.rows)
+					{
+						mapData.cells[y][x] = 1;
+					}
+				}
+			}
 		}
 	};
-}
+} // namespace TiEV
 #endif /* sick_h */

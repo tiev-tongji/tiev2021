@@ -21,40 +21,47 @@
 
 namespace TiEV
 {
-	void handleNAVINFOMessage(const zcm::ReceiveBuffer *rbuf, const std::string &chan, const structNAVINFO *msg)
-	{
-		int i;
-		printf("Received message on channel \"%s\":\n", chan.c_str());
-		pos_mutex.lock();
-		memcpy(&currentPose, msg, sizeof(structNAVINFO));
-		pos_mutex.unlock();
-	}
+	// void handleNAVINFOMessage(const zcm::ReceiveBuffer *rbuf, const std::string &chan, const structNAVINFO *msg)
+	// {
+	// 	int i;
+	// 	printf("Received message on channel \"%s\":\n", chan.c_str());
+	// 	pos_mutex.lock();
+	// 	memcpy(&currentPose, msg, sizeof(structNAVINFO));
+	// 	pos_mutex.unlock();
+	// }
 
-	void zcm_func()
-	{
-		if (!myzcm.good())
-			return;
-		Handler handlerObject;
-		myzcm.subscribe("NAVINFO", &Handler::handleNAVINFOMessage, &handlerObject);
-		myzcm.run();
-	}
-}
+	// void zcm_func()
+	// {
+	// 	if (!myzcm.good())
+	// 		return;
+	// 	Handler handlerObject;
+	// 	myzcm.subscribe("NAVINFO", &Handler::handleNAVINFOMessage, &handlerObject);
+	// 	myzcm.run();
+	// }
+} // namespace TiEV
 
 using namespace TiEV;
 
-int main(int argc, const char * argv[])
+int main(int argc, const char *argv[])
 {
 	// insert code here...
 	//zcm
-	std::thread Zcm_thread(zcm_func);
-	Zcm_thread.detach();
-	
+	// std::thread Zcm_thread(zcm_func);
+	// Zcm_thread.detach();
+
 	//Sick
-	Sick sick;
-	sick.init_client("192.168.0.1",2112);//
-	while(1)
+	Sick sick_front, sick_back;
+	sick_front.init_client("192.168.222.22", 2112); //
+	sick_back.init_client("192.168.222.11", 2112);
+
+	while (1)
 	{
-		sick.start_recieve_client();
+		sickmap_init();
+		//kind = 0:front雷达代码解析，king=1:back雷达代码解析
+		sick_front.start_recieve_client(0);
+		sick_back.start_recieve_client(1);
+		myzcm.publish("SICKMAP", &mapData);
+		memset(mapData.cells, 0, sizeof(mapData.cells));
 	}
 	std::cout << "Hello, World!\n";
 
