@@ -48,7 +48,7 @@ namespace TiEV
 #define FLAG_CLUTTER	0x02
 #define FLAG_GROUD      0x04
 #define FLAG_DIRT	0x08
-#define TOL_RAIN_RATIO  0.5
+#define TOL_RAIN_RATIO  0.17
 
 	using namespace std;
 
@@ -513,7 +513,7 @@ namespace TiEV
 					}
 				}
 				
-				if(num_clutter_pts/num_obstacle_pts > TOL_RAIN_RATIO)
+				if((float)num_clutter_pts/(float)num_obstacle_pts > TOL_RAIN_RATIO)
 				{
 					DecodeRainSignal(true);
 				}
