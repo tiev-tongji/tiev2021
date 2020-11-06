@@ -156,12 +156,12 @@ namespace TiEV
 				//zcm
 				mapData.timestamp = TiEV::getTimeStamp();
 				pos_mutex.lock();
-				// mapData.utmX = currentPose.utmX;
-				// mapData.utmY = currentPose.utmY;
-				// mapData.mHeading = currentPose.mHeading;
-				mapData.utmX = 0;
-				mapData.utmY = 0;
-				mapData.mHeading = 0;
+				mapData.utmX = currentPose.utmX;
+				mapData.utmY = currentPose.utmY;
+				mapData.mHeading = currentPose.mHeading;
+// 				mapData.utmX = 0;
+// 				mapData.utmY = 0;
+// 				mapData.mHeading = 0;
 				pos_mutex.unlock();
 				//
 				DecodeSick(kind);
