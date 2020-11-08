@@ -58,9 +58,10 @@ int main(){
         msgControl.get_remote_control_msg(&enable_pc_control);
         msgControl.get_veh_control_msg(&veh_pc_control_info);
         msgControl.get_nav_info_msg(&veh_nav_info);
+        veh_nav_info.angle_pitch = veh_nav_info.angle_pitch + 2.54365;
         if(abs(max_pitch) < abs(veh_nav_info.angle_pitch) && veh_nav_info.angle_pitch < 0)
         max_pitch = veh_nav_info.angle_pitch;
-        std::cout << "angle_pitch:" << veh_nav_info.angle_pitch << "max_pitch:" << max_pitch << std::endl;
+        std::cout << "angle_pitch:" << veh_nav_info.angle_pitch << std::endl << "max_pitch:" << max_pitch << std::endl;
         
         INFO("enable_pc_control:" << (int)enable_pc_control); 
         //if (veh_nav_info.angle_pitch > max_pitch)
