@@ -6,7 +6,7 @@ offline version need to read a video(in bird-eye view)
 '''
 import sys
 sys.path.append('./')
-# sys.path.append('./postproc_lane')
+#sys.path.append('./postproc_lane')
 sys.path.insert(0, './tools')
 try:
     sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
@@ -34,7 +34,8 @@ def init_args():
                                                           'mean-iu_0.46755_fwavacc_0.95794_lr_0.0002000000.pth',
                         help='pretrained model path')
     parser.add_argument('--eh_type', type=str, default='no', help='which equal hist type "no" or "rgb" or "hsv"')
-    parser.add_argument('--with_post', type=bool, default=False, help='with post processing or not')
+    parser.add_argument('--with_post', type=bool, default=True, help='with post processing or not')
+    parser.add_argument('--visual', type=bool, default=True, help='visualise the result')
     parser.add_argument('--device', type=str, default='cuda',help='cuda or cpu')
     return parser.parse_args()
 
@@ -97,9 +98,9 @@ class RoadMarkingOnLine():
         inp = self._equal_hist(inp, self.eh_type)
         inp = torch.tensor(inp, dtype=dtype)[None, :, :, :].permute(0, 3, 1, 2).cuda()
 
-        rx = torch.tensor([1.538], requires_grad=False)
-        rz = torch.tensor([-.01], requires_grad=False)
-        ry = torch.tensor([0.00], requires_grad=False)
+        rx = torch.tensor([1.55], requires_grad=False)
+        ry = torch.tensor([-0.041], requires_grad=False)
+        rz = torch.tensor([-0.010], requires_grad=False)
 
         bev = warpPerspective(inp, rx + (pitch_relative) / 180 * 3.14159265358, ry, rz)
         return bev
@@ -190,24 +191,22 @@ if __name__ == '__main__':
             image = converter.Convert(grabResult)
             img = image.GetArray()
 
-            intrinsics = [
-                [1072.8, 0, 956.3],
-                [0, 1074.1, 619.7],
-                [0, 0, 1]]
-            raw_height, raw_width = (1200, 1920)
+            intrinsics = [[3475.158650444936, 0.0, 746.3729017617349], [0.0, 3559.9731501191427, 588.283950946433],[0.0, 0.0, 1.0]]
+
+            raw_height, raw_width = (960, 1280)
             warpPerspective = PerspectiveTransformerLayer((1024, 256), (raw_height, raw_width), intrinsics,
-                                                          translate_z=-40,
-                                                          rotation_order='xyz', dtype=dtype)
+                                                      translate_z=-200,
+                                                      rotation_order='xyz', dtype=dtype)
             bev = roadmarking_dect.wrap(img, pitch_relative, warpPerspective)
             net = roadmarking_dect.init_net()
             img, pred = roadmarking_dect.go_through_CNN(net, bev)
             if args.with_post:
-                from postproc_lane import process_tensor
+                #from postproc_lane import process_tensor
                 time1 = time.time()
                 status_list = list()
                 post_pro_path = "./postproc_lane"
                 #[have_result, zcmok, Lane_num, lane_type(from right to left), line_type(from right to left), stop_line_exist, boundary_detected]
-                status_list = post_process(post_pro_path, img, pred, map, args.visual)
+                status_list = roadmarking_dect.post_process(post_pro_path, img, pred, map, args.visual)
                 # print(status_list)
             time2 = time.time()
             print(time2 - time1)

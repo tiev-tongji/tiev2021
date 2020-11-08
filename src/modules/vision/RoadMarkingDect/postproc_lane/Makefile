@@ -17,8 +17,8 @@ cluster.o: src/cluster.cc
 polynomial.o: src/polynomial.cc
 	${CC} -c $< -o $@ ${CXXFLAGS}
 
-include/zcmmsg: include/zcmmsg/msg_road_marking_list.zcm
-	zcm-gen -x --lazy include/zcmmsg/msg_road_marking_list.zcm --cpp-hpath ./include/zcmmsg
+include/zcmmsg: include/zcmmsg/structRoadMarkingList.zcm
+	zcm-gen -x --lazy include/zcmmsg/structRoadMarkingList.zcm --cpp-hpath ./include/zcmmsg
 
 clean:
 	rm *.so *.o

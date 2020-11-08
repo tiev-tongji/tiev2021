@@ -38,10 +38,14 @@ const int VISUALBEV_WIDTH = 256;
 cv::Point2f convert_to_lidar(const cv::Point2f& point_bev){
     cv::Point2f point_lidar;
     cv::Mat point_bev_ = (cv::Mat_<double>(3, 1)<< point_bev.x, point_bev.y, 1);
+//    static cv::Mat homography = (cv::Mat_<double>(3, 3) <<
+//                                4.49541030e-02,  2.78755872e-04, -5.85124919e+00,
+//                                3.22243481e-03, -4.76127770e-02,  4.97163722e+01,
+//                               -2.08830189e-04, -4.86239754e-05,  1.00000000e+00);
     static cv::Mat homography = (cv::Mat_<double>(3, 3) <<
-                                4.49541030e-02,  2.78755872e-04, -5.85124919e+00,
-                                3.22243481e-03, -4.76127770e-02,  4.97163722e+01,
-                               -2.08830189e-04, -4.86239754e-05,  1.00000000e+00);
+                                0.001136959808197286, -0.02361968904856399, 26.82067892418669,
+                                -0.05306768191540776, 0.0003230847122781595, 6.492557594895146,
+                                -0.001094454961970956, -0.0001231006656886047, 1.00);
     cv::Mat point_lidar_ = homography * point_bev_;
     point_lidar.x = point_lidar_.at<double>(0, 0) / point_lidar_.at<double>(2, 0);
     point_lidar.y = point_lidar_.at<double>(1, 0) / point_lidar_.at<double>(2, 0);
@@ -56,9 +60,9 @@ cv::Point2i convert_to_bev(const cv::Point2f& point_lidar){
     const int LIDARMAPHEIGHT = 300;
     cv::Mat point_lidar_ = (cv::Mat_<double>(3, 1)<< (point_lidar.y - LIDARMAPWIDTH/2)*LIDARRESOLUTION, (LIDARMAPHEIGHT - point_lidar.x)*LIDARRESOLUTION, 1);
     static cv::Mat homography = (cv::Mat_<double>(3, 3) <<
-                                                        4.49541030e-02,  2.78755872e-04, -5.85124919e+00,
-            3.22243481e-03, -4.76127770e-02,  4.97163722e+01,
-            -2.08830189e-04, -4.86239754e-05,  1.00000000e+00);
+                                                        0.001136959808197286, -0.02361968904856399, 26.82067892418669,
+                                                        -0.05306768191540776, 0.0003230847122781595, 6.492557594895146,
+                                                        -0.001094454961970956, -0.0001231006656886047, 1.00);
     cv::Mat point_bev_ = homography.inv() * point_lidar_;
     point_bev.x = point_bev_.at<double>(0, 0) / point_bev_.at<double>(2, 0);
     point_bev.y = point_bev_.at<double>(1, 0) / point_bev_.at<double>(2, 0);
@@ -462,7 +466,7 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
     int right_curb_size = 0;
     int left_curb_size = 0;
     const int CURB_POINTS_THRESH = 5;
-    printf("before_resampled_clusters.size() %d = ", resampled_clusters.size());
+//    printf("before_resampled_clusters.size() %d = ", resampled_clusters.size());
     //todo: add curb mask cluster
     {
         std::sort(resampled_clusters.begin(), resampled_clusters.end(), cluster::less_than<float>);
@@ -594,7 +598,7 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
             }
         }
     }
-    printf("after_resampled_clusters.size() %d = ", resampled_clusters.size());
+//    printf("after_resampled_clusters.size() %d = ", resampled_clusters.size());
     printf("ok5\n");
     lm::Road<float> road_resampled(resampled_clusters);
 
