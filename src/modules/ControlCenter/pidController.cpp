@@ -124,7 +124,7 @@ STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& ang
         //*control_output = -(P_contribute + I_contribute + D_contribute);
         float feedfoward_contribute = 0;
         if (angle_pitch > FF_valve){
-        float feedfoward_contribute = angle_pitch * params.break_FF;
+        feedfoward_contribute = angle_pitch * params.break_FF;
         }
         *control_output = -(feedfoward_contribute + P_contribute + I_contribute + D_contribute);
 

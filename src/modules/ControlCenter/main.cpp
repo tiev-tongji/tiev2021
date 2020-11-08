@@ -63,9 +63,9 @@ int main(){
         std::cout << "angle_pitch:" << veh_nav_info.angle_pitch << "max_pitch:" << max_pitch << std::endl;
         
         INFO("enable_pc_control:" << (int)enable_pc_control); 
-        if (veh_nav_info.angle_pitch > pitch_max)
-        pitch_max = veh_nav_info.angle_pitch;
-        std::cout << "angle_pitch:" << veh_nav_info.angle_pitch << "/tpitch_max:" << pitch_max << std::endl;
+        //if (veh_nav_info.angle_pitch > max_pitch)
+        //max_pitch = veh_nav_info.angle_pitch;
+        //std::cout << "angle_pitch:" << veh_nav_info.angle_pitch << "/tmax_pitch:" << max_pitch << std::endl;
         //enable_pc_control = true;
         //veh_pc_control_info.speed = 0;
         //veh_pc_control_info.angle = 0;
