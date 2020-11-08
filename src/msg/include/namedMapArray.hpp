@@ -17,7 +17,7 @@ class namedMapArray
     public:
         std::string name;
 
-        uint8_t    cells[401][151];
+        uint8_t    cells[501][251];
 
     public:
         /**
@@ -127,8 +127,8 @@ int namedMapArray::_encodeNoHash(void* buf, uint32_t offset, uint32_t maxlen) co
     thislen = __string_encode_array(buf, offset + pos, maxlen - pos, &name_cstr, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
-    for (int a0 = 0; a0 < 401; ++a0) {
-        thislen = __byte_encode_array(buf, offset + pos, maxlen - pos, &this->cells[a0][0], 151);
+    for (int a0 = 0; a0 < 501; ++a0) {
+        thislen = __byte_encode_array(buf, offset + pos, maxlen - pos, &this->cells[a0][0], 251);
         if(thislen < 0) return thislen; else pos += thislen;
     }
 
@@ -147,8 +147,8 @@ int namedMapArray::_decodeNoHash(const void* buf, uint32_t offset, uint32_t maxl
     this->name.assign(((const char*)buf) + offset + pos, __name_len__ - ZCM_CORETYPES_INT8_NUM_BYTES_ON_BUS);
     pos += __name_len__;
 
-    for (int a0 = 0; a0 < 401; ++a0) {
-        thislen = __byte_decode_array(buf, offset + pos, maxlen - pos, &this->cells[a0][0], 151);
+    for (int a0 = 0; a0 < 501; ++a0) {
+        thislen = __byte_decode_array(buf, offset + pos, maxlen - pos, &this->cells[a0][0], 251);
         if(thislen < 0) return thislen; else pos += thislen;
     }
 
@@ -159,13 +159,13 @@ uint32_t namedMapArray::_getEncodedSizeNoHash() const
 {
     uint32_t enc_size = 0;
     enc_size += this->name.size() + ZCM_CORETYPES_INT32_NUM_BYTES_ON_BUS + ZCM_CORETYPES_INT8_NUM_BYTES_ON_BUS;
-    enc_size += 401 * __byte_encoded_array_size(NULL, 151);
+    enc_size += 501 * __byte_encoded_array_size(NULL, 251);
     return enc_size;
 }
 
 uint64_t namedMapArray::_computeHash(const __zcm_hash_ptr*)
 {
-    uint64_t hash = (uint64_t)0xf7a9b5bde2acbf3dLL;
+    uint64_t hash = (uint64_t)0xf8a9b5bde2abbf3dLL;
     return (hash<<1) + ((hash>>63)&1);
 }
 

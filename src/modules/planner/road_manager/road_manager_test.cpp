@@ -21,7 +21,7 @@ cv::Mat mat = cv::Mat::zeros(401,302,CV_8UC3);
 
 void drawPath(int subgraph, const std::vector<TiEV::Point>& path, int color = 0xffffff){
     std::unique_lock<std::mutex> lck(window_mtx);
-    cv::Mat smat = cv::Mat::zeros(401,151,CV_8UC3);
+    cv::Mat smat = cv::Mat::zeros(TiEV::GRID_ROW, TIEV::GRID_COL,CV_8UC3);
     for(auto p : path){
         smat.at<cv::Vec3b>(p.x, p.y)[0] = (color & 0x0000ff);
         smat.at<cv::Vec3b>(p.x, p.y)[1] = (color & 0x00ff00) >> 8;

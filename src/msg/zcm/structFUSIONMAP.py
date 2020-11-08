@@ -22,7 +22,7 @@ class structFUSIONMAP(object):
         self.cols = 0
         self.center_col = 0
         self.center_row = 0
-        self.cells = [ "" for dim0 in range(401) ]
+        self.cells = [ "" for dim0 in range(501) ]
 
     def encode(self):
         buf = BytesIO()
@@ -32,8 +32,8 @@ class structFUSIONMAP(object):
 
     def _encode_one(self, buf):
         buf.write(struct.pack(">qdddfhhhh", self.timestamp, self.utmX, self.utmY, self.mHeading, self.resolution, self.rows, self.cols, self.center_col, self.center_row))
-        for i0 in range(401):
-            buf.write(bytearray(self.cells[i0][:151]))
+        for i0 in range(501):
+            buf.write(bytearray(self.cells[i0][:251]))
 
     def decode(data):
         if hasattr(data, 'read'):
@@ -49,8 +49,8 @@ class structFUSIONMAP(object):
         self = structFUSIONMAP()
         self.timestamp, self.utmX, self.utmY, self.mHeading, self.resolution, self.rows, self.cols, self.center_col, self.center_row = struct.unpack(">qdddfhhhh", buf.read(44))
         self.cells = []
-        for i0 in range(401):
-            self.cells.append(buf.read(151))
+        for i0 in range(501):
+            self.cells.append(buf.read(251))
         return self
     _decode_one = staticmethod(_decode_one)
 

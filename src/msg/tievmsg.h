@@ -6,6 +6,8 @@
 #include "include/structCANINFO.hpp"
 #include "include/structESROBJINFO.hpp"
 #include "include/structLASERMAP.hpp"
+#include "include/structLUXMAP.hpp"
+#include "include/structVLPMAP.hpp"
 #include "include/structNAVINFO.hpp"
 #include "include/structOBJECTLIST.hpp"
 #include "include/structPARKINGSLOTS.hpp"
@@ -17,6 +19,7 @@
 #include "include/structFUSIONMAP.hpp"
 #include "include/structSLAMLOC.hpp"
 #include "include/structCANINFO.hpp"
+#include "include/MsgRainDetectionSignal.hpp"
 
 //all messge tag
 /*
@@ -30,6 +33,7 @@
 "LANE"
 "LASERMAP"
 "LUXMAP"
+"VLPMAP"
 "NAVINFO"
 "OBJECTLIST"
 "SICKMAP"
@@ -39,6 +43,7 @@
 "SLAMCONTROL"
 "PARKINGSLOT"
 "WARNINGOBJ"
+"MsgRainDetectionSignal"
 
 handleACCMessage
 handleAIMPATHMessage
@@ -50,6 +55,7 @@ handleFUSIONMAPMessage
 handleLANEMessage
 handleLASERMAPMessage
 handleLUXMAPhMessage
+handleVLPMAPhMessage
 handleNAVINFOMessage
 handleOBJECTLISTMessage
 handleSICKMAPMessage
@@ -59,5 +65,6 @@ handleREMOTECONTROLMessage
 handleSLAMCONTROLMessage
 handlePARKINGSLOTMessage
 handleWARNINGOBJMessage
+handleMsgRainDetectionSignal
 */
 #endif

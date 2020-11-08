@@ -1,6 +1,7 @@
 #include "visualization.h"
 #include <iostream>
 #include "config/config.h"
+#include "common/nature.h"
 
 namespace TiEV{
 using namespace std;
@@ -29,16 +30,16 @@ void Visualization::init(){
 
 	init_text_window = cv::Mat(900,680,CV_8UC3,TiEV_BLACK);
 	init_speed_view_window = cv::Mat(520,520,CV_8UC3,TiEV_BLACK);
-	init_planner_window = cv::Mat(401,151,CV_8UC3,TiEV_BLUE);
+	init_planner_window = cv::Mat(TiEV::GRID_ROW, TIEV::GRID_COL,CV_8UC3,TiEV_BLUE);
 	
 	int font_style = cv::FONT_HERSHEY_SIMPLEX;
 	double font_size = 1;
 	cv::putText(init_planner_window, "No Data!", cv::Point(5,250), font_style, font_size, TiEV_BLACK, 2);
 	cv::putText(init_speed_view_window, "No Data!", cv::Point(200, 350), font_style, font_size, TiEV_BLUE, 2);
 
-	planner_map_left = planner_window(cv::Rect(13,60,151,401));
-	planner_map_mid = planner_window(cv::Rect(184,60,151,401));
-	planner_map_right = planner_window(cv::Rect(355,60,151,401));
+	planner_map_left = planner_window(cv::Rect(13,60,TiEV::GRID_COL,TiEV::GRID_ROW));
+	planner_map_mid = planner_window(cv::Rect(184,60,TiEV::GRID_COL,TiEV::GRID_ROW));
+	planner_map_right = planner_window(cv::Rect(355,60,TiEV::GRID_COL,TiEV::GRID_ROW));
 	
 	TiEV_car = cv::Mat(20, 9, CV_8UC3, TiEV_BLACK);
 	
@@ -192,7 +193,7 @@ void Visualization::draw_planner_window(){
 	cv::rectangle(planner_map_mid, car_rect, TiEV_ORANGE);
 	*/
 	cv::rectangle(planner_map_right, car_rect, TiEV_ORANGE);
-	cv::Rect window_rect = cv::Rect(0, 0, 151, 401);
+	cv::Rect window_rect = cv::Rect(0, 0, TiEV::GRID_COL,  TiEV::GRID_ROW);
 	cv::rectangle(planner_map_left, window_rect, TiEV_WHITE);
 	cv::rectangle(planner_map_mid, window_rect, TiEV_WHITE);
 	cv::rectangle(planner_map_right, window_rect, TiEV_WHITE);

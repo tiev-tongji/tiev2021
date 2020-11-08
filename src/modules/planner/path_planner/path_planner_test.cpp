@@ -57,7 +57,7 @@ int main(){
             targets[i].angle.setByRad(ang);
         }
 
-        cv::Mat view = cv::Mat::zeros(401, 151, CV_8UC3);
+        cv::Mat view = cv::Mat::zeros(TiEV::GRID_ROW, TIEV::GRID_COL, CV_8UC3);
         cv::Mat cvmmp = cv::imread("/home/autolab/IV_planner/IV_path_exp/maps/map-09.png");
         cv::resize(cvmmp, cvmmp, cv::Size(151, 401));
 

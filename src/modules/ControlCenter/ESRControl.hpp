@@ -19,23 +19,20 @@
 #include <linux/can/raw.h>
 #include <iomanip>
 #include "ControlCenterCommon.h"
-#include "structESRMAP.hpp"
+#include "nature.h"
+#include "structESROBJINFO.hpp"
 
-#define MapL 401
-#define MapW 151
-#define OriginX 75
-#define OriginY 301
-#define PerGrid 0.2
 #define SpdN 10
 #define NUM_OBJ 64
 #define FILTER 100
+#define FILTER_ASSOCIATION 25
 #define MsgHeapSize 128
 #define TOL 0.2
 
 
 struct InPathID
 {
-	bool path_id_ACC_stat;	//In-path ACC target ID (stationary or oncoming)
+	int path_id_ACC_stat;	//In-path ACC target ID (stationary or oncoming)
 	int path_id_ACC;		//In-path ACC target ID (moving or moveable)
 	int path_id_CMBB_move;
 	int path_id_CMBB_stat;
@@ -81,14 +78,15 @@ struct objInfo{
 	double speedV;
 	double objH;
 	double objV;
+	float objWidth;
 };
 
-struct objInfoInt{
-	double speedH;
-	double speedV;
-	int objH;
-	int objV;
-};
+// struct objInfoInt{
+// 	double speedH;
+// 	double speedV;
+// 	int objH;
+// 	int objV;
+// };
 
 
 class ESRControl{
@@ -98,26 +96,31 @@ public:
     ~ESRControl();
     void init();
     void setNavInfo(nav_info_t& navInfo);
-    structESRMAP* getEsrMapPtr();
-	void esrMapLock(){esr_map_lock.lock();}
-	void esrMapUnLock(){esr_map_lock.unlock();}
+    //structESRMAP* getEsrMapPtr();
+    structESROBJINFO* getEsrObjInfoPtr();
+	//void esrMapLock(){esr_map_lock.lock();}
+	void esrObjInfoLock(){esr_objinfo_lock.lock();}
+	//void esrMapUnLock(){esr_map_lock.unlock();}
+	void esrObjInfoUnLock(){esr_objinfo_lock.unlock();}
 private:
     void canInfoRead();
     void canInfoWrite();
     void startEsr();
     int work(int num);
-    void inPath_ID_ACC_FCW(can_frame *Message);
+	void inPath_ID_ACC_FCW(can_frame *Message);
 
 private:
     int EHB_CAN_PORT;
     nav_info_t navInfo;
     std::mutex nav_info_lock;
-    std::mutex esr_map_lock;
+    //std::mutex esr_map_lock;
+    std::mutex esr_objinfo_lock;
     std::mutex stLstTop_mutex;
-    structESRMAP* myEsrMap;
+    //structESRMAP* myEsrMap;
+    structESROBJINFO* myEsrObjInfo;
     int stLstTop;
-    unsigned char stLst[MsgHeapSize][64][8];
-    unsigned char mvLst[70];
+    unsigned char TrackInfo[MsgHeapSize][64][8];
+    unsigned char Tracks[70];
     InPathID ACC_FCW;
     int objWeights[NUM_OBJ];
     objInfo objArr[NUM_OBJ];

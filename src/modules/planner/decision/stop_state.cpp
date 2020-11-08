@@ -28,8 +28,8 @@ void StopState::react(PlanningEvent const & e){
 	vector<Point> stop_path;
 	for(int i = 0; i < 10; i++){
 		Point p;
-		p.x  = 300 - i;
-		p.y = 75;
+		p.x  = CAR_CEN_ROW - i;
+		p.y = CAR_CEN_COL;
 		p.angle.setByRad(0);
 		p.v = 0;
 		p.a = 0;

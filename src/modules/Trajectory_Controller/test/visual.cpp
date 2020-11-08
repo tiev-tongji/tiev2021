@@ -35,13 +35,13 @@ void Visualization :: clearAimPath()
 void Visualization :: init()
 {
     oriheading = 0.0;
-    res = 0.10;
-    w = 151;
-    h = 401;
+    res = TiEV::GRID_RESOLUTION * 0.5;//not sure why 202011
+    w = TiEV::GRID_COL;
+    h = TiEV::GRID_ROW;
     ori.x = 0.0;
     ori.y = 0.0;
-    cen.x = 75.0;
-    cen.y = h - 100.0;
+    cen.x = TiEV::CAR_CEN_COL;
+    cen.y = TiEV::CAR_CEN_ROW;
     cen_rear.x = cen.x;
     cen_rear.y = cen.y + 23.05;
     

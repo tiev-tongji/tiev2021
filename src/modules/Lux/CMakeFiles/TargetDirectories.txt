@@ -1,0 +1,3 @@
+/home/autolab/Desktop/TiEV/modules/Lux/CMakeFiles/edit_cache.dir
+/home/autolab/Desktop/TiEV/modules/Lux/CMakeFiles/rebuild_cache.dir
+/home/autolab/Desktop/TiEV/modules/Lux/CMakeFiles/lux.dir

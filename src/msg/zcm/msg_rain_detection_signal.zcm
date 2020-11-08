@@ -1,0 +1,10 @@
+struct MsgRainDetectionSignal
+{
+    int64_t timestamp;
+    byte rain_signal;
+    //bit 0000 sun
+    //bit 0001 light_rain 
+    //bit 0011 heavy_rain
+    //bit 0100 little_mist
+    //bit 1100 heavy_fog
+}

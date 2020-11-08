@@ -8,8 +8,8 @@
  * @FunctionList: 
  * @History: 
  * @LastEditors: Ding Yongchao
- * @LastEditTime: 2019-11-09 21:37:46
- */
+ * @LastEditTime: 2020-11-04 21:37:46
+  */
 #include <iostream>
 #include <unistd.h>
 
@@ -54,25 +54,29 @@ int main(){
     veh_info_t veh_info;
     while(1){
         // 获取ZCM发送过来的信息
-
+        //pitch_max = veh_nav_info.angle_pitch;
         msgControl.get_remote_control_msg(&enable_pc_control);
         msgControl.get_veh_control_msg(&veh_pc_control_info);
         msgControl.get_nav_info_msg(&veh_nav_info);
-        if(max_pitch < veh_nav_info.angle_pitch)
+        if(abs(max_pitch) < abs(veh_nav_info.angle_pitch) && veh_nav_info.angle_pitch < 0)
         max_pitch = veh_nav_info.angle_pitch;
         std::cout << "angle_pitch:" << veh_nav_info.angle_pitch << "max_pitch:" << max_pitch << std::endl;
         
         INFO("enable_pc_control:" << (int)enable_pc_control); 
+        if (veh_nav_info.angle_pitch > pitch_max)
+        pitch_max = veh_nav_info.angle_pitch;
+        std::cout << "angle_pitch:" << veh_nav_info.angle_pitch << "/tpitch_max:" << pitch_max << std::endl;
         //enable_pc_control = true;
         //veh_pc_control_info.speed = 0;
         //veh_pc_control_info.angle = 0;
         
         // 设置NAVINFO信息给ESR
         esr_control.setNavInfo(veh_nav_info); 
+
         // 获取ESR结果并发送
-        esr_control.esrMapLock();
-        msgControl.pub_esr_map_msg(esr_control.getEsrMapPtr());
-        esr_control.esrMapUnLock();
+        esr_control.esrObjInfoLock();
+        msgControl.pub_esr_objinfo_msg(esr_control.getEsrObjInfoPtr());
+        esr_control.esrObjInfoUnLock();
 
         // 获取车身CAN信息
         veh_control.get_vehicle_info(&veh_info.speed, &veh_info.angle);

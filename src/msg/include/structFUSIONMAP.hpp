@@ -32,7 +32,7 @@ class structFUSIONMAP
 
         int16_t    center_row;
 
-        uint8_t    cells[401][151];
+        uint8_t    cells[501][251];
 
     public:
         /**
@@ -165,8 +165,8 @@ int structFUSIONMAP::_encodeNoHash(void* buf, uint32_t offset, uint32_t maxlen) 
     thislen = __int16_t_encode_array(buf, offset + pos, maxlen - pos, &this->center_row, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
-    for (int a0 = 0; a0 < 401; ++a0) {
-        thislen = __byte_encode_array(buf, offset + pos, maxlen - pos, &this->cells[a0][0], 151);
+    for (int a0 = 0; a0 < 501; ++a0) {
+        thislen = __byte_encode_array(buf, offset + pos, maxlen - pos, &this->cells[a0][0], 251);
         if(thislen < 0) return thislen; else pos += thislen;
     }
 
@@ -205,8 +205,8 @@ int structFUSIONMAP::_decodeNoHash(const void* buf, uint32_t offset, uint32_t ma
     thislen = __int16_t_decode_array(buf, offset + pos, maxlen - pos, &this->center_row, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
-    for (int a0 = 0; a0 < 401; ++a0) {
-        thislen = __byte_decode_array(buf, offset + pos, maxlen - pos, &this->cells[a0][0], 151);
+    for (int a0 = 0; a0 < 501; ++a0) {
+        thislen = __byte_decode_array(buf, offset + pos, maxlen - pos, &this->cells[a0][0], 251);
         if(thislen < 0) return thislen; else pos += thislen;
     }
 
@@ -225,13 +225,13 @@ uint32_t structFUSIONMAP::_getEncodedSizeNoHash() const
     enc_size += __int16_t_encoded_array_size(NULL, 1);
     enc_size += __int16_t_encoded_array_size(NULL, 1);
     enc_size += __int16_t_encoded_array_size(NULL, 1);
-    enc_size += 401 * __byte_encoded_array_size(NULL, 151);
+    enc_size += 501 * __byte_encoded_array_size(NULL, 251);
     return enc_size;
 }
 
 uint64_t structFUSIONMAP::_computeHash(const __zcm_hash_ptr*)
 {
-    uint64_t hash = (uint64_t)0x18ac376ea25fe2c9LL;
+    uint64_t hash = (uint64_t)0x17ac376ea25ee2c9LL;
     return (hash<<1) + ((hash>>63)&1);
 }
 

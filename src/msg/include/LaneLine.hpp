@@ -26,15 +26,23 @@ class LaneLine
 
     public:
         #if __cplusplus > 199711L /* if c++11 */
-        static constexpr int8_t   TYPE_WHITE = 0x00;
-        static constexpr int8_t   TYPE_YELLOW = 0x02;
         static constexpr int8_t   TYPE_SOLID = 0x00;
         static constexpr int8_t   TYPE_DASHED = 0x01;
+        static constexpr int8_t   TYPE_WHITE = 0x00;
+        static constexpr int8_t   TYPE_YELLOW = 0x02;
+        static constexpr int8_t   TYPE_SOLID_WHITE = 0x00;
+        static constexpr int8_t   TYPE_SOLID_YELLOW = 0x02;
+        static constexpr int8_t   TYPE_DASHED_WHITE = 0x01;
+        static constexpr int8_t   TYPE_DASHED_YELLOW = 0x03;
         #else
-        static const     int8_t   TYPE_WHITE = 0x00;
-        static const     int8_t   TYPE_YELLOW = 0x02;
         static const     int8_t   TYPE_SOLID = 0x00;
         static const     int8_t   TYPE_DASHED = 0x01;
+        static const     int8_t   TYPE_WHITE = 0x00;
+        static const     int8_t   TYPE_YELLOW = 0x02;
+        static const     int8_t   TYPE_SOLID_WHITE = 0x00;
+        static const     int8_t   TYPE_SOLID_YELLOW = 0x02;
+        static const     int8_t   TYPE_DASHED_WHITE = 0x01;
+        static const     int8_t   TYPE_DASHED_YELLOW = 0x03;
         #endif
 
     public:

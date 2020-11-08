@@ -32,7 +32,7 @@ class structLASERMAP
 
         int16_t    center_row;
 
-        uint8_t    cells[401][151];
+        uint8_t    cells[501][251];
 
     public:
         /**
@@ -165,8 +165,8 @@ int structLASERMAP::_encodeNoHash(void* buf, uint32_t offset, uint32_t maxlen) c
     thislen = __int16_t_encode_array(buf, offset + pos, maxlen - pos, &this->center_row, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
-    for (int a0 = 0; a0 < 401; ++a0) {
-        thislen = __byte_encode_array(buf, offset + pos, maxlen - pos, &this->cells[a0][0], 151);
+    for (int a0 = 0; a0 < 501; ++a0) {
+        thislen = __byte_encode_array(buf, offset + pos, maxlen - pos, &this->cells[a0][0], 251);
         if(thislen < 0) return thislen; else pos += thislen;
     }
 
@@ -205,8 +205,8 @@ int structLASERMAP::_decodeNoHash(const void* buf, uint32_t offset, uint32_t max
     thislen = __int16_t_decode_array(buf, offset + pos, maxlen - pos, &this->center_row, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
-    for (int a0 = 0; a0 < 401; ++a0) {
-        thislen = __byte_decode_array(buf, offset + pos, maxlen - pos, &this->cells[a0][0], 151);
+    for (int a0 = 0; a0 < 501; ++a0) {
+        thislen = __byte_decode_array(buf, offset + pos, maxlen - pos, &this->cells[a0][0], 251);
         if(thislen < 0) return thislen; else pos += thislen;
     }
 
@@ -225,13 +225,13 @@ uint32_t structLASERMAP::_getEncodedSizeNoHash() const
     enc_size += __int16_t_encoded_array_size(NULL, 1);
     enc_size += __int16_t_encoded_array_size(NULL, 1);
     enc_size += __int16_t_encoded_array_size(NULL, 1);
-    enc_size += 401 * __byte_encoded_array_size(NULL, 151);
+    enc_size += 501 * __byte_encoded_array_size(NULL, 251);
     return enc_size;
 }
 
 uint64_t structLASERMAP::_computeHash(const __zcm_hash_ptr*)
 {
-    uint64_t hash = (uint64_t)0x1e2bd949e64c75e7LL;
+    uint64_t hash = (uint64_t)0x1d2bd949e64d75e7LL;
     return (hash<<1) + ((hash>>63)&1);
 }
 

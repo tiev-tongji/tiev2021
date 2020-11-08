@@ -24,6 +24,8 @@ class ESROBJECT
 
         float      m_horizon_velocity;
 
+        float      m_width;
+
     public:
         /**
          * Destructs a message properly if anything inherits from it
@@ -143,6 +145,9 @@ int ESROBJECT::_encodeNoHash(void* buf, uint32_t offset, uint32_t maxlen) const
     thislen = __float_encode_array(buf, offset + pos, maxlen - pos, &this->m_horizon_velocity, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
+    thislen = __float_encode_array(buf, offset + pos, maxlen - pos, &this->m_width, 1);
+    if(thislen < 0) return thislen; else pos += thislen;
+
     return pos;
 }
 
@@ -166,6 +171,9 @@ int ESROBJECT::_decodeNoHash(const void* buf, uint32_t offset, uint32_t maxlen)
     thislen = __float_decode_array(buf, offset + pos, maxlen - pos, &this->m_horizon_velocity, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
+    thislen = __float_decode_array(buf, offset + pos, maxlen - pos, &this->m_width, 1);
+    if(thislen < 0) return thislen; else pos += thislen;
+
     return pos;
 }
 
@@ -177,12 +185,13 @@ uint32_t ESROBJECT::_getEncodedSizeNoHash() const
     enc_size += __float_encoded_array_size(NULL, 1);
     enc_size += __float_encoded_array_size(NULL, 1);
     enc_size += __float_encoded_array_size(NULL, 1);
+    enc_size += __float_encoded_array_size(NULL, 1);
     return enc_size;
 }
 
 uint64_t ESROBJECT::_computeHash(const __zcm_hash_ptr*)
 {
-    uint64_t hash = (uint64_t)0x6e8af2384d52139cLL;
+    uint64_t hash = (uint64_t)0x9ce28478fefc1827LL;
     return (hash<<1) + ((hash>>63)&1);
 }
 

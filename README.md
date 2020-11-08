@@ -1,4 +1,4 @@
-# TiEV2019
+# TiEV2020
 
 ![image alt text](docs/pics/TiEVcar.jpg)
 
@@ -11,10 +11,17 @@
 ## 途灵架构
 
 ### 途灵通讯架构
-![image alt text](docs/pics/2019TiEV_data_flow.png)
+![image alt text](docs/pics/2020TiEV_data_flow.png)
 
 ### 途灵决策状态机
-![image alt text](docs/pics/TiEV2019_fsm.png)
+![image alt text](docs/pics/TiEV2020_HFSM.png)
+
+### 途灵E50 操作说明
+[操作说明](docs/TiEV_E50操作说明.md)
+
+### 途灵E50 坐标系说明
+[操作说明](docs/TiEV_E50坐标系说明.md)
+
 
 ## 安装
 

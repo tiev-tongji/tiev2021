@@ -223,6 +223,7 @@ void NEDIncre2BLHIncre(const double currentLati/*in*/, const double currentLongt
  		cout << " ----------------nrx->mIsHeadingValid: " << nrx->mIsHeadingValid << endl;
  		if (nrx->mIsHeadingValid)
  		{
+			//correction for 磁偏角
             nrx->mHeading += 1.5;
             if(nrx->mHeading >= 360)
                 nrx->mHeading -=360;

@@ -1,0 +1,14 @@
+struct structVLPMAP
+{
+    int64_t timestamp; //the time when send this grid(:ms)
+    double utmX; //car pose X  in this grid
+    double utmY;
+    double mHeading; //car Deg ISO EAST 0 CounterClockwise -Pi ~ Pi 
+    
+    float resolution; //map resolution in meters   0.20m
+    int16_t rows;      //size of grid   501
+    int16_t cols;      //251
+    int16_t center_col;//grid center coordinate 126
+    int16_t center_row;//351
+    byte cells[501][251]; //501*251 = 60551 size; actual map data, 0x01 obstacle, 0x00 not obstacle 
+}

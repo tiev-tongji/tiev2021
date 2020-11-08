@@ -143,8 +143,8 @@ void Parking::react(PlanningEvent const & e)  {
 	view_info.road_infoes = road_infoes;
 	view_info.best_path = maintained_path;
 	Point car_point;
-	car_point.x = 300;
-	car_point.y = 75;
+	car_point.x = CAR_CEN_ROW;
+	car_point.y = CAR_CEN_COL;
 	if(start_maintained_path.empty()) view_info.start_point = car_point;
 	else view_info.start_point = start_maintained_path.back();
 	dv->setViewInfo(view_info);

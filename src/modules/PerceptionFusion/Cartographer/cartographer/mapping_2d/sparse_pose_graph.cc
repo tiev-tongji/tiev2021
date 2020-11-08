@@ -34,6 +34,7 @@
 #include "cartographer/sensor/compressed_point_cloud.h"
 #include "cartographer/sensor/voxel_filter.h"
 #include "glog/logging.h"
+#include "common/nature.h"
 
 namespace cartographer {
 namespace mapping_2d {
@@ -637,7 +638,7 @@ Mat SparsePoseGraph::GetImage(double reckonx,double reckony,double yaw, int rows
     }
         cv::Mat currunt_map(rows,cols,CV_16UC1,Scalar(0));
         cv::Mat count(rows,cols,CV_8UC1,Scalar(0));
-	cv::Mat first_flag(401,151,CV_8UC1,Scalar(0));//test min/max probility
+	cv::Mat first_flag(TiEV::GRID_ROW,TiEV::GRID_COL,CV_8UC1,Scalar(0));//test min/max probility
         double max_x = cen_row*reso;
         double max_y = cen_col*reso;
         double left_top_x = reckonx + max_x * cos(yaw) - max_y * sin(yaw);
