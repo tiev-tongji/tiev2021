@@ -1,1 +1,0 @@
-/usr/bin/c++      CMakeFiles/lux.dir/main.cpp.o CMakeFiles/lux.dir/home/autolab/Desktop/TiEV/common/nature/timestamp.cpp.o  -o lux -rdynamic -llcm -lpthread 

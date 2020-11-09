@@ -46,9 +46,9 @@ namespace TiEV
 //point type
 #define FLAG_TRANSPARENT 0x01
 #define FLAG_CLUTTER	0x02
-#define FLAG_GROUD      0x04
+#define FLAG_GROUND      0x04
 #define FLAG_DIRT	0x08
-#define TOL_RAIN_RATIO  0.5
+#define TOL_RAIN_RATIO  0.17
 
 	using namespace std;
 
@@ -340,7 +340,10 @@ namespace TiEV
 						data_len = 0;
 				}
 			}
-
+            bool MATCH(int a, int b)
+			{
+				return a == b;
+			}
 			void RecePro(int start_pos, int len)
 			{
 				// cout << "RecePro Begin" << endl;
@@ -360,11 +363,6 @@ namespace TiEV
 					// printf("Error DataType: %04x \n", DataType);
 				}
 			}
-
-			//for deteting rain
-			void accumulatePtType(LPoint ptType, double ptDist)
-			{
-						}	
 
 			void DecodeRaw(int start_pos, int len)
 			{
@@ -415,54 +413,55 @@ namespace TiEV
 				}
 				// cout<< (int)(lrw.flag) << " " << (int)(lrw.flag & 0x0400) << " " << (lrw.flag & 0x0400 == 0) <<endl;
 				//Lux8
-				if ((int)(lrw.flag & 0x0400) == 0)//Bit 10:(0 = front = mirror facing down, 1 = rear = mirror facing up)
+				if ((int)(lrw.flag & 0x0400) == 0) //Bit 10:(0 = front = mirror facing down, 1 = rear = mirror facing up)
 				{
-					cout<<"facing down"<<endl;
+					cout << "facing down" << endl;
 					int num1 = 0, num2 = 0;
 					for (i = 0; i < lrw.npt; i++)
 					{
 						LPoint lpt;
-						lpt.ly = (byte)(buf[ix] & 0x0F);//取低4位as layer id{0~3}
-					// if (lrw.flag >= 0x0400)
-					// {
-					// 	lpt.ly = (byte)(lpt.ly|= 0x04);//mirror facing up, change layer id{4~7}
-					// }
-					// cout<<(int)lpt.ly<<"";
-					lpt.echo = (byte)(buf[ix] & 0xF0);//取高4位as echo id
-					ix += 1;
-					lpt.flag = buf[ix];
-					ix += 1;
-					lpt.ha = buf[ix] | (buf[ix + 1] << 8);
-					ix += sizeof(lpt.ha);
-					lpt.rd = buf[ix] | (buf[ix + 1] << 8);
-					ix += sizeof(lpt.rd);
-					lpt.epw = buf[ix] | (buf[ix + 1] << 8);
-					ix += sizeof(lpt.epw);
-					lpt.rev = buf[ix] | (buf[ix + 1] << 8);
-					ix += sizeof(lpt.rev);
+						lpt.ly = (byte)(buf[ix] & 0x0F); //取低4位as layer id{0~3}
+						// if (lrw.flag >= 0x0400)
+						// {
+						// 	lpt.ly = (byte)(lpt.ly|= 0x04);//mirror facing up, change layer id{4~7}
+						// }
+						// cout<<(int)lpt.ly<<"";
+						lpt.echo = (byte)(buf[ix] & 0xF0); //取高4位as echo id
+						ix += 1;
+						lpt.flag = buf[ix];
+						ix += 1;
+						lpt.ha = buf[ix] | (buf[ix + 1] << 8);
+						ix += sizeof(lpt.ha);
+						lpt.rd = buf[ix] | (buf[ix + 1] << 8);
+						ix += sizeof(lpt.rd);
+						lpt.epw = buf[ix] | (buf[ix + 1] << 8);
+						ix += sizeof(lpt.epw);
+						lpt.rev = buf[ix] | (buf[ix + 1] << 8);
+						ix += sizeof(lpt.rev);
 
-					lpt.a = lpt.ha * 2 * TiEV_PI / lrw.atpr;
-					lpt.d = (double)lpt.rd / 100;
+						lpt.a = lpt.ha * 2 * TiEV_PI / lrw.atpr;
+						lpt.d = (double)lpt.rd / 100;
 
-					lpt.x = lpt.d * sin(-lpt.a);
-					lpt.y = lpt.d * cos(lpt.a);
+						lpt.x = lpt.d * sin(-lpt.a);
+						lpt.y = lpt.d * cos(lpt.a);
 
-					//check point type
-					if ( !MATCH(lpt.flag, FLAG_CLUTTER) && \
-							!MATCH(lpt.flag, FLAG_GROUND) && \
-							!MATCH(lpt.flag, FLAG_DIRT) && \
-							lpt.d > 1 )//points not in  clutter(atmospheric)
-					{
-						num_obstacle_pts++;
-						lrw.lpts.push_back(lpt);
-					}
-					else if (MATCH(lpt.flag, FLAG_CLUTTER)) 
-					{
-						num_clutter_pts++;
-					}
-					else if (MATCH(lpt.flag, FLAG_DIRT)) 
-					{
-						num_dirt_pts++;
+						//check point type
+						if (!MATCH(lpt.flag, FLAG_CLUTTER) &&
+							!MATCH(lpt.flag, FLAG_GROUND) &&
+							!MATCH(lpt.flag, FLAG_DIRT) &&
+							lpt.d > 1) //points not in  clutter(atmospheric)
+						{
+							num_obstacle_pts++;
+							lrw.lpts.push_back(lpt);
+						}
+						else if (MATCH(lpt.flag, FLAG_CLUTTER))
+						{
+							num_clutter_pts++;
+						}
+						else if (MATCH(lpt.flag, FLAG_DIRT))
+						{
+							num_dirt_pts++;
+						}
 					}
 				}
 				else if (lrw.flag & 0x0400 != 0)
