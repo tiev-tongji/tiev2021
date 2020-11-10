@@ -1,2 +1,0 @@
-/usr/bin/ar qc libtime_lock.a  CMakeFiles/time_lock.dir/time_lock.cpp.o
-/usr/bin/ranlib libtime_lock.a

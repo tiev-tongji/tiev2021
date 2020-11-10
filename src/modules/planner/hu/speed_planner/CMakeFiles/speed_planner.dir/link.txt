@@ -1,2 +1,0 @@
-/usr/bin/ar qc libspeed_planner.a  CMakeFiles/speed_planner.dir/speed_optimizer.cpp.o
-/usr/bin/ranlib libspeed_planner.a

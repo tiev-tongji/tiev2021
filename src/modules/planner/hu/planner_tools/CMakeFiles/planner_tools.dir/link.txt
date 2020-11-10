@@ -1,2 +1,0 @@
-/usr/bin/ar qc libplanner_tools.a  CMakeFiles/planner_tools.dir/planner_tools.cpp.o
-/usr/bin/ranlib libplanner_tools.a

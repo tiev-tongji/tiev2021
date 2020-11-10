@@ -1,2 +1,0 @@
-/usr/bin/ar qc libpath_planner.a  CMakeFiles/path_planner.dir/path_planner.cpp.o CMakeFiles/path_planner.dir/path_planner_view.cpp.o
-/usr/bin/ranlib libpath_planner.a

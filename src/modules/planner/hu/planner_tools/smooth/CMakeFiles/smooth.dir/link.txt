@@ -1,2 +1,0 @@
-/usr/bin/ar qc libsmooth.a  CMakeFiles/smooth.dir/smooth.cpp.o
-/usr/bin/ranlib libsmooth.a

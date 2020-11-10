@@ -1,2 +1,0 @@
-/usr/bin/ar qc libnature.a  CMakeFiles/nature.dir/angle.cpp.o CMakeFiles/nature.dir/timestamp.cpp.o
-/usr/bin/ranlib libnature.a

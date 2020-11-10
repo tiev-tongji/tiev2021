@@ -1,2 +1,0 @@
-/usr/bin/ar qc libspeed_view.a  CMakeFiles/speed_view.dir/speed_view.cpp.o
-/usr/bin/ranlib libspeed_view.a

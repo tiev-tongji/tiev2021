@@ -1,2 +1,0 @@
-/usr/bin/ar qc libroad_manager.a  CMakeFiles/road_manager.dir/road_manager.cpp.o
-/usr/bin/ranlib libroad_manager.a

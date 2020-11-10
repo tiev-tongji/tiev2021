@@ -1,2 +1,0 @@
-/usr/bin/ar qc libmutexs.a  CMakeFiles/mutexs.dir/shared_mutex.cpp.o
-/usr/bin/ranlib libmutexs.a

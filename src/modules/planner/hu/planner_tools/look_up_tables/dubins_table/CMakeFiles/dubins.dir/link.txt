@@ -1,2 +1,0 @@
-/usr/bin/ar qc libdubins.a  CMakeFiles/dubins.dir/dubins.cpp.o CMakeFiles/dubins.dir/dubins_table_helper.cpp.o
-/usr/bin/ranlib libdubins.a

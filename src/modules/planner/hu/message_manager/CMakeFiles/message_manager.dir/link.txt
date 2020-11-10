@@ -1,2 +1,0 @@
-/usr/bin/ar qc libmessage_manager.a  CMakeFiles/message_manager.dir/message_manager.cpp.o
-/usr/bin/ranlib libmessage_manager.a

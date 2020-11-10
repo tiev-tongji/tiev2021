@@ -1,2 +1,0 @@
-/usr/bin/ar qc libsplines.a  CMakeFiles/splines.dir/Splines.cpp.o
-/usr/bin/ranlib libsplines.a

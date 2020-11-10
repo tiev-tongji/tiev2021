@@ -1,2 +1,0 @@
-/usr/bin/ar qc libreeds_shepp.a  CMakeFiles/reeds_shepp.dir/reeds_shepp.cpp.o CMakeFiles/reeds_shepp.dir/reeds_shepp_table_helper.cpp.o
-/usr/bin/ranlib libreeds_shepp.a

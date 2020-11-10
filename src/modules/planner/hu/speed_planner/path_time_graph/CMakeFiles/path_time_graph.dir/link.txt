@@ -1,2 +1,0 @@
-/usr/bin/ar qc libpath_time_graph.a  CMakeFiles/path_time_graph.dir/line_segment.cpp.o CMakeFiles/path_time_graph.dir/path_time_graph.cpp.o CMakeFiles/path_time_graph.dir/st_boundary.cpp.o CMakeFiles/path_time_graph.dir/st_point.cpp.o
-/usr/bin/ranlib libpath_time_graph.a
