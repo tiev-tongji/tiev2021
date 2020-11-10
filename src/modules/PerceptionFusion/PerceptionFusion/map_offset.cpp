@@ -13,7 +13,7 @@
 namespace TiEV{
     //dist + -> image move upward(laser coordinate to back-axis coordinate)
     //dist - -> image move dowmward(laser coordinate to forward-axis coordinate)
-    void array_trans(uint8_t array_resultTiEV::GRID_ROW, TIEV::GRID_COL, uint8_t cellsTiEV::GRID_ROW, TIEV::GRID_COL,float dist){
+    void array_trans(uint8_t array_result[TiEV::GRID_ROW][TIEV::GRID_COL], uint8_t cells[TiEV::GRID_ROW][TIEV::GRID_COL],float dist){
         int offset = round(dist / TiEV::GRID_RESOLUTION) ;
         // std::cout << "dist: " << dist << " ; offset: " << offset << std::endl;
         if(offset > 0)
