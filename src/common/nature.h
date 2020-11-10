@@ -15,8 +15,8 @@ namespace TiEV{
 const int GRID_ROW = 501;
 const int GRID_COL = 251;
 const float GRID_RESOLUTION = 0.2;
-const int CAR_CEN_COL = 126;
-const int CAR_CEN_ROW = 351;
+const int CAR_CEN_COL = 125;
+const int CAR_CEN_ROW = 350;
 const float CAR_WHEEL_BASE = 2.3;
 const float CAR_LENGTH = 3.9; //(m)
 const float CAR_WIDTH = 2.0; //(m)
