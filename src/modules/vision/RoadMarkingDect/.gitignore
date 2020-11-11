@@ -1,0 +1,8 @@
+*.png
+*.mp4
+*.avi
+LaserMap/
+ckpt/
+*.o
+*.so
+
