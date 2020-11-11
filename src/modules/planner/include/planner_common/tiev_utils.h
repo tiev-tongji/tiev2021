@@ -1,0 +1,106 @@
+#ifndef __TIEV_UTILS__H__
+#define __TIEV_UTILS__H__
+#include "pose.h"
+#include <ctime>
+#include <ctime>
+#include <mutex>
+#include <stdint.h>
+#include <vector>
+
+namespace TiEV {
+//两点之间的距离
+double point2PointDis(const Point2d& p1, const Point2d& p2);
+//两点之间的平方距离
+double point2PointSqrDis(const Point2d& p1, const Point2d& p2);
+//向一个向量垂直方向偏移距离d得到新的点，左正右负
+Point2d offsetPoint(const Point2d& p, const double dis);
+//点是否在局部地图内
+bool isInLocalMap(const Point2d& p);
+// 获取横向偏移店
+Pose getLateralPoint(const Pose& p, double lateral_distance);
+
+void normalizeAngle(double& rad_angle);
+
+//点到一条路径的最短距离
+template <class T, class Y> double point2LineDis(const T& p, const std::vector<Y>& path) {
+    if(path.empty()) return 0;
+    int     shortest_point_index = shortestPointIndex(p, path);
+    double  min_dis              = point2PointSqrDis(p, path[shortest_point_index]);
+    Point2d vec_p                = p - path[shortest_point_index];
+    int     pre_i                = shortest_point_index - 1;
+    int     next_i               = shortest_point_index + 1;
+    if(pre_i >= 0) {
+        Point2d vec_pre = path[pre_i] - p;
+        if(vec_p.cross(vec_pre) > 0) {
+            min_dis = vec_p.dot(vec_pre) / vec_pre.len();
+        }
+    }
+    if(next_i < path.size()) {
+        Point2d vec_next = path[next_i] - p;
+        if(vec_p.cross(vec_next) > 0) {
+            double dis                            = vec_next.dot(vec_p) / vec_next.len();
+            if(fabs(dis) < fabs(min_dis)) min_dis = dis;
+        }
+    }
+    return min_dis;
+}
+// 路径上到某个点距离最短的点的索引
+template <class T, class Y> int shortestPointIndex(const T& p, const std::vector<Y>& path) {
+    if(path.empty()) return -1;
+    double min_dis              = point2PointSqrDis(p, path.front());
+    int    shortest_point_index = 0;
+    for(int i = 1; i < path.size(); ++i) {
+        double sqr_dis = point2PointSqrDis(p, path[i]);
+        if(sqr_dis >= min_dis) continue;
+        min_dis              = sqr_dis;
+        shortest_point_index = i;
+    }
+    return shortest_point_index;
+}
+
+template <class T> void lineInterpolation(std::vector<T>& line, double min_step = 2) {
+    if(line.empty()) return;
+    std::vector<T> new_line;
+    int            pre = 0;
+    new_line.push_back(line.front());
+    for(int i = 1; i < line.size(); ++i) {
+        T       pp  = line[pre];
+        T       np  = line[i];
+        Point2d vec = np - pp;
+        if(vec.len() < min_step) continue;
+        if(vec.len() >= min_step * 2) {
+            int k = vec.len() / 2 - 1;
+            for(; k > 0; --k) {
+                Point2d off_vec = vec * (k / (k + 1));
+                T       ip;
+                ip.x = np.x - off_vec.x;
+                ip.y = np.y - off_vec.y;
+                new_line.push_back(ip);
+            }
+        }
+        pre = i;
+        new_line.push_back(np);
+    }
+    line = new_line;
+}
+
+//从nature中移来的，时间函数
+std::tm* gettm(int64_t timestamp);
+class shared_mutex {
+public:
+    void lock();
+    void lock_shared();
+    void unlock();
+    void unlock_shared();
+    bool try_lock();
+    bool try_lock_shared();
+
+private:
+    unsigned int shared_cnt = 0;
+    std::mutex   main_mtx, shared_mtx;
+};
+
+std::time_t getTimeStamp();
+}  // namespace TiEV
+
+#endif  //!__TIEV_UTILS__H__

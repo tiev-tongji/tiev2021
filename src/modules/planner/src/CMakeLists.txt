@@ -1,0 +1,10 @@
+add_subdirectory(planner_common)
+add_subdirectory(message_manager)
+add_subdirectory(map_manager)
+add_subdirectory(speed_planner)
+add_subdirectory(path_planner)
+add_subdirectory(decision)
+add_subdirectory(visualization)
+
+add_executable(planner main.cpp)
+target_link_libraries(planner decision path_planner speed_planner map_manager message_manager planner_common coordinate_converter zcm )

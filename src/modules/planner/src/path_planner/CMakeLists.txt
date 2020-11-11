@@ -1,0 +1,5 @@
+set(path_planner_src "path_planner.cpp")
+add_library(path_planner ${path_planner_src})
+#target_link_libraries(path_planner planner_tools)
+#add_executable(path_planner_test "path_planner_test.cpp")
+#target_link_libraries(path_planner_test path_planner nature planner_tools coordinate_converter ${OpenCV_LIBS})
