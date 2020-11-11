@@ -1,0 +1,29 @@
+#install pylon
+
+wget https://www.baslerweb.com/fp-1584619010/media/downloads/software/pylon_software/pylon_6.1.0.19674_x86_64_setup.tar.gz
+tar -xzvf pylon_6.1.0.19674_x86_64_setup.tar.gz
+sudo mkdir /opt/pylon 
+sudo tar -C /opt/pylon -xzvf ./pylon_6.1.0.19674_x86_64.tar.gz
+sudo chmod 755 /opt/pylon
+
+#install bevutils
+
+pip install git+https://github.com/huangyuyao/bevutils.git@master
+
+#install clang
+
+apt-get install llvm
+apt-get install clang
+
+#install pybind
+
+git clone https://github.com/pybind/pybind11.git
+pip3 install pytest
+mkdir build 
+cd build 
+cmake .. 
+cmake --build . --config Release --target check
+
+#install opencv
+...
+
