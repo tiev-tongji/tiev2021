@@ -1,41 +1,29 @@
-cmake_minimum_required (VERSION 3.0)
-project (planner)
+cmake_minimum_required(VERSION 2.8)
+project(planner)
 
-set(CMAKE_BUILD_TYPE "Release")
-#set(CMAKE_BUILD_TYPE "Debug")
+set(CMAKE_BUILD_TYPE "Debug")
+#set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_COMPILER g++)
-set(COMMON_SOURCE_DIR "${PROJECT_SOURCE_DIR}/../../common")
-set(MSG_SOURCE_DIR "${PROJECT_SOURCE_DIR}/../../msg")
-message(${COMMON_SOURCE_DIR})
-message(${MSG_SOURCE_DIR})
-
 include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-if(COMPILER_SUPPORTS_CXX11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread -o2")
+CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
+if(COMPILER_SUPPORTS_CXX17)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread -o2")
 else()
-    message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+    message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++17 support. Please use a different C++ compiler.")
 endif()
 
-find_package(OpenCV 3.3.0 EXACT)
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-find_package(osqp REQUIRED)
+include_directories(
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/../../msg
+    ${PROJECT_SOURCE_DIR}/include/decision
+    ${PROJECT_SOURCE_DIR}/include/map_manager
+    ${PROJECT_SOURCE_DIR}/include/message_manager
+    ${PROJECT_SOURCE_DIR}/include/planner_common
+    ${PROJECT_SOURCE_DIR}/include/path_planner
+    ${PROJECT_SOURCE_DIR}/include/speed_planner
+    ${PROJECT_SOURCE_DIR}/include/visualization_msg
+    ${PROJECT_SOURCE_DIR}/third_party
+)
 
-include_directories ("${PROJECT_SOURCE_DIR}/message_manager/")
-include_directories ("${PROJECT_SOURCE_DIR}/path_planner/")
-include_directories ("${PROJECT_SOURCE_DIR}/planner_tools/")
-include_directories ("${PROJECT_SOURCE_DIR}/road_manager/")
-include_directories ("${PROJECT_SOURCE_DIR}/decision/")
-include_directories ("${PROJECT_SOURCE_DIR}/visualization/")
-include_directories ("${PROJECT_SOURCE_DIR}/speed_planner/")
-include_directories (${COMMON_SOURCE_DIR})
-include_directories (${MSG_SOURCE_DIR})
-add_subdirectory(${COMMON_SOURCE_DIR} common)
-add_subdirectory(planner_tools)
-add_subdirectory(visualization)
-add_subdirectory(path_planner)
-add_subdirectory(speed_planner)
-add_subdirectory(message_manager)
-add_subdirectory(road_manager)
-add_subdirectory(decision)
-add_subdirectory(start_up)
+add_subdirectory(third_party/coordinate_converter)
+add_subdirectory(src)

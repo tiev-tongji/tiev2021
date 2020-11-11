@@ -1,0 +1,102 @@
+struct visPoint
+{
+    double x;
+    double y;
+}
+
+struct visMapPoint
+{
+    double x;
+    double y;
+    double ang;
+    int32_t lane_num;
+    int32_t lane_seq;
+    double lane_width;
+}
+
+struct visSTPoint 
+{
+    double s;
+    double t;
+}
+
+struct visSTBoundary
+{
+    visSTPoint ulp;
+    visSTPoint urp;
+    visSTPoint blp;
+    visSTPoint brp;
+}
+
+struct visPath 
+{
+    int32_t path_size;
+    visPoint path[path_size];
+}
+
+struct visReferencePath
+{
+    int32_t reference_path_length;
+    visMapPoint reference_path[reference_path_length];
+}
+
+struct visCoefficient
+{
+    int32_t params_num;
+    double params[params_num];
+}
+
+
+struct visVec4f
+{
+    float x;
+    float y;
+    float z;
+    float w;
+}
+
+struct visSpline2
+{
+    visVec4f xb;
+    visVec4f yb;
+}
+
+struct visText
+{
+    string name;
+    string value;
+}
+
+struct visLaneLine
+{
+    int32_t lane_line_points_size;
+    visPoint lane_line_points[lane_line_points_size];
+}
+
+struct visVISUALIZATION
+{
+    double safe_map[501][251];
+    byte used_map[501][251];
+    int32_t lanes_size;
+    visLaneLine lanes[lanes_size];
+    int32_t reference_path_size;
+    visMapPoint reference_path[reference_path_size];
+    int32_t best_path_size;
+    visPoint best_path[best_path_size];
+    int32_t targets_size;
+    visPoint targets[targets_size];
+    visPoint start_point;
+    int32_t paths_size;
+    visPath paths[paths_size];
+    int32_t st_boundaries_size;
+    visSTBoundary st_boundaries[st_boundaries_size];
+    int32_t dp_speed_size;
+    visSTPoint dp_speed[dp_speed_size];
+    boolean qp_or_splines; 
+    int32_t qp_speed_curve_size;
+    visCoefficient qp_speed_curve[qp_speed_curve_size];
+    int32_t splines_speed_curve_size;
+    visSpline2 splines_speed_curve[splines_speed_curve_size];
+    int32_t text_info_size;
+    visText text_info[text_info_size];
+}
