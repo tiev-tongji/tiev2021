@@ -31,6 +31,9 @@ find_package(Ceres REQUIRED COMPONENTS SparseLinearAlgebraLibrary)
 find_package(Eigen3 REQUIRED)
 find_package(LuaGoogle REQUIRED)
 
+# edit by htf 20.11.10
+include_directories(../../../)
+
 #set(Protobuf_DIR "/usr/share/cmake-3.5/Modules")
 #find_package(Protobuf 2.6 REQUIRED HINTS "/usr/share/cmake-3.5/Modules")
 find_package(Protobuf REQUIRED)
