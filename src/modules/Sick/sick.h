@@ -46,7 +46,7 @@ using namespace std;
 #define DATA_START_POS 6  //数据起始位置
 
 #define Y_SHIFT_FRONT -1 //前sick雷达Y轴偏移量
-#define Y_SHIFT_BACK 3.2 //后sick雷达Y轴偏移量
+#define Y_SHIFT_BACK 3.4 //后sick雷达Y轴偏移量
 
 namespace TiEV
 {
@@ -139,7 +139,7 @@ namespace TiEV
 			}
 		}
 
-		void start_recieve_client(bool kind) //kind = 0:front雷达代码解析，king=1:back雷达代码解析
+		int start_recieve_client(bool kind) //kind = 0:front雷达代码解析，king=1:back雷达代码解析
 		{
 			int data_len = 0;
 			memset(buf, 0, sizeof(buf));
@@ -149,7 +149,7 @@ namespace TiEV
 			if (data_len <= 0)
 			{
 				perror("recv");
-				return;
+				return 0;
 			}
 			else
 			{
@@ -164,11 +164,11 @@ namespace TiEV
 // 				mapData.mHeading = 0;
 				pos_mutex.unlock();
 				//
-				DecodeSick(kind);
+				return DecodeSick(kind);
 			}
 		}
 
-		void DecodeSick(bool kind) //kind = 0:front雷达代码解析，kind=1:back雷达代码解析
+		int DecodeSick(bool kind) //kind = 0:front雷达代码解析，kind=1:back雷达代码解析
 		{
 
 			//
@@ -177,7 +177,7 @@ namespace TiEV
 			if (loc == string::npos)
 			{
 				cout << "no DIST in message" << endl;
-				return;
+				return 0;
 			}
 			memset(obds, 0, sizeof(int) * 761);
 			strSick.erase(0, loc); //除掉字符串DIST前面的无用信息
@@ -186,6 +186,7 @@ namespace TiEV
 
 			int len = ar.size();
 			cout << len << endl;
+
 
 			for (int i = 0; i < len; i++)
 			{
@@ -211,14 +212,18 @@ namespace TiEV
 				 << "数据总量" << data_num << "距离系数" << coe << endl;
 			vector<double> point_x;
 			vector<double> point_y;
+			int num=0;
 
 			for (int i = 0; i < data_num; i++)
 			{
 				angle = (i * angle_step + start_angle + kind * 180) / 180 * TiEV_PI;
 				double x = double(obds[i + DATA_START_POS]) * cos(angle) * coe / 1000;
 				double y = double(obds[i + DATA_START_POS]) * sin(angle) * coe / 1000;
-				point_x.push_back(x);
-				point_y.push_back(y);
+				if(fabs(x)<2 && fabs(y)<2 && fabs(x)>0.1 && fabs(y)>0.1){
+					point_x.push_back(x);
+					point_y.push_back(y);
+					num++;
+				}
 			}
 			if (!kind) //front雷达进行坐标变换
 			{
@@ -237,7 +242,7 @@ namespace TiEV
 				{
 					fp_y << point_y[i] << endl;
 				}*/
-				for (int i = 0; i < data_num; i++)
+				for (int i = 0; i < num; i++)
 				{
 					int x = (int)(point_x[i] / TiEV::GRID_RESOLUTION) + TiEV::CAR_CEN_COL;
 					int y = -(int)(point_y[i] / TiEV::GRID_RESOLUTION) + TiEV::CAR_CEN_ROW + Y_SHIFT_FRONT / TiEV::GRID_RESOLUTION;
@@ -264,7 +269,7 @@ namespace TiEV
 				// {
 				// 	fp_y << point_y[i] << endl;
 				// }
-				for (int i = 0; i < data_num; i++)
+				for (int i = 0; i < num; i++)
 				{
 					int x = (int)(point_x[i] / TiEV::GRID_RESOLUTION) + TiEV::CAR_CEN_COL;
 					int y = -(int)(point_y[i] / TiEV::GRID_RESOLUTION) + TiEV::CAR_CEN_ROW + Y_SHIFT_BACK / TiEV::GRID_RESOLUTION;
@@ -274,6 +279,7 @@ namespace TiEV
 						mapData.cells[y][x] = 1;
 					}
 				}
+				return 1;
 			}
 		}
 	};

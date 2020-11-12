@@ -130,9 +130,9 @@ void process()
 		// 	project_map(x4, y4, x1, y1);
 		// 	project_map(x, y, x_end, y_end);
 		// }
-		for (int i = TiEV::CAR_CEN_ROW - 4; i < TiEV::CAR_CEN_ROW + 15; ++i)
+		for (int i = TiEV::CAR_CEN_ROW - 4; i < TiEV::CAR_CEN_ROW + 4; ++i)
 		{
-			for (int j = TiEV::CAR_CEN_COL - 4; j < TiEV::CAR_CEN_COL + 5; ++j)
+			for (int j = TiEV::CAR_CEN_COL - 2; j < TiEV::CAR_CEN_COL + 2; ++j)
 			{
 				image.at<Vec3b>(i, j)[0] = 0;
 				image.at<Vec3b>(i, j)[1] = 0;

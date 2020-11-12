@@ -51,7 +51,7 @@ using namespace cv;
 using namespace std;
 using namespace TiEV;
 
-static string Directory = "/home/autolab/tiev2019/src/modules/MultiBeamLaser/";
+static string Directory = "/home/autolab/tiev2020-code/src/modules/MultiBeamLaser/";
 
 namespace TiEV 
 {
