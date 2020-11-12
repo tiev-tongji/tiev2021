@@ -62,8 +62,8 @@ int main(){
         msgControl.get_veh_control_msg(&veh_pc_control_info);
         msgControl.get_nav_info_msg(&veh_nav_info);
         INFO("enable_pc_control:" << (int)enable_pc_control); 
-        if (veh_nav_info.angle_pitch > pitch_max)
-		pitch_max = veh_nav_info.angle_pitch;
+        // if (veh_nav_info.angle_pitch > pitch_max)
+		// pitch_max = veh_nav_info.angle_pitch;
 	// if (veh_nav_info.angle_pitch < pitch_min)
 	// 	pitch_min = veh_nav_info.angle_pitch;
     //     std::cout << "angle_pitch:" << veh_nav_info.angle_pitch << "\npitch_max:" << pitch_max << "\npitch_min:" << pitch_min << std::endl;
