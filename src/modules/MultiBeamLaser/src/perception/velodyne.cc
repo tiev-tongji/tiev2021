@@ -505,7 +505,6 @@ void set_object1(dgc_grid_p grid)
             for (int j = -5; j < 5; j++) {
                 cell = (dgc_perception_map_cell_p) dgc_grid_get_rc_local(grid, TiEV::CAR_CEN_ROW + i, TiEV::CAR_CEN_COL + j);
                 if (cell->obstacle > 0) {
-                if (cell->obstacle > 0) {
                     cell->obstacle = 0;
                 }
             }

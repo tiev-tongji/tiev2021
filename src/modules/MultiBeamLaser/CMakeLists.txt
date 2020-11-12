@@ -14,7 +14,8 @@ find_package( OpenCV REQUIRED ) #opencv_highgui opencv_imgproc
 find_package(Threads REQUIRED)
 find_package(PythonLibs  REQUIRED)
 #find_package(Eigen3)
-set(EIGEN3_INCLUDE_DIR "/home/autolab/tiev2019/src/common/Eigen")
+
+set(EIGEN3_INCLUDE_DIR "/home/autolab/tiev2020-code/src/common/Eigen")
 
 #set(PYTHON_INCLUDE_DIRS &{PYTHON_INCLUDE_DIRS} /home/autolab/anaconda3/lib/python3.7/site-packages/numpy/core/include /home/autolab/anaconda3/include/python3.7m)
 

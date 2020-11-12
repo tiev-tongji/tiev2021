@@ -142,7 +142,7 @@ namespace TiEV{
             SICK_mtx.unlock();
         }
 
-       void handleMessage_LuxMap(const lcm::ReceiveBuffer* rbuf,
+       void handleMessage_LuxMap(const zcm::ReceiveBuffer* rbuf,
                                  const std::string& chan,
                                  const structLUXMAP* msg)
        {
@@ -152,7 +152,7 @@ namespace TiEV{
            LUX_mtx.unlock();
        }
         
-       void handleMessage_VLPMap(const lcm::ReceiveBuffer* rbuf,
+       void handleMessage_VlpMap(const zcm::ReceiveBuffer* rbuf,
                                  const std::string& chan,
                                  const structVLPMAP* msg)
        {
@@ -613,7 +613,7 @@ void * perception_Node::genFUSIONMap(void* __this)
 	//Generate temp maps for messages to be fused
         for (int m = 0; m < GRID_ROW; m++) {
             for (int n = 0; n < GRID_COL; n++) {
-                if (bRecvSICKMAP && currentSick.cells[m][n] != 0) {
+                if (bRecvSICKMAP && currentSick.cells[m][n] == 0) {
                     SickMap_temp.ptr<uchar>(m)[n] = 255;
                 }
                 if (bRecvLUXMAP && currentLux.cells[m][n] != 0) {
@@ -828,9 +828,21 @@ void * perception_Node::genSLAMLocation(void* __this){
             LASER_mtx.unlock();
         }
 
+        structSICKMAP currentSick;
+        pos Sick_pos(0, 0, 0);
+        if (bRecvSICKMAP) {
+            SICK_mtx.lock();
+            currentSick = SICK_temp;
+//            array_trans(currentSick.cells, SICK_temp.cells, 0.93);
+            SICK_mtx.unlock();
+        }
+
         for (int m = 0; m < GRID_ROW; m++) {
             for (int n = 0; n < GRID_COL; n++) {
                 if (bRecvLASERMAP && currentLaser.cells[m][n] != 0) {
+                    fusionmap.cells[m][n] = 0x02;
+                }
+                if (bRecvSICKMAP && currentSick.cells[m][n] != 0) {
                     fusionmap.cells[m][n] = 0x02;
                 }
             }

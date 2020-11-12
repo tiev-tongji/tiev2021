@@ -319,8 +319,7 @@ void NEDIncre2BLHIncre(const double currentLati/*in*/, const double currentLongt
  		// 	rtkstatusnumber++;
  		// }
 
- 		// if (nrx->mIsGpsPosModeValid && (nrx->mGpsPosMode == 5 || nrx->mGpsPosMode == 6 || nrx->mGpsPosMode == 4))
- 		if (nrx->mIsLatValid && nrx->mGpsNumObs >= 5)
+ 		if (nrx->mIsGpsPosModeValid && (nrx->mGpsPosMode == 5 || nrx->mGpsPosMode == 6 || nrx->mGpsPosMode == 4) && nrx->mIsLatValid && nrx->mGpsNumObs >= 5)
  		{//Differential RTK float RTK Integer
  			rtkstatusnumber = 0;
 
