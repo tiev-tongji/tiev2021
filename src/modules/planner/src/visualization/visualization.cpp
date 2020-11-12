@@ -101,29 +101,30 @@ void Visualization::init() {
 void Visualization::visualize() {
     cv::namedWindow("TiEV", cv::WINDOW_KEEPRATIO | cv::WINDOW_GUI_NORMAL);
     cv::resizeWindow("TiEV", 1100, 900);
-    // cv::namedWindow("TiEV", cv::WINDOW_AUTOSIZE);
     int                 key = -1;
     structREMOTECONTROL remote_control;
     remote_control.enabled = 0x00;
     while(!TiEV_Stop) {
         clear();
         if(0x00 == remote_control.enabled)
-            print_text("!CarContolMode", "Manul");
+            print_text("!CarContolMode", "Manul", 2);
         else
-            print_text("!CarContolMode", "Auto");
+            print_text("!CarContolMode", "Auto", 2);
         getTextInfo();
         draw_text_window();
         draw_planner_window();
         draw_speed_window();
         cv::imshow("TiEV", main_window);
-        // MessageManager::getInstance()->publishRemoteControl(remote_control);
         key = cv::waitKey(50);
-        if('q' == key)
-            TiEV_Stop = true;
+        if('q' == key) {
+            TiEV_Stop              = true;
+            remote_control.enabled = 0x00;
+        }
         else if(27 == key)
             remote_control.enabled = 0x00;
         else if(32 == key)
             remote_control.enabled = 0x01;
+        publishRemoteControl(remote_control);
     }
     cout << "Exit TiEV Visualization..." << endl;
     cv::destroyWindow("TiEV");
@@ -288,10 +289,10 @@ void Visualization::getTextInfo() {
 
     inner_handler.parking_lots_mtx.lock_shared();
     if(current_time - inner_handler.update_time_parking_slots < PARKING_SLOT_TIMEOUT_US) {
-        print_text("parking lot", "detected", 2);
+        print_text("parking spot", "detected", 2);
     }
     else {
-        print_text("parking lot", "None", 2);
+        print_text("parking spot", "None", 2);
     }
     inner_handler.parking_lots_mtx.unlock_shared();
 
@@ -852,6 +853,10 @@ void Visualization::msgReceiveUdp() {
     zcm_udp.subscribe("VISUALIZATION", &Handler::handleVISUALIZATION, &inner_handler);
 
     zcm_udp.run();
+}
+
+void Visualization::publishRemoteControl(const structREMOTECONTROL& remote_control) {
+    zcm_udp.publish("REMOTECONTROL", &remote_control);
 }
 
 void Visualization::Handler::handleLASERMAP(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structLASERMAP* msg) {
