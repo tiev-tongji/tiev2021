@@ -34,17 +34,17 @@ ROEWEControl::~ROEWEControl(){
 }
 
 STATE ROEWEControl::init(){
-    INFO("Start to open CAN0");
+    INFO("Start to open CAN1");
     STATE ret = this->can_socket_open();
     usleep(100*1000);
     
     // 启动两个线程，分别为CAN消息接收线程与CAN消息发送线程
-    INFO("Start to subscribe CAN0 info");
+    INFO("Start to subscribe CAN1 info");
     static std::thread get_info(&ROEWEControl::get_can_info, this);
     //get_info.join();
     usleep(100*1000);
     
-    INFO("Start to publish CAN0 info");
+    INFO("Start to publish CAN1 info");
     static std::thread send_info(&ROEWEControl::send_can_info, this);
     //send_info.join();
     usleep(100*1000);
@@ -98,7 +98,7 @@ void ROEWEControl::send_can_info(){
 		// 100HZ 发送
 		usleep(10*1000);
 		// 无PC授权控制信号
-		if(1 != enable_control_){
+		if(!enable_control_){
 			continue;
 		}
 		// 无车辆授权控制信号
@@ -126,7 +126,7 @@ STATE ROEWEControl::can_socket_open(){
 	struct ifreq ifr_can0;
 	struct can_filter rfilter_can0[3];
 	can_fd = socket(PF_CAN, SOCK_RAW, CAN_RAW);
-    strcpy(ifr_can0.ifr_name, "can0");
+    strcpy(ifr_can0.ifr_name, "can1");
 	ioctl(can_fd, SIOCGIFINDEX, &ifr_can0);
 	addr_can0.can_family = AF_CAN;
 	addr_can0.can_ifindex = ifr_can0.ifr_ifindex;

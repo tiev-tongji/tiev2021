@@ -15,7 +15,7 @@
 #include "ControlCenterCommon.h"
 using namespace std;
 
-#define DEBUG 0
+#define EHB_DEBUG 0
 
 #define SHOW(x) cout << #x << " = " << x+0 << endl
 
@@ -26,7 +26,7 @@ EHBControl::EHBControl(){
 	struct ifreq ifr_can;
 	CAN_PORT = socket(PF_CAN, SOCK_RAW, CAN_RAW);
 
-	strcpy(ifr_can.ifr_name, "can1");
+	strcpy(ifr_can.ifr_name, "can0");
 	ioctl(CAN_PORT, SIOCGIFINDEX, &ifr_can);
 	addr_can.can_family = AF_CAN;
 	addr_can.can_ifindex = ifr_can.ifr_ifindex;
@@ -151,11 +151,13 @@ void EHBControl::get_m_EHB_TX2(can_frame *frame){
 	ehbMessage_.BrakePedalTravel = frame->data[3];
 	ehbMessage_.EHBFaultCode = frame->data[4];
 	ehbMessage_.AimPressureAnswered = frame->data[5];
-	if(DEBUG == 1){
+	if(EHB_DEBUG == 1){
+		cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
 		SHOW(ehbMessage_.EHBStatus);
 		SHOW(ehbMessage_.ParkingBrakeRequest);
 		SHOW(ehbMessage_.ActualPressure);
-		cout << "~~~~~~~~~~~~~~~~~~~" << endl;
+		SHOW(ehbMessage_.AimPressureAnswered);
+		cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
 	}
 }
 

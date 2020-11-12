@@ -6,7 +6,7 @@ SET(CMAKE_BUILD_TYPE "Release")
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-SET(INCLUDE_PATH include  ../../common)
+SET(INCLUDE_PATH include  ../../ ../../common)
 #SET(MSG_SOURCE_DIR "/home/autolab/tiev/2018/src/msg")
 SET(MSG_SOURCE_DIR ../../msg/include) 
 SET(SRC_PATH src/)
