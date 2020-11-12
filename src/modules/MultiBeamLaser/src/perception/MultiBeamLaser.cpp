@@ -599,7 +599,7 @@ void ObjectTracking()
                 float z = transformPC(2) / 100.0;
                 float intensity = line.intensity_ / 255.0;
 
-                if(fabs(x) < 20 && y < 70 && y > -20) //extend area
+                if(fabs(x) < 25 && y < 70 && y > -30) //extend area
                 {
                     //cloud coordinate change for Second Net detection
                     buffer.push_back(y);
