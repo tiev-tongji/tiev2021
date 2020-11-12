@@ -13,7 +13,7 @@ void sendForwardPath(structAIMPATH& path) {
         tp.x     = i;
         tp.y     = 0;
         tp.theta = 0;
-        tp.v     = 1;
+        tp.v     = 10;
         tp.a     = 0;
         tp.k     = 0;
         tp.t     = 0;
@@ -29,7 +29,7 @@ void sendBackwardPath(structAIMPATH& path) {
         tp.x     = -i;
         tp.y     = 0;
         tp.theta = 0;
-        tp.v     = -1;
+        tp.v     = -2;
         tp.a     = 0;
         tp.k     = 0;
         tp.t     = 0;
@@ -53,6 +53,7 @@ int main(int argc, char** argv) {
     structAIMPATH   control_path;
     while(true) {
         sendForwardPath(control_path);
+        //sendBackwardPath(control_path);
         msgm->publishPath(control_path);
         usleep(10 * 1000);
     }

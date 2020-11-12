@@ -43,6 +43,7 @@ typedef struct control_params{
 	float acc_P = 0;
 	float acc_I = 0;
 	float acc_D = 0;
+	float acc_FF = 0;
 	
 	float break_P = 0;
 	float break_I = 0;
@@ -82,6 +83,7 @@ inline STATE load_params_file(const std::string& params_file, control_params_t* 
 		assign_params(name, number, "acc_P", &params->acc_P);
 		assign_params(name, number, "acc_I", &params->acc_I);
 		assign_params(name, number, "acc_D", &params->acc_D);
+		assign_params(name, number, "acc_FF", &params->acc_FF);
 		assign_params(name, number, "break_P", &params->break_P);
 		assign_params(name, number, "break_I", &params->break_I);
 		assign_params(name, number, "break_D", &params->break_D);
