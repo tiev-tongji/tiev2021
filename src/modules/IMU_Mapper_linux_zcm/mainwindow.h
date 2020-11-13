@@ -85,8 +85,9 @@ public:
     todo1                       //预留
   };                            //借道的枚举
 
-  enum Mode : int {      //事件Mode2
-    NORMAL_DRIVING = 0,  //正常行驶，使用默认权值
+  enum Mode : int {     //事件Mode2
+    NORMAL_DRIVING = 0, //正常行驶，使用默认权值
+    INTERSECTION_SOLID,
     INTERSECT_WITHLIGHT, //路口
     PARK,                //停车点
     CHANGE_LANE,         //换道采路
@@ -109,7 +110,6 @@ public:
     NOEVENT = 0,     //无事件
     ENTRY_INTERSECTION,
     EXIT_INTERSECTION,
-    TIME_STOPPOINT,      //定时停止点
     CONDITION_STOPPOINT, //停止点
     CHANGE_PATH_FILE     //预留
   };

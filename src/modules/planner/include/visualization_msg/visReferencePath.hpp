@@ -10,7 +10,7 @@
 #define __visReferencePath_hpp__
 
 #include <vector>
-#include "visMapPoint.hpp"
+#include "visPoint.hpp"
 
 
 class visReferencePath
@@ -18,7 +18,7 @@ class visReferencePath
     public:
         int32_t    reference_path_length;
 
-        std::vector< visMapPoint > reference_path;
+        std::vector< visPoint > reference_path;
 
     public:
         /**
@@ -171,7 +171,7 @@ uint64_t visReferencePath::_computeHash(const __zcm_hash_ptr* p)
     const __zcm_hash_ptr cp = { p, (void*)visReferencePath::getHash };
 
     uint64_t hash = (uint64_t)0x9565410a715e583fLL +
-         visMapPoint::_computeHash(&cp);
+         visPoint::_computeHash(&cp);
 
     return (hash<<1) + ((hash>>63)&1);
 }

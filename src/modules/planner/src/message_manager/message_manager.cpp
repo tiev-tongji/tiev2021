@@ -72,11 +72,13 @@ bool MessageManager::getDynamicObjList(DynamicObjList& dynamic_obj_list) {
     a.y = CAR_CEN_COL + b.x / GRID_RESOLUTION;
                 copy_point(new_obj.corners[2], obj.corners.p3);
                 copy_point(new_obj.corners[3], obj.corners.p4);
+                /*
                 cout << "obj" << j << "corner ru rb lb lu x y:"
                      << " (" << obj.corners.p1.x << " " << obj.corners.p1.y << ") "
                      << " (" << obj.corners.p2.x << " " << obj.corners.p2.y << ") "
                      << " (" << obj.corners.p3.x << " " << obj.corners.p3.y << ") "
                      << " (" << obj.corners.p4.x << " " << obj.corners.p4.y << ") " << endl;
+                     */
                 new_obj.path.resize(obj.path.size());
                 for(int k = 0; k < obj.path.size(); ++k) {
                     copy_point(new_obj.path[k], obj.path[k]);
@@ -84,7 +86,7 @@ bool MessageManager::getDynamicObjList(DynamicObjList& dynamic_obj_list) {
                     new_obj.path[k].y   = CAR_CEN_COL + obj.path[k].x / GRID_RESOLUTION;
                     new_obj.path[k].t   = k;
                     new_obj.path[k].ang = new_obj.heading;
-                    cout << "obj" << j << "x y:" << obj.path[k].x << " " << obj.path[k].y << endl;
+                    // cout << "obj" << j << "x y:" << obj.path[k].x << " " << obj.path[k].y << endl;
                 }
 #undef copy_point
             }

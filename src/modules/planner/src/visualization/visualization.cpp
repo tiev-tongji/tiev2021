@@ -310,7 +310,7 @@ void Visualization::getTextInfo() {
     inner_handler.visualization_mtx.unlock_shared();
 }
 
-void Visualization::drawTrafficLight() {
+bool Visualization::drawTrafficLight() {
     inner_handler.traffic_mtx.lock_shared();
     time_t current_time = getTimeStamp();
     if(current_time - inner_handler.update_time_traffic_light < TRAFFIC_LIGHT_TIMEOUT_US) {
@@ -336,48 +336,48 @@ void Visualization::drawTrafficLight() {
         traffic_light_gray_right.copyTo(right_traffic_light_window);
     }
     inner_handler.traffic_mtx.unlock_shared();
-}
-
-void Visualization::drawSensor() {
-    cv::Mat left_map, right_map;
-    // 雷达地图
-    drawLidarMap(left_map, right_map, 1);
-    // 动态障碍物
-    drawDynamicObjs(left_map, right_map, 1);
-    // 停车库位
-    drawParkingLots(left_map, right_map, 1);
-    // 视觉车道线
-    drawLanes(left_map, right_map, 1);
-
-    left_map.copyTo(planner_map_left);
-    right_map.copyTo(planner_map_right);
+    return true;
 }
 
 // 绘制Decision相关信息
 void Visualization::drawPathPlanner() {
-    time_t current_time = getTimeStamp();
+    time_t  current_time = getTimeStamp();
+    cv::Mat left_map(MAX_ROW, MAX_COL, CV_8UC3, TiEV_BLACK);
+    cv::Mat right_map(MAX_ROW, MAX_COL, CV_8UC3, TiEV_BLACK);
+    // 雷达地图
+    bool lidar = drawLidarMap(left_map, right_map, 0);
+    // 动态障碍物
+    bool dynamic = drawDynamicObjs(left_map, right_map, 0);
+    // 停车库位
+    bool parking_spot = drawParkingLots(left_map, right_map, 0);
+    // 视觉车道线
+    bool lanes     = drawLanes(left_map, right_map, 0);
+    bool visualize = false;
     if(current_time - inner_handler.update_time_visualization < VISUALIZATION_TIMEOUT_US) {
         inner_handler.visualization_mtx.lock_shared();
-        cv::Mat left_map(MAX_ROW, MAX_COL, CV_8UC3, TiEV_BLACK);
-        cv::Mat right_map(MAX_ROW, MAX_COL, CV_8UC3, TiEV_BLACK);
-        drawSafeMap(left_map, right_map, 0);
+        drawSafeMap(left_map, right_map, 1);
         // 参考路
-        drawReferencePath(left_map, right_map, 1);
+        drawReferencePath(left_map, right_map, 0);
         // 最优路径
-        drawBestPath(left_map, right_map, 1);
+        drawBestPath(left_map, right_map, 2);
         // 目标点
-        drawTargets(left_map, right_map, 0);
+        drawTargets(left_map, right_map, 1);
+        // Maintained path
+        drawMaintainedPath(left_map, right_map, 2);
         // 规划起始点
-        drawStartPoint(left_map, right_map, 0);
+        drawStartPoint(left_map, right_map, 1);
         // used_map
-        drawUsedMap(left_map, right_map, 0);
+        drawUsedMap(left_map, right_map, 1);
         // 规划路线
-        drawPaths(left_map, right_map, 0);
+        drawPaths(left_map, right_map, 1);
         // 地图参考车道
-        drawReferenceLanes(left_map, right_map, 1);
+        drawReferenceLanes(left_map, right_map, 0);
+        inner_handler.visualization_mtx.unlock_shared();
+        visualize = true;
+    }
+    if(lidar || dynamic || parking_spot || lanes || visualize) {
         left_map.copyTo(planner_map_left);
         right_map.copyTo(planner_map_right);
-        inner_handler.visualization_mtx.unlock_shared();
     }
 }
 
@@ -402,7 +402,7 @@ void Visualization::drawSpeedPlanner(cv::Mat& speed_view_mat) {
 }
 
 // 绘制雷达地图
-void Visualization::drawLidarMap(cv::Mat& left_map, cv::Mat& right_map, int opt) {
+bool Visualization::drawLidarMap(cv::Mat& left_map, cv::Mat& right_map, int opt) {
     assert(opt >= 0);
     assert(opt <= 2);
     time_t current_time = getTimeStamp();
@@ -423,11 +423,13 @@ void Visualization::drawLidarMap(cv::Mat& left_map, cv::Mat& right_map, int opt)
             }
         }
         inner_handler.lidar_mtx.unlock_shared();
+        return true;
     }
+    return false;
 }
 
 // 绘制规划地图
-void Visualization::drawSafeMap(cv::Mat& left_map, cv::Mat& right_map, int opt) {
+bool Visualization::drawSafeMap(cv::Mat& left_map, cv::Mat& right_map, int opt) {
     assert(opt >= 0);
     assert(opt <= 2);
     // 绘制规划地图
@@ -445,10 +447,11 @@ void Visualization::drawSafeMap(cv::Mat& left_map, cv::Mat& right_map, int opt) 
             }
         }
     }
+    return true;
 }
 
 // 绘制used_map
-void Visualization::drawUsedMap(cv::Mat& left_map, cv::Mat& right_map, int opt) {
+bool Visualization::drawUsedMap(cv::Mat& left_map, cv::Mat& right_map, int opt) {
     assert(opt >= 0);
     assert(opt <= 2);
     // 绘制规划地图
@@ -466,10 +469,11 @@ void Visualization::drawUsedMap(cv::Mat& left_map, cv::Mat& right_map, int opt) 
             }
         }
     }
+    return true;
 }
 
 // 绘制动态障碍物
-void Visualization::drawDynamicObjs(cv::Mat& left_map, cv::Mat& right_map, int opt) {
+bool Visualization::drawDynamicObjs(cv::Mat& left_map, cv::Mat& right_map, int opt) {
     assert(opt >= 0);
     assert(opt <= 2);
     time_t current_time = getTimeStamp();
@@ -521,11 +525,13 @@ void Visualization::drawDynamicObjs(cv::Mat& left_map, cv::Mat& right_map, int o
             }
         }
         inner_handler.objects_mtx.unlock_shared();
+        return true;
     }
+    return false;
 }
 
 // 绘制停车库位
-void Visualization::drawParkingLots(cv::Mat& left_map, cv::Mat& right_map, int opt) {
+bool Visualization::drawParkingLots(cv::Mat& left_map, cv::Mat& right_map, int opt) {
     assert(opt >= 0);
     assert(opt <= 2);
     time_t current_time = getTimeStamp();
@@ -559,11 +565,13 @@ void Visualization::drawParkingLots(cv::Mat& left_map, cv::Mat& right_map, int o
             }
         }
         inner_handler.parking_lots_mtx.unlock_shared();
+        return true;
     }
+    return false;
 }
 
 // 绘制视觉检测车道线
-void Visualization::drawLanes(cv::Mat& left_map, cv::Mat& right_map, int opt) {
+bool Visualization::drawLanes(cv::Mat& left_map, cv::Mat& right_map, int opt) {
     assert(opt >= 0);
     assert(opt <= 2);
     time_t current_time = getTimeStamp();
@@ -669,11 +677,13 @@ void Visualization::drawLanes(cv::Mat& left_map, cv::Mat& right_map, int opt) {
             }
         }
         inner_handler.lane_mtx.unlock_shared();
+        return true;
     }
+    return false;
 }
 
 // 绘制参考路
-void Visualization::drawReferencePath(cv::Mat& left_map, cv::Mat& right_map, int opt) {
+bool Visualization::drawReferencePath(cv::Mat& left_map, cv::Mat& right_map, int opt) {
     assert(opt >= 0);
     assert(opt <= 2);
     for(const auto& point : inner_handler.tmp_visualization.reference_path) {
@@ -689,10 +699,11 @@ void Visualization::drawReferencePath(cv::Mat& left_map, cv::Mat& right_map, int
             *right_map.ptr<cv::Vec3b>(x, y) = VEC_REFER_PATH_COLOR;
         }
     }
+    return true;
 }
 
 // 绘制最优路径
-void Visualization::drawBestPath(cv::Mat& left_map, cv::Mat& right_map, int opt) {
+bool Visualization::drawBestPath(cv::Mat& left_map, cv::Mat& right_map, int opt) {
     assert(opt >= 0);
     assert(opt <= 2);
     for(const auto& point : inner_handler.tmp_visualization.best_path) {
@@ -708,10 +719,11 @@ void Visualization::drawBestPath(cv::Mat& left_map, cv::Mat& right_map, int opt)
             *right_map.ptr<cv::Vec3b>(x, y) = VEC_BEST_PATH_COLOR;
         }
     }
+    return true;
 }
 
 // 绘制目标点
-void Visualization::drawTargets(cv::Mat& left_map, cv::Mat& right_map, int opt) {
+bool Visualization::drawTargets(cv::Mat& left_map, cv::Mat& right_map, int opt) {
     assert(opt >= 0);
     assert(opt <= 2);
     for(const auto& target : inner_handler.tmp_visualization.targets) {
@@ -726,10 +738,30 @@ void Visualization::drawTargets(cv::Mat& left_map, cv::Mat& right_map, int opt) 
             cv::circle(right_map, cv::Point(x, y), 2, TARGET_COLOR, -1);
         }
     }
+    return true;
+}
+
+bool Visualization::drawMaintainedPath(cv::Mat& left_map, cv::Mat& right_map, int opt) {
+    assert(opt >= 0);
+    assert(opt <= 2);
+    for(const auto& point : inner_handler.tmp_visualization.maintained_path) {
+        int x = point.x;
+        int y = point.y;
+        if(x < 0 || x >= MAX_ROW || y < 0 || y >= MAX_COL) continue;
+        if(opt == 0)
+            *left_map.ptr<cv::Vec3b>(x, y) = VEC_MAINTAINED_PATH_COLOR;
+        else if(opt == 1)
+            *right_map.ptr<cv::Vec3b>(x, y) = VEC_MAINTAINED_PATH_COLOR;
+        else {
+            *left_map.ptr<cv::Vec3b>(x, y)  = VEC_MAINTAINED_PATH_COLOR;
+            *right_map.ptr<cv::Vec3b>(x, y) = VEC_MAINTAINED_PATH_COLOR;
+        }
+    }
+    return true;
 }
 
 // 绘制规划起始点
-void Visualization::drawStartPoint(cv::Mat& left_map, cv::Mat& right_map, int opt) {
+bool Visualization::drawStartPoint(cv::Mat& left_map, cv::Mat& right_map, int opt) {
     assert(opt >= 0);
     assert(opt <= 2);
     int x = inner_handler.tmp_visualization.start_point.x;
@@ -741,10 +773,11 @@ void Visualization::drawStartPoint(cv::Mat& left_map, cv::Mat& right_map, int op
         cv::circle(left_map, cv::Point(y, x), 2, START_POINT_COLOR, -1);
         cv::circle(right_map, cv::Point(y, x), 2, START_POINT_COLOR, -1);
     }
+    return true;
 }
 
 // 绘制所有规划路径
-void Visualization::drawPaths(cv::Mat& left_map, cv::Mat& right_map, int opt) {
+bool Visualization::drawPaths(cv::Mat& left_map, cv::Mat& right_map, int opt) {
     assert(opt >= 0);
     assert(opt <= 2);
 
@@ -764,10 +797,11 @@ void Visualization::drawPaths(cv::Mat& left_map, cv::Mat& right_map, int opt) {
             }
         }
     }
+    return true;
 }
 
 // 绘制参考车道线
-void Visualization::drawReferenceLanes(cv::Mat& left_map, cv::Mat& right_map, int opt) {
+bool Visualization::drawReferenceLanes(cv::Mat& left_map, cv::Mat& right_map, int opt) {
     assert(opt >= 0);
     assert(opt <= 2);
     for(const auto& lane_line : inner_handler.tmp_visualization.lanes) {
@@ -785,10 +819,11 @@ void Visualization::drawReferenceLanes(cv::Mat& left_map, cv::Mat& right_map, in
             }
         }
     }
+    return true;
 }
 
 // 绘制速度规划st_boundaries
-void Visualization::drawSTBoundaries(cv::Mat& speed_view_mat) {
+bool Visualization::drawSTBoundaries(cv::Mat& speed_view_mat) {
     for(const auto& stb : inner_handler.tmp_visualization.st_boundaries) {
         vector<cv::Point> points;
         points.push_back(cv::Point(stb.ulp.t / 0.01, 500 - stb.ulp.s / 0.2));
@@ -797,16 +832,18 @@ void Visualization::drawSTBoundaries(cv::Mat& speed_view_mat) {
         points.push_back(cv::Point(stb.blp.t / 0.01, 500 - stb.blp.s / 0.2));
         cv::polylines(speed_view_mat, points, true, TiEV_RED);
     }
+    return true;
 }
 
 // 绘制速度规划DP参考曲线
-void Visualization::drawDPReferenceCurve(cv::Mat& speed_view_mat) {
+bool Visualization::drawDPReferenceCurve(cv::Mat& speed_view_mat) {
     for(const auto& speed_point : inner_handler.tmp_visualization.dp_speed) {
         cv::circle(speed_view_mat, cv::Point(speed_point.t / 0.01, 500 - speed_point.s / 0.2), 3, cv::Scalar(0, 0, 255), -1);
     }
+    return true;
 }
 
-void Visualization::drawQPSpeedCurve(cv::Mat& speed_view_mat) {
+bool Visualization::drawQPSpeedCurve(cv::Mat& speed_view_mat) {
     for(int i = 0; i < inner_handler.tmp_visualization.qp_speed_curve.size(); ++i) {
         int         area_size = (int)(500 / inner_handler.tmp_visualization.qp_speed_curve.size());
         Coefficient co        = Coefficient(inner_handler.tmp_visualization.qp_speed_curve[i].params);
@@ -819,9 +856,10 @@ void Visualization::drawQPSpeedCurve(cv::Mat& speed_view_mat) {
             *speed_view_mat.ptr<cv::Vec3b>(r, c) = VEC_TiEV_BLUE;
         }
     }
+    return true;
 }
 
-void Visualization::drawSplinesSpeedCurve(cv::Mat& speed_view_mat) {
+bool Visualization::drawSplinesSpeedCurve(cv::Mat& speed_view_mat) {
     for(int i = 0; i < inner_handler.tmp_visualization.splines_speed_curve.size(); ++i) {
         const auto&         spline = inner_handler.tmp_visualization.splines_speed_curve[i];
         SplineLib::cSpline2 s;
@@ -838,16 +876,17 @@ void Visualization::drawSplinesSpeedCurve(cv::Mat& speed_view_mat) {
             *speed_view_mat.ptr<cv::Vec3b>(r, c) = VEC_TiEV_BLUE;
         }
     }
+    return true;
 }
 
 void Visualization::msgReceiveUdp() {
     if(!zcm_udp.good()) return;
 
-    zcm_udp.subscribe("LASERMAP", &Handler::handleLASERMAP, &inner_handler);
+    zcm_udp.subscribe("FUSIONMAP", &Handler::handleFUSIONMAP, &inner_handler);
     zcm_udp.subscribe("NAVINFO", &Handler::handleNAVINFO, &inner_handler);
     zcm_udp.subscribe("OBJECTLIST", &Handler::handleOBJECTLIST, &inner_handler);
     zcm_udp.subscribe("TRAFFICLIGHT", &Handler::handleTRAFFICLIGHT, &inner_handler);
-    zcm_udp.subscribe("LANES", &Handler::handleLANES, &inner_handler);
+    zcm_udp.subscribe("LANE_info", &Handler::handleLANES, &inner_handler);
     zcm_udp.subscribe("PARKINGSLOTS", &Handler::handlePARKINGSLOTS, &inner_handler);
     zcm_udp.subscribe("SLAMLOC", &Handler::handleSLAMLOC, &inner_handler);
     zcm_udp.subscribe("VISUALIZATION", &Handler::handleVISUALIZATION, &inner_handler);
@@ -859,7 +898,7 @@ void Visualization::publishRemoteControl(const structREMOTECONTROL& remote_contr
     zcm_udp.publish("REMOTECONTROL", &remote_control);
 }
 
-void Visualization::Handler::handleLASERMAP(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structLASERMAP* msg) {
+void Visualization::Handler::handleFUSIONMAP(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structFUSIONMAP* msg) {
     lidar_mtx.lock();
     tmp_lidar_map     = *msg;
     update_time_lidar = getTimeStamp();

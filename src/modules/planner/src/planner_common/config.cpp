@@ -23,6 +23,14 @@ void Config::init() {
     doc.Parse(buffer.str().c_str());
 #define nameof(x) (#x)
     roadmap_file                      = doc[nameof(roadmap_file)].GetString();
+    auto& recommended_speeds          = doc["recommended_speeds"];
+    back_speed                        = recommended_speeds["BACK"].Get<double>();
+    stop_speed                        = recommended_speeds["STOP"].Get<double>();
+    very_low_speed                    = recommended_speeds["VERYLOW"].Get<double>();
+    low_speed                         = recommended_speeds["LOW"].Get<double>();
+    mid_speed                         = recommended_speeds["MID"].Get<double>();
+    high_speed                        = recommended_speeds["HIGH"].Get<double>();
+    very_high_speed                   = recommended_speeds["VERYHIGH"].Get<double>();
     control_mode                      = (ControlMode)(doc[nameof(control_mode)].GetInt());
     debug_event_mode                  = (HDMapMode)(doc[nameof(debug_event_mode)].GetInt());
     debug_speed_mode                  = (HDMapSpeed)(doc[nameof(debug_speed_mode)].GetInt());
@@ -58,6 +66,13 @@ void Config::outputConfigures() const {
 
 #define print(a) cout << #a << " = " << (a) << endl
     print(roadmap_file);
+    print(back_speed);
+    print(stop_speed);
+    print(very_low_speed);
+    print(low_speed);
+    print(mid_speed);
+    print(high_speed);
+    print(very_high_speed);
     print(rs_distance_table_path);
     print(dubins_distance_table_path);
     print(control_mode);

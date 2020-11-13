@@ -1,16 +1,7 @@
 {
-	"!roadmap_file": "/home/autolab/IV_planner/IV_planner_data/ceshichang.txt",
-	"roadmap_file": "/home/autolab/tiev2019/src/log/carla_paths/path_auto.txt",
-	"!roadmap_file": "/home/autolab/tiev-plus/modules/test/planning/data/jiugongge-part1.txt",
-	"!roadmap_file": "/home/autolab/tiev2019/src/logs/jiugongge_task1_all_final-1117_modified.txt",
-	"!roadmap_file": "/home/autolab/tiev2019/src/log/paths/ceshidiku.txt",
-	"!roadmap_file": "/home/autolab/tiev2019/src/log/paths/ceshi1112.txt",
-	"!roadmap_file": "/home/autolab/tiev2019/src/log/paths/shortest_road_3.csv",
-	"!roadmap_file": "/home/autolab/tiev2019/src/log/paths/gaojia2_edited_3_inside.txt",
-	"!roadmap_file": "/home/autolab/tiev2019/src/log/paths/gaojia2_edited_3_outside.txt",
-	"!roadmap_file": "/home/autolab/tiev2019/src/log/paths/shortest_road.csv",
-	"rs_distance_table_path": "/home/autolab/tiev2019/src/cfg/reeds_shepp_distance_table",
-	"dubins_distance_table_path": "/home/autolab/tiev2019/src/cfg/dubins_distance_table",
+	"roadmap_file": "/home/autolab/tiev2020-code/logs/path/2020_1112_2241.txt",
+	"rs_distance_table_path": "/home/autolab/tiev2020-code/src/cfg/reeds_shepp_distance_table",
+	"dubins_distance_table_path": "/home/autolab/tiev2020-code/src/cfg/dubins_distance_table",
 	"control_mode": 0,
 	"debug_event_mode": 10,
 	"debug_speed_mode": 5,
@@ -37,12 +28,21 @@
 	"a_star_analytic_expansion_param_t": 50,
 	"a_star_analytic_expansion_max_N": 30,
 	"a_star_curvature_changed_punishment": 1,
-	"tasks" : [],
-	"!tasks" : [
-         {"task_points": [
-                            {"lon":120.76291326536289716, "lat":31.59720562967928004, "heading":1.7575213909149201},
-                            {"lon":120.76290038560949824, "lat":31.59725636335048904, "heading":1.76273941993713}
-                         ]
-         }
+	"tasks": [],
+	"!tasks": [
+		{
+			"task_points": [
+				{
+					"lon": 120.76291326536289716,
+					"lat": 31.59720562967928004,
+					"heading": 1.7575213909149201
+				},
+				{
+					"lon": 120.76290038560949824,
+					"lat": 31.59725636335048904,
+					"heading": 1.76273941993713
+				}
+			]
+		}
 	]
 }

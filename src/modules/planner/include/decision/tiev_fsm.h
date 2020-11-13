@@ -29,8 +29,6 @@ using M = hfsm2::MachineT<hfsm2::Config::ContextT<Context>>;
 //请准确构造途灵的层次状态机
 #define S(s) struct s
 // state machine structure
-// using FSM = M::PeerRoot<M::Composite<S(OnRoadFSM), S(OnRoadBack), S(GlobalRePlanning), S(Exploration), S(NormalDriving)>,
-//                        M::Composite<S(IntersectionFSM), S(IntersectionNormal), S(IntersectionBack), S(IntersectionFree)>>;
 using FSM = M::PeerRoot<
     // OnRoad Fsm
     M::Composite<S(OnRoadFSM),
@@ -61,7 +59,8 @@ using FSM = M::PeerRoot<
                  S(TemporaryParkingPlanning),  //
                  S(TemporaryStop),             //
                  S(TaskDecision)               //
-                 >                             //
+                 >,                            //
+    S(Tracking)                                // just for tracking test
     >;
 
 #undef S
@@ -171,6 +170,12 @@ struct TaskDecision : FSM::State {
     void update(FullControl& control);
 };
 //----------------TemporaryParking Fsm--------------------
+//----------------Tracking State--------------------
+struct Tracking : FSM::State {
+    void enter(Control& control);
+    void update(FullControl& control);
+};
+//----------------Tracking State--------------------
 
 }  // namespace TiEV
 

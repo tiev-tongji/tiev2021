@@ -1,7 +1,6 @@
 #pragma once
 #include "visCoefficient.hpp"
 #include "visLaneLine.hpp"
-#include "visMapPoint.hpp"
 #include "visPoint.hpp"
 #include "visReferencePath.hpp"
 #include "visSTBoundary.hpp"

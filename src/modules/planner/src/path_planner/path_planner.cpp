@@ -250,7 +250,7 @@ void PathPlanner::planSpeed(int target_index) {
 
     // conversion
     for(auto& point : speed_paths[target_index].path) {
-        if(!point.backward) point.ang = PI - point.ang;
+        if(point.backward) point.ang = PI + point.ang;
         speed_limits[target_index].emplace_back(point.s, min(sqrt(g_tims_miu / (point.k + 0.0001)), point.v) * 0.7);
     }
 
@@ -261,11 +261,10 @@ void PathPlanner::planSpeed(int target_index) {
 
     // anti-conversion
     for(auto& point : speed_paths[target_index].path) {
-        if(!point.backward)
-            point.ang = PI - point.ang;
-        else {
-            point.v = -point.v;
-            point.a = -point.a;
+        if(point.backward) {
+            point.ang = PI + point.ang;
+            point.v   = -point.v;
+            point.a   = -point.a;
         }
     }
 
