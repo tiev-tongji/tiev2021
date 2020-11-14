@@ -35,6 +35,7 @@ public:
     const static std::time_t OBJECT_LIST_TIMEOUT_US   = 1e6;
     const static std::time_t SLAM_LOC_TIMEOUT_US      = 1e6;
     const static std::time_t CAN_INFO_TIMEOUT_US      = 1e5;
+    const static std::time_t RAIN_SIGNAL_TIMEOUT_US   = 1e5;
     const static int         OBJECTS_SOURCE_NUM       = 3;
 
     void msgReceiveIpc();
@@ -42,6 +43,7 @@ public:
 
     bool getNavInfo(NavInfo& nav_info);
     bool getMap(LidarMap& lidar_map);
+    bool getRainSignal(RainSignal& rain_signal);
     bool getDynamicObjList(DynamicObjList& dynamic_obj_list);
     bool getWarningObjList(WarningObjList& warning_obj_list);
     bool getTrafficLight(TrafficLight& traffic_light);
@@ -73,6 +75,7 @@ private:
     public:
         void handleNAVINFO(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structNAVINFO* msg);
         void handleFUSIONMAP(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structFUSIONMAP* msg);
+        void handleRAINSIGNAL(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgRainDetectionSignal* msg);
         void handleOBJECTLIST(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structOBJECTLIST* msg);
         void handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structTRAFFICLIGHT* msg);
         void handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structLANES* msg);
@@ -80,7 +83,7 @@ private:
         void handleSLAMLOC(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structSLAMLOC* msg);
         void handleCANINFO(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structCANINFO* msg);
 
-        TiEV::shared_mutex nav_mtx, map_mtx, objects_mtx, traffic_mtx, stop_line_mtx, lane_mtx, parking_slot_mtx, slam_loc_mtx;
+        TiEV::shared_mutex nav_mtx, map_mtx, objects_mtx, traffic_mtx, stop_line_mtx, lane_mtx, parking_slot_mtx, slam_loc_mtx, rain_mtx;
 
         time_t update_time_nav_info;
         time_t update_time_fusion_map;
@@ -91,15 +94,17 @@ private:
         time_t update_time_parking_slots;
         time_t update_time_slam_loc;
         time_t update_time_can_info;
+        time_t update_time_rain_signal;
 
-        structNAVINFO      tmp_nav;
-        structFUSIONMAP    tmp_map;
-        structOBJECTLIST   tmp_objects[OBJECTS_SOURCE_NUM];
-        structTRAFFICLIGHT tmp_traffic;
-        structSLAMLOC      tmp_slam_loc;
-        structCANINFO      tmp_can_info;
-        structLANES        tmp_lanes;
-        structPARKINGSLOTS tmp_slot;
+        structNAVINFO          tmp_nav;
+        structFUSIONMAP        tmp_map;
+        MsgRainDetectionSignal tmp_rain_signal;
+        structOBJECTLIST       tmp_objects[OBJECTS_SOURCE_NUM];
+        structTRAFFICLIGHT     tmp_traffic;
+        structSLAMLOC          tmp_slam_loc;
+        structCANINFO          tmp_can_info;
+        structLANES            tmp_lanes;
+        structPARKINGSLOTS     tmp_slot;
     };
 
     Handler  inner_handler;

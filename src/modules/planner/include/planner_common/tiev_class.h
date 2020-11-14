@@ -115,6 +115,7 @@ public:
 
 class RainSignal {
 public:
+    bool detected = false;
     char signal;
 };
 

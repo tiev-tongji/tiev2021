@@ -45,6 +45,19 @@ bool MessageManager::getMap(LidarMap& lidar_map) {
     return lidar_map.detected;
 }
 
+bool MessageManager::getRainSignal(RainSignal& rain_signal) {
+    inner_handler.rain_mtx.lock_shared();
+    time_t current_time = getTimeStamp();
+
+    rain_signal.detected = false;
+    if(current_time - inner_handler.update_time_rain_signal < RAIN_SIGNAL_TIMEOUT_US) {
+        rain_signal.detected = true;
+        rain_signal.signal   = inner_handler.tmp_rain_signal.rain_signal;
+    }
+    inner_handler.rain_mtx.unlock_shared();
+    return rain_signal.detected;
+}
+
 bool MessageManager::getDynamicObjList(DynamicObjList& dynamic_obj_list) {
     inner_handler.objects_mtx.lock_shared();
     time_t current_time_us = getTimeStamp();

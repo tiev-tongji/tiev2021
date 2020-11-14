@@ -60,7 +60,8 @@ using FSM = M::PeerRoot<
                  S(TemporaryStop),             //
                  S(TaskDecision)               //
                  >,                            //
-    S(Tracking)                                // just for tracking test
+    S(Tracking),                               // just for tracking test
+    S(BackTracking)                            // just for back tracking test
     >;
 
 #undef S
@@ -172,6 +173,11 @@ struct TaskDecision : FSM::State {
 //----------------TemporaryParking Fsm--------------------
 //----------------Tracking State--------------------
 struct Tracking : FSM::State {
+    void enter(Control& control);
+    void update(FullControl& control);
+};
+
+struct BackTracking : FSM::State {
     void enter(Control& control);
     void update(FullControl& control);
 };

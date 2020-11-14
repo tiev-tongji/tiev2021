@@ -57,8 +57,8 @@ struct Pose : public Point2d {
     inline void updateGlobalCoordinate(const Pose& standard_point) {
         double stdh    = standard_point.utm_position.heading - standard_point.ang;
         double sinstdh = sin(stdh), cosstdh = cos(stdh);
-        double px          = standard_point.x - x;
-        double py          = standard_point.y - y;
+        double px          = x - standard_point.x;
+        double py          = y - standard_point.y;
         double qx          = (px * cosstdh - py * sinstdh);
         double qy          = (px * sinstdh + py * cosstdh);
         utm_position.utm_x = qx * GRID_RESOLUTION + standard_point.utm_position.utm_x;
