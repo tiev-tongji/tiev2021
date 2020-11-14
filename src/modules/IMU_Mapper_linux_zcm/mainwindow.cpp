@@ -78,11 +78,12 @@ MainWindow::MainWindow(QWidget *parent)
   ui->comboBox->addItem(QWidget::tr("VERYHIGH"));
 
   // Mode
-  ui->comboBox_2->addItem(QWidget::tr("正常行驶")); // NORMAL_DRIVING
-  ui->comboBox_2->addItem(QWidget::tr("交叉路口")); // INTERSECT_WITHLIGHT
-  ui->comboBox_2->addItem(QWidget::tr("停车点"));   // PARK
-  ui->comboBox_2->addItem(QWidget::tr("换道采路")); // PARK
-  ui->comboBox_2->addItem(QWidget::tr("U字调头"));  // UTURN
+  ui->comboBox_2->addItem(QWidget::tr("正常行驶"));   // NORMAL_DRIVING
+  ui->comboBox_2->addItem(QWidget::tr("路口实线区")); // INTERSECT_WITHLIGHT
+  ui->comboBox_2->addItem(QWidget::tr("路口中央"));   // INTERSECT_WITHLIGHT
+  ui->comboBox_2->addItem(QWidget::tr("停车场"));     // PARK
+  ui->comboBox_2->addItem(QWidget::tr("换道采路"));   // PARK
+  ui->comboBox_2->addItem(QWidget::tr("U字调头"));    // UTURN
   /*
   ui->comboBox_2->addItem(QWidget::tr("车辆启动"));     // START
   ui->comboBox_2->addItem(QWidget::tr("人行道"));       // PEDESTRIAN
@@ -100,16 +101,16 @@ MainWindow::MainWindow(QWidget *parent)
   ui->comboBox_3->addItem(QWidget::tr("无事件"));       // NOEVENT
   ui->comboBox_3->addItem(QWidget::tr("进入路口"));     // NOEVENT
   ui->comboBox_3->addItem(QWidget::tr("驶出路口"));     // NOEVENT
-  ui->comboBox_3->addItem(QWidget::tr("定时停止点"));   // TIME_STOPPOINT
   ui->comboBox_3->addItem(QWidget::tr("停止点"));       // CONDITION_STOPPOINT
   ui->comboBox_3->addItem(QWidget::tr("切换全局路径")); // TODO1
+  ui->comboBox_3->addItem(QWidget::tr("TODO"));         // TODO1
+  ui->comboBox_3->addItem(QWidget::tr("TODO"));         // TODO1
 
   // OppositeSideMode
   ui->comboBox_4->addItem(QWidget::tr("左右均不封")); // LEFT_NO_RIGHT_NO
   ui->comboBox_4->addItem(QWidget::tr("左不封右封")); // LEFT_NO_RIGHT_YES
   ui->comboBox_4->addItem(QWidget::tr("左封右不封")); // LEFT_YES_RIGHT_NO
   ui->comboBox_4->addItem(QWidget::tr("左右均封"));   // LEFT_YES_RIGHT_YES
-  ui->comboBox_4->addItem(QWidget::tr("todo1"));      // todo1
   data.clear();
   record_roadpoint = false;
 
