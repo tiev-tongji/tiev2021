@@ -965,11 +965,7 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
             return out_list;
         }
         out_list.push_back(1);
-<<<<<<< HEAD
         structRoadMarkingList structlanes_zcm;
-=======
-        MsgRoadMarkingList structlanes_zcm;
->>>>>>> e5ebe55ebdb86450a628c401ab079e5ddf3dd8cf
         structlanes_zcm.current_lane_id = road_resampled.cal_current_lane_id(CENTER.x);
         StopLine stopline_zcm;//constract stopline zcm
         {

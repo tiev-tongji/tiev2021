@@ -1,0 +1,76 @@
+struct LinePoint
+{
+	float x;
+	float y;
+}
+
+struct LaneLine
+{
+	int32_t line_type;
+	float distance;
+	int32_t num;
+	LinePoint points[num];
+	int8_t boundary_type; // left 1, right 2, mid 0
+    int32_t boundary_confidence;// case1: curbs are detected besides this line or append this boundary by curb, 2 means more believable than 1,  determined by curb points' number on lasermap,
+                                // case2: yellow solid line: 2
+                                // case3: middle line or curbs are not detected and not yellow solid line : 0
+
+	// const value for line_type
+	// meaning of bits *0->solid; *1->dashed; 0*->whilte; 1*->yellow
+    const int8_t kTypeSolid = 0x00;
+    const int8_t kTypeDashed = 0x01;
+    const int8_t kTypeWhite = 0x00;
+    const int8_t kTypeYellow = 0x02;
+    const int8_t kTypeSolidWhite = 0x00;
+    const int8_t kTypeSolidYellow = 0x02;
+    const int8_t kTypeDashedWhite = 0x01;
+    const int8_t kTypeDashedYellow = 0x03;
+
+}
+
+struct Lane
+{
+	int32_t lane_type;
+	float width;
+	//LinePoint stop_point;  //if no stop_point,set(-1,-1)
+	LaneLine left_line;
+	LaneLine right_line;
+
+	//const value for lane_type
+
+	const int8_t kTypeNone = 0x00;
+	const int8_t kTypeStraight = 0x01;
+	const int8_t kTypeLeft = 0x02;
+	const int8_t kTypeStraightLeft = 0x03;
+	const int8_t kTypeRight = 0x04;
+	const int8_t kTypeStraightRight = 0x05;
+	const int8_t kTypeStraightLeftRight = 0x07;
+	const int8_t kTypeUTurn = 0x08;
+
+	//new compared to 2019
+
+	const int8_t kTypeLeftRight = 0x06;
+	const int8_t kTypeLeftUTurn = 0x09;
+	const int8_t kTypeStraightUTurn = 0x0A;
+	const int8_t kTypeMerge = 0x0B;
+
+}
+
+struct StopLine
+{
+	boolean exist;
+	int32_t num;
+	LinePoint stop_points[num];
+	float distance; // unit cm,  from center_y of car to mean_y of stop points
+}
+
+
+struct MsgRoadMarkingList
+{
+	int32_t current_lane_id; //the lane index of ego car, from right to left is 0, 1, 2, 3....
+	int32_t num;			//the numbers of lane
+	Lane lanes[num];	//lanes
+	StopLine stop_line;
+	boolean boundary_detected;
+	//Curb curb;
+}
