@@ -46,7 +46,9 @@ struct Map {
  */
 class MapManager {
 public:
-    void update();                                    //更新map
+    void   update();  //更新map
+    double getSpeedBySpeedMode(int speed_mode);
+    double getCurrentMapSpeed();
     bool requestGlobalPath(const NavInfo& nav_info);  //请求全局路
     void readGlobalPathFile(const std::string& file_path);
     void updateRefPath(bool need_opposite = false);  //获取局部参考路
@@ -62,9 +64,9 @@ public:
     Pose              getParkingSpotTarget();
     vector<Pose>      getTaskTargets();
     //------
-    std::vector<Pose> getMaintainedPath();
+    std::vector<Pose> getMaintainedPath(NavInfo& nav_info);
     std::vector<Pose> getStartMaintainedPath();
-    void              maintainPath();
+    void maintainPath(NavInfo& nav_info, vector<Pose>& path);
     void selectBestPath(const std::vector<SpeedPath>& paths);
 
 public:
@@ -83,6 +85,7 @@ private:
     std::vector<Pose>       maintained_path;
     static MapManager*      instance;
     shared_mutex            maintained_path_mutex;
+    shared_mutex            ref_path_mutex;
 
 private:
     //---------execute when update--------
@@ -92,13 +95,12 @@ private:
     void laneMatch();                 // 车道线匹配
     void getBoundaryLine();
     void laneLineInterpolation();
-    void getLidarDisMap();
     void getPlanningDisMap();
     void getAccessibleMap();
     //--------tool----------------
     int  getCarLaneId();                             //获取车辆当前所在车道序号
     bool vehicleIsOnRoad(Pose const& vehicle_pose);  // 判断车辆是否已回到车道
-    int  getGlobalPathNearestIndex() const;
+    int getGlobalPathNearestIndex(int begin, int end) const;
     void setGlobalPathDirection();  // 设置全局参考路中RoadDirection属性
     void filtPoints();
     void updateMaintainedPath();

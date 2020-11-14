@@ -11,7 +11,8 @@
 
 #include <vector>
 #include "visLaneLine.hpp"
-#include "visMapPoint.hpp"
+#include "visPoint.hpp"
+#include "visPoint.hpp"
 #include "visPoint.hpp"
 #include "visPoint.hpp"
 #include "visPoint.hpp"
@@ -36,11 +37,15 @@ class visVISUALIZATION
 
         int32_t    reference_path_size;
 
-        std::vector< visMapPoint > reference_path;
+        std::vector< visPoint > reference_path;
 
         int32_t    best_path_size;
 
         std::vector< visPoint > best_path;
+
+        int32_t    maintained_path_size;
+
+        std::vector< visPoint > maintained_path;
 
         int32_t    targets_size;
 
@@ -212,6 +217,14 @@ int visVISUALIZATION::_encodeNoHash(void* buf, uint32_t offset, uint32_t maxlen)
         if(thislen < 0) return thislen; else pos += thislen;
     }
 
+    thislen = __int32_t_encode_array(buf, offset + pos, maxlen - pos, &this->maintained_path_size, 1);
+    if(thislen < 0) return thislen; else pos += thislen;
+
+    for (int a0 = 0; a0 < this->maintained_path_size; ++a0) {
+        thislen = this->maintained_path[a0]._encodeNoHash(buf, offset + pos, maxlen - pos);
+        if(thislen < 0) return thislen; else pos += thislen;
+    }
+
     thislen = __int32_t_encode_array(buf, offset + pos, maxlen - pos, &this->targets_size, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
@@ -319,6 +332,15 @@ int visVISUALIZATION::_decodeNoHash(const void* buf, uint32_t offset, uint32_t m
         if(thislen < 0) return thislen; else pos += thislen;
     }
 
+    thislen = __int32_t_decode_array(buf, offset + pos, maxlen - pos, &this->maintained_path_size, 1);
+    if(thislen < 0) return thislen; else pos += thislen;
+
+    this->maintained_path.resize(this->maintained_path_size);
+    for (int a0 = 0; a0 < this->maintained_path_size; ++a0) {
+        thislen = this->maintained_path[a0]._decodeNoHash(buf, offset + pos, maxlen - pos);
+        if(thislen < 0) return thislen; else pos += thislen;
+    }
+
     thislen = __int32_t_decode_array(buf, offset + pos, maxlen - pos, &this->targets_size, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
@@ -409,6 +431,10 @@ uint32_t visVISUALIZATION::_getEncodedSizeNoHash() const
         enc_size += this->best_path[a0]._getEncodedSizeNoHash();
     }
     enc_size += __int32_t_encoded_array_size(NULL, 1);
+    for (int a0 = 0; a0 < this->maintained_path_size; ++a0) {
+        enc_size += this->maintained_path[a0]._getEncodedSizeNoHash();
+    }
+    enc_size += __int32_t_encoded_array_size(NULL, 1);
     for (int a0 = 0; a0 < this->targets_size; ++a0) {
         enc_size += this->targets[a0]._getEncodedSizeNoHash();
     }
@@ -449,9 +475,10 @@ uint64_t visVISUALIZATION::_computeHash(const __zcm_hash_ptr* p)
             return 0;
     const __zcm_hash_ptr cp = { p, (void*)visVISUALIZATION::getHash };
 
-    uint64_t hash = (uint64_t)0x58ec7b43b2e6c934LL +
+    uint64_t hash = (uint64_t)0x9ab873376f6a9f55LL +
          visLaneLine::_computeHash(&cp) +
-         visMapPoint::_computeHash(&cp) +
+         visPoint::_computeHash(&cp) +
+         visPoint::_computeHash(&cp) +
          visPoint::_computeHash(&cp) +
          visPoint::_computeHash(&cp) +
          visPoint::_computeHash(&cp) +

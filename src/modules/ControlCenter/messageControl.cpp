@@ -119,7 +119,7 @@ void messageHandle::veh_navinfo(const zcm::ReceiveBuffer* rbuf, const std::strin
     {
         std::lock_guard<std::mutex> lk(nav_info_lock);
         nav_info_.mHeading = msg->mHeading;
-        nav_info_.angle_pitch = msg->mPitch;
+        nav_info_.angle_pitch = msg->mPitch+2.96;
         nav_info_.utmX = msg->utmX;
         nav_info_.utmY = msg->utmY;
         nav_info_.speed = msg->mSpeed3d;

@@ -16,15 +16,43 @@ void MapManager::update() {
     message_manager->getDynamicObjList(map.dynamic_obj_list);
     message_manager->getParkingLotList(map.parking_lot_list);
     message_manager->getLaneList(map.lane_list);
+    message_manager->getRainSignal(map.rain_signal);
     message_manager->getMap(map.lidar);
-    // test
-    map.nav_info.car_pose.utm_position = UtmPosition(328837.63580919918604, 3463411.21169555513188, -2.23384690284729);
-    map.nav_info.detected              = true;
-    map.nav_info.current_speed         = 6;
-    map.nav_info.reliable              = true;
     //-------
     handleLidarMap();
-    getLidarDisMap();
+}
+
+double MapManager::getSpeedBySpeedMode(int speed_mode) {
+    Config* cfg = Config::getInstance();
+    switch(speed_mode) {
+    case 0:
+        return cfg->back_speed / 3.6;
+    case 1:
+        return cfg->stop_speed / 3.6;
+    case 2:
+        return cfg->very_low_speed / 3.6;
+    case 3:
+        return cfg->low_speed / 3.6;
+    case 4:
+        return cfg->mid_speed / 3.6;
+    case 5:
+        return cfg->high_speed / 3.6;
+    case 6:
+        return cfg->very_high_speed / 3.6;
+    default:
+        return cfg->stop_speed / 3.6;
+    }
+}
+
+double MapManager::getCurrentMapSpeed() {
+    ref_path_mutex.lock_shared();
+    if(map.forward_ref_path.empty()) {
+        ref_path_mutex.unlock_shared();
+        return 0;
+    }
+    double res = getSpeedBySpeedMode(map.forward_ref_path.front().speed_mode);
+    ref_path_mutex.unlock_shared();
+    return res;
 }
 
 bool MapManager::requestGlobalPath(const NavInfo& nav_info) {
@@ -65,8 +93,7 @@ void MapManager::readGlobalPathFile(const string& file_path) {
     double lon, lat, utm_x, utm_y, heading, curve, lane_width;
     int    id, mode, speed_mode, event, block_type, lane_num, lane_seq;
     while(input >> id >> lon >> lat >> utm_x >> utm_y >> heading >> curve >> mode >> speed_mode >> event >> block_type >> lane_num >> lane_seq >> lane_width) {
-        HDMapPoint point(utm_x, utm_y, heading, curve, (HDMapMode)mode, (HDMapSpeed)speed_mode, (HDMapEvent)event, (BlockType)block_type, lane_num, lane_seq, lane_width + 1);
-        // cout << point << endl;
+        HDMapPoint point(utm_x, utm_y, heading, curve, (HDMapMode)mode, (HDMapSpeed)speed_mode, (HDMapEvent)event, (BlockType)block_type, lane_num, lane_seq, lane_width);
         global_path.push_back(point);
     }
 
@@ -149,79 +176,65 @@ void MapManager::setGlobalPathDirection() {
     }
 }
 
-int MapManager::getGlobalPathNearestIndex() const {
-    UtmPosition  vehicle_position = map.nav_info.car_pose.utm_position;
-    double       min_dis          = 1e10;
-    int          min_idx          = -1;
-    const double angle_tolerance  = 1.7;
-    const double dis_tolerance    = 400;
-    double       dx, dy, da, dis;
-    for(int i = 0; i < global_path.size(); ++i) {
-        dx = vehicle_position.utm_x - global_path[i].utm_position.utm_x;
-        dy = vehicle_position.utm_y - global_path[i].utm_position.utm_y;
-        da = fabs(vehicle_position.heading - global_path[i].utm_position.heading);
-        if(da < angle_tolerance) {
-            dis = sqrt(dx * dx + dy * dy);
-            if(dis < min_dis) {
-                min_dis = dis;
-                min_idx = i;
-            }
+int MapManager::getGlobalPathNearestIndex(int begin, int end) const {
+    UtmPosition vehicle_position = map.nav_info.car_pose.utm_position;
+    double      min_dis          = 1e10;
+    int         min_idx          = -1;
+    double      dx, dy, da, dis;
+    for(int i = max(0, begin); i < min(int(global_path.size()), end + 1); ++i) {
+        dx  = vehicle_position.utm_x - global_path[i].utm_position.utm_x;
+        dy  = vehicle_position.utm_y - global_path[i].utm_position.utm_y;
+        dis = sqrt(dx * dx + dy * dy);
+        if(dis < min_dis) {
+            min_dis = dis;
+            min_idx = i;
         }
     }
-    if(min_dis >= dis_tolerance) return -1;
+    if(min_idx >= 0) {
+        HDMapPoint global_p = global_path[min_idx];
+        global_p.updateLocalCoordinate(map.nav_info.car_pose);
+        if(!global_p.in_map()) return -1;
+    }
     return min_idx;
 }
 
 void MapManager::updateRefPath(bool need_opposite) {
+    ref_path_mutex.lock();
     map.ref_path.clear();
     map.forward_ref_path.clear();
-    const int    search_depth               = 500;
-    const int    search_history_depth       = 150;
-    double       min_dis                    = 1e10;
-    const double angle_tolerance            = 1.7;
-    bool         global_nearest_idx_updated = false;
+    const int search_depth         = 300;
+    const int search_history_depth = 90;
+    double    min_dis              = 1e10;
 
     if(global_path_nearest_idx < 0) {
-        global_path_nearest_idx    = getGlobalPathNearestIndex();
-        global_nearest_idx_updated = true;
-        if(global_path_nearest_idx < 0) return;
+        global_path_nearest_idx = getGlobalPathNearestIndex(0, global_path.size() - 1);
+        if(global_path_nearest_idx < 0) {
+            ref_path_mutex.unlock();
+            return;
+        }
     }
 
-    int  search_begin            = max(global_path_nearest_idx - search_history_depth, 0);
-    int  search_end              = min(int(global_path.size()), global_path_nearest_idx + search_depth);
+    int search_begin             = max(global_path_nearest_idx - search_history_depth, 0);
+    int search_end               = min(int(global_path.size()), global_path_nearest_idx + search_depth);
+    global_path_nearest_idx      = getGlobalPathNearestIndex(search_begin, search_end);
+    search_begin                 = max(global_path_nearest_idx - search_history_depth, 0);
+    search_end                   = min(int(global_path.size()), global_path_nearest_idx + search_depth);
     Pose car_pose                = map.nav_info.car_pose;
     int  current_idx_in_ref_path = 0;
     for(int i = search_begin; i < search_end; ++i) {
         HDMapPoint p = global_path[i];
         p.updateLocalCoordinate(car_pose);
+        p.v       = getSpeedBySpeedMode(p.speed_mode);
         double dx = p.utm_position.utm_x - car_pose.utm_position.utm_x;
         double dy = p.utm_position.utm_y - car_pose.utm_position.utm_y;
-        double da = fabs(car_pose.utm_position.heading - p.utm_position.heading);
-
-        if(da < angle_tolerance) {
-            double dis = dx * dx + dy * dy;
-            if(dis < min_dis) {
-                min_dis                 = dis;
-                global_path_nearest_idx = i;
-            }
-        }
-
-        if(!p.in_map()) {
-            if(!need_opposite && map.ref_path.size() > 5)
-                break;
-            else
-                continue;
-        }
+        if(!p.in_map()) continue;
 
         map.ref_path.emplace_back(p);
         if(i == global_path_nearest_idx) current_idx_in_ref_path = map.ref_path.size() - 1;
     }
 
-    if(!map.ref_path.empty()) {
-        if(global_nearest_idx_updated) return;
+    if(map.ref_path.empty())
         global_path_nearest_idx = -1;
-        updateRefPath(need_opposite);
-    }
     else {
         map.ref_path.front().s = 0;
         for(int i = 0; i < map.ref_path.size(); ++i) {
@@ -238,6 +251,7 @@ void MapManager::updateRefPath(bool need_opposite) {
     for(const auto& p : map.ref_path) {
         if(p.s >= 0) map.forward_ref_path.push_back(p);
     }
+    ref_path_mutex.unlock();
     getLaneLineList();
     laneMatch();
     getBoundaryLine();
@@ -259,8 +273,8 @@ void MapManager::avoidPedestrian() {
             DynamicObj dummy_obj;
             dummy_obj.width  = 1.5;
             dummy_obj.length = 3;
-            dummy_obj.path.emplace_back(Pose(x, y, PI, 0, 0, 0));
-            map.dynamic_obj_list.dynamic_obj_list.emplace_back(dummy_obj);
+            dummy_obj.path.emplace_back(x, y, PI, 0, 0, 0);
+            map.dynamic_obj_list.dynamic_obj_list.push_back(dummy_obj);
         }
     }
 }
@@ -272,7 +286,7 @@ void MapManager::updatePlanningMap(LaneLineBlockType lane_line_block_type) {
     // block uncrrect lane in intersection
     else {
         for(const auto& p : map.ref_path) {
-            if(p.mode == HDMapMode::INTERSECTION) {
+            if(p.mode == HDMapMode::INTERSECTION_SOLID) {
                 if(p.lane_num < 2)
                     continue;
                 else if(p.lane_num == 2) {
@@ -281,8 +295,8 @@ void MapManager::updatePlanningMap(LaneLineBlockType lane_line_block_type) {
                         base_dis = p.lane_num - p.lane_seq - 0.5 * p.lane_width;
                     else
                         base_dis = p.lane_num - p.lane_seq - 1.5 * p.lane_width;
-
-                    for(int i = 0; i < 6; ++i) {
+                    int k        = p.lane_width / 0.5;
+                    for(int i = 1; i < k; ++i) {
                         Pose block_p                                       = p.getLateralPose(base_dis + i * 0.5);
                         map.line_block_map[int(block_p.x)][int(block_p.y)] = 1;
                     }
@@ -305,7 +319,8 @@ void MapManager::updatePlanningMap(LaneLineBlockType lane_line_block_type) {
                     }
                     for(int lane_i = start_lane_i; lane_i <= end_lane_i; ++lane_i) {
                         base_dis = lane_i - p.lane_seq - 0.5 * p.lane_width;
-                        for(int i = 0; i < 6; ++i) {
+                        int k    = p.lane_width / 0.5;
+                        for(int i = 1; i < k; ++i) {
                             Pose block_p                                       = p.getLateralPose(base_dis + i * 0.5);
                             map.line_block_map[int(block_p.x)][int(block_p.y)] = 1;
                         }
@@ -317,15 +332,26 @@ void MapManager::updatePlanningMap(LaneLineBlockType lane_line_block_type) {
         if(lane_line_block_type == LaneLineBlockType::ALL_BLOCK) {
             for(const auto& line : map.lane_line_list) {
                 for(const auto& p : line) {
-                    if(p.type == LineType::SOLID || p.type == LineType::BOUNDARY) map.line_block_map[int(p.x)][int(p.y)] = 1;
+                    if(p.type == LineType::SOLID) map.line_block_map[int(p.x)][int(p.y)] = 1;
+                }
+            }
+            for(const auto& line : map.boundary_line) {
+                for(const auto& p : line) {
+                    if(p.type == LineType::BOUNDARY) map.line_block_map[int(p.x)][int(p.y)] = 1;
                 }
             }
         }
         if(lane_line_block_type == LaneLineBlockType::SEMI_BLOCK) {
             for(const auto& line : map.lane_line_list) {
                 for(int i = int(line.size() * 2 / 3); i < line.size(); ++i) {
-                    auto& p                                                                                              = line[i];
-                    if(p.type == LineType::SOLID || p.type == LineType::BOUNDARY) map.line_block_map[int(p.x)][int(p.y)] = 1;
+                    auto& p                                                              = line[i];
+                    if(p.type == LineType::SOLID) map.line_block_map[int(p.x)][int(p.y)] = 1;
+                }
+            }
+            for(const auto& line : map.boundary_line) {
+                for(int i = int(line.size() * 2 / 3); i < line.size(); ++i) {
+                    auto& p                                                                 = line[i];
+                    if(p.type == LineType::BOUNDARY) map.line_block_map[int(p.x)][int(p.y)] = 1;
                 }
             }
         }
@@ -339,28 +365,6 @@ Map& MapManager::getMap() {
 }
 
 void MapManager::handleLidarMap() {
-    memset(map.lidar_map, 0, sizeof(map.lidar_map));
-    memset(map.static_lidar_map, 0, sizeof(map.static_lidar_map));
-    if(!map.lidar.detected) return;
-    for(int r = 0; r < MAX_ROW; ++r) {
-        for(int c = 0; c < MAX_COL; ++c) {
-            if(map.rain_signal.signal) {
-                map.lidar_map[r][c]        = (unsigned char)map.lidar.map[r][c] & 01;
-                map.static_lidar_map[r][c] = (unsigned char)map.lidar.map[r][c] & 01;
-                continue;
-            }
-            map.static_lidar_map[r][c] = map.lidar.map[r][c];
-            if(map.lidar.map[r][c] & 04) continue;
-            map.lidar_map[r][c] = map.lidar.map[r][c];
-        }
-    }
-    if(map.rain_signal.signal) {
-        // add obstacle in ESR
-        // TODO
-    }
-}
-
-void MapManager::getLidarDisMap() {
     const int    dx[]  = { 0, 0, -1, 1, 1, 1, -1, -1 };
     const int    dy[]  = { -1, 1, 0, 0, 1, -1, 1, -1 };
     const double dis[] = { 1, 1, 1, 1, 1.414, 1.414, 1.414, 1.414 };
@@ -371,16 +375,33 @@ void MapManager::getLidarDisMap() {
         }
     }
     queue<pair<int, int>> obj_que;
-
+    memset(map.lidar_map, 0, sizeof(map.lidar_map));
+    memset(map.static_lidar_map, 0, sizeof(map.static_lidar_map));
+    if(!map.lidar.detected) return;
     for(int r = 0; r < MAX_ROW; ++r) {
         for(int c = 0; c < MAX_COL; ++c) {
-            if(map.lidar_map[r][c] != 0 && map.lidar_map[r][c] != 0x4) {
+            if(map.rain_signal.detected && map.rain_signal.signal) {
+                map.lidar_map[r][c]        = (unsigned char)map.lidar.map[r][c] & 01;
+                map.static_lidar_map[r][c] = (unsigned char)map.lidar.map[r][c] & 01;
+                if(map.lidar_map[r][c] != 0) {
+                    map.lidar_dis_map[r][c] = 0;
+                    obj_que.push(make_pair(r, c));
+                }
+                continue;
+            }
+            map.static_lidar_map[r][c] = map.lidar.map[r][c];
+            if(map.lidar.map[r][c] & 04) continue;
+            map.lidar_map[r][c] = map.lidar.map[r][c];
+            if(map.lidar_map[r][c] != 0) {
                 map.lidar_dis_map[r][c] = 0;
                 obj_que.push(make_pair(r, c));
             }
         }
     }
-
+    if(map.rain_signal.detected && map.rain_signal.signal) {
+        // add obstacle in ESR
+        // TODO
+    }
     while(!obj_que.empty()) {
         const int x = obj_que.front().first;
         const int y = obj_que.front().second;
@@ -478,8 +499,8 @@ void MapManager::adjustRefPathByVLaneLine() {
         //优先以左边界线矫正
         if(map.v_line_list.back().front().type == LineType::BOUNDARY) {
             //计算参考路所指最左侧车道线的点
-            double  most_left_dis = first_p.lane_width * (first_p.lane_num - first_p.lane_seq + 0.5);
-            Point2d most_left_p   = first_p.toPoint2d() + offsetPoint(first_p.getDirectionVec(), most_left_dis);
+            double most_left_dis = first_p.lane_width * (first_p.lane_num - first_p.lane_seq + 0.5);
+            Pose   most_left_p   = first_p.getLateralPose(most_left_dis);
             //计算最左侧车道线点和视觉检测边界线的偏移距离
             LinePoint v_1_p = map.v_line_list.back()[0];
             LinePoint v_2_p = map.v_line_list.back()[1];
@@ -490,8 +511,8 @@ void MapManager::adjustRefPathByVLaneLine() {
         //其次以右边界矫正
         else if(map.v_line_list.front().front().type == LineType::BOUNDARY) {
             //计算参考路所指最右侧车道线的
-            double  most_right_dis = first_p.lane_width * (first_p.lane_seq - 1.5);
-            Point2d most_right_p   = first_p.toPoint2d() + offsetPoint(first_p.getDirectionVec(), most_right_dis);
+            double most_right_dis = first_p.lane_width * (first_p.lane_seq - 1.5);
+            Pose   most_right_p   = first_p.getLateralPose(most_right_dis);
             //计算最右侧车道线点和视觉检测边界线的偏移距离
             LinePoint v_1_p = map.v_line_list.front()[0];
             LinePoint v_2_p = map.v_line_list.front()[1];
@@ -503,8 +524,8 @@ void MapManager::adjustRefPathByVLaneLine() {
         else {
             //如果视觉车道线和地图车道线数量相同，直接左边界匹配
             if(map.v_line_list.size() == first_p.lane_num + 1) {
-                double  most_left_dis = first_p.lane_width * (first_p.lane_num - first_p.lane_seq + 0.5);
-                Point2d most_left_p   = first_p.toPoint2d() + offsetPoint(first_p.getDirectionVec(), most_left_dis);
+                double most_left_dis = first_p.lane_width * (first_p.lane_num - first_p.lane_seq + 0.5);
+                Pose   most_left_p   = first_p.getLateralPose(most_left_dis);
                 //计算最左侧车道线点和视觉检测边界线的偏移距离
                 LinePoint v_1_p = map.v_line_list.back()[0];
                 LinePoint v_2_p = map.v_line_list.back()[1];
@@ -514,8 +535,8 @@ void MapManager::adjustRefPathByVLaneLine() {
             }
             //如果视觉车道线少于地图车道线,直接右边界匹配效果好
             else if(map.v_line_list.size() < first_p.lane_num + 1) {
-                double  most_right_dis = first_p.lane_width * (first_p.lane_seq - 1.5);
-                Point2d most_right_p   = first_p.toPoint2d() + offsetPoint(first_p.getDirectionVec(), most_right_dis);
+                double most_right_dis = first_p.lane_width * (first_p.lane_seq - 1.5);
+                Pose   most_right_p   = first_p.getLateralPose(most_right_dis);
                 //计算最右侧车道线点和视觉检测边界线的偏移距离
                 LinePoint v_1_p = map.v_line_list.front()[0];
                 LinePoint v_2_p = map.v_line_list.front()[1];
@@ -569,38 +590,35 @@ void MapManager::getLaneLineList() {
     }
     map.lane_line_list.resize(lane_num + 1);
     map.lane_center_list.resize(lane_num);
-    for(const auto& p : map.ref_path) {
+    for(const auto& p : map.forward_ref_path) {
         //从右向左第i条地图车道线
         if(p.lane_num != lane_num) break;
         for(int i = 0; i < lane_num + 1; ++i) {
-            Point2d  offset_vct                             = offsetPoint(p.getDirectionVec(), p.lane_width * (i - p.lane_seq + 0.5));
-            Point2d  line_p                                 = p.toPoint2d() + offset_vct;
-            LineType line_type                              = LineType::DASH;
-            if(p.mode == HDMapMode::INTERSECTION) line_type = LineType::SOLID;
+            Pose     line_p                                                                                                            = p.getLateralPose(p.lane_width * (i - p.lane_seq + 0.5));
+            LineType line_type                                                                                                         = LineType::DASH;
+            if(p.mode == HDMapMode::INTERSECTION_SOLID) line_type                                                                      = LineType::SOLID;
             if(i == 0 && (p.block_type & BlockType::BlockRight) || (i == lane_num && (p.block_type & BlockType::BlockLeft))) line_type = LineType::BOUNDARY;
-            if(line_p.in_map() && p.mode != HDMapMode::CHANGE) map.lane_line_list[i].push_back(LinePoint(line_p.x, line_p.y, line_type));
+            if(line_p.in_map() && p.mode != HDMapMode::CHANGE) map.lane_line_list[i].emplace_back(line_p.x, line_p.y, line_type);
         }
         if(!lane_num_change) {
             //从右向左第i条地图车道中心线
             for(int i = 0; i < lane_num; ++i) {
-                Point2d offset_vct = offsetPoint(p.getDirectionVec(), p.lane_width * (i - p.lane_seq + 1));
-                Point2d line_p     = p.toPoint2d() + offset_vct;
-                if(line_p.in_map() && p.mode != HDMapMode::CHANGE) map.lane_center_list[i].push_back(line_p);
+                Pose line_p = p.getLateralPose(p.lane_width * (i - p.lane_seq + 1));
+                if(line_p.in_map() && p.mode != HDMapMode::CHANGE) map.lane_center_list[i].emplace_back(line_p.x, line_p.y);
             }
         }
     }
     //若车道数改变了,获取远处的中心线,供选择目标点
     if(lane_num_change) {
-        lane_num = map.ref_path.back().lane_num;
+        lane_num = map.forward_ref_path.back().lane_num;
         map.lane_center_list.resize(lane_num);
-        for(int i = map.ref_path.size() - 1; i >= 0; --i) {
-            const HDMapPoint& p = map.ref_path[i];
+        for(int i = map.forward_ref_path.size() - 1; i >= 0; --i) {
+            const HDMapPoint& p = map.forward_ref_path[i];
             if(p.lane_num != lane_num) break;
             //从右向左第j条地图车道中心线
             for(int j = 0; j < lane_num; ++j) {
-                Point2d offset_vct = offsetPoint(p.getDirectionVec(), p.lane_width * (j - p.lane_seq + 1));
-                Point2d line_p     = p.toPoint2d() + offset_vct;
-                if(line_p.in_map() && p.mode != HDMapMode::CHANGE) map.lane_center_list[i].push_back(line_p);
+                Pose line_p = p.getLateralPose(p.lane_width * (j - p.lane_seq + 1));
+                if(line_p.in_map() && p.mode != HDMapMode::CHANGE) map.lane_center_list[j].emplace_back(line_p.x, line_p.y);
             }
         }
         for(auto& line : map.lane_center_list)
@@ -644,7 +662,7 @@ void MapManager::laneMatch() {
             LinePoint vp2            = map.v_line_list[i][1];
             Point2d   vec_a          = vp2 - vp1;
             Point2d   vec_b          = lp - vp1;
-            double    offset         = vec_b.cross(vec_a) / vec_a.len();
+            double    offset         = (vec_b.cross(vec_a) / vec_a.len()) * GRID_RESOLUTION;
             Point2d   off_p;
             for(int j = 0; j < map.lane_line_list[i].size() - 1; ++j) {
                 Point2d vec_d = map.lane_line_list[i][j + 1] - map.lane_line_list[i][j];
@@ -658,7 +676,7 @@ void MapManager::laneMatch() {
     }
     else {
         //如果车道线数量不一样，左边界对齐或者右边界对齐
-        cout << "laneMatch():车道线数量不一样时对齐还没实现" << endl;
+        // TODO
     }
     laneLineInterpolation();
 }
@@ -673,10 +691,11 @@ void MapManager::laneLineInterpolation() {
 }
 
 void MapManager::getBoundaryLine() {
+    map.boundary_line.clear();
     bool lane_num_change     = false;
     int  lane_line_change_id = -1;
-    for(int i = 0; i < map.ref_path.size(); ++i) {
-        if(map.ref_path[i].lane_num != map.ref_path.front().lane_num) {
+    for(int i = 0; i < map.forward_ref_path.size(); ++i) {
+        if(map.forward_ref_path[i].lane_num != map.forward_ref_path.front().lane_num) {
             lane_num_change     = true;
             lane_line_change_id = i;
             break;
@@ -684,53 +703,71 @@ void MapManager::getBoundaryLine() {
     }
     vector<LinePoint> right_boundary;
     vector<LinePoint> left_boundary;
-    for(auto p : map.lane_line_list.front())
+    for(const auto& p : map.ref_path) {
+        if(p.s >= 0 || p.mode == HDMapMode::CHANGE) break;
+        Pose     right_line_p                                    = p.getLateralPose(p.lane_width * (-p.lane_seq + 0.5));
+        LineType right_line_type                                 = LineType::DASH;
+        if(p.block_type & BlockType::BlockRight) right_line_type = LineType::BOUNDARY;
+        if(right_line_p.in_map()) right_boundary.emplace_back(right_line_p.x, right_line_p.y, right_line_type);
+        Pose     left_line_p                                   = p.getLateralPose(p.lane_width * (p.lane_num - p.lane_seq + 0.5));
+        LineType left_line_type                                = LineType::DASH;
+        if(p.block_type & BlockType::BlockLeft) left_line_type = LineType::BOUNDARY;
+        if(left_line_p.in_map()) left_boundary.emplace_back(left_line_p.x, left_line_p.y, left_line_type);
+    }
+    for(const auto& p : map.lane_line_list.front())
         right_boundary.push_back(p);
-    for(auto p : map.lane_line_list.back())
+    for(const auto& p : map.lane_line_list.back())
         left_boundary.push_back(p);
     if(lane_num_change) {
-        for(int j = lane_line_change_id; j < map.ref_path.size(); ++j) {
-            HDMapPoint p                = map.ref_path[j];
-            Point2d    right_offset_vct = offsetPoint(p.getDirectionVec(), p.lane_width * (-p.lane_seq + 0.5));
-            Point2d    right_line_p     = p.toPoint2d() + right_offset_vct;
-            right_boundary.emplace_back(right_line_p.x, right_line_p.y, LineType::BOUNDARY);
-            Point2d left_offset_vct = offsetPoint(p.getDirectionVec(), p.lane_width * (p.lane_num - p.lane_seq + 0.5));
-            Point2d left_line_p     = p.toPoint2d() + left_offset_vct;
-            left_boundary.emplace_back(left_line_p.x, left_line_p.y, LineType::BOUNDARY);
+        for(int j = lane_line_change_id; j < map.forward_ref_path.size(); ++j) {
+            HDMapPoint p = map.forward_ref_path[j];
+            if(p.mode == HDMapMode::CHANGE) continue;
+            Pose right_line_p = p.getLateralPose(p.lane_width * (-p.lane_seq + 0.5));
+            if(right_line_p.in_map()) right_boundary.emplace_back(right_line_p.x, right_line_p.y, LineType::BOUNDARY);
+            Pose left_line_p = p.getLateralPose(p.lane_width * (p.lane_num - p.lane_seq + 0.5));
+            if(left_line_p.in_map()) left_boundary.emplace_back(left_line_p.x, left_line_p.y, LineType::BOUNDARY);
         }
     }
-    for(auto& line : map.boundary_line)
+    map.boundary_line.push_back(right_boundary);
+    map.boundary_line.push_back(left_boundary);
+    for(auto& line : map.boundary_line) {
         lineInterpolation(line);
+        for(int n = 1; n < line.size(); ++n) {
+            if(line[n].type == LineType::UNKNOWN_LINE) line[n].type = line[n - 1].type;
+        }
+    }
 }
 
 void MapManager::visualization() {
     MessageManager*   msgm = MessageManager::getInstance();
     visVISUALIZATION& vis  = msgm->visualization;
+    // reference path
     vis.reference_path.clear();
-    vis.reference_path_size = map.ref_path.size();
-    for(const auto& p : map.ref_path) {
-        visMapPoint vp;
-        vp.x          = p.x;
-        vp.y          = p.y;
-        vp.ang        = p.ang;
-        vp.lane_num   = p.lane_num;
-        vp.lane_seq   = p.lane_seq;
-        vp.lane_width = p.lane_width;
-        msgm->visualization.reference_path.push_back(vp);
+    vis.reference_path_size = map.forward_ref_path.size();
+    for(const auto& p : map.forward_ref_path) {
+        visPoint vp;
+        vp.x = p.x;
+        vp.y = p.y;
+        vis.reference_path.push_back(vp);
     }
+    // planning map
     memcpy(vis.safe_map, map.planning_dis_map, sizeof(map.planning_dis_map));
-    vis.best_path_size = map.maintained_path.size();
-    for(const auto& p : map.maintained_path) {
+    // best path
+    vis.best_path.clear();
+    vis.best_path_size = map.best_path.path.size();
+    for(const auto& p : map.best_path.path) {
         visPoint vp;
         vp.x = p.x;
         vp.y = p.y;
         vis.best_path.push_back(vp);
     }
-    vis.lanes_size = map.lane_center_list.size();
-    for(const auto& center_line : map.lane_center_list) {
+    // lanes and boundary
+    vis.lanes.clear();
+    vis.lanes_size = map.lane_line_list.size() + map.boundary_line.size();
+    for(const auto& lane_line : map.lane_line_list) {
         visLaneLine vll;
-        vll.lane_line_points_size = center_line.size();
-        for(const auto& p : center_line) {
+        vll.lane_line_points_size = lane_line.size();
+        for(const auto& p : lane_line) {
             visPoint vp;
             vp.x = p.x;
             vp.y = p.y;
@@ -738,7 +775,18 @@ void MapManager::visualization() {
         }
         vis.lanes.push_back(vll);
     }
-    msgm->setSpeedPath(map.best_path);
+    for(const auto& boundary_line : map.boundary_line) {
+        visLaneLine vll;
+        vll.lane_line_points_size = boundary_line.size();
+        for(const auto& p : boundary_line) {
+            visPoint vp;
+            vp.x = p.x;
+            vp.y = p.y;
+            vll.lane_line_points.push_back(vp);
+        }
+        vis.lanes.push_back(vll);
+    }
+    // speed planner
     msgm->publishVisualization();
 }
 
@@ -747,7 +795,7 @@ vector<Pose> MapManager::getStartMaintainedPath() {
     vector<Pose> path = maintained_path;
     maintained_path_mutex.unlock_shared();
     double maintained_s = 2 * map.nav_info.current_speed;
-    for(auto p : path)
+    for(auto& p : path)
         p.updateLocalCoordinate(map.nav_info.car_pose);
     int          shortest_index = shortestPointIndex(map.nav_info.car_pose, path);
     vector<Pose> res;
@@ -758,13 +806,14 @@ vector<Pose> MapManager::getStartMaintainedPath() {
     return res;
 }
 
-vector<Pose> MapManager::getMaintainedPath() {
+vector<Pose> MapManager::getMaintainedPath(NavInfo& nav_info) {
     maintained_path_mutex.lock_shared();
     vector<Pose> path = maintained_path;
     maintained_path_mutex.unlock_shared();
-    for(auto p : path)
-        p.updateLocalCoordinate(map.nav_info.car_pose);
-    int          shortest_index = shortestPointIndex(map.nav_info.car_pose, path);
+    for(auto& p : path) {
+        p.updateLocalCoordinate(nav_info.car_pose);
+    }
+    int          shortest_index = shortestPointIndex(nav_info.car_pose, path);
     vector<Pose> res;
     for(auto p : path) {
         p.s -= path[shortest_index].s;
@@ -773,12 +822,13 @@ vector<Pose> MapManager::getMaintainedPath() {
     return res;
 }
 
-void MapManager::maintainPath() {
+void MapManager::maintainPath(NavInfo& nav_info, vector<Pose>& path) {
+    if(path.empty()) return;
     maintained_path_mutex.lock();
     maintained_path.clear();
-    maintained_path.reserve(map.best_path.path.size());
-    Pose car_pose = map.nav_info.car_pose;
-    for(auto p : map.best_path.path) {
+    maintained_path.reserve(path.size());
+    Pose car_pose = nav_info.car_pose;
+    for(auto& p : path) {
         p.updateGlobalCoordinate(car_pose);
         maintained_path.push_back(p);
     }
@@ -786,6 +836,7 @@ void MapManager::maintainPath() {
 }
 
 void MapManager::selectBestPath(const vector<SpeedPath>& paths) {
+    map.best_path = SpeedPath();
     if(paths.empty()) return;
     int best_speed_path_index = -1;
     int max_index             = -1;

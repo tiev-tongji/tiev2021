@@ -35,6 +35,14 @@ public:
     const string TiEV_CONFIG_DIRECT = "/home/autolab/tiev2020-code/src/cfg/";
     // NOTICE: READ-ONLY
     string roadmap_file;
+    // NOTICE: READ-ONLY km/h
+    double back_speed;
+    double stop_speed;
+    double very_low_speed;
+    double low_speed;
+    double mid_speed;
+    double high_speed;
+    double very_high_speed;
     // NOTICE: READ-ONLY
     ControlMode control_mode;
     // NOTICE: READ-ONLY

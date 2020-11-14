@@ -17,6 +17,7 @@ public:
     vector<SplineLib::cSpline2> cubic_splines;
     vector<Pose>                path;
     SpeedData                   dp_speed_data;
+    SpeedPath() = default;
 };
 
 class SpeedOptimizer {

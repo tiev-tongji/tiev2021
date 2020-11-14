@@ -58,9 +58,14 @@ int main(int argc, const char *argv[])
 	{
 		sickmap_init();
 		//kind = 0:front雷达代码解析，king=1:back雷达代码解析
-		sick_front.start_recieve_client(0);
-		sick_back.start_recieve_client(1);
-		myzcm.publish("SICKMAP", &mapData);
+		int sf =sick_front.start_recieve_client(0);
+		int sb =sick_back.start_recieve_client(1);
+		std::cout<<"front status"<<sf<<"back status"<<sb<<std::endl;
+		if(sb && sf)
+		{
+			myzcm.publish("SICKMAP", &mapData);
+			std::cout<<"zcm send"<<std::endl;
+		}
 		memset(mapData.cells, 0, sizeof(mapData.cells));
 	}
 	std::cout << "Hello, World!\n";

@@ -1,5 +1,6 @@
 #include "qp_spline_speed_optimizer/spline_1d_constraint.h"
 
+#include <iostream>
 #include <limits>
 
 namespace TiEV {

@@ -13,6 +13,10 @@ struct UtmPosition {
     double utm_y;    // rad
     double heading;  // rad
     UtmPosition(double utm_x_ = 0, double utm_y_ = 0, double heading_ = 0) : utm_x(utm_x_), utm_y(utm_y_), heading(heading_){};
+    friend std::ostream& operator<<(std::ostream& out, const UtmPosition& position) {
+        out << "UtmPosition:{" << position.utm_x << ", " << position.utm_y << ", " << position.heading << "}";
+        return out;
+    }
 };
 
 /**
@@ -34,10 +38,10 @@ struct Pose : public Point2d {
         return Point2d(cos(ang), sin(ang));
     }
 
-    inline Pose getLateralPose(double l) const {
-        double _tmp      = l / len();
-        double dx        = y * _tmp;
-        double dy        = x * _tmp;
+    inline Pose getLateralPose(const double l) const {
+        double _tmp      = l / GRID_RESOLUTION;
+        double dx        = -sin(ang) * _tmp;
+        double dy        = cos(ang) * _tmp;
         Pose   res_point = *this;
         res_point.x      = x + dx;
         res_point.y      = y + dy;
@@ -53,8 +57,8 @@ struct Pose : public Point2d {
     inline void updateGlobalCoordinate(const Pose& standard_point) {
         double stdh    = standard_point.utm_position.heading - standard_point.ang;
         double sinstdh = sin(stdh), cosstdh = cos(stdh);
-        double px          = standard_point.x - x;
-        double py          = standard_point.y - y;
+        double px          = x - standard_point.x;
+        double py          = y - standard_point.y;
         double qx          = (px * cosstdh - py * sinstdh);
         double qy          = (px * sinstdh + py * cosstdh);
         utm_position.utm_x = qx * GRID_RESOLUTION + standard_point.utm_position.utm_x;
@@ -89,11 +93,11 @@ struct Pose : public Point2d {
 /**
  * 定义语义地图上的路径点
 */
-enum HDMapEvent { NONE, STOP, ENTRY_INTERSECTION, EXIT_INTERSECTION, CHANGE_HDMAP };
-enum HDMapMode { NORMAL, INTERSECTION, PARKING, RURAL, CHANGE };
+enum HDMapEvent { NONE, ENTRY_INTERSECTION, EXIT_INTERSECTION, STOP, CHANGE_HDMAP };
+enum HDMapMode { NORMAL, INTERSECTION_SOLID, INTERSECTION, PARKING, CHANGE };
 enum HDMapSpeed { VERY_LOW, LOW, MIDDLE, HIGH, VERY_HIGH };
-enum RoadDirection { LEFT = 4, STRAIGHT = 2, RIGHT = 1, UTURN = 8 };  //二进制表示0000，最高位表示uturn,剩下为左直右
-enum BlockType { BlockRight = 1, BlockLeft = 2, BlockAll = 3 };       //二进制表示00，1表示封闭
+enum RoadDirection { LEFT = 4, STRAIGHT = 2, RIGHT = 1, UTURN = 8 };        //二进制表示0000，最高位表示uturn,剩下为左直右
+enum BlockType { BlockNone, BlockRight = 1, BlockLeft = 2, BlockAll = 3 };  //二进制表示00，1表示封闭
 struct HDMapPoint : public Pose {
     HDMapEvent    event;
     HDMapMode     mode;
@@ -139,6 +143,10 @@ enum LineType { UNKNOWN_LINE, DASH, SOLID, BOUNDARY };
 struct LinePoint : public Point2d {
     LineType type;
     LinePoint(double x_ = -1, double y_ = -1, LineType type_ = LineType::UNKNOWN_LINE) : Point2d(x_, y_), type(type_){};
+    friend std::ostream& operator<<(std::ostream& out, const LinePoint& point) {
+        out << "LinePoint:{x=" << point.x << " y=" << point.y << " type=" << point.type << "}";
+        return out;
+    }
 };
 
 }  // namespace TiEV

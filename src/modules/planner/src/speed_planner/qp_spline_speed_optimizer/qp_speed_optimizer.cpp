@@ -98,11 +98,13 @@ bool QpSpeedOptimizer::Process(PathTimeGraph& st_graph_data, const SpeedData& re
     */
     std::vector<double> accel_lower_bound(t_evaluated_.size(), accel_bound.second);
     std::vector<double> accel_upper_bound(t_evaluated_.size(), accel_bound.first);
+#if 0
     std::cout << "QP acceleration constarint: " << std::endl;
     for(size_t i = 0; i < t_evaluated_.size(); ++i) {
         std::cout << "time = " << t_evaluated_[i] << " accel_bound = " << accel_lower_bound[i] << " " << accel_upper_bound[i] << std::endl;
     }
     std::cout << std::endl;
+#endif
     if(!spline_constraint->AddSecondDerivativeBoundary(t_evaluated_, accel_lower_bound, accel_upper_bound)) {
         std::cout << "QpSpeedOptimizer: Fail to apply acceleration constraint!" << std::endl;
         return false;

@@ -59,23 +59,27 @@ template <class T, class Y> int shortestPointIndex(const T& p, const std::vector
 }
 
 template <class T> void lineInterpolation(std::vector<T>& line, double min_step = 2) {
-    if(line.empty()) return;
+    if(line.size() < 4) return;
     std::vector<T> new_line;
-    int            pre = 0;
+    int            pre = 1;
     new_line.push_back(line.front());
-    for(int i = 1; i < line.size(); ++i) {
-        T       pp  = line[pre];
-        T       np  = line[i];
-        Point2d vec = np - pp;
+    for(int i = 2; i < line.size() - 1; ++i) {
+        T       ppp  = line[pre - 1];
+        T       pp   = line[pre];
+        T       np   = line[i];
+        T       nnp  = line[i + 1];
+        Point2d pvec = pp - ppp;
+        Point2d vec  = np - pp;
+        Point2d nvec = nnp - np;
         if(vec.len() < min_step) continue;
-        if(vec.len() >= min_step * 2) {
-            int k = vec.len() / 2 - 1;
-            for(; k > 0; --k) {
-                Point2d off_vec = vec * (k / (k + 1));
+        if(vec.len() >= min_step * 2 && fabs(nvec.getRad() - pvec.getRad()) < PI / 6) {
+            int num = vec.len() / min_step;
+            for(int k = num; k > 0; --k) {
+                Point2d off_vec = vec * (double(k) / (num + 1));
                 T       ip;
                 ip.x = np.x - off_vec.x;
                 ip.y = np.y - off_vec.y;
-                new_line.push_back(ip);
+                if(ip.in_map()) new_line.push_back(ip);
             }
         }
         pre = i;

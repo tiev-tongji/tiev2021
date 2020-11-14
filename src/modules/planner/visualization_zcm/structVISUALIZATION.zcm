@@ -4,16 +4,6 @@ struct visPoint
     double y;
 }
 
-struct visMapPoint
-{
-    double x;
-    double y;
-    double ang;
-    int32_t lane_num;
-    int32_t lane_seq;
-    double lane_width;
-}
-
 struct visSTPoint 
 {
     double s;
@@ -37,7 +27,7 @@ struct visPath
 struct visReferencePath
 {
     int32_t reference_path_length;
-    visMapPoint reference_path[reference_path_length];
+    visPoint reference_path[reference_path_length];
 }
 
 struct visCoefficient
@@ -80,9 +70,11 @@ struct visVISUALIZATION
     int32_t lanes_size;
     visLaneLine lanes[lanes_size];
     int32_t reference_path_size;
-    visMapPoint reference_path[reference_path_size];
+    visPoint reference_path[reference_path_size];
     int32_t best_path_size;
     visPoint best_path[best_path_size];
+    int32_t maintained_path_size;
+    visPoint maintained_path[maintained_path_size];
     int32_t targets_size;
     visPoint targets[targets_size];
     visPoint start_point;

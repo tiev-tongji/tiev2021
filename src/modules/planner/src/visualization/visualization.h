@@ -101,6 +101,7 @@ public:
     void print_text(const char* name, const char* text, int text_position = 0);
     void set_speed_view(cv::Mat& speed_mat);
     void msgReceiveUdp();
+    void publishRemoteControl(const structREMOTECONTROL& remote_control);
 
 private:
     Visualization() {
@@ -154,33 +155,32 @@ private:
     map<string, string> perception_info;
     map<string, string> planner_info;
 
-    /*绘制感知信息*/
-    void drawSensor();
     /*绘制PathPlanner相关信息*/
     void drawPathPlanner();
     /*绘制SpeedPlanner相关信息*/
     void drawSpeedPlanner(cv::Mat& speed_view_mat);
     /*获取可视化文字信息*/
     void getTextInfo();
-    void drawTrafficLight();
 
     /*绘制可视化信息的函数*/
-    void drawLidarMap(cv::Mat& left_map, cv::Mat& right_map, int opt);        // opt: 0 for left, 1 for right, 2 for both
-    void drawSafeMap(cv::Mat& left_map, cv::Mat& right_map, int opt);         // opt: 0 for left, 1 for right, 2 for both
-    void drawUsedMap(cv::Mat& left_map, cv::Mat& right_map, int opt);         // opt: 0 for left, 1 for right, 2 for both
-    void drawDynamicObjs(cv::Mat& left_map, cv::Mat& right_map, int opt);     // opt: 0 for left, 1 for right, 2 for both
-    void drawParkingLots(cv::Mat& left_map, cv::Mat& right_map, int opt);     // opt: 0 for left, 1 for right, 2 for both
-    void drawLanes(cv::Mat& left_map, cv::Mat& right_map, int opt);           // opt: 0 for left, 1 for right, 2 for both
-    void drawReferencePath(cv::Mat& left_map, cv::Mat& right_map, int opt);   // opt: 0 for left, 1 for right, 2 for both
-    void drawBestPath(cv::Mat& left_map, cv::Mat& right_map, int opt);        // opt: 0 for left, 1 for right, 2 for both
-    void drawTargets(cv::Mat& left_map, cv::Mat& right_map, int opt);         // opt: 0 for left, 1 for right, 2 for both
-    void drawStartPoint(cv::Mat& left_map, cv::Mat& right_map, int opt);      // opt: 0 for left, 1 for right, 2 for both
-    void drawPaths(cv::Mat& left_map, cv::Mat& right_map, int opt);           // opt: 0 for left, 1 for right, 2 for both
-    void drawReferenceLanes(cv::Mat& left_map, cv::Mat& right_map, int opt);  // opt: 0 for left, 1 for right, 2 for both
-    void drawSTBoundaries(cv::Mat& speed_view_mat);
-    void drawDPReferenceCurve(cv::Mat& speed_view_mat);
-    void drawQPSpeedCurve(cv::Mat& speed_view_mat);
-    void drawSplinesSpeedCurve(cv::Mat& speed_view_mat);
+    bool drawTrafficLight();
+    bool drawLidarMap(cv::Mat& left_map, cv::Mat& right_map, int opt);       // opt: 0 for left, 1 for right, 2 for both
+    bool drawSafeMap(cv::Mat& left_map, cv::Mat& right_map, int opt);        // opt: 0 for left, 1 for right, 2 for both
+    bool drawUsedMap(cv::Mat& left_map, cv::Mat& right_map, int opt);        // opt: 0 for left, 1 for right, 2 for both
+    bool drawDynamicObjs(cv::Mat& left_map, cv::Mat& right_map, int opt);    // opt: 0 for left, 1 for right, 2 for both
+    bool drawParkingLots(cv::Mat& left_map, cv::Mat& right_map, int opt);    // opt: 0 for left, 1 for right, 2 for both
+    bool drawLanes(cv::Mat& left_map, cv::Mat& right_map, int opt);          // opt: 0 for left, 1 for right, 2 for both
+    bool drawReferencePath(cv::Mat& left_map, cv::Mat& right_map, int opt);  // opt: 0 for left, 1 for right, 2 for both
+    bool drawMaintainedPath(cv::Mat& left_map, cv::Mat& right_map, int opt);
+    bool drawBestPath(cv::Mat& left_map, cv::Mat& right_map, int opt);        // opt: 0 for left, 1 for right, 2 for both
+    bool drawTargets(cv::Mat& left_map, cv::Mat& right_map, int opt);         // opt: 0 for left, 1 for right, 2 for both
+    bool drawStartPoint(cv::Mat& left_map, cv::Mat& right_map, int opt);      // opt: 0 for left, 1 for right, 2 for both
+    bool drawPaths(cv::Mat& left_map, cv::Mat& right_map, int opt);           // opt: 0 for left, 1 for right, 2 for both
+    bool drawReferenceLanes(cv::Mat& left_map, cv::Mat& right_map, int opt);  // opt: 0 for left, 1 for right, 2 for both
+    bool drawSTBoundaries(cv::Mat& speed_view_mat);
+    bool drawDPReferenceCurve(cv::Mat& speed_view_mat);
+    bool drawQPSpeedCurve(cv::Mat& speed_view_mat);
+    bool drawSplinesSpeedCurve(cv::Mat& speed_view_mat);
 
     const static time_t NAV_INFO_TIMEOUT_US      = 1e6;
     const static time_t SLAM_LOC_TIMEOUT_US      = 1e6;
@@ -196,7 +196,7 @@ private:
     class Handler {
     public:
         void handleNAVINFO(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structNAVINFO* msg);
-        void handleLASERMAP(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structLASERMAP* msg);
+        void handleFUSIONMAP(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structFUSIONMAP* msg);
         void handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structTRAFFICLIGHT* msg);
         void handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structLANES* msg);
         void handlePARKINGSLOTS(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structPARKINGSLOTS* msg);
@@ -216,7 +216,7 @@ private:
         shared_mutex       nav_mtx, slam_loc_mtx, lidar_mtx, objects_mtx, traffic_mtx, lane_mtx, parking_lots_mtx, visualization_mtx;
         structNAVINFO      tmp_nav;
         structSLAMLOC      tmp_slam_loc;
-        structLASERMAP     tmp_lidar_map;
+        structFUSIONMAP    tmp_lidar_map;
         structTRAFFICLIGHT tmp_traffic;
         structOBJECTLIST   tmp_objects[OBJECTS_SOURCE_NUM];
         structLANES        tmp_lanes;
