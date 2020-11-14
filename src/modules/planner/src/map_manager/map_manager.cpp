@@ -16,6 +16,7 @@ void MapManager::update() {
     message_manager->getDynamicObjList(map.dynamic_obj_list);
     message_manager->getParkingLotList(map.parking_lot_list);
     message_manager->getLaneList(map.lane_list);
+    message_manager->getRainSignal(map.rain_signal);
     message_manager->getMap(map.lidar);
     //-------
     handleLidarMap();
