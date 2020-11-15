@@ -6,7 +6,7 @@
 
 #include <unistd.h>
 #include "zcmmsg/structRoadMarkingList.hpp"
-
+#include "time.h"
 #include "common.h"
 
 //#undef DEPLOY_IMSHOW
@@ -19,7 +19,7 @@
 #include "filter.h"
 #include "visualize.h"
 
-zcm::ZCM zcm_udp{"ipc"};
+zcm::ZCM zcm_udp{};
 
 namespace py = pybind11;
 namespace lm = LaneModel;
@@ -958,6 +958,7 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
 
     // struct zcm message
     int32_t valid_lane_size = 0; // TODO: seems every lane is valid
+    static long pub_time = 0;
     if(road_resampled.lanes().size()){
         out_list.push_back(1);
         if(!zcm_udp.good()){
@@ -965,11 +966,7 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
             return out_list;
         }
         out_list.push_back(1);
-<<<<<<< HEAD
         structRoadMarkingList structlanes_zcm;
-=======
-        MsgRoadMarkingList structlanes_zcm;
->>>>>>> e5ebe55ebdb86450a628c401ab079e5ddf3dd8cf
         structlanes_zcm.current_lane_id = road_resampled.cal_current_lane_id(CENTER.x);
         StopLine stopline_zcm;//constract stopline zcm
         {
@@ -1023,6 +1020,9 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
 
         structlanes_zcm.num = valid_lane_size;
         zcm_udp.publish("LANE_info", &structlanes_zcm);
+        long dur = clock() - pub_time;
+        printf("pub_time = %ld", dur);
+        pub_time = clock();
         {//creat dict return to python
             out_list.push_back(int(structlanes_zcm.num));
             for(int i=0; i<int(structlanes_zcm.num); i++){

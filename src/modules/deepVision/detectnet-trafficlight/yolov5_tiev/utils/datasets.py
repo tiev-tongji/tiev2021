@@ -339,11 +339,12 @@ class LoadStreamsBasler:  # basler cameras
         di = pylon.DeviceInfo()
         di.SetDeviceClass("BaslerGigE")
         self.device_filter = di
+        camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice(self.device_filter))
         for i, s in enumerate(sources):
             # Start the thread to read frames from the video stream
             print('%g/%g: %s... ' % (i + 1, n, s), end='')
             # conecting to the first available camera
-            camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice(self.device_filter))
+            # camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice(self.device_filter))
             # Grabing Continusely (video) with minimal delay
             camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly) 
             grabResult = camera.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
@@ -360,12 +361,15 @@ class LoadStreamsBasler:  # basler cameras
             print('WARNING: Different stream shapes detected. For optimal performance supply similarly-shaped streams.')
 
     def update(self, index, camera):
+        print("this is thread"+" "+str(index))
         while camera.IsGrabbing():
             grabResult = camera.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
             if grabResult.GrabSucceeded():
                 # Access the image data
                 image = self.converter.Convert(grabResult)
                 img = image.GetArray()
+                img = cv2.flip(img, 0)
+                img = cv2.flip(img, 1)
                 self.imgs[index] = img
             grabResult.Release()
 
@@ -388,6 +392,7 @@ class LoadStreamsBasler:  # basler cameras
 
         # Convert
         img = img[:, :, :, ::-1].transpose(0, 3, 1, 2)  # BGR to RGB, to bsx3x416x416
+#        img = img[::-1, :, :, :]
         img = np.ascontiguousarray(img)
 
         return self.sources, img, img0, None

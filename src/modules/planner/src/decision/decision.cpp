@@ -104,17 +104,22 @@ void sendPath() {
         SpeedPath speed_path;
         if(!maintained_path.empty()) speed_path = SpeedOptimizer::RunSpeedOptimizer(dynamic.dynamic_obj_list, maintained_path, speed_limits, maintained_path.back().s);
         // send control trojectory
+        control_path.points.clear();
         control_path.num_points = speed_path.path.size();
         for(const auto& p : speed_path.path) {
             TrajectoryPoint tp;
-            tp.x                = CAR_CEN_ROW - p.x;
-            tp.y                = p.y - CAR_CEN_COL;
+            tp.x                = (CAR_CEN_ROW - p.x)*GRID_RESOLUTION;
+            tp.y                = (CAR_CEN_COL - p.y)*GRID_RESOLUTION;
+            cout << "tp x y: x=" << tp.x << " y=" << tp.y << endl;
             tp.theta            = p.ang - PI;
+            while(tp.theta > PI) tp.theta -= 2*PI;
+            while(tp.theta <= -PI) tp.theta += 2*PI;
             tp.a                = p.a;
             tp.k                = p.k;
             tp.t                = p.t;
             tp.v                = p.v;
-            if(p.backward) tp.v = -p.v;
+            if(tp.v < 0.5 && tp.v > 0.00000001) tp.v = 0.5;
+            if(p.backward) tp.v = -tp.v;
             control_path.points.push_back(tp);
         }
         msgm->publishPath(control_path);
