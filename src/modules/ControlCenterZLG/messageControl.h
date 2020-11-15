@@ -62,8 +62,8 @@ private:
     STATE zcm_run();
 private:
     messageHandle msgHandle;
-    zcm::ZCM veh_status_pub {};
-    zcm::ZCM veh_control_sub {};
+    zcm::ZCM veh_status_pub {"ipc"};
+    zcm::ZCM veh_control_sub {"ipc"};
 };
 
 #endif // MESSAGE_CONTROL_H_

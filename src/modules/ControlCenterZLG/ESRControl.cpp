@@ -13,6 +13,8 @@
 
 #include "ESRControl.hpp"
 #include "nature.h"
+#include "zlg_can.h"
+#include "ControlCenterCommon.h"
 
 #define MapL TiEV::GRID_ROW
 #define MapW TiEV::GRID_COL
@@ -22,9 +24,9 @@
 #define OFFSET_X 4
 #define OFFSET_Y 15
 
-ESRControl::ESRControl()
-{
-}
+// ESRControl::ESRControl()
+// {
+// }
 
 ESRControl::~ESRControl()
 {
@@ -79,7 +81,7 @@ structESROBJINFO* ESRControl::getEsrObjInfoPtr()
 void ESRControl::canInfoRead()
 {
     int nbytes;
-    struct VCI_CAN_OBJ frame[rcv_buff_size];
+    VCI_CAN_OBJ frame[rcv_buff_size];
     int C1 = EHB_CAN_PORT;
 
     while (1)
@@ -88,7 +90,7 @@ void ESRControl::canInfoRead()
                                    can_dev.channelNum, frame, rcv_buff_size, rcv_wait_time);
         for (int i = 0; i < cnt; i++)
         { //receive 50 frame
-            int flag = (frame + i).ID;
+            int flag = (frame + i)->ID;
             if (flag == 0x4E0)
             {//Message Heap, the other thread decode message from the top of the heap
                 stLstTop_mutex.lock();
@@ -107,12 +109,12 @@ void ESRControl::canInfoRead()
                 //cout<<"Track id: "<<((frame.Data[0] & 0xF)* 7 + i) <<endl;
                 if ((frame->Data[0] & 0xF) == 9)
                 {//the last group 9
-                    Tracks[(frame->Data[0] & 0xF) * 7] = frame->Data[1]; /.Data[1~7] belong to isDynamicOrStatic flag
+                    Tracks[(frame->Data[0] & 0xF) * 7] = frame->Data[1]; //Data[1~7] belong to isDynamicOrStatic flag
                 }
                 else 
                 {//group 0 ~ 8
                     for (size_t i = 0; i < 7; i++)
-                        Tracks[(frame->Data[0] & 0xF) * 7 + i] = frame->Data[i + 1]; /.Data[1~7] belong to isDynamicOrStatic flag
+                        Tracks[(frame->Data[0] & 0xF) * 7 + i] = frame->Data[i + 1]; //Data[1~7] belong to isDynamicOrStatic flag
                 }
             }
             else if (flag >= 0x500 && flag <= 0x53F)

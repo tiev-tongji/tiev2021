@@ -21,6 +21,7 @@
 #include "ControlCenterCommon.h"
 #include "nature.h"
 #include "structESROBJINFO.hpp"
+#include "zlg_can.h"
 
 #define SpdN 10
 #define NUM_OBJ 64

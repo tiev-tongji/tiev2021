@@ -44,13 +44,14 @@ STATE ROEWEControl::init(){
     rcv_buff_size = 1000;
     rcv_wait_time = 100;
     
-	//enable_control_ = true;
+	// enable_control_ = true;
     if (!VCI_OpenDevice(can_dev.devType, can_dev.devIndex, 0)) {
         INFO("VCI_OpenDevice failed!");
 		return 0;
     }
     INFO("VCI_OpenDevice succeeded!");
 
+	INFO(can_dev.devType<<","<<can_dev.devIndex<<", "<<can_dev.channelNum);
     if (!VCI_InitCAN(can_dev.devType, can_dev.devIndex, can_dev.channelNum, &config)) {
         INFO("VCI_InitCAN failed!");
 		return 0;
@@ -84,6 +85,7 @@ void ROEWEControl::get_can_info(){
 	while(1){
 		uint32_t cnt = VCI_Receive(can_dev.devType, can_dev.devIndex, 
                           can_dev.channelNum, can, rcv_buff_size, rcv_wait_time);
+		printf("cnt = %d\n", cnt);
 		for(int i = 0; i < cnt; i++){
 			switch(can[i].ID){
                 case 0x18B:

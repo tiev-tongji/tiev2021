@@ -39,11 +39,11 @@ void EHBControl::init(){
     rcv_wait_time = 100;
     
 	//enable_control_ = true;
-    if (!VCI_OpenDevice(can_dev.devType, can_dev.devIndex, 0)) {
-        INFO("VCI_OpenDevice failed!");
-		return;
-    }
-    INFO("VCI_OpenDevice succeeded!");
+    // if (!VCI_OpenDevice(can_dev.devType, can_dev.devIndex, 0)) {
+    //     INFO("VCI_OpenDevice failed!");
+	// 	return;
+    // }
+    // INFO("VCI_OpenDevice succeeded!");
 
     if (!VCI_InitCAN(can_dev.devType, can_dev.devIndex, can_dev.channelNum, &config)) {
         INFO("VCI_InitCAN failed!");

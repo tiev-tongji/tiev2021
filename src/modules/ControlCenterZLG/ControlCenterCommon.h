@@ -96,9 +96,9 @@ inline STATE load_params_file(const std::string& params_file, control_params_t* 
 
 
 typedef struct can_device_info{
-    DWORD channelNum;
-    DWORD devType;
-    DWORD devIndex;
+    unsigned int channelNum;
+    unsigned int devType;
+    unsigned int devIndex;
 } CAN_DEV_INFO;
 
 #endif // CONTROL_CENTER_COMMON_H_

@@ -31,6 +31,7 @@
 #include <atomic>
 #include <thread>
 #include "zlg_can.h"
+#include "ControlCenterCommon.h"
 
 using namespace std;
 

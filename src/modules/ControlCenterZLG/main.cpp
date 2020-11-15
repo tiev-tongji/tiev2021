@@ -49,7 +49,7 @@ int main(){
     ehb_control.init();
     
     //for esr
-    ESRControl esr_control();
+    ESRControl esr_control;
     esr_control.can_dev = can_device_1;
     esr_control.init();
     nav_info_t veh_nav_info;
