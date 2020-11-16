@@ -2,16 +2,17 @@
 #include "collision_check.h"
 #include "config.h"
 #include "map_manager.h"
-#include "tiev_fsm.h"
 #include "tiev_utils.h"
 #include <thread>
 #include <unistd.h>
 namespace TiEV {
+
 /**
  * 决策规划的线程
  */
 void runTiEVFSM() {
-    Config const* cfg = Config::getInstance();
+    MachineManager* mm  = MachineManager::getInstance();
+    Config const*   cfg = Config::getInstance();
     // map managet initialization
     MapManager* mapm = MapManager::getInstance();
     mapm->readGlobalPathFile(cfg->roadmap_file);
@@ -22,15 +23,16 @@ void runTiEVFSM() {
     routing_thread.detach();
 #endif
     // FSM...
-    Context       context;
-    FSM::Instance machine{ context };
+    // Context       context;
+    // FSM::Instance machine{ context };
     while(true) {
         MessageManager* msgm = MessageManager::getInstance();
         msgm->clearTextInfo();
         time_t start_t = getTimeStamp();
         mapm->update();
-        context.update();  //更新途灵事件信息
-        machine.update();
+        mm->context.update();  //更新途灵事件信息
+        mm->machine.update();
+        cout << "machine active:" << mm->machine.isActive<NormalDriving>() << endl;
         time_t end_t     = getTimeStamp();
         int    time_cost = (end_t - start_t) / 1000;
         msgm->addTextInfo("Time cost", to_string(time_cost));

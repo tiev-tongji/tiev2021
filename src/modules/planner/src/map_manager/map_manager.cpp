@@ -113,9 +113,12 @@ void MapManager::runRouting(int interval, bool blocked) {
             task_points_mutex.lock_shared();
             int cost = routing->findReferenceRoad(tmp_global_path, map.current_task_points, blocked);
             task_points_mutex.unlock_shared();
-            if(true) {  // TODO: How to use the cost?
+            if(true) {  // cost < &&sustitude(global_path, tmp_global_path)) {  // TODO: How to use the cost?
                 global_path_mutex.lock();
                 this->global_path = tmp_global_path;
+                filtPoints();
+                setGlobalPathDirection();
+                global_path_nearest_idx = -1;
                 global_path_mutex.unlock();
             }
             global_path_update_time = current_time;
@@ -218,6 +221,7 @@ int MapManager::getGlobalPathNearestIndex(int begin, int end) const {
 }
 
 void MapManager::updateRefPath(bool need_opposite) {
+    global_path_mutex.lock_shared();
     ref_path_mutex.lock();
     map.ref_path.clear();
     map.forward_ref_path.clear();
@@ -229,6 +233,7 @@ void MapManager::updateRefPath(bool need_opposite) {
         global_path_nearest_idx = getGlobalPathNearestIndex(0, global_path.size() - 1);
         if(global_path_nearest_idx < 0) {
             ref_path_mutex.unlock();
+            global_path_mutex.unlock_shared();
             return;
         }
     }
@@ -248,6 +253,7 @@ void MapManager::updateRefPath(bool need_opposite) {
         map.ref_path.push_back(p);
         if(i == global_path_nearest_idx) current_idx_in_ref_path = map.ref_path.size() - 1;
     }
+    global_path_mutex.unlock_shared();
 
     if(map.ref_path.empty())
         global_path_nearest_idx = -1;
@@ -295,7 +301,20 @@ void MapManager::avoidPedestrian() {
     }
 }
 
-void MapManager::updatePlanningMap(LaneLineBlockType lane_line_block_type) {
+void MapManager::blockStopLine() {
+    for(const auto& lane : map.lane_list.lane_list) {
+        const auto& stop_point = lane.stop_point;
+        int         x          = stop_point.x;
+        int         y          = stop_point.y;
+        DynamicObj  dummy_obj;
+        dummy_obj.width  = 1.5;
+        dummy_obj.length = 3;
+        dummy_obj.path.emplace_back(x, y, PI, 0, 0, 0);
+        map.dynamic_obj_list.dynamic_obj_list.emplace_back(dummy_obj);
+    }
+}
+
+void MapManager::updatePlanningMap(LaneLineBlockType lane_line_block_type, bool history) {
     memset(map.line_block_map, 0, sizeof(map.line_block_map));
     if(lane_line_block_type == LaneLineBlockType::NO_BLOCK)
         ;
@@ -372,7 +391,7 @@ void MapManager::updatePlanningMap(LaneLineBlockType lane_line_block_type) {
             }
         }
     }
-    getPlanningDisMap();
+    getPlanningDisMap(history);
     getAccessibleMap();
 }
 
@@ -432,7 +451,7 @@ void MapManager::handleLidarMap() {
     }
 }
 
-void MapManager::getPlanningDisMap() {
+void MapManager::getPlanningDisMap(bool history) {
     const int    dx[]  = { 0, 0, -1, 1, 1, 1, -1, -1 };
     const int    dy[]  = { -1, 1, 0, 0, 1, -1, 1, -1 };
     const double dis[] = { 1, 1, 1, 1, 1.414, 1.414, 1.414, 1.414 };
@@ -446,7 +465,11 @@ void MapManager::getPlanningDisMap() {
 
     for(int r = 0; r < MAX_ROW; ++r) {
         for(int c = 0; c < MAX_COL; ++c) {
-            if(map.line_block_map[r][c] != 0 || (map.lidar_map[r][c] != 0 && map.lidar_map[r][c] != 0x4)) {
+            if(!history && map.line_block_map[r][c] != 0 || (map.lidar_map[r][c] != 0 && map.lidar_map[r][c] != 0x4)) {
+                map.planning_dis_map[r][c] = 0;
+                obj_que.push(make_pair(r, c));
+            }
+            else if(history && map.line_block_map[r][c] != 0 || map.lidar_map[r][c] & 0x1) {
                 map.planning_dis_map[r][c] = 0;
                 obj_que.push(make_pair(r, c));
             }
@@ -667,7 +690,7 @@ vector<Pose> MapManager::getLaneTargets() {
     return targets;
 }
 
-vector<Pose> MapManager::getExplorationTarget() {
+vector<Pose> MapManager::getExplorationTargets() {
     vector<Pose> targets;
     const double dis[] = { 5, 8, 11, 14, 17 };
     if(this->map.nav_info.detected && !(this->map.forward_ref_path.empty())) {

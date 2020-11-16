@@ -20,6 +20,16 @@ void OnRoadFSM::enter(Control& control) {
 
 void OnRoadFSM::update(FullControl& control) {
     cout << "OnRoad Fsm update!" << endl;
+    MapManager* map_manager = MapManager::getInstance();
+    Map&        map         = map_manager->getMap();
+    if(!map.forward_ref_path.empty()) {
+        auto mode = map.forward_ref_path.front().mode;
+        if(mode == HDMapMode::INTERSECTION_SOLID || mode == HDMapMode::INTERSECTION)
+            control.changeTo<SafeDriving>();
+        else if(mode == HDMapMode::PARKING)
+            control.changeTo<SeekParkingSpot>();
+    }
+    // TODO: temporary_parking
 }
 //----------------OnRoad Fsm--------------------
 
@@ -30,6 +40,12 @@ void IntersectionFSM::enter(Control& control) {
 
 void IntersectionFSM::update(FullControl& control) {
     cout << "Intersection FSM update!" << endl;
+    MapManager* map_manager = MapManager::getInstance();
+    Map&        map         = map_manager->getMap();
+    if(!map.forward_ref_path.empty()) {
+        auto mode = map.forward_ref_path.front().mode;
+        if(mode == HDMapMode::NORMAL) control.changeTo<NormalDriving>();
+    }
 }
 //----------------Intersection Fsm--------------------
 

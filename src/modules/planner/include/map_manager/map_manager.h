@@ -56,14 +56,15 @@ public:
     void runRouting(int interval, bool blocked);     // Update global path in a new thread
     void updateRefPath(bool need_opposite = false);  //获取局部参考路
     void avoidPedestrian();                          // 对道路内且相隔一定距离内的行人进行避让
+    void blockStopLine(); // 封闭停止线，红灯时使用
     enum LaneLineBlockType { NO_BLOCK, SEMI_BLOCK, ALL_BLOCK };
-    void updatePlanningMap(LaneLineBlockType lane_line_block_type);
+    void updatePlanningMap(LaneLineBlockType lane_line_block_type, bool history=false);
     Map& getMap();
     void visualization();
     //获取目标点
     std::vector<Pose> getLaneTargets();
     Pose              getBackTarget();
-    std::vector<Pose> getExplorationTarget();
+    std::vector<Pose> getExplorationTargets();
     Pose              getParkingSpotTarget();
     std::vector<Pose> getTaskTargets();
     //------
@@ -101,7 +102,7 @@ private:
     void laneMatch();                 // 车道线匹配
     void getBoundaryLine();
     void laneLineInterpolation();
-    void getPlanningDisMap();
+    void getPlanningDisMap(bool history=false);
     void getAccessibleMap();
     //--------tool----------------
     int  getCarLaneId();                             //获取车辆当前所在车道序号

@@ -14,6 +14,7 @@ void GlobalPlanning::update(FullControl& control) {
     // for test
     control.changeTo<NormalDriving>();
     // control.changeTo<Tracking>();
+    // TODO: map_manager->runRouting();
     map_manager->updateRefPath();
 }
 }  // namespace TiEV
