@@ -98,7 +98,7 @@ void sendPath() {
                 dummy_obj.path.emplace_back(p.x, p.y, p.ang, 0, 0, 0);
                 dynamic.dynamic_obj_list.push_back(dummy_obj);
             }
-            speed_limits.emplace_back(p.s, min(sqrt(GRAVITY * MIU / (fabs(p.k) + 0.0001)), mapm->getCurrentMapSpeed()));
+            speed_limits.emplace_back(p.s, min(sqrt(GRAVITY * MIU / (fabs(p.k) + 0.0001)) * 0.7, mapm->getCurrentMapSpeed()));
         }
         if(!maintained_path.empty()) maintained_path.front().v = nav_info.current_speed;
         SpeedPath speed_path;

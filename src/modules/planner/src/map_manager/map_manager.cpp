@@ -215,21 +215,18 @@ void MapManager::updateRefPath(bool need_opposite) {
     }
 
     int search_begin             = max(global_path_nearest_idx - search_history_depth, 0);
-    int search_end               = min(int(global_path.size()), global_path_nearest_idx + search_depth);
+    int search_end               = min(int(global_path.size() - 1), global_path_nearest_idx + search_depth);
     global_path_nearest_idx      = getGlobalPathNearestIndex(search_begin, search_end);
     search_begin                 = max(global_path_nearest_idx - search_history_depth, 0);
-    search_end                   = min(int(global_path.size()), global_path_nearest_idx + search_depth);
+    search_end                   = min(int(global_path.size() - 1), global_path_nearest_idx + search_depth);
     Pose car_pose                = map.nav_info.car_pose;
     int  current_idx_in_ref_path = 0;
-    for(int i = search_begin; i < search_end; ++i) {
+    for(int i = search_begin; i <= search_end; ++i) {
         HDMapPoint p = global_path[i];
         p.updateLocalCoordinate(car_pose);
-        p.v       = getSpeedBySpeedMode(p.speed_mode);
-        double dx = p.utm_position.utm_x - car_pose.utm_position.utm_x;
-        double dy = p.utm_position.utm_y - car_pose.utm_position.utm_y;
+        p.v = getSpeedBySpeedMode(p.speed_mode);
         if(!p.in_map()) continue;
-
-        map.ref_path.emplace_back(p);
+        map.ref_path.push_back(p);
         if(i == global_path_nearest_idx) current_idx_in_ref_path = map.ref_path.size() - 1;
     }
 
@@ -237,7 +234,7 @@ void MapManager::updateRefPath(bool need_opposite) {
         global_path_nearest_idx = -1;
     else {
         map.ref_path.front().s = 0;
-        for(int i = 0; i < map.ref_path.size(); ++i) {
+        for(int i = 1; i < map.ref_path.size(); ++i) {
             double delta_s    = hypot(fabs(map.ref_path[i].x - map.ref_path[i - 1].x), fabs(map.ref_path[i].y - map.ref_path[i - 1].y)) * GRID_RESOLUTION;
             map.ref_path[i].s = map.ref_path[i - 1].s + delta_s;
         }

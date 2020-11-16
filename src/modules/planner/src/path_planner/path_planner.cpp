@@ -29,7 +29,7 @@ const double dd[5][5] = { 2.0 * sqrt2, sqrt5, 2.0,   sqrt5, 2.0 * sqrt2, sqrt5, 
                           1.0,         2.0,   sqrt5, sqrt2, 1.0,         sqrt2, sqrt5, 2.0 * sqrt2, sqrt5, 2.0,   sqrt5, 2.0 * sqrt2 };
 const double lengths[]        = { 10.0 / GRID_RESOLUTION, 5.0 / GRID_RESOLUTION, 2.0 / GRID_RESOLUTION };
 const int    length_num       = sizeof(lengths) / sizeof(lengths[0]);
-const double radiuses[]       = { 5.0 / GRID_RESOLUTION, 14.0 / GRID_RESOLUTION, 20.0 / GRID_RESOLUTION };
+const double radiuses[]       = { 6.0 / GRID_RESOLUTION, 14.0 / GRID_RESOLUTION, 20.0 / GRID_RESOLUTION };
 const double circle_lengths[] = { lengths[length_num - 1], lengths[length_num - 1], lengths[length_num - 1] };
 const int    radius_num       = sizeof(radiuses) / sizeof(radiuses[0]);
 
@@ -251,7 +251,7 @@ void PathPlanner::planSpeed(int target_index) {
     // conversion
     for(auto& point : speed_paths[target_index].path) {
         if(point.backward) point.ang = PI + point.ang;
-        speed_limits[target_index].emplace_back(point.s, min(sqrt(g_tims_miu / (point.k + 0.0001)), point.v));
+        speed_limits[target_index].emplace_back(point.s, min(sqrt(g_tims_miu / (point.k + 0.0001)) * 0.7, point.v));
     }
 
     // speed_limits[target_index][0].second = current_speed;
@@ -359,7 +359,7 @@ void PathPlanner::aStarPlan(int target_index) {
             analytic_expansion_first_tried = true;
             state_cnt                      = 0;
 
-            double r = max(1.0 / curvatures[current_speed_id] / GRID_RESOLUTION, 5.0 / GRID_RESOLUTION);
+            double r = max(1.0 / curvatures[current_speed_id] / GRID_RESOLUTION, 6.0 / GRID_RESOLUTION);
 
             if(aStarAnalyticExpansion(target_index, current_state, analytic_expansion_states, r)) {
                 if(analytic_expansion_states.size() >= 0) {
@@ -373,7 +373,7 @@ void PathPlanner::aStarPlan(int target_index) {
             }
             else if(analytic_expansion_states.size()) {
                 // If the analytic expansion is failed, select some points and add them to open-list.
-                int jump_step                            = (int)ceil(5.0 / config->a_star_extention_step_meter);
+                int jump_step                            = (int)ceil(6.0 / config->a_star_extention_step_meter);
                 int jump_size                            = (analytic_expansion_states.size() / 2 / jump_step) * jump_step;
                 int old_l                                = stored_states.size();
                 analytic_expansion_states[0].prior_index = current_index;
