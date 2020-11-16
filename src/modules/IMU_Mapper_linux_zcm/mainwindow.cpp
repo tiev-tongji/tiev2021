@@ -350,7 +350,7 @@ MainWindow::roadpoint MainWindow::get_slam_data(int num,
 }
 
 void MainWindow::PickPoint(std::vector<roadpoint> &data) {
-  double PointSpace = 0.5; //设定点间距变量
+  double PointSpace = 0.2; //设定点间距变量
   roadpoint CurrentPoint, rpTemp;
   CurrentPoint = data[0];
   int i = 1;
