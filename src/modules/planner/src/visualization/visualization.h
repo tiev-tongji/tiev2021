@@ -135,6 +135,10 @@ private:
     cv::Mat traffic_light_yellow_straight;
     cv::Mat traffic_light_yellow_left;
     cv::Mat traffic_light_yellow_right;
+    cv::Mat auto_rect;
+    cv::Mat auto_window;
+    cv::Mat auto_start;
+    cv::Mat auto_end;
 
     cv::Mat text_window;
     cv::Mat speed_view_window;

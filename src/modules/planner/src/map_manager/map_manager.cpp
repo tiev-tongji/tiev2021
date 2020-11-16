@@ -648,6 +648,40 @@ vector<Pose> MapManager::getLaneTargets() {
     return targets;
 }
 
+vector<Pose> MapManager::getExplorationTarget() {
+    vector<Pose> targets;
+    const double dis[] = { 5, 8, 11, 14, 17 };
+    if(this->map.nav_info.detected && !(this->map.forward_ref_path.empty())) {
+        int idx = 0;
+        for(auto& point : this->map.forward_ref_path) {
+            if(point.s >= dis[idx]) {
+                idx++;
+                for(int i = 1;; ++i) {
+                    Pose a = point.getLateralPose(-0.5 * i);
+                    Pose b = point.getLateralPose(0.5 * i);
+                    if(!a.in_map() && !b.in_map()) break;
+                    if(a.in_map() && !collision(a, this->map.planning_dis_map) && this->map.accessible_map[int(a.x)][int(a.y)]) {
+                        targets.push_back(a);
+                        break;
+                    }
+                    if(b.in_map() && !collision(b, this->map.planning_dis_map) && this->map.accessible_map[int(b.x)][int(b.y)]) {
+                        targets.push_back(b);
+                        break;
+                    }
+                }
+            }
+            if(idx >= sizeof(dis) / sizeof(double)) break;
+        }
+    }
+    else if(!(this->map.v_line_list.empty())) {
+        return this->getLaneTargets();
+    }
+    else {
+        ;
+    }
+    return targets;
+}
+
 void MapManager::laneMatch() {
     //视觉检测到车道线匹配
     //若视觉检测和地图车道线数量一样

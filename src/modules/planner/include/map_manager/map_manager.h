@@ -60,9 +60,9 @@ public:
     //获取目标点
     std::vector<Pose> getLaneTargets();
     Pose              getBackTarget();
-    Pose              getExplorationTarget();
+    std::vector<Pose> getExplorationTarget();
     Pose              getParkingSpotTarget();
-    vector<Pose>      getTaskTargets();
+    std::vector<Pose> getTaskTargets();
     //------
     std::vector<Pose> getMaintainedPath(NavInfo& nav_info);
     std::vector<Pose> getStartMaintainedPath();
