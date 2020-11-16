@@ -12,10 +12,15 @@
 ***********/
 
 namespace TiEV {
+static mutex routing_mtx;
 class Routing {
 public:
-    Routing();
-    ~Routing();
+    static Routing* getInstance() {
+        routing_mtx.lock();
+        static Routing instance;
+        routing_mtx.unlock();
+        return &instance;
+    }
 
     /**
     * @brief Find the reference line according to start and end point.
@@ -41,6 +46,9 @@ public:
     int findReferenceRoad(std::vector<HDMapPoint>& global_path, const std::vector<TaskPoint>& task_points, bool blockeds = false);
 
 private:
+    Routing();
+    ~Routing();
+
     std::string host;
     std::string port;
     std::string dbname;

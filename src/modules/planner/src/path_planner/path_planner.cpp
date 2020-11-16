@@ -166,7 +166,6 @@ void PathPlanner::plan() {
         have_result[i] = false;
     }
     if(is_planning) return;
-
     is_planning = true;
     memset(have_result, 0, sizeof(have_result));
 

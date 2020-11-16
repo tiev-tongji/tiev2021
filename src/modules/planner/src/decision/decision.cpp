@@ -4,6 +4,7 @@
 #include "map_manager.h"
 #include "tiev_fsm.h"
 #include "tiev_utils.h"
+#include <thread>
 #include <unistd.h>
 namespace TiEV {
 /**
@@ -14,13 +15,25 @@ void runTiEVFSM() {
     // map managet initialization
     MapManager* mapm = MapManager::getInstance();
     mapm->readGlobalPathFile(cfg->roadmap_file);
+// Start a new thread for routing to update global path
+// #define routing
+#ifdef routing
+    thread routing_thread = thread(&MapManager::runRouting, mapm, 10000000, false);
+    routing_thread.detach();
+#endif
     // FSM...
     Context       context;
     FSM::Instance machine{ context };
     while(true) {
+        MessageManager* msgm = MessageManager::getInstance();
+        msgm->clearTextInfo();
+        time_t start_t = getTimeStamp();
         mapm->update();
         context.update();  //更新途灵事件信息
         machine.update();
+        time_t end_t     = getTimeStamp();
+        int    time_cost = (end_t - start_t) / 1000;
+        msgm->addTextInfo("Time cost", to_string(time_cost));
         mapm->visualization();
     }
 }
@@ -108,18 +121,19 @@ void sendPath() {
         control_path.num_points = speed_path.path.size();
         for(const auto& p : speed_path.path) {
             TrajectoryPoint tp;
-            tp.x                = (CAR_CEN_ROW - p.x)*GRID_RESOLUTION;
-            tp.y                = (CAR_CEN_COL - p.y)*GRID_RESOLUTION;
-            cout << "tp x y: x=" << tp.x << " y=" << tp.y << endl;
-            tp.theta            = p.ang - PI;
-            while(tp.theta > PI) tp.theta -= 2*PI;
-            while(tp.theta <= -PI) tp.theta += 2*PI;
-            tp.a                = p.a;
-            tp.k                = p.k;
-            tp.t                = p.t;
-            tp.v                = p.v;
+            tp.x     = (CAR_CEN_ROW - p.x) * GRID_RESOLUTION;
+            tp.y     = (CAR_CEN_COL - p.y) * GRID_RESOLUTION;
+            tp.theta = p.ang - PI;
+            while(tp.theta > PI)
+                tp.theta -= 2 * PI;
+            while(tp.theta <= -PI)
+                tp.theta += 2 * PI;
+            tp.a                                     = p.a;
+            tp.k                                     = p.k;
+            tp.t                                     = p.t;
+            tp.v                                     = p.v;
             if(tp.v < 0.5 && tp.v > 0.00000001) tp.v = 0.5;
-            if(p.backward) tp.v = -tp.v;
+            if(p.backward) tp.v                      = -tp.v;
             control_path.points.push_back(tp);
         }
         msgm->publishPath(control_path);

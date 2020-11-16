@@ -8,6 +8,7 @@
 #include "tievmsg.h"
 #include "visualization_msg.h"
 //#include <shared_mutex>
+#include <map>
 #include <thread>
 #include <thread>
 #include <tuple>
@@ -58,7 +59,8 @@ public:
 
     // 用于决策与规划等模块发送可视化信息至visualization
     visVISUALIZATION visualization;
-    void             publishVisualization();
+    map<string, string> text_info;
+    void publishVisualization();
     void setTargets(const vector<Pose>& targets);
     void setStartPoint(const Pose& start_point);
     void setSafeMap(double safe_map[MAX_ROW][MAX_COL]);
@@ -66,6 +68,9 @@ public:
     void setUsedMap(bool used_map[MAX_ROW][MAX_COL]);
     void clearPaths();
     void setSpeedPath(const SpeedPath& speed_path);
+    void clearTextInfo();
+    void addTextInfo(const string& name, const string& value);
+    void setTextInfo();
 
 private:
     MessageManager(){};

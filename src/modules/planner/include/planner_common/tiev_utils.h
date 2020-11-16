@@ -72,7 +72,9 @@ template <class T> void lineInterpolation(std::vector<T>& line, double min_step 
         Point2d vec  = np - pp;
         Point2d nvec = nnp - np;
         if(vec.len() < min_step) continue;
-        if(vec.len() >= min_step * 2 && fabs(nvec.getRad() - pvec.getRad()) < PI / 6) {
+        double a = nvec.dot(pvec);
+        a /= nvec.len() * pvec.len();
+        if(vec.len() >= min_step * 2 && a > cos(PI / 6)) {
             int num = vec.len() / min_step;
             for(int k = num; k > 0; --k) {
                 Point2d off_vec = vec * (double(k) / (num + 1));

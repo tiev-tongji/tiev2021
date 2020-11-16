@@ -75,7 +75,7 @@ struct Pose : public Point2d {
         double qy          = (px * sinstdh + py * cosstdh);
         utm_position.utm_x = qx * GRID_RESOLUTION + standard_point.utm_position.utm_x;
         utm_position.utm_y = qy * GRID_RESOLUTION + standard_point.utm_position.utm_y;
-        double hd          = standard_point.utm_position.heading + standard_point.ang - ang;
+        double hd          = standard_point.utm_position.heading + ang - standard_point.ang;
         while(hd > PI)
             hd -= 2 * PI;
         while(hd <= -PI)

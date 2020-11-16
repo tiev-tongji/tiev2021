@@ -58,6 +58,26 @@ bool MessageManager::getRainSignal(RainSignal& rain_signal) {
     return rain_signal.detected;
 }
 
+void MessageManager::clearTextInfo() {
+    text_info.clear();
+}
+
+void MessageManager::setTextInfo() {
+    visualization.text_info.clear();
+    visualization.text_info_size = 0;
+    for(const auto& itr : text_info) {
+        visText vis_text;
+        vis_text.name  = itr.first;
+        vis_text.value = itr.second;
+        visualization.text_info.emplace_back(vis_text);
+        visualization.text_info_size += 1;
+    }
+}
+
+void MessageManager::addTextInfo(const string& name, const string& value) {
+    text_info[name] = value;
+}
+
 bool MessageManager::getDynamicObjList(DynamicObjList& dynamic_obj_list) {
     inner_handler.objects_mtx.lock_shared();
     time_t current_time_us = getTimeStamp();

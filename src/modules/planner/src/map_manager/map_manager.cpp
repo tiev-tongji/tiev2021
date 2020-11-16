@@ -104,6 +104,25 @@ void MapManager::readGlobalPathFile(const string& file_path) {
     setGlobalPathDirection();
 }
 
+void MapManager::runRouting(int interval, bool blocked) {
+    while(true) {
+        time_t current_time = getTimeStamp();
+        if(current_time - global_path_update_time > interval) {
+            Routing*           routing = Routing::getInstance();
+            vector<HDMapPoint> tmp_global_path;
+            task_points_mutex.lock_shared();
+            int cost = routing->findReferenceRoad(tmp_global_path, map.current_task_points, blocked);
+            task_points_mutex.unlock_shared();
+            if(true) {  // TODO: How to use the cost?
+                global_path_mutex.lock();
+                this->global_path = tmp_global_path;
+                global_path_mutex.unlock();
+            }
+            global_path_update_time = current_time;
+        }
+    }
+}
+
 void MapManager::filtPoints() {
     vector<HDMapPoint> tmp_points;
     tmp_points.reserve(global_path.size());
@@ -289,9 +308,9 @@ void MapManager::updatePlanningMap(LaneLineBlockType lane_line_block_type) {
                 else if(p.lane_num == 2) {
                     double base_dis = 0;
                     if(p.direction == RoadDirection::RIGHT || p.direction == RoadDirection::STRAIGHT)
-                        base_dis = p.lane_num - p.lane_seq - 0.5 * p.lane_width;
+                        base_dis = (p.lane_num - p.lane_seq - 0.5) * p.lane_width;
                     else
-                        base_dis = p.lane_num - p.lane_seq - 1.5 * p.lane_width;
+                        base_dis = (p.lane_num - p.lane_seq - 1.5) * p.lane_width;
                     int k        = p.lane_width / 0.5;
                     for(int i = 1; i < k; ++i) {
                         Pose block_p                                       = p.getLateralPose(base_dis + i * 0.5);
@@ -315,7 +334,7 @@ void MapManager::updatePlanningMap(LaneLineBlockType lane_line_block_type) {
                         end_lane_i   = p.lane_num - 1;
                     }
                     for(int lane_i = start_lane_i; lane_i <= end_lane_i; ++lane_i) {
-                        base_dis = lane_i - p.lane_seq - 0.5 * p.lane_width;
+                        base_dis = (lane_i - p.lane_seq - 0.5) * p.lane_width;
                         int k    = p.lane_width / 0.5;
                         for(int i = 1; i < k; ++i) {
                             Pose block_p                                       = p.getLateralPose(base_dis + i * 0.5);
@@ -725,17 +744,22 @@ void MapManager::getBoundaryLine() {
     map.boundary_line.clear();
     bool lane_num_change     = false;
     int  lane_line_change_id = -1;
+    int  mode_change_id      = -1;
     for(int i = 0; i < map.forward_ref_path.size(); ++i) {
-        if(map.forward_ref_path[i].lane_num != map.forward_ref_path.front().lane_num) {
+        if(!lane_num_change && map.forward_ref_path[i].lane_num != map.forward_ref_path.front().lane_num) {
             lane_num_change     = true;
             lane_line_change_id = i;
-            break;
         }
+        if(map.forward_ref_path.front().mode != HDMapMode::CHANGE && mode_change_id < 0 && map.forward_ref_path[i].mode == HDMapMode::CHANGE) {
+            mode_change_id = i;
+        }
+        if(lane_num_change && mode_change_id > 0) break;
     }
     vector<LinePoint> right_boundary;
     vector<LinePoint> left_boundary;
     for(const auto& p : map.ref_path) {
-        if(p.s >= 0 || p.mode == HDMapMode::CHANGE) break;
+        if(p.s >= 0) break;
+        if(p.mode == HDMapMode::CHANGE) continue;
         Pose     right_line_p                                    = p.getLateralPose(p.lane_width * (-p.lane_seq + 0.5));
         LineType right_line_type                                 = LineType::DASH;
         if(p.block_type & BlockType::BlockRight) right_line_type = LineType::BOUNDARY;
@@ -749,8 +773,19 @@ void MapManager::getBoundaryLine() {
         right_boundary.push_back(p);
     for(const auto& p : map.lane_line_list.back())
         left_boundary.push_back(p);
+    cout << "mode changeid:" << mode_change_id << endl;
     if(lane_num_change) {
         for(int j = lane_line_change_id; j < map.forward_ref_path.size(); ++j) {
+            HDMapPoint p = map.forward_ref_path[j];
+            if(p.mode == HDMapMode::CHANGE) continue;
+            Pose right_line_p = p.getLateralPose(p.lane_width * (-p.lane_seq + 0.5));
+            if(right_line_p.in_map()) right_boundary.emplace_back(right_line_p.x, right_line_p.y, LineType::BOUNDARY);
+            Pose left_line_p = p.getLateralPose(p.lane_width * (p.lane_num - p.lane_seq + 0.5));
+            if(left_line_p.in_map()) left_boundary.emplace_back(left_line_p.x, left_line_p.y, LineType::BOUNDARY);
+        }
+    }
+    else if(mode_change_id > 0) {
+        for(int j = mode_change_id; j < map.forward_ref_path.size(); ++j) {
             HDMapPoint p = map.forward_ref_path[j];
             if(p.mode == HDMapMode::CHANGE) continue;
             Pose right_line_p = p.getLateralPose(p.lane_width * (-p.lane_seq + 0.5));
@@ -772,6 +807,7 @@ void MapManager::getBoundaryLine() {
 void MapManager::visualization() {
     MessageManager*   msgm = MessageManager::getInstance();
     visVISUALIZATION& vis  = msgm->visualization;
+    msgm->setTextInfo();
     // reference path
     vis.reference_path.clear();
     vis.reference_path_size = map.forward_ref_path.size();
@@ -826,6 +862,7 @@ vector<Pose> MapManager::getStartMaintainedPath() {
     vector<Pose> path = maintained_path;
     maintained_path_mutex.unlock_shared();
     double maintained_s = 2 * map.nav_info.current_speed;
+    if(path.empty()) return path;
     for(auto& p : path)
         p.updateLocalCoordinate(map.nav_info.car_pose);
     int          shortest_index = shortestPointIndex(map.nav_info.car_pose, path);
@@ -834,6 +871,7 @@ vector<Pose> MapManager::getStartMaintainedPath() {
         p.s -= path[shortest_index].s;
         if(p.s >= 0 && p.s < maintained_s) res.push_back(p);
     }
+    if(!res.empty() && point2PointSqrDis(res.front(), map.nav_info.car_pose) > 25) res.clear();
     return res;
 }
 
@@ -844,6 +882,7 @@ vector<Pose> MapManager::getMaintainedPath(NavInfo& nav_info) {
     for(auto& p : path) {
         p.updateLocalCoordinate(nav_info.car_pose);
     }
+    if(path.empty()) return path;
     int          shortest_index = shortestPointIndex(nav_info.car_pose, path);
     vector<Pose> res;
     for(auto p : path) {

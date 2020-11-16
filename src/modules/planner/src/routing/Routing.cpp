@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <mutex>
 #include <pqxx/pqxx>
 #include <sstream>
 #include <string>
@@ -155,6 +156,7 @@ int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path, const std::
                 p.lane_num     = stoi(row[11].as<string>());
                 p.lane_seq     = stoi(row[12].as<string>());
                 p.lane_width   = stod(row[13].as<string>());
+                global_path.emplace_back(p);
             }
         }
         fout.close();
