@@ -22,6 +22,7 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/include/path_planner
     ${PROJECT_SOURCE_DIR}/include/speed_planner
     ${PROJECT_SOURCE_DIR}/include/visualization_msg
+    ${PROJECT_SOURCE_DIR}/include/routing
     ${PROJECT_SOURCE_DIR}/third_party
 )
 

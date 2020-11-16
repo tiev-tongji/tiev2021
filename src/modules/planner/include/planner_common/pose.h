@@ -19,6 +19,18 @@ struct UtmPosition {
     }
 };
 
+// longititude and latitude
+struct LonLatPosition {
+    double lon;
+    double lat;
+    double heading;
+    LonLatPosition(double lon_ = 0, double lat_ = 0, double heading_ = 0) : lon(lon_), lat(lat_), heading(heading_){};
+    friend std::ostream& operator<<(std::ostream& out, const LonLatPosition& position) {
+        out << "LonLatPosition:{" << position.lon << ", " << position.lat << ", " << position.heading << "}";
+        return out;
+    }
+};
+
 /**
  * 定义轨迹
  */

@@ -43,6 +43,14 @@ void Config::init() {
     a_star_analytic_expansion_param_k = doc[nameof(a_star_analytic_expansion_param_k)].Get<double>();
     a_star_analytic_expansion_param_t = doc[nameof(a_star_analytic_expansion_param_t)].Get<double>();
     a_star_analytic_expansion_max_N   = doc[nameof(a_star_analytic_expansion_max_N)].Get<int>();
+    auto& routing_config              = doc["routing"];
+    host                              = routing_config["host"].GetString();
+    port                              = routing_config["port"].GetString();
+    dbname                            = routing_config["dbname"].GetString();
+    user                              = routing_config["user"].GetString();
+    password                          = routing_config["password"].GetString();
+    topo_name                         = routing_config["topo_name"].GetString();
+    output                            = routing_config["output"].GetString();
     tasks.clear();
     auto task_arr = doc["tasks"].GetArray();
     tasks.resize(task_arr.Size());

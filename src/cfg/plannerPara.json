@@ -28,6 +28,15 @@
 	"a_star_analytic_expansion_param_t": 50,
 	"a_star_analytic_expansion_max_N": 30,
 	"a_star_curvature_changed_punishment": 1,
+	"routing": {
+		"host": "106.75.246.176",
+		"port": "5432",
+		"dbname": "test_ground",
+		"user": "postgres",
+		"password": "routing2020",
+		"topo_name": "test_ground",
+		"output": "/tmp/shortest_road.csv"
+	},
 	"tasks": [],
 	"!tasks": [
 		{

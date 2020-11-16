@@ -24,6 +24,12 @@ enum ControlMode {
 
 enum ObjectType { CAR = 0, BYCICLE = 1, PEDESTRIAN = 2, UNKNOWN = 127 };
 
+struct TaskPoint {
+    UtmPosition    utm_position;
+    LonLatPosition lon_lat_position;
+    TaskPoint(double utm_x_ = 0, double utm_y_ = 0, double lon_ = 0, double lat_ = 0, double heading_ = 0) : utm_position(utm_x_, utm_y_, heading_), lon_lat_position(lon_, lat_, heading_){};
+};
+
 struct Task {
     vector<UtmPosition> task_points;
 };
@@ -73,6 +79,15 @@ public:
     double a_star_curvature_changed_punishment;
     // NOTICE: READ-ONLY
     vector<Task> tasks;
+
+    // Configuration of routing
+    string host;
+    string port;
+    string dbname;
+    string user;
+    string password;
+    string topo_name;
+    string output;
 
     static Config* getInstance() {
         config_mtx.lock();
