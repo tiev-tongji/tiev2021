@@ -85,7 +85,7 @@ void ROEWEControl::get_can_info(){
 	while(1){
 		uint32_t cnt = VCI_Receive(can_dev.devType, can_dev.devIndex, 
                           can_dev.channelNum, can, rcv_buff_size, rcv_wait_time);
-		printf("cnt = %d\n", cnt);
+		printf("\ncnt = %d\n\n", cnt);
 		for(int i = 0; i < cnt; i++){
 			switch(can[i].ID){
                 case 0x18B:

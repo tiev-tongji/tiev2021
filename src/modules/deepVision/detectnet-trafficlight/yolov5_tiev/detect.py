@@ -48,7 +48,7 @@ def detect(save_img=False):
     vid_path, vid_writer = None, None
     if webcam:
         view_img = True
-#        cudnn.benchmark = True  # set True to speed up constant image size inference
+        #cudnn.benchmark = True  # set True to speed up constant image size inference
         if (source == 'basler'):
         	dataset = LoadStreamsBasler(source, img_size=imgsz)
         else: 
