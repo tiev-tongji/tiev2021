@@ -56,6 +56,8 @@ namespace TiEV
 	structSICKMAP mapData;
 	structNAVINFO currentPose;
 	std::mutex pos_mutex;
+	vector<int> noisy_x;
+	vector<int> noisy_y;
 
 	class Handler
 	{
@@ -79,6 +81,36 @@ namespace TiEV
 		}
 		if (pos1 != s.length())
 			v.push_back(s.substr(pos1));
+	}
+
+	void noisy_init()
+	{
+		fstream fp;
+		fp.open("noisy.txt",ios::in);
+
+		char s[20];
+		//cout<<fp.peek()<<endl;
+		while (fp.peek()!=EOF)
+		{
+			fp.getline(s, 20);
+
+			s[3] = '\0';
+			int x = atoi(s);
+			int y = atoi(&s[4]);
+
+			noisy_x.push_back(x);
+			noisy_y.push_back(y);
+		}
+	}
+
+	void noisy_point()
+	{
+		for (int i = 0; i < noisy_x.size(); i++)
+		{
+			mapData.cells[noisy_y[i]][noisy_x[i]] = 0;
+			cout<<"dd";
+			cout<<noisy_x[i]<<' '<<noisy_y[i]<<endl;
+		}
 	}
 	void sickmap_init()
 	{
@@ -159,9 +191,9 @@ namespace TiEV
 				mapData.utmX = currentPose.utmX;
 				mapData.utmY = currentPose.utmY;
 				mapData.mHeading = currentPose.mHeading;
-// 				mapData.utmX = 0;
-// 				mapData.utmY = 0;
-// 				mapData.mHeading = 0;
+				// 				mapData.utmX = 0;
+				// 				mapData.utmY = 0;
+				// 				mapData.mHeading = 0;
 				pos_mutex.unlock();
 				//
 				return DecodeSick(kind);
@@ -176,7 +208,7 @@ namespace TiEV
 			auto loc = strSick.find("DIST");
 			if (loc == string::npos)
 			{
-				cout << "no DIST in message" << endl;
+				//cout << "no DIST in message" << endl;
 				return 0;
 			}
 			memset(obds, 0, sizeof(int) * 761);
@@ -185,8 +217,7 @@ namespace TiEV
 			SplitString(strSick, ar, " "); //将数据进行处理，存入ar中
 
 			int len = ar.size();
-			cout << len << endl;
-
+			//cout << len << endl;
 
 			for (int i = 0; i < len; i++)
 			{
@@ -203,23 +234,24 @@ namespace TiEV
 			data_num = obds[DATA_NUM_POS];
 			start_angle = obds[ANGLE_START_POS] / 10000;
 			angle_step = double(obds[ANGLE_STEP_POS]) / 10000;
-			if (kind)
-				cout << "FRONT:";
-			else
-				cout << "BACK:";
+			// if (kind)
+			// 	//cout << "FRONT:";
+			// else
+			// 	//cout << "BACK:";
 
-			cout << "起始角度：" << start_angle << ' ' << "角分辨率：" << angle_step << " "
-				 << "数据总量" << data_num << "距离系数" << coe << endl;
+			// cout << "起始角度：" << start_angle << ' ' << "角分辨率：" << angle_step << " "
+			// 	 << "数据总量" << data_num << "距离系数" << coe << endl;
 			vector<double> point_x;
 			vector<double> point_y;
-			int num=0;
+			int num = 0;
 
 			for (int i = 0; i < data_num; i++)
 			{
 				angle = (i * angle_step + start_angle + kind * 180) / 180 * TiEV_PI;
 				double x = double(obds[i + DATA_START_POS]) * cos(angle) * coe / 1000;
 				double y = double(obds[i + DATA_START_POS]) * sin(angle) * coe / 1000;
-				if(fabs(x)<2 && fabs(y)<2 && fabs(x)>0.1 && fabs(y)>0.1){
+				if (fabs(x) < 2 && fabs(y) < 2 && fabs(x) > 0.1 && fabs(y) > 0.1)
+				{
 					point_x.push_back(x);
 					point_y.push_back(y);
 					num++;
@@ -250,6 +282,7 @@ namespace TiEV
 					if (x >= 0 && x < mapData.cols && y >= 0 && y < mapData.rows)
 					{
 						mapData.cells[y][x] = 1;
+						cout << x << ' ' << y << endl;
 					}
 				}
 			}

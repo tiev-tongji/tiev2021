@@ -53,18 +53,35 @@ int main(int argc, const char *argv[])
 	Sick sick_front, sick_back;
 	sick_front.init_client("192.168.222.22", 2112); //
 	sick_back.init_client("192.168.222.11", 2112);
+	//将噪点坐标读入
+	noisy_init();
 
+
+	cout<<noisy_x.size()<<endl;
 	while (1)
 	{
 		sickmap_init();
 		//kind = 0:front雷达代码解析，king=1:back雷达代码解析
-		int sf =sick_front.start_recieve_client(0);
-		int sb =sick_back.start_recieve_client(1);
-		std::cout<<"front status"<<sf<<"back status"<<sb<<std::endl;
-		if(sb && sf)
+		int sf = sick_front.start_recieve_client(0);
+		int sb = sick_back.start_recieve_client(1);
+
+
+		noisy_point();
+		// for (int i = 0; i < 501; i++)
+		// {
+		// 	for (int j = 0; j < 251; j++)
+		// 	{
+		// 		if (mapData.cells[i][j] == 1)
+		// 		{
+		// 			cout << i << ' ' << j << endl;
+		// 		}
+		// 	}
+		// }
+		// char ch = getchar();
+		if (sb && sf)
 		{
 			myzcm.publish("SICKMAP", &mapData);
-			std::cout<<"zcm send"<<std::endl;
+			//std::cout<<"zcm send"<<std::endl;
 		}
 		memset(mapData.cells, 0, sizeof(mapData.cells));
 	}
