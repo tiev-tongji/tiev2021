@@ -113,6 +113,7 @@ if __name__ == "__main__":
         slot_msg.timestamp = int(time.time())
         zcm.publish('PARKINGSLOTS', slot_msg)
 
+        time.sleep(1)
         toc = time.time()
 
         # Calculate the time span
