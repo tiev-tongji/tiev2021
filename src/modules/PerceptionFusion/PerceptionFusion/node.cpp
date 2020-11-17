@@ -307,13 +307,17 @@ perception_Node::perception_Node(const NodeOptions& node_options , int mode)
         Zcm_ipc_thread.detach();
         std::thread Zcm_udpm_thread(zcm_udpm_func);
         Zcm_udpm_thread.detach();
-        if ( mode == 1){
-            std::thread Pub_thread(genFUSIONMap, (void*) this);
+
+        if (mode == 1)
+        {
+            std::thread Pub_thread(genFUSIONMap, (void *)this);
             Pub_thread.detach();
         }
 
-        if ( mode == 3){
-            std::thread Pub_thread(genSLAMLocation, (void*) this);
+        if (mode == 3)
+        {
+            getchar();
+            std::thread Pub_thread(genSLAMLocation, (void *)this);
             Pub_thread.detach();
         }
 
