@@ -104,6 +104,28 @@ void MapManager::readGlobalPathFile(const string& file_path) {
     setGlobalPathDirection();
 }
 
+vector<Task> MapManager::getCurrentTasks() {
+    task_points_mutex.lock_shared();
+    vector<Task> res = this->map.current_task_points;
+    task_points_mutex.unlock_shared();
+    return res;
+}
+void MapManager::popCurrentTask() {
+    task_points_mutex.lock();
+    this->map.current_task_points.pop_back();
+    task_points_mutex.unlock();
+}
+
+void MapManager::setGlobalPath(const vector<HDMapPoint>& new_global_path) {
+    global_path_mutex.lock();
+    this->global_path = new_global_path;
+    filtPoints();
+    setGlobalPathDirection();
+    global_path_nearest_idx = -1;
+    cout << "Size of global path: " << this->global_path.size() << endl;
+    global_path_mutex.unlock();
+}
+
 void MapManager::runRouting(int interval, bool blocked) {
     while(true) {
         time_t current_time = getTimeStamp();
@@ -218,6 +240,17 @@ int MapManager::getGlobalPathNearestIndex(int begin, int end) const {
         if(!global_p.in_map()) return -1;
     }
     return min_idx;
+}
+
+HDMapMode MapManager::getCurrentMapMode() {
+    ref_path_mutex.lock_shared();
+    HDMapMode mode;
+    if(map.forward_ref_path.empty())
+        mode = HDMapMode::UNKNOWN_MODE;
+    else
+        mode = map.forward_ref_path.front().mode;
+    ref_path_mutex.unlock_shared();
+    return mode;
 }
 
 void MapManager::updateRefPath(bool need_opposite) {
@@ -752,6 +785,74 @@ void MapManager::laneMatch() {
         // TODO
     }
     laneLineInterpolation();
+}
+
+void MapManager::maintainParkingSpots() {
+    for(const auto& spot : map.parking_lot_list.parking_lot_list) {
+        Point2d center_point = (spot.left_back + spot.left_front + spot.right_back + spot.right_front) * 0.25;
+        double  ang          = (spot.right_front - spot.right_back).getRad();
+        Pose    spot_pose    = Pose(center_point.x, center_point.y, ang);
+        spot_pose.updateGlobalCoordinate(map.nav_info.car_pose);
+        double min_dis = 999999999;
+        int    min_idx = -1;
+        for(int i = 0; i < map.parking_spots.size(); ++i) {
+            double dx  = spot_pose.utm_position.utm_x - map.parking_spots[i].utm_position.utm_x;
+            double dy  = spot_pose.utm_position.utm_y - map.parking_spots[i].utm_position.utm_y;
+            double dis = hypot(dx, dy);
+            if(dis < min_dis) {
+                min_dis = dis;
+                min_idx = i;
+            }
+        }
+        if(min_dis <= 5) {
+            map.parking_spots[min_idx] = spot_pose;
+        }
+        else {
+            map.parking_spots.emplace_back(spot_pose);
+        }
+    }
+}
+
+std::vector<Pose> MapManager::getParkingSpotTarget() {
+    vector<Pose> targets;
+    for(auto spot : map.parking_spots) {
+        spot.updateLocalCoordinate(map.nav_info.car_pose);
+        if(spot.in_map() && map.accessible_map[int(spot.x)][int(spot.y)]) {
+            targets.push_back(spot);
+            return targets;
+        }
+    }
+    return targets;
+}
+
+std::vector<Pose> MapManager::getTemporaryParkingTarget() {
+    vector<Pose> targets;
+    auto         current_tasks = this->getCurrentTasks();
+    if(current_tasks.empty()) return targets;
+    for(auto spot : current_tasks.back().task_points) {
+        Pose p;
+        p.utm_position = spot;
+        p.updateLocalCoordinate(map.nav_info.car_pose);
+        if(p.in_map() && map.accessible_map[int(p.x)][int(p.y)]) {
+            targets.push_back(p);
+            return targets;
+        }
+    }
+    return targets;
+}
+
+vector<Pose> MapManager::getTaskTarget() {
+    vector<Pose> targets;
+    for(auto task_point : map.current_task_points.back().task_points) {
+        Pose task_pose;
+        task_pose.utm_position = task_point;
+        task_pose.updateLocalCoordinate(map.nav_info.car_pose);
+        if(task_pose.in_map() && map.accessible_map[int(task_pose.x)][int(task_pose.y)]) {
+            targets.push_back(task_pose);
+            return targets;
+        }
+    }
+    return targets;
 }
 
 void MapManager::laneLineInterpolation() {

@@ -83,6 +83,12 @@ struct Pose : public Point2d {
         utm_position.heading = hd;
     }
 
+    inline double cosDeltaAngle(const Pose& other_pose) {
+        double cross = (*this).dot(other_pose);
+        double cos   = cross / ((*this).len() * other_pose.len());
+        return cos;
+    }
+
     void updateLocalCoordinate(const Pose& standard_point) {
         double stdh    = standard_point.ang - standard_point.utm_position.heading;
         double qx      = (utm_position.utm_x - standard_point.utm_position.utm_x) / GRID_RESOLUTION;
@@ -106,7 +112,7 @@ struct Pose : public Point2d {
  * 定义语义地图上的路径点
 */
 enum HDMapEvent { NONE, ENTRY_INTERSECTION, EXIT_INTERSECTION, STOP, CHANGE_HDMAP };
-enum HDMapMode { NORMAL, INTERSECTION_SOLID, INTERSECTION, PARKING, CHANGE };
+enum HDMapMode { NORMAL, INTERSECTION_SOLID, INTERSECTION, PARKING, CHANGE, UNKNOWN_MODE };
 enum HDMapSpeed { VERY_LOW, LOW, MIDDLE, HIGH, VERY_HIGH };
 enum RoadDirection { LEFT = 4, STRAIGHT = 2, RIGHT = 1, UTURN = 8 };        //二进制表示0000，最高位表示uturn,剩下为左直右
 enum BlockType { BlockNone, BlockRight = 1, BlockLeft = 2, BlockAll = 3 };  //二进制表示00，1表示封闭

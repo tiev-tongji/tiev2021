@@ -32,7 +32,7 @@ void FreeDriving::update(FullControl& control) {
     if(speed_path_list.empty())
         control.changeTo<GlobalReplanning>();
     else if(flag)
-        control.changeTo<FreeDriving>();
+        control.changeTo<NormalDriving>();
     else if(getTimeStamp() - entry_time > 5 * 1000 * 1000)
         control.changeTo<SemiLaneFreeDriving>();
 }

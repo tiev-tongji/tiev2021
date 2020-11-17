@@ -43,7 +43,7 @@ public:
      *
      * @return 返回预估完成任务时间, 单位秒s, -1代表寻路失败.
      */
-    int findReferenceRoad(std::vector<HDMapPoint>& global_path, const std::vector<TaskPoint>& task_points, bool blockeds = false);
+    int findReferenceRoad(std::vector<HDMapPoint>& global_path, const std::vector<Task>& task_points, bool blockeds = false);
 
 private:
     Routing();
@@ -59,7 +59,7 @@ private:
     std::string topo_name;
 
     //将输入的task points转为sql array语句
-    void Array2Str(const std::vector<TaskPoint>& task_points, std::string& array_x_str, std::string& array_y_str);
+    void Array2Str(const std::vector<Task>& task_points, std::string& array_x_str, std::string& array_y_str);
 };
 }
 #endif

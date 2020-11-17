@@ -24,14 +24,13 @@ enum ControlMode {
 
 enum ObjectType { CAR = 0, BYCICLE = 1, PEDESTRIAN = 2, UNKNOWN = 127 };
 
-struct TaskPoint {
-    UtmPosition    utm_position;
-    LonLatPosition lon_lat_position;
-    TaskPoint(double utm_x_ = 0, double utm_y_ = 0, double lon_ = 0, double lat_ = 0, double heading_ = 0) : utm_position(utm_x_, utm_y_, heading_), lon_lat_position(lon_, lat_, heading_){};
-};
-
 struct Task {
+    UtmPosition         utm_position;
+    LonLatPosition      lon_lat_position;
     vector<UtmPosition> task_points;
+    bool                on_or_off;  // 0 is on, 1 is off
+    Task(double utm_x_ = 0, double utm_y_ = 0, double lon_ = 0, double lat_ = 0, double heading_ = 0, bool on_or_off_ = 0)
+        : utm_position(utm_x_, utm_y_, heading_), lon_lat_position(lon_, lat_, heading_), on_or_off(on_or_off_){};
 };
 
 static mutex config_mtx;
@@ -49,6 +48,9 @@ public:
     double mid_speed;
     double high_speed;
     double very_high_speed;
+
+    time_t start_time;
+    time_t end_time;
     // NOTICE: READ-ONLY
     ControlMode control_mode;
     // NOTICE: READ-ONLY

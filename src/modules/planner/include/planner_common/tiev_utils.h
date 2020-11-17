@@ -25,22 +25,26 @@ void normalizeAngle(double& rad_angle);
 template <class T, class Y> double point2LineDis(const T& p, const std::vector<Y>& path) {
     if(path.empty()) return 0;
     int     shortest_point_index = shortestPointIndex(p, path);
-    double  min_dis              = point2PointSqrDis(p, path[shortest_point_index]);
+    double  min_dis              = 1e9;  //              = point2PointDis(p, path[shortest_point_index]);
     Point2d vec_p                = p - path[shortest_point_index];
     int     pre_i                = shortest_point_index - 1;
     int     next_i               = shortest_point_index + 1;
     if(pre_i >= 0) {
-        Point2d vec_pre = path[pre_i] - p;
-        if(vec_p.cross(vec_pre) > 0) {
-            min_dis = vec_p.dot(vec_pre) / vec_pre.len();
-        }
+        Point2d vec_pre = path[pre_i] - path[shortest_point_index];
+        if(vec_p.dot(vec_pre) > 0)
+            min_dis = vec_p.cross(vec_pre) / vec_pre.len();
+        else
+            min_dis = copysign(point2PointDis(p, path[shortest_point_index]), vec_p.cross(vec_pre));
     }
     if(next_i < path.size()) {
-        Point2d vec_next = path[next_i] - p;
-        if(vec_p.cross(vec_next) > 0) {
-            double dis                            = vec_next.dot(vec_p) / vec_next.len();
-            if(fabs(dis) < fabs(min_dis)) min_dis = dis;
+        Point2d vec_next = path[next_i] - path[shortest_point_index];
+        double  dis;
+        if(vec_p.dot(vec_next) > 0) {
+            dis = vec_next.cross(vec_p) / vec_next.len();
         }
+        else
+            dis                               = copysign(point2PointDis(p, path[shortest_point_index]), vec_next.cross(vec_p));
+        if(fabs(dis) < fabs(min_dis)) min_dis = dis;
     }
     return min_dis;
 }

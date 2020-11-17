@@ -18,10 +18,10 @@ using namespace std;
 Routing::Routing() {
 
     host        = Config::getInstance()->host;
-    port        = Config::getInstance()->host;
-    dbname      = Config::getInstance()->host;
-    user        = Config::getInstance()->host;
-    password    = Config::getInstance()->host;
+    port        = Config::getInstance()->port;
+    dbname      = Config::getInstance()->dbname;
+    user        = Config::getInstance()->user;
+    password    = Config::getInstance()->password;
     connect_sql = "dbname=" + dbname + " user=" + user + " password=" + password + " hostaddr=" + host + " port=" + port;
     output      = Config::getInstance()->output;
     topo_name   = Config::getInstance()->topo_name;
@@ -29,7 +29,7 @@ Routing::Routing() {
 
 Routing::~Routing() {}
 
-int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path, const std::vector<TaskPoint>& task_points, bool blocked) {
+int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path, const std::vector<Task>& task_points, bool blocked) {
     if(task_points.size() < 2) {
         std::cout << "task points size < 2 !!!" << std::endl;
         return -1;
@@ -141,10 +141,8 @@ int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path, const std::
         }  // end for
 
         // save ref road points in file
-        std::ofstream fout(output);
-        fout << "id lon lat utmx utmy heading curv mode speed_mode "
-                "event_mode opposite_side_mode lane_num lane_seq lane_width"
-             << std::endl;
+        // "id lon lat utmx utmy heading curv mode speed_mode "
+        //         "event_mode opposite_side_mode lane_num lane_seq lane_width"
         for(auto result : results_vec) {
             for(auto row : result) {
                 HDMapPoint p;
@@ -156,10 +154,9 @@ int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path, const std::
                 p.lane_num     = stoi(row[11].as<string>());
                 p.lane_seq     = stoi(row[12].as<string>());
                 p.lane_width   = stod(row[13].as<string>());
-                global_path.emplace_back(p);
+                global_path.push_back(p);
             }
         }
-        fout.close();
         std::cout << "Build reference line file sucessfully which is " << output << std::endl;
         std::cout << "total points number: " << sum_points_num << std::endl;
         std::cout << "estimated time cost: " << sum_costs << "s, " << sum_costs / 60 << "mins" << std::endl;
@@ -178,7 +175,7 @@ int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path, const std::
     }
 }
 
-void Routing::Array2Str(const std::vector<TaskPoint>& task_points, std::string& array_x_str, std::string& array_y_str) {
+void Routing::Array2Str(const std::vector<Task>& task_points, std::string& array_x_str, std::string& array_y_str) {
     array_x_str.append("ARRAY[");
     array_y_str.append("ARRAY[");
     for(auto it = task_points.begin(); it != task_points.end(); ++it) {

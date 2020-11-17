@@ -12,6 +12,8 @@ public:
     Pose   car_pose;
     double current_speed;
     bool   reliable = false;
+    double lon;
+    double lat;
 };
 
 class SlamInfo {

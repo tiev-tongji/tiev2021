@@ -29,8 +29,8 @@ void SemiLaneFreeDriving::update(FullControl& control) {
         }
 
     if(speed_path_list.empty())
-        control.changeTo<NormalDriving>();
-    else if(flag)
         control.changeTo<FreeDriving>();
+    else if(flag)
+        control.changeTo<NormalDriving>();
 }
 }  // namespace TiEV

@@ -15,12 +15,16 @@ bool MessageManager::getNavInfo(NavInfo& nav_info) {
     nav_info.reliable      = false;
     nav_info.car_pose      = Pose(CAR_CEN_ROW, CAR_CEN_COL, PI);
     nav_info.current_speed = 0;
+    nav_info.lon           = 0;
+    nav_info.lat           = 0;
     if(current_time - inner_handler.update_time_nav_info < NAV_INFO_TIMEOUT_US) {
         nav_info.detected                      = true;
         nav_info.car_pose.utm_position.utm_x   = inner_handler.tmp_nav.utmX;
         nav_info.car_pose.utm_position.utm_y   = inner_handler.tmp_nav.utmY;
         nav_info.car_pose.utm_position.heading = inner_handler.tmp_nav.mHeading;
         nav_info.current_speed                 = inner_handler.tmp_nav.mSpeed3d;
+        nav_info.lon                           = inner_handler.tmp_nav.mLon;
+        nav_info.lat                           = inner_handler.tmp_nav.mLat;
         if(inner_handler.tmp_nav.mRTKStatus == 1 || inner_handler.tmp_nav.isReckoningVaild) {
             nav_info.reliable = true;
         }
