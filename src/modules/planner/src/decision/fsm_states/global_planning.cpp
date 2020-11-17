@@ -12,8 +12,9 @@ void GlobalPlanning::update(FullControl& control) {
     MapManager* map_manager = MapManager::getInstance();
     cout << "Global Planning update..." << endl;
     // for test
-    // control.changeTo<NormalDriving>();
-    control.changeTo<Tracking>();
+    control.changeTo<NormalDriving>();
+    // control.changeTo<Tracking>();
+    // TODO: map_manager->runRouting();
     map_manager->updateRefPath();
 }
 }  // namespace TiEV

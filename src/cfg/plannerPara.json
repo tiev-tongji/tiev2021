@@ -1,5 +1,5 @@
 {
-	"roadmap_file": "/home/autolab/tiev2020-code/logs/path/2020_1112_2241.txt",
+	"roadmap_file": "/home/autolab/tiev2020-code/logs/path/2020_1116_jiugongge_1740.txt",
 	"rs_distance_table_path": "/home/autolab/tiev2020-code/src/cfg/reeds_shepp_distance_table",
 	"dubins_distance_table_path": "/home/autolab/tiev2020-code/src/cfg/dubins_distance_table",
 	"control_mode": 0,
@@ -28,18 +28,31 @@
 	"a_star_analytic_expansion_param_t": 50,
 	"a_star_analytic_expansion_max_N": 30,
 	"a_star_curvature_changed_punishment": 1,
-	"tasks": [],
-	"!tasks": [
+	"routing": {
+		"host": "106.75.246.176",
+		"port": "5432",
+		"dbname": "changshu2020",
+		"user": "postgres",
+		"password": "routing2020",
+		"topo_name": "topo_map",
+		"output": "/tmp/shortest_road.csv"
+	},
+	"!tasks": [],
+	"tasks": [
 		{
+			"task": {
+				"utm_x": 288820.66025655,
+				"utm_y": 3497117.496114,
+				"lon": 120.774349,
+				"lat": 31.589788,
+				"heading": 1.7575213909149201
+			},
 			"task_points": [
 				{
-					"lon": 120.76291326536289716,
-					"lat": 31.59720562967928004,
-					"heading": 1.7575213909149201
-				},
-				{
-					"lon": 120.76290038560949824,
-					"lat": 31.59725636335048904,
+					"utm_x": 288820.66025655,
+					"utm_y": 3497117.496114,
+					"lon": 120.774349,
+					"lat": 31.589788,
 					"heading": 1.76273941993713
 				}
 			]

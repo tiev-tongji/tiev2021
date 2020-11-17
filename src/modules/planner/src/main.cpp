@@ -14,7 +14,9 @@ int main(int argc, char** argv) {
     // start send controller path thread
     thread send_traj = thread(sendPath);
     send_traj.detach();
-
+    // start routing thread
+    thread routing_thread = thread(requestGlobalPathFromMapServer);
+    routing_thread.detach();
     // start decision thread
     runTiEVFSM();
     cout << "Bye~, TiEV autonomous system exited!!!" << endl;

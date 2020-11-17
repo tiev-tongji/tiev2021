@@ -5,10 +5,12 @@ namespace TiEV {
 using namespace std;
 
 void Stop::enter(Control& control) {
-    cout << "entry Exploration..." << endl;
+    cout << "entry Stop..." << endl;
 }
 
 void Stop::update(FullControl& control) {
-    MapManager* map_manager = MapManager::getInstance();
+    // TODO: shutdown
+
+    // MapManager* map_manager = MapManager::getInstance();
 }
 }  // namespace TiEV

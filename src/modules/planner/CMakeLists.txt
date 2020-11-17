@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(planner)
 
 set(CMAKE_BUILD_TYPE "Debug")
-#set(CMAKE_BUILD_TYPE "Release")
+# set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_COMPILER g++)
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
@@ -22,6 +22,7 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/include/path_planner
     ${PROJECT_SOURCE_DIR}/include/speed_planner
     ${PROJECT_SOURCE_DIR}/include/visualization_msg
+    ${PROJECT_SOURCE_DIR}/include/routing
     ${PROJECT_SOURCE_DIR}/third_party
 )
 

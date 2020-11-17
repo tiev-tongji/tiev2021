@@ -167,7 +167,7 @@ def handler_lasermap(channel, msg):
 
 if __name__ == '__main__':
     args = init_args()
-    zcm = ZCM("ipc")
+    zcm = ZCM()
     if not zcm.good():
         print("Unable to initialize zcm")
         exit()
@@ -194,11 +194,10 @@ if __name__ == '__main__':
                                                   translate_z=-70,
                                                   rotation_order='zyx', dtype=dtype)
     net = roadmarking_dect.init_net()
-
+    time1 = time.time()
     while camera.IsGrabbing():
         grabResult = camera.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
         if grabResult.GrabSucceeded():
-            time1 = time.time()
             image = converter.Convert(grabResult)
             img = image.GetArray()
 
@@ -214,6 +213,7 @@ if __name__ == '__main__':
                 # print(status_list)
             time2 = time.time()
             print(time2 - time1)
+            time1 = time2
             k = cv2.waitKey(1)
             if k == 27:
                 break

@@ -48,7 +48,7 @@ def detect(save_img=False):
     vid_path, vid_writer = None, None
     if webcam:
         view_img = True
-        cudnn.benchmark = True  # set True to speed up constant image size inference
+#        cudnn.benchmark = True  # set True to speed up constant image size inference
         if (source == 'basler'):
         	dataset = LoadStreamsBasler(source, img_size=imgsz)
         else: 
@@ -166,7 +166,8 @@ def detect(save_img=False):
                         label = '%s %.2f' % (names[int(cls)], conf)
                         plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=3, direction=direction)
             # Print time (inference + NMS)
-#            print('%sDone. (%.3fs)' % (s, t2 - t1))
+            print('%sDone. (%.3fs)' % (s, t2 - t1))
+            # transceiver(True, True, True)
 
             # Stream results
             if view_img:

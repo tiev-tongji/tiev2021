@@ -135,7 +135,7 @@ void StanleyContollerThread(){
 				direction = 1;
 		
 		}
-//		cout << ref_pose.x << "  " << ref_pose.y << "  " << ref_pose.angle * 180 / PI << "  " << ref_pose.kappa << endl;
+     	//cout << "ref pose: " <<  ref_pose.x << "  " << ref_pose.y << "  " << ref_pose.angle * 180 / PI << "  " << ref_pose.kappa << endl;
 
 		double ay_max;
         if(current_velocity < v_switch_high){

@@ -7,6 +7,7 @@ namespace TiEV {
 using namespace std;
 
 void Visualization::init() {
+    string TiEV_cfg_pics_path      = Config::getInstance()->TiEV_CONFIG_DIRECT + "pics/";
     string TiEV_logo_path          = Config::getInstance()->TiEV_CONFIG_DIRECT + "pics/TiEV_logo.png";
     string TiEV_car_jpg_path       = Config::getInstance()->TiEV_CONFIG_DIRECT + "pics/TiEV_car.jpg";
     string TiEV_car_png_path       = Config::getInstance()->TiEV_CONFIG_DIRECT + "pics/TiEV_car.png";
@@ -36,6 +37,8 @@ void Visualization::init() {
 
     planner_map_left              = planner_window(cv::Rect(20, 100, MAX_COL, MAX_ROW));
     planner_map_right             = planner_window(cv::Rect(311, 100, MAX_COL, MAX_ROW));
+    auto_rect                     = cv::Mat(80, 80, CV_8UC3, TiEV_BLACK);
+    auto_window                   = planner_window(cv::Rect(10, 10, auto_rect.cols, auto_rect.rows));
     traffic_light_rect            = cv::Mat(60, 60, CV_8UC3, TiEV_BLACK);
     traffic_light_window          = planner_window(cv::Rect(190, 20, 3 * traffic_light_rect.cols + 20, traffic_light_rect.rows));
     left_traffic_light_window     = traffic_light_window(cv::Rect(0, 0, traffic_light_rect.cols, traffic_light_rect.rows));
@@ -45,6 +48,8 @@ void Visualization::init() {
     TiEV_car = cv::Mat(20, 9, CV_8UC3, TiEV_BLACK);
 
     cv::Mat car_img              = cv::imread(TiEV_car_jpg_path);
+    auto_start                   = cv::imread(TiEV_cfg_pics_path + "auto_start.jpg");
+    auto_end                     = cv::imread(TiEV_cfg_pics_path + "auto_end.jpg");
     traffic_light_gray_straight  = cv::imread(TiEV_traffic_light_path + "gray_straight.png");
     traffic_light_gray_left      = cv::imread(TiEV_traffic_light_path + "gray_left.png");
     traffic_light_gray_right     = cv::imread(TiEV_traffic_light_path + "gray_right.png");
@@ -54,6 +59,14 @@ void Visualization::init() {
     traffic_light_red_straight   = cv::imread(TiEV_traffic_light_path + "red_straight.png");
     traffic_light_red_left       = cv::imread(TiEV_traffic_light_path + "red_left.png");
     traffic_light_red_right      = cv::imread(TiEV_traffic_light_path + "red_right.png");
+    cv::resize(auto_start, auto_start, auto_rect.size(), 0, 0, cv::INTER_LANCZOS4);
+    cv::resize(auto_end, auto_end, auto_rect.size(), 0, 0, cv::INTER_LANCZOS4);
+    for(int r = 0; r < auto_rect.rows; ++r) {
+        for(int c = 0; c < auto_rect.cols; ++c) {
+            if((*auto_start.ptr<cv::Vec3b>(r, c))[0] > 200) *auto_start.ptr<cv::Vec3b>(r, c) = VEC_TiEV_BLACK;
+            if((*auto_end.ptr<cv::Vec3b>(r, c))[0] > 200) *auto_end.ptr<cv::Vec3b>(r, c)     = VEC_TiEV_BLACK;
+        }
+    }
     cv::resize(traffic_light_gray_left, traffic_light_gray_left, traffic_light_rect.size(), 0, 0, cv::INTER_LANCZOS4);
     cv::resize(traffic_light_gray_straight, traffic_light_gray_straight, traffic_light_rect.size(), 0, 0, cv::INTER_LANCZOS4);
     cv::resize(traffic_light_gray_right, traffic_light_gray_right, traffic_light_rect.size(), 0, 0, cv::INTER_LANCZOS4);
@@ -106,10 +119,6 @@ void Visualization::visualize() {
     remote_control.enabled = 0x00;
     while(!TiEV_Stop) {
         clear();
-        if(0x00 == remote_control.enabled)
-            print_text("!CarContolMode", "Manul", 2);
-        else
-            print_text("!CarContolMode", "Auto", 2);
         getTextInfo();
         draw_text_window();
         draw_planner_window();
@@ -122,8 +131,13 @@ void Visualization::visualize() {
         }
         else if(27 == key)
             remote_control.enabled = 0x00;
-        else if(32 == key)
+        else if(32 == key) {
             remote_control.enabled = 0x01;
+        }
+        if(remote_control.enabled)
+            auto_start.copyTo(auto_window);
+        else
+            auto_end.copyTo(auto_window);
         publishRemoteControl(remote_control);
     }
     cout << "Exit TiEV Visualization..." << endl;
