@@ -1090,6 +1090,7 @@ void MapManager::predictDynamicObsInMap() {
     memset(map.dynamic_obs_map, 0, sizeof(map.dynamic_obs_map));
     SpeedPath speed_maintained_path = map.speed_maintained_path;
     for(const auto& st_boundary : speed_maintained_path.st_boundaries) {
+        if(st_boundary.obs_type == ObjectType::PEDESTRIAN) continue;
         STPoint lb = st_boundary.bottom_left_point();
         STPoint rb = st_boundary.bottom_right_point();
         if(lb.t() > 3 || rb.t() < 2) continue;

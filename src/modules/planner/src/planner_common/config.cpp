@@ -4,8 +4,10 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 #include "tiev_utils.h"
+#include <algorithm>
 #include <fstream>
 #include <iostream>
+
 
 using namespace rapidjson;
 using namespace std;
@@ -76,6 +78,7 @@ void Config::init() {
         }
         tasks[i].on_or_off = i % 2;
     }
+    reverse(tasks.begin(), tasks.end());
 #undef nameof
     input.close();
     outputConfigures();
