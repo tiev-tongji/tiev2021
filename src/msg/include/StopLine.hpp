@@ -6,54 +6,29 @@
 
 #include <zcm/zcm_coretypes.h>
 
-#ifndef __LaneLine_hpp__
-#define __LaneLine_hpp__
+#ifndef __StopLine_hpp__
+#define __StopLine_hpp__
 
 #include <vector>
 #include "LinePoint.hpp"
 
 
-class LaneLine
+class StopLine
 {
     public:
-        int32_t    line_type;
-
-        float      distance;
+        int8_t     exist;
 
         int32_t    num;
 
-        std::vector< LinePoint > points;
+        std::vector< LinePoint > stop_points;
 
-        int8_t     boundary_type;
-
-        int32_t    boundary_confidence;
-
-    public:
-        #if __cplusplus > 199711L /* if c++11 */
-        static constexpr int8_t   kTypeSolid = 0x00;
-        static constexpr int8_t   kTypeDashed = 0x01;
-        static constexpr int8_t   kTypeWhite = 0x00;
-        static constexpr int8_t   kTypeYellow = 0x02;
-        static constexpr int8_t   kTypeSolidWhite = 0x00;
-        static constexpr int8_t   kTypeSolidYellow = 0x02;
-        static constexpr int8_t   kTypeDashedWhite = 0x01;
-        static constexpr int8_t   kTypeDashedYellow = 0x03;
-        #else
-        static const     int8_t   kTypeSolid = 0x00;
-        static const     int8_t   kTypeDashed = 0x01;
-        static const     int8_t   kTypeWhite = 0x00;
-        static const     int8_t   kTypeYellow = 0x02;
-        static const     int8_t   kTypeSolidWhite = 0x00;
-        static const     int8_t   kTypeSolidYellow = 0x02;
-        static const     int8_t   kTypeDashedWhite = 0x01;
-        static const     int8_t   kTypeDashedYellow = 0x03;
-        #endif
+        float      distance;
 
     public:
         /**
          * Destructs a message properly if anything inherits from it
         */
-        virtual ~LaneLine() {}
+        virtual ~StopLine() {}
 
         /**
          * Encode a message into binary form.
@@ -90,7 +65,7 @@ class LaneLine
         inline static int64_t getHash();
 
         /**
-         * Returns "LaneLine"
+         * Returns "StopLine"
          */
         inline static const char* getTypeName();
 
@@ -101,7 +76,7 @@ class LaneLine
         inline static uint64_t _computeHash(const __zcm_hash_ptr* p);
 };
 
-int LaneLine::encode(void* buf, uint32_t offset, uint32_t maxlen) const
+int StopLine::encode(void* buf, uint32_t offset, uint32_t maxlen) const
 {
     uint32_t pos = 0;
     int thislen;
@@ -116,7 +91,7 @@ int LaneLine::encode(void* buf, uint32_t offset, uint32_t maxlen) const
     return pos;
 }
 
-int LaneLine::decode(const void* buf, uint32_t offset, uint32_t maxlen)
+int StopLine::decode(const void* buf, uint32_t offset, uint32_t maxlen)
 {
     uint32_t pos = 0;
     int thislen;
@@ -132,102 +107,88 @@ int LaneLine::decode(const void* buf, uint32_t offset, uint32_t maxlen)
     return pos;
 }
 
-uint32_t LaneLine::getEncodedSize() const
+uint32_t StopLine::getEncodedSize() const
 {
     return 8 + _getEncodedSizeNoHash();
 }
 
-int64_t LaneLine::getHash()
+int64_t StopLine::getHash()
 {
     static int64_t hash = _computeHash(NULL);
     return hash;
 }
 
-const char* LaneLine::getTypeName()
+const char* StopLine::getTypeName()
 {
-    return "LaneLine";
+    return "StopLine";
 }
 
-int LaneLine::_encodeNoHash(void* buf, uint32_t offset, uint32_t maxlen) const
+int StopLine::_encodeNoHash(void* buf, uint32_t offset, uint32_t maxlen) const
 {
     uint32_t pos = 0;
     int thislen;
 
-    thislen = __int32_t_encode_array(buf, offset + pos, maxlen - pos, &this->line_type, 1);
-    if(thislen < 0) return thislen; else pos += thislen;
-
-    thislen = __float_encode_array(buf, offset + pos, maxlen - pos, &this->distance, 1);
+    thislen = __boolean_encode_array(buf, offset + pos, maxlen - pos, &this->exist, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
     thislen = __int32_t_encode_array(buf, offset + pos, maxlen - pos, &this->num, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
     for (int a0 = 0; a0 < this->num; ++a0) {
-        thislen = this->points[a0]._encodeNoHash(buf, offset + pos, maxlen - pos);
+        thislen = this->stop_points[a0]._encodeNoHash(buf, offset + pos, maxlen - pos);
         if(thislen < 0) return thislen; else pos += thislen;
     }
 
-    thislen = __int8_t_encode_array(buf, offset + pos, maxlen - pos, &this->boundary_type, 1);
-    if(thislen < 0) return thislen; else pos += thislen;
-
-    thislen = __int32_t_encode_array(buf, offset + pos, maxlen - pos, &this->boundary_confidence, 1);
+    thislen = __float_encode_array(buf, offset + pos, maxlen - pos, &this->distance, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
     return pos;
 }
 
-int LaneLine::_decodeNoHash(const void* buf, uint32_t offset, uint32_t maxlen)
+int StopLine::_decodeNoHash(const void* buf, uint32_t offset, uint32_t maxlen)
 {
     uint32_t pos = 0;
     int thislen;
 
-    thislen = __int32_t_decode_array(buf, offset + pos, maxlen - pos, &this->line_type, 1);
-    if(thislen < 0) return thislen; else pos += thislen;
-
-    thislen = __float_decode_array(buf, offset + pos, maxlen - pos, &this->distance, 1);
+    thislen = __boolean_decode_array(buf, offset + pos, maxlen - pos, &this->exist, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
     thislen = __int32_t_decode_array(buf, offset + pos, maxlen - pos, &this->num, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
-    this->points.resize(this->num);
+    this->stop_points.resize(this->num);
     for (int a0 = 0; a0 < this->num; ++a0) {
-        thislen = this->points[a0]._decodeNoHash(buf, offset + pos, maxlen - pos);
+        thislen = this->stop_points[a0]._decodeNoHash(buf, offset + pos, maxlen - pos);
         if(thislen < 0) return thislen; else pos += thislen;
     }
 
-    thislen = __int8_t_decode_array(buf, offset + pos, maxlen - pos, &this->boundary_type, 1);
-    if(thislen < 0) return thislen; else pos += thislen;
-
-    thislen = __int32_t_decode_array(buf, offset + pos, maxlen - pos, &this->boundary_confidence, 1);
+    thislen = __float_decode_array(buf, offset + pos, maxlen - pos, &this->distance, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
     return pos;
 }
 
-uint32_t LaneLine::_getEncodedSizeNoHash() const
+uint32_t StopLine::_getEncodedSizeNoHash() const
 {
     uint32_t enc_size = 0;
-    enc_size += __int32_t_encoded_array_size(NULL, 1);
-    enc_size += __float_encoded_array_size(NULL, 1);
+    enc_size += __boolean_encoded_array_size(NULL, 1);
     enc_size += __int32_t_encoded_array_size(NULL, 1);
     for (int a0 = 0; a0 < this->num; ++a0) {
-        enc_size += this->points[a0]._getEncodedSizeNoHash();
+        enc_size += this->stop_points[a0]._getEncodedSizeNoHash();
     }
-    enc_size += __int8_t_encoded_array_size(NULL, 1);
-    enc_size += __int32_t_encoded_array_size(NULL, 1);
+    enc_size += __float_encoded_array_size(NULL, 1);
     return enc_size;
 }
 
-uint64_t LaneLine::_computeHash(const __zcm_hash_ptr* p)
+uint64_t StopLine::_computeHash(const __zcm_hash_ptr* p)
 {
     const __zcm_hash_ptr* fp;
     for(fp = p; fp != NULL; fp = fp->parent)
-        if(fp->v == LaneLine::getHash)
+        if(fp->v == StopLine::getHash)
             return 0;
-    const __zcm_hash_ptr cp = { p, (void*)LaneLine::getHash };
+    const __zcm_hash_ptr cp = { p, (void*)StopLine::getHash };
 
-    uint64_t hash = (uint64_t)0x751d2907c6cc9fa3LL +
+    uint64_t hash = (uint64_t)0x6e705f78a422b12dLL +
          LinePoint::_computeHash(&cp);
 
     return (hash<<1) + ((hash>>63)&1);

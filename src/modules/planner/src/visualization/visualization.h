@@ -201,8 +201,8 @@ private:
     public:
         void handleNAVINFO(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structNAVINFO* msg);
         void handleFUSIONMAP(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structFUSIONMAP* msg);
-        void handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structTRAFFICLIGHT* msg);
-        void handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structLANES* msg);
+        void handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgTrafficLightSignal* msg);
+        void handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgRoadMarkingList* msg);
         void handlePARKINGSLOTS(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structPARKINGSLOTS* msg);
         void handleOBJECTLIST(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structOBJECTLIST* msg);
         void handleSLAMLOC(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structSLAMLOC* msg);
@@ -217,15 +217,15 @@ private:
         time_t update_time_parking_slots;
         time_t update_time_visualization;
 
-        shared_mutex       nav_mtx, slam_loc_mtx, lidar_mtx, objects_mtx, traffic_mtx, lane_mtx, parking_lots_mtx, visualization_mtx;
-        structNAVINFO      tmp_nav;
-        structSLAMLOC      tmp_slam_loc;
-        structFUSIONMAP    tmp_lidar_map;
-        structTRAFFICLIGHT tmp_traffic;
-        structOBJECTLIST   tmp_objects[OBJECTS_SOURCE_NUM];
-        structLANES        tmp_lanes;
-        structPARKINGSLOTS tmp_slot;
-        visVISUALIZATION   tmp_visualization;
+        shared_mutex          nav_mtx, slam_loc_mtx, lidar_mtx, objects_mtx, traffic_mtx, lane_mtx, parking_lots_mtx, visualization_mtx;
+        structNAVINFO         tmp_nav;
+        structSLAMLOC         tmp_slam_loc;
+        structFUSIONMAP       tmp_lidar_map;
+        MsgTrafficLightSignal tmp_traffic;
+        structOBJECTLIST      tmp_objects[OBJECTS_SOURCE_NUM];
+        MsgRoadMarkingList    tmp_lanes;
+        structPARKINGSLOTS    tmp_slot;
+        visVISUALIZATION      tmp_visualization;
     };
 
     Handler  inner_handler;

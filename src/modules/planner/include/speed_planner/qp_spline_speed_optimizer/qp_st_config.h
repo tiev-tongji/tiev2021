@@ -24,7 +24,7 @@ public:
         total_path_length_ = 100; // m
         number_of_discrete_graph_t_ = 11;
         spline_order_ = 5;
-        vehicle_upper_speed_limit_ = 15; // m/s
+        vehicle_upper_speed_limit_ = 16.66; // m/s
 		max_acceleration_ = 3.0; // m/s^2
 		max_deceleration_ = -1.0; // m/s^2
 

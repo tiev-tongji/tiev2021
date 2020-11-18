@@ -22,6 +22,7 @@ struct Map {
     unsigned char lidar_map[MAX_ROW][MAX_COL];         //激光雷达地图
     unsigned char static_lidar_map[MAX_ROW][MAX_COL];  //激光雷达地图
     unsigned char line_block_map[MAX_ROW][MAX_COL];    //车道线封闭地图
+    unsigned char dynamic_obs_map[MAX_ROW][MAX_COL];   //
     double        lidar_dis_map[MAX_ROW][MAX_COL];     //激光障碍物距离地图
     double        planning_dis_map[MAX_ROW][MAX_COL];  //规划距离地图
     bool          accessible_map[MAX_ROW][MAX_COL];    //规划距离地图
@@ -36,6 +37,7 @@ struct Map {
     std::vector<Pose>                   start_maintained_path;
     std::vector<Task>                   current_task_points;  // The task points that have not been finished yet
     SpeedPath                           best_path;
+    SpeedPath                           speed_maintained_path;
     std::vector<Pose>                   parking_spots;
 
     int car_lane_id;
@@ -77,6 +79,8 @@ public:
     // Pose getRefPathTarget(double s);
     //------
     std::vector<Pose> getMaintainedPath(NavInfo& nav_info);
+    void getSpeedMaintainedPath(NavInfo& nav_info);
+    void              predictDynamicObsInMap();
     std::vector<Pose> getStartMaintainedPath();
     void maintainPath(NavInfo& nav_info, vector<Pose>& path);
     void selectBestPath(const std::vector<SpeedPath>& paths);

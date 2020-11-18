@@ -5,6 +5,7 @@ namespace TiEV {
 using namespace std;
 
 void LaneFreeDriving::enter(Control& control) {
+    entry_time = getTimeStamp();
     cout << "entry Lane Free Driving..." << endl;
 }
 
@@ -27,9 +28,11 @@ void LaneFreeDriving::update(FullControl& control) {
             flag = false;
             break;
         }
-    if(speed_path_list.empty())
-        control.changeTo<SemiLaneFreeDriving>();
-    else if(flag)
+    if(flag && !speed_path_list.empty())
         control.changeTo<NormalDriving>();
+    else if(speed_path_list.empty() && (getTimeStamp() - entry_time > 3e6))
+        control.changeTo<SemiLaneFreeDriving>();
+    else if(!speed_path_list.empty())
+        entry_time = getTimeStamp();
 }
 }  // namespace TiEV

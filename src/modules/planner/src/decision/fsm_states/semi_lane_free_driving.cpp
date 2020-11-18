@@ -6,6 +6,7 @@ using namespace std;
 
 void SemiLaneFreeDriving::enter(Control& control) {
     cout << "entry Semi-Lane Free Driving..." << endl;
+    entry_time = getTimeStamp();
 }
 
 void SemiLaneFreeDriving::update(FullControl& control) {
@@ -28,9 +29,11 @@ void SemiLaneFreeDriving::update(FullControl& control) {
             break;
         }
 
-    if(speed_path_list.empty())
-        control.changeTo<FreeDriving>();
-    else if(flag)
+    if(flag && !speed_path_list.empty())
         control.changeTo<NormalDriving>();
+    else if(speed_path_list.empty() && getTimeStamp() - entry_time > 3e6)
+        control.changeTo<FreeDriving>();
+    else if(!speed_path_list.empty())
+        entry_time = getTimeStamp();
 }
 }  // namespace TiEV

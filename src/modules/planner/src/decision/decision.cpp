@@ -60,6 +60,7 @@ void runTiEVFSM() {
 }
 
 void sendPath() {
+    MachineManager* mm   = MachineManager::getInstance();
     MapManager*     mapm = MapManager::getInstance();
     MessageManager* msgm = MessageManager::getInstance();
     structAIMPATH   control_path;
@@ -121,6 +122,11 @@ void sendPath() {
         // get maintained path
         vector<Pose> maintained_path = mapm->getMaintainedPath(nav_info);
         // run speed planner
+        double    max_speed = mapm->getCurrentMapSpeed();
+        HDMapMode road_mode = mapm->getCurrentMapMode();
+
+        if(road_mode == HDMapMode::INTERSECTION_SOLID || road_mode == HDMapMode::INTERSECTION || road_mode == HDMapMode::PARKING) max_speed = mapm->getSpeedBySpeedMode(HDMapSpeed::LOW);
+        if(mm->machine.isActive<TemporaryParkingFSM>()) max_speed                                                                           = mapm->getSpeedBySpeedMode(HDMapSpeed::VERY_LOW);
         vector<pair<double, double>> speed_limits;
         bool add_collision_dynamic = false;
         for(const auto& p : maintained_path) {
@@ -132,9 +138,12 @@ void sendPath() {
                 dummy_obj.path.emplace_back(p.x, p.y, p.ang, 0, 0, 0);
                 dynamic.dynamic_obj_list.push_back(dummy_obj);
             }
-            speed_limits.emplace_back(p.s, min(sqrt(GRAVITY * MIU / (fabs(p.k) + 0.0001)) * 0.7, mapm->getCurrentMapSpeed()));
+            if(p.backward)
+                speed_limits.emplace_back(p.s, min(sqrt(GRAVITY * MIU / (fabs(p.k) + 0.0001)) * 0.7, 2.0));
+            else
+                speed_limits.emplace_back(p.s, min(sqrt(GRAVITY * MIU / (fabs(p.k) + 0.0001)) * 0.7, max_speed));
         }
-        if(!maintained_path.empty()) maintained_path.front().v = nav_info.current_speed;
+        if(!maintained_path.empty()) maintained_path.front().v = fabs(nav_info.current_speed);
         SpeedPath speed_path;
         if(!maintained_path.empty()) speed_path = SpeedOptimizer::RunSpeedOptimizer(dynamic.dynamic_obj_list, maintained_path, speed_limits, maintained_path.back().s);
         // send control trojectory

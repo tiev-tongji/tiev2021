@@ -7,6 +7,7 @@ const int    CAR_CEN_COL     = 125;
 const int    CAR_CEN_ROW     = 350;
 const float  GRID_RESOLUTION = 0.2;
 const double PI              = 3.1415926535898;
+const double inf             = 1e8;
 const double GRAVITY         = 9.8;
 const double MIU             = 4;
 }  // TiEV
