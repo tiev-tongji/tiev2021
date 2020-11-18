@@ -59,6 +59,21 @@ namespace TiEV
 	vector<int> noisy_x;
 	vector<int> noisy_y;
 
+	struct point_xy{
+		int x;
+		int y;
+		bool operator==(const point_xy a){
+			return this->x == a.x && this->y == a.y;
+
+		}
+		point_xy(int a,int b){
+			this->x = a;
+			this->y = b;
+		}
+	};
+	vector<point_xy> noisy_points;
+
+
 	class Handler
 	{
 	public:
@@ -98,18 +113,18 @@ namespace TiEV
 			int x = atoi(s);
 			int y = atoi(&s[4]);
 
-			noisy_x.push_back(x);
-			noisy_y.push_back(y);
+			noisy_points.push_back(point_xy(x,y));
 		}
+		noisy_points.erase(unique(noisy_points.begin(),noisy_points.end()),noisy_points.end());
 	}
 
 	void noisy_point()
 	{
-		for (int i = 0; i < noisy_x.size(); i++)
+		for (int i = 0; i < noisy_points.size(); i++)
 		{
-			mapData.cells[noisy_y[i]][noisy_x[i]] = 0;
-			cout<<"dd";
-			cout<<noisy_x[i]<<' '<<noisy_y[i]<<endl;
+			mapData.cells[noisy_points[i].y][noisy_points[i].x] = 0;
+			// cout<<"dd";
+			// cout<<noisy_x[i]<<' '<<noisy_y[i]<<endl;
 		}
 	}
 	void sickmap_init()
@@ -282,7 +297,7 @@ namespace TiEV
 					if (x >= 0 && x < mapData.cols && y >= 0 && y < mapData.rows)
 					{
 						mapData.cells[y][x] = 1;
-						cout << x << ' ' << y << endl;
+						//cout << x << ' ' << y << endl;
 					}
 				}
 			}

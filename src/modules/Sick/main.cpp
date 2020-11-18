@@ -57,7 +57,7 @@ int main(int argc, const char *argv[])
 	noisy_init();
 
 
-	cout<<noisy_x.size()<<endl;
+	cout<<noisy_points.size()<<endl;
 	while (1)
 	{
 		sickmap_init();
@@ -67,16 +67,16 @@ int main(int argc, const char *argv[])
 
 
 		noisy_point();
-		// for (int i = 0; i < 501; i++)
-		// {
-		// 	for (int j = 0; j < 251; j++)
-		// 	{
-		// 		if (mapData.cells[i][j] == 1)
-		// 		{
-		// 			cout << i << ' ' << j << endl;
-		// 		}
-		// 	}
-		// }
+		for (int i = 0; i < 501; i++)
+		{
+			for (int j = 0; j < 251; j++)
+			{
+				if (mapData.cells[i][j] == 1)
+				{
+					cout << j << ' ' << i << endl;
+				}
+			}
+		}
 		// char ch = getchar();
 		if (sb && sf)
 		{
