@@ -113,7 +113,7 @@ struct Pose : public Point2d {
 */
 enum HDMapEvent { NONE, ENTRY_INTERSECTION, EXIT_INTERSECTION, STOP, CHANGE_HDMAP };
 enum HDMapMode { NORMAL, INTERSECTION_SOLID, INTERSECTION, PARKING, CHANGE, UNKNOWN_MODE };
-enum HDMapSpeed { VERY_LOW, LOW, MIDDLE, HIGH, VERY_HIGH };
+enum HDMapSpeed {BACK_SPEED, STOP_SPEED, VERY_LOW, LOW, MIDDLE, HIGH, VERY_HIGH };
 enum RoadDirection { LEFT = 4, STRAIGHT = 2, RIGHT = 1, UTURN = 8 };        //二进制表示0000，最高位表示uturn,剩下为左直右
 enum BlockType { BlockNone, BlockRight = 1, BlockLeft = 2, BlockAll = 3 };  //二进制表示00，1表示封闭
 struct HDMapPoint : public Pose {

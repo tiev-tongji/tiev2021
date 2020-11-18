@@ -190,7 +190,7 @@ private:
     const static time_t SLAM_LOC_TIMEOUT_US      = 1e6;
     const static time_t LIDAR_MAP_TIMEOUT_US     = 1e6;
     const static time_t LANE_TIMEOUT_US          = 2e5;
-    const static time_t TRAFFIC_LIGHT_TIMEOUT_US = 1e6;
+    const static time_t TRAFFIC_LIGHT_TIMEOUT_US = 5e6;
     const static time_t PARKING_SLOT_TIMEOUT_US  = 1e6;
     const static time_t VISUALIZATION_TIMEOUT_US = 1e6;
     const static time_t OBJECT_LIST_TIMEOUT_US   = 1e6;
