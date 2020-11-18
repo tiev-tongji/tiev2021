@@ -1118,12 +1118,12 @@ void MapManager::predictDynamicObsInMap() {
         STPoint rb = st_boundary.bottom_right_point();
         if(lb.t() > 3 || rb.t() < 2) continue;
         Point2d vec_st(rb.t() - lb.t(), rb.s() - lb.s());
-        Point2d vec_2 = Point2d(lb.t(), lb.s()) + vec_st * ((2 - lb.t()) / vec_st.x);
-        Point2d vec_3 = Point2d(lb.t(), lb.s()) + vec_st * ((3 - lb.t()) / vec_st.x);
+        Point2d vec_2   = Point2d(lb.t(), lb.s()) + vec_st * ((2 - lb.t()) / vec_st.x);
+        Point2d vec_3   = Point2d(lb.t(), lb.s()) + vec_st * ((3 - lb.t()) / vec_st.x);
+        double  start_s = min(vec_2.y, vec_3.y);
+        double  end_s   = max(vec_2.y, vec_3.y);
         for(const auto& p : speed_maintained_path.path) {
-            double start_s = min(vec_2.y, vec_3.y);
-            double end_s   = max(vec_2.y, vec_3.y);
-            if(fabs(p.s) < start_s || fabs(p.s) > end_s) continue;
+            if(fabs(p.s) < start_s || fabs(p.s) > end_s + 5) continue;
             for(double dis = -1.2; dis <= 1.2; dis += 0.2) {
                 Pose block_p                                        = p.getLateralPose(dis);
                 map.dynamic_obs_map[int(block_p.x)][int(block_p.y)] = 1;

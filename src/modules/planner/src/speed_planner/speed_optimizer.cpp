@@ -20,7 +20,6 @@ SpeedPath SpeedOptimizer::RunSpeedOptimizer(const std::vector<DynamicObj>& obsta
         modified_speed_limit.emplace_back(s, v);
     }
 
-
     SpeedPath speed_path;
     if(trajectory.empty()) {
         speed_path.success = false;
@@ -39,8 +38,8 @@ SpeedPath SpeedOptimizer::RunSpeedOptimizer(const std::vector<DynamicObj>& obsta
         obj_list.emplace_back(obj);
     }
     const double TOTAL_TIME = 5.0;
-    SpeedOptimizer speed_optimizer(obj_list, trajectory, speed_limit, 0, total_path_length, 0, TOTAL_TIME);
-    // SpeedOptimizer speed_optimizer(obj_list, trajectory, modified_speed_limit, 0, total_path_length, 0, TOTAL_TIME);
+    // SpeedOptimizer speed_optimizer(obj_list, trajectory, speed_limit, 0, total_path_length, 0, TOTAL_TIME);
+    SpeedOptimizer speed_optimizer(obj_list, trajectory, modified_speed_limit, 0, total_path_length, 0, TOTAL_TIME);
     if(speed_optimizer.Process(speed_path)) {
         std::cout << "Speed Optimizer succeeds!" << std::endl;
         speed_path.success = true;

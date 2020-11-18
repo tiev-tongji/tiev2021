@@ -11,7 +11,7 @@ void GlobalReplanning::enter(Control& control) {
 void GlobalReplanning::update(FullControl& control) {
     cout << "Global Replanning update..." << endl;
     MapManager* map_manager = MapManager::getInstance();
-    control.changeTo<NormalDriving>();
+    control.changeTo<Exploration>();
     // TODO: map_manager->runRouting(, );
     // control.changeTo<FreeDriving>();
     // map_manager->updateRefPath();

@@ -154,11 +154,11 @@ bool QpSpeedOptimizer::Process(PathTimeGraph& st_graph_data, const SpeedData& re
         std::cout << "QpSpeedOptimizer: Fail to apply initial speed constraint!" << std::endl;
         return false;
     }
-#if 0
-    if (target_point_.s - reference_dp_speed_points.back().s() <= 1) {
+#if 1
+    if(target_point_.s - reference_dp_speed_points.back().s() <= 1) {
         double last_s = reference_dp_speed_points.back().s();
         double last_v = sqrt(max(0.0, init_point_.v * init_point_.v + 2 * qp_st_config_.max_deceleration() * last_s));
-        if (!spline_constraint->AddPointDerivativeConstraint(reference_dp_speed_points.back().t(), last_v)) {
+        if(!spline_constraint->AddPointDerivativeConstraint(reference_dp_speed_points.back().t(), last_v)) {
             std::cout << "QpSpeedOptimizer: Fail to apply target speed constraint!" << std::endl;
             return false;
         }

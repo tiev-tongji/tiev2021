@@ -358,7 +358,7 @@ void Visualization::drawPathPlanner() {
     // 雷达地图
     bool lidar = drawLidarMap(left_map, right_map, 0);
     // 动态障碍物
-    bool dynamic = drawDynamicObjs(left_map, right_map, 0);
+    bool dynamic = drawDynamicObjs(left_map, right_map, 1);
     // 停车库位
     bool parking_spot = drawParkingLots(left_map, right_map, 0);
     // 视觉车道线
@@ -488,8 +488,9 @@ bool Visualization::drawDynamicObjs(cv::Mat& left_map, cv::Mat& right_map, int o
     assert(opt >= 0);
     assert(opt <= 2);
     time_t current_time = getTimeStamp();
+    inner_handler.objects_mtx.lock_shared();
     for(int i = 0; i < OBJECTS_SOURCE_NUM; ++i) {
-        inner_handler.objects_mtx.lock_shared();
+        std::cout << "SizeOfDynamic: " << inner_handler.tmp_objects[i].obj.size() << std::endl;
         if(current_time - inner_handler.update_time_objects[i] < OBJECT_LIST_TIMEOUT_US) {
             for(const auto& obj : inner_handler.tmp_objects[i].obj) {
                 vector<cv::Point> points;
@@ -509,7 +510,7 @@ bool Visualization::drawDynamicObjs(cv::Mat& left_map, cv::Mat& right_map, int o
                 vector<cv::Point> path;
                 for(int j = 0; j < obj.path.size(); ++j) {
                     int x = CAR_CEN_ROW - (obj.path[j].y - 1.48) / GRID_RESOLUTION;
-                    int y = CAR_CEN_COL - obj.path[j].x / GRID_RESOLUTION;
+                    int y = CAR_CEN_COL + obj.path[j].x / GRID_RESOLUTION;
                     path.emplace_back(cv::Point(y, x));
                 }
                 cv::Scalar dynamic_obj_color;
@@ -535,10 +536,8 @@ bool Visualization::drawDynamicObjs(cv::Mat& left_map, cv::Mat& right_map, int o
                 }
             }
         }
-        inner_handler.objects_mtx.unlock_shared();
-        return true;
     }
-    return false;
+    inner_handler.objects_mtx.unlock_shared();
 }
 
 // 绘制停车库位
@@ -897,7 +896,7 @@ void Visualization::msgReceiveUdp() {
     zcm_udp.subscribe("FUSIONMAP", &Handler::handleFUSIONMAP, &inner_handler);
     zcm_udp.subscribe("NAVINFO", &Handler::handleNAVINFO, &inner_handler);
     zcm_udp.subscribe("OBJECTLIST", &Handler::handleOBJECTLIST, &inner_handler);
-    zcm_udp.subscribe("TRAFFICLIGHT", &Handler::handleTRAFFICLIGHT, &inner_handler);
+    zcm_udp.subscribe("msgTrafficLightSignal", &Handler::handleTRAFFICLIGHT, &inner_handler);
     zcm_udp.subscribe("LANE_info", &Handler::handleLANES, &inner_handler);
     zcm_udp.subscribe("PARKINGSLOTS", &Handler::handlePARKINGSLOTS, &inner_handler);
     zcm_udp.subscribe("SLAMLOC", &Handler::handleSLAMLOC, &inner_handler);

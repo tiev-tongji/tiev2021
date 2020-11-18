@@ -31,7 +31,7 @@ public:
     const static std::time_t NAV_INFO_TIMEOUT_US      = 1e6;
     const static std::time_t LIDAR_MAP_TIMEOUT_US     = 1e6;
     const static std::time_t LANE_TIMEOUT_US          = 2e5;
-    const static std::time_t TRAFFIC_LIGHT_TIMEOUT_US = 1e6;
+    const static std::time_t TRAFFIC_LIGHT_TIMEOUT_US = 2e6;
     const static std::time_t PARKING_SLOT_TIMEOUT_US  = 1e6;
     const static std::time_t OBJECT_LIST_TIMEOUT_US   = 1e6;
     const static std::time_t SLAM_LOC_TIMEOUT_US      = 1e6;
