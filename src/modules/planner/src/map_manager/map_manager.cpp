@@ -313,11 +313,10 @@ void MapManager::avoidPedestrian() {
         if(obj.type != ObjectType::PEDESTRIAN) continue;
         Pose   obj_pos               = obj.path.front();
         double dis_to_right_boundary = point2LineDis(obj_pos, map.boundary_line[0]);
-        if(dis_to_right_boundary < 0) continue;
+        if(dis_to_right_boundary <= 0) continue;
         double dis_to_left_boundary = point2LineDis<Pose, LinePoint>(obj_pos, map.boundary_line[1]);
-        if(dis_to_right_boundary > 0) continue;
-        double dis_to_maintained_path = point2LineDis<Pose, Pose>(obj_pos, map.maintained_path);
-        if(fabs(dis_to_maintained_path) < map.forward_ref_path.front().lane_width) {
+        if(dis_to_left_boundary >= map.forward_ref_path.front().lane_width / GRID_RESOLUTION) continue;
+        if(obj_pos.x < CAR_CEN_ROW && fabs(point2PointDis(map.nav_info.car_pose, obj_pos) < 20 / GRID_RESOLUTION)) {
             int        shortest_point_index = shortestPointIndex<Pose, Pose>(obj_pos, map.maintained_path);
             int        x                    = map.maintained_path[shortest_point_index].x;
             int        y                    = map.maintained_path[shortest_point_index].y;
