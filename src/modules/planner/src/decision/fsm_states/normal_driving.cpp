@@ -6,6 +6,7 @@ using namespace std;
 
 void NormalDriving::enter(Control& control) {
     cout << "entry Normal Driving..." << endl;
+    entry_time = getTimeStamp();
 }
 
 void NormalDriving::update(FullControl& control) {
@@ -22,7 +23,10 @@ void NormalDriving::update(FullControl& control) {
     map_manager->selectBestPath(speed_path_list);
     map_manager->maintainPath(map.nav_info, map.best_path.path);
 
-    if(speed_path_list.empty()) control.changeTo<LaneFreeDriving>();
+    if(speed_path_list.empty() && getTimeStamp() - entry_time > 3e6)
+        control.changeTo<LaneFreeDriving>();
+    else if(!speed_path_list.empty())
+        entry_time = getTimeStamp();
 }
 
 }  // namespace TiEV

@@ -29,11 +29,11 @@ void FreeDriving::update(FullControl& control) {
             break;
         }
 
-    if(speed_path_list.empty())
-        control.changeTo<GlobalReplanning>();
-    else if(flag)
+    if(flag && !speed_path_list.empty())
         control.changeTo<NormalDriving>();
-    else if(getTimeStamp() - entry_time > 5 * 1000 * 1000)
+    else if(speed_path_list.empty() && getTimeStamp() - entry_time > 3e6)
+        control.changeTo<GlobalReplanning>();
+    else if(getTimeStamp() - entry_time > 5e6)
         control.changeTo<SemiLaneFreeDriving>();
 }
 }  // namespace TiEV

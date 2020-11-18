@@ -121,6 +121,7 @@ void PathTimeGraph::SetStaticObstacle(Obstacle& obstacle, const std::vector<Pose
     STPoint urp(sl_boundary.end_s(), total_time_);
 
     STBoundary st_boundary(blp, brp, ulp, urp);
+    st_boundary.obs_type = obstacle.type;
     st_boundaries_.emplace_back(st_boundary);
     obstacle.set_st_boundary(st_boundary);
 }
@@ -176,6 +177,7 @@ void PathTimeGraph::SetDynamicObstacle(Obstacle& obstacle, const std::vector<Pos
     }
     if(left_edge_set) {
         STBoundary st_boundary(bottom_left, bottom_right, upper_left, upper_right);
+        st_boundary.obs_type = obstacle.type;
         st_boundaries_.emplace_back(st_boundary);
         obstacle.set_st_boundary(st_boundary);
     }

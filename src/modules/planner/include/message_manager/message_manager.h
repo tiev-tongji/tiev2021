@@ -82,8 +82,8 @@ private:
         void handleFUSIONMAP(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structFUSIONMAP* msg);
         void handleRAINSIGNAL(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgRainDetectionSignal* msg);
         void handleOBJECTLIST(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structOBJECTLIST* msg);
-        void handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structTRAFFICLIGHT* msg);
-        void handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structLANES* msg);
+        void handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgTrafficLightSignal* msg);
+        void handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgRoadMarkingList* msg);
         void handlePARKINGSLOTS(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structPARKINGSLOTS* msg);
         void handleSLAMLOC(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structSLAMLOC* msg);
         void handleCANINFO(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structCANINFO* msg);
@@ -105,10 +105,10 @@ private:
         structFUSIONMAP        tmp_map;
         MsgRainDetectionSignal tmp_rain_signal;
         structOBJECTLIST       tmp_objects[OBJECTS_SOURCE_NUM];
-        structTRAFFICLIGHT     tmp_traffic;
+        MsgTrafficLightSignal  tmp_traffic;
         structSLAMLOC          tmp_slam_loc;
         structCANINFO          tmp_can_info;
-        structLANES            tmp_lanes;
+        MsgRoadMarkingList     tmp_lanes;
         structPARKINGSLOTS     tmp_slot;
     };
 

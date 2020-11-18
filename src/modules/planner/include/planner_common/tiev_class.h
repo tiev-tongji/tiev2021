@@ -103,7 +103,6 @@ class Lane {
 public:
     int      type;
     double   width;
-    Point2d  stop_point;
     LaneLine left_line;
     LaneLine right_line;
 };

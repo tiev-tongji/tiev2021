@@ -11,8 +11,6 @@ using namespace std;
 
 namespace TiEV {
 
-const double inf = 1e10;
-
 const double sqrt2 = 1.414213562;
 const double sqrt5 = 2.2360679775;
 const int    dx[]  = { -2, -1, 0, 1, 2 };
@@ -73,12 +71,15 @@ void PathPlanner::setStartMaintainedPath(const vector<Pose>& start_maintained_pa
     if(is_planning) return;
     this->start_maintained_path.clear();
     this->start_maintained_path = start_maintained_path;
-    for(auto& p : this->start_maintained_path)
-        p.v                                        = inf;
+    for(auto& p : this->start_maintained_path) {
+        cout << "target maintained:" << p << endl;
+        p.v = inf;
+    }
     if(!start_maintained_path.empty()) start_point = start_maintained_path.back();
     if(!start_point.in_map() || start_maintained_path.empty()) {
         start_point = Pose(CAR_CEN_ROW, CAR_CEN_COL, PI);
     }
+    cout << "target start:" << start_point << endl;
 }
 
 void PathPlanner::setTargets(const vector<Pose>& targets) {
@@ -236,8 +237,10 @@ void PathPlanner::planSpeed(int target_index) {
 
     vector<Pose> result_tail;
     result_tail.insert(result_tail.begin(), speed_paths[target_index].path.begin() + end_point, speed_paths[target_index].path.end());
-    for(auto& p : result_tail)
+    for(auto& p : result_tail) {
         p.v = 0;
+        p.t = inf;
+    }
 
     if(end_point != speed_paths[target_index].path.size()) {
         speed_paths[target_index].path.resize(end_point);
@@ -249,8 +252,12 @@ void PathPlanner::planSpeed(int target_index) {
 
     // conversion
     for(auto& point : speed_paths[target_index].path) {
-        if(point.backward) point.ang = PI + point.ang;
-        speed_limits[target_index].emplace_back(point.s, min(sqrt(g_tims_miu / (point.k + 0.0001)) * 0.7, point.v));
+        double max_speed = point.v;
+        if(point.backward) {
+            max_speed = 2;
+            point.ang = PI + point.ang;
+        }
+        speed_limits[target_index].emplace_back(point.s, min(sqrt(g_tims_miu / (point.k + 0.0001)) * 0.7, max_speed));
     }
 
     // speed_limits[target_index][0].second = current_speed;
@@ -261,7 +268,7 @@ void PathPlanner::planSpeed(int target_index) {
     // anti-conversion
     for(auto& point : speed_paths[target_index].path) {
         if(point.backward) {
-            point.ang = PI + point.ang;
+            point.ang = point.ang - PI;
             point.v   = -point.v;
             point.a   = -point.a;
         }
@@ -475,6 +482,8 @@ int PathPlanner::aStarAnalyticExpansionsInterval(double distance) {
 
 bool PathPlanner::aStarAnalyticExpansion(int target_index, const astate& state, vector<astate>& expansion_states, double radius) {
     expansion_states.clear();
+    cout << "rsc: start point:" << state.x << " " << state.y << " " << state.a << endl;
+    cout << "rsc: target point:" << targets[target_index] << endl;
     double       q0[] = { state.x, state.y, state.a };
     double       q1[] = { targets[target_index].x, targets[target_index].y, targets[target_index].ang };
     const double step = config->a_star_extention_step_meter / GRID_RESOLUTION;
@@ -591,7 +600,10 @@ void PathPlanner::aStarExtend(const astate& source, vector<vector<astate>>& dest
                 double y = sina * p.x + cosa * p.y + source.y;
                 p.x      = x;
                 p.y      = y;
-                p.cost += source.cost;
+                if(p.backward)
+                    p.cost = 2 * p.cost + source.cost;
+                else
+                    p.cost = p.cost + source.cost;
                 Pose   pp(p.x, p.y, p.a);
                 double expansion_r = current_speed * 0.06;
                 if(collision(pp, abs_safe_map, expansion_r) || collision(pp, lane_safe_map)) {
@@ -681,7 +693,7 @@ void PathPlanner::primitives::addPrimitive(vector<astate>& forward_primitive, bo
     for(auto& p : backward_primitives.back()) {
         p.x        = -p.x;
         p.y        = -p.y;
-        p.a        = p.a + PI;
+        p.a        = p.a;
         p.backward = true;
     }
 
@@ -695,7 +707,7 @@ void PathPlanner::primitives::addPrimitive(vector<astate>& forward_primitive, bo
         backward_primitives.push_back(forward_primitive);
         for(auto& p : backward_primitives.back()) {
             p.x = -p.x;
-            p.a = PI - p.a;
+            p.a = -p.a;
         }
     }
 }

@@ -60,6 +60,7 @@ void runTiEVFSM() {
 }
 
 void sendPath() {
+    MachineManager* mm   = MachineManager::getInstance();
     MapManager*     mapm = MapManager::getInstance();
     MessageManager* msgm = MessageManager::getInstance();
     structAIMPATH   control_path;
@@ -67,6 +68,7 @@ void sendPath() {
     LidarMap        lidar;
     DynamicObjList  dynamic;
     RainSignal      rain_signal;
+    TrafficLight    traffic_light;
     unsigned char   lidar_map[MAX_ROW][MAX_COL];
     double          lidar_dis_map[MAX_ROW][MAX_COL];
     const int       dx[]  = { 0, 0, -1, 1, 1, 1, -1, -1 };
@@ -78,6 +80,7 @@ void sendPath() {
         msgm->getNavInfo(nav_info);
         msgm->getDynamicObjList(dynamic);
         msgm->getRainSignal(rain_signal);
+        msgm->getTrafficLight(traffic_light);
         // for lidar map and lidar dis map
         for(int r = 0; r < MAX_ROW; ++r) {
             for(int c = 0; c < MAX_COL; ++c) {
@@ -121,6 +124,29 @@ void sendPath() {
         // get maintained path
         vector<Pose> maintained_path = mapm->getMaintainedPath(nav_info);
         // run speed planner
+        double        max_speed      = mapm->getCurrentMapSpeed();
+        HDMapMode     road_mode      = mapm->getCurrentMapMode();
+        RoadDirection road_direction = mapm->getCurrentRoadDirection();
+
+        if(road_mode == HDMapMode::INTERSECTION_SOLID || road_mode == HDMapMode::INTERSECTION || road_mode == HDMapMode::PARKING) max_speed = mapm->getSpeedBySpeedMode(HDMapSpeed::LOW);
+        // add stop line
+        if(road_mode == HDMapMode::INTERSECTION_SOLID && traffic_light.detected) {
+            if((road_direction == RoadDirection::LEFT && !traffic_light.left) || (road_direction == RoadDirection::STRAIGHT && !traffic_light.straight)
+               || (road_direction == RoadDirection::RIGHT && !traffic_light.right)) {
+                HDMapPoint stop_line = mapm->getStopLine();
+                for(int i = 1; i <= stop_line.lane_num; ++i) {
+                    double     dis             = (i - stop_line.lane_seq) * stop_line.lane_width;
+                    Pose       other_stop_line = stop_line.getLateralPose(dis);
+                    DynamicObj dummy_obj;
+                    dummy_obj.width  = 1.5;
+                    dummy_obj.length = 3;
+                    dummy_obj.path.emplace_back(other_stop_line.x, other_stop_line.y, stop_line.ang, 0, 0, 0);
+                    dynamic.dynamic_obj_list.push_back(dummy_obj);
+                }
+            }
+        }
+        if(mm->machine.isActive<TemporaryParkingFSM>()) max_speed                           = mapm->getSpeedBySpeedMode(HDMapSpeed::VERY_LOW);
+        if(mm->machine.isActive<TemporaryStop>() || mm->machine.isActive<Stop>()) max_speed = 0;
         vector<pair<double, double>> speed_limits;
         bool add_collision_dynamic = false;
         for(const auto& p : maintained_path) {
@@ -132,9 +158,12 @@ void sendPath() {
                 dummy_obj.path.emplace_back(p.x, p.y, p.ang, 0, 0, 0);
                 dynamic.dynamic_obj_list.push_back(dummy_obj);
             }
-            speed_limits.emplace_back(p.s, min(sqrt(GRAVITY * MIU / (fabs(p.k) + 0.0001)) * 0.7, mapm->getCurrentMapSpeed()));
+            if(p.backward)
+                speed_limits.emplace_back(p.s, min(sqrt(GRAVITY * MIU / (fabs(p.k) + 0.0001)) * 0.7, 2.0));
+            else
+                speed_limits.emplace_back(p.s, min(sqrt(GRAVITY * MIU / (fabs(p.k) + 0.0001)) * 0.7, max_speed));
         }
-        if(!maintained_path.empty()) maintained_path.front().v = nav_info.current_speed;
+        if(!maintained_path.empty()) maintained_path.front().v = fabs(nav_info.current_speed);
         SpeedPath speed_path;
         if(!maintained_path.empty()) speed_path = SpeedOptimizer::RunSpeedOptimizer(dynamic.dynamic_obj_list, maintained_path, speed_limits, maintained_path.back().s);
         // send control trojectory
