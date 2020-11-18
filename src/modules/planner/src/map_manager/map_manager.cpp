@@ -249,6 +249,29 @@ HDMapMode MapManager::getCurrentMapMode() {
     return mode;
 }
 
+RoadDirection MapManager::getCurrentRoadDirection() {
+    ref_path_mutex.lock_shared();
+    RoadDirection road_direction;
+    if(map.forward_ref_path.empty())
+        road_direction = RoadDirection::STRAIGHT;
+    else
+        road_direction = map.forward_ref_path.front().direction;
+    ref_path_mutex.unlock_shared();
+    return road_direction;
+}
+
+HDMapPoint MapManager::getStopLine() {
+    ref_path_mutex.lock_shared();
+    HDMapPoint stop_line;
+    for(const auto& p : map.forward_ref_path) {
+        if(p.event != HDMapEvent::ENTRY_INTERSECTION) continue;
+        stop_line = p;
+        break;
+    }
+    ref_path_mutex.unlock_shared();
+    return stop_line;
+}
+
 void MapManager::updateRefPath(bool need_opposite) {
     global_path_mutex.lock_shared();
     ref_path_mutex.lock();
@@ -350,6 +373,7 @@ void MapManager::updatePlanningMap(LaneLineBlockType lane_line_block_type, bool 
     // block uncrrect lane in intersection
     else {
         for(const auto& p : map.ref_path) {
+            if(getCurrentMapMode() == HDMapMode::INTERSECTION_SOLID) break;
             if(p.mode == HDMapMode::INTERSECTION_SOLID) {
                 if(p.lane_num < 2)
                     continue;
@@ -1089,7 +1113,7 @@ void MapManager::predictDynamicObsInMap() {
     memset(map.dynamic_obs_map, 0, sizeof(map.dynamic_obs_map));
     SpeedPath speed_maintained_path = map.speed_maintained_path;
     for(const auto& st_boundary : speed_maintained_path.st_boundaries) {
-        if(st_boundary.obs_type == ObjectType::PEDESTRIAN) continue;
+        if(st_boundary.obs_type == ObjectType::PEDESTRIAN || st_boundary.obs_type == ObjectType::UNKNOWN) continue;
         STPoint lb = st_boundary.bottom_left_point();
         STPoint rb = st_boundary.bottom_right_point();
         if(lb.t() > 3 || rb.t() < 2) continue;

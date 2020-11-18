@@ -57,7 +57,9 @@ public:
     bool requestGlobalPath(const NavInfo& nav_info);  //请求全局路
     void readGlobalPathFile(const std::string& file_path);
     void runRouting(int interval, bool blocked);  // Update global path in a new thread
-    HDMapMode getCurrentMapMode();
+    HDMapMode     getCurrentMapMode();
+    RoadDirection getCurrentRoadDirection();
+    HDMapPoint    getStopLine();
     void updateRefPath(bool need_opposite = false);  //获取局部参考路
     void avoidPedestrian();                          // 对道路内且相隔一定距离内的行人进行避让
     void blockStopLine();                            // 封闭停止线，红灯时使用

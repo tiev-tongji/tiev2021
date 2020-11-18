@@ -6,7 +6,7 @@ namespace TiEV {
 
 SpeedPath SpeedOptimizer::RunSpeedOptimizer(const std::vector<DynamicObj>& obstacle_list, std::vector<Pose>& trajectory, const std::vector<std::pair<double, double>>& speed_limit,
                                             double total_path_length) {
-    double max_acceleration = 3.0;
+    double max_acceleration = 1.8;
     double max_deceleration = -1.0;
     double init_v           = trajectory.front().v;
     std::vector<std::pair<double, double>> modified_speed_limit;
