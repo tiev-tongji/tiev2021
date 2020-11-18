@@ -7,7 +7,7 @@ python train.py --data trafficLight12.yaml --cfg yolov5s.yaml --weights yolov5s.
 python test.py --weights best.pt --data trafficLight12.yaml --batch-size 1 --device 0
 
 使用
-python detect.py --weights best.pt --source basler
+python detect.py --weights best1.pt --source basler
 
 资源占用：GPU(TitanX) ram 655Mib，CPU 12%，ram 1g
 
