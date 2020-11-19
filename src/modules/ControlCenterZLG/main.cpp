@@ -23,6 +23,12 @@
 static control_params_t params;
 const std::string params_file = "parameters.txt";
 
+void exit_handler(int s)
+{
+	VCI_CloseDevice(VCI_USBCAN2, 0);
+	exit(1);
+}
+
 bool init_start_CAN(const CAN_DEV_INFO& can_device, const VCI_INIT_CONFIG& config, const short& CAN1, const short& CAN2)
 {
     //OpenCAN
@@ -56,7 +62,9 @@ bool init_start_CAN(const CAN_DEV_INFO& can_device, const VCI_INIT_CONFIG& confi
         INFO("VCI_StartCAN CAN1 failed!");
 		return 0;
     }
-    INFO("VCI_StartCAN CAN1 succeeded!")
+    INFO("VCI_StartCAN CAN1 succeeded!");
+
+    return 1;
 }
 
 int main(){
@@ -81,6 +89,13 @@ int main(){
         INFO("CAN init failed!")
         return 0;
     }
+
+    //registe ctrl-c
+    struct sigaction sigIntHandler;
+    sigIntHandler.sa_handler = exit_handler;
+    sigemptyset(&sigIntHandler.sa_mask);
+    sigIntHandler.sa_flags = 0;
+    sigaction(SIGINT, &sigIntHandler, NULL);
    
     // ZCM消息中间件初始化
     messageControl msgControl;
@@ -168,6 +183,7 @@ int main(){
         usleep(20 * 1000);
     }
     
+
 
     return 0;
 }
