@@ -23,34 +23,84 @@
 static control_params_t params;
 const std::string params_file = "parameters.txt";
 
+bool init_start_CAN(const CAN_DEV_INFO& can_device, const VCI_INIT_CONFIG& config, const short& CAN1, const short& CAN2)
+{
+    //OpenCAN
+    // enable_control_ = true;
+    if (!VCI_OpenDevice(can_device.devType, can_device.devIndex, 0)) {
+        INFO("VCI_OpenDevice failed!");
+		return 0;
+    }
+    INFO("VCI_OpenDevice succeeded!");
+    
+    //CAN0
+    if (!VCI_InitCAN(can_device.devType, can_device.devIndex, CAN0, &config)) {
+        INFO("VCI_InitCAN CAN0 failed!");
+		return 0;
+    }
+    INFO("VCI_InitCAN CAN0 succeeded!");
+
+    if (!VCI_StartCAN(can_device.devType, can_device.devIndex, CAN0)) {
+        INFO("VCI_StartCAN CAN0 failed!");
+		return 0;
+    }
+    INFO("VCI_StartCAN CAN0 succeeded!")
+    //CAN1
+    if (!VCI_InitCAN(can_device.devType, can_device.devIndex, CAN1, &config)) {
+        INFO("VCI_InitCAN CAN1 failed!");
+		return 0;
+    }
+    INFO("VCI_InitCAN CAN1 succeeded!");
+
+    if (!VCI_StartCAN(can_device.devType, can_device.devIndex, CAN1)) {
+        INFO("VCI_StartCAN CAN1 failed!");
+		return 0;
+    }
+    INFO("VCI_StartCAN CAN1 succeeded!")
+}
+
 int main(){
     // 参数载入
     load_params_file(params_file, &params);
-     
-    CAN_DEV_INFO can_device_0, can_device_1;
-    can_device_0.devType = VCI_USBCAN2;
-    can_device_0.devIndex = 0;    
-    can_device_0.channelNum = 0;  //0 for CAN1, 1 for CAN2
-    can_device_1.devType = VCI_USBCAN2;
-    can_device_1.devIndex = 0;    
-    can_device_1.channelNum = 1;  //0 for CAN1, 1 for CAN2
-    
+
+    //init and start CAN
+    CAN_DEV_INFO can_device;
+    can_device.devType = VCI_USBCAN2;
+    can_device.devIndex = 0;    
+
+    VCI_INIT_CONFIG config;
+    config.AccCode = 0;
+    config.AccMask = 0xffffffff;
+    config.Filter = 1;
+    config.Mode = 0;
+    config.Timing0 = 0xC0;
+    config.Timing1 = 0x3A;  //500kbps
+
+    if (!init_start_CAN(can_device, config, 0, 1))
+    {
+        INFO("CAN init failed!")
+        return 0;
+    }
+   
     // ZCM消息中间件初始化
     messageControl msgControl;
     msgControl.init();
 
     // 车身CAN控制初始化
     ROEWEControl veh_control;
-    veh_control.can_dev = can_device_0;
+    veh_control.can_dev = can_device;
+    veh_control.can_dev.channelNum = 1;
     veh_control.init();
     
     EHBControl ehb_control;
-    ehb_control.can_dev = can_device_1;
+    ehb_control.can_dev = can_device;
+    veh_control.can_dev.channelNum = 0;
     ehb_control.init();
     
     //for esr
     ESRControl esr_control;
-    esr_control.can_dev = can_device_1;
+    esr_control.can_dev = can_device;
+    veh_control.can_dev.channelNum = 0;
     esr_control.init();
     nav_info_t veh_nav_info;
     
@@ -117,6 +167,7 @@ int main(){
 
         usleep(20 * 1000);
     }
+    
 
     return 0;
 }

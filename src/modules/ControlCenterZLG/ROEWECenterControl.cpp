@@ -35,34 +35,8 @@ ROEWEControl::~ROEWEControl(){
 }
 
 STATE ROEWEControl::init(){
-    config.AccCode = 0;
-    config.AccMask = 0xffffffff;
-    config.Filter = 1;
-    config.Mode = 0;
-    config.Timing0 = 0xC0;
-    config.Timing1 = 0x3A;  //500kbps
     rcv_buff_size = 1000;
     rcv_wait_time = 100;
-    
-	// enable_control_ = true;
-    if (!VCI_OpenDevice(can_dev.devType, can_dev.devIndex, 0)) {
-        INFO("VCI_OpenDevice failed!");
-		return 0;
-    }
-    INFO("VCI_OpenDevice succeeded!");
-
-	INFO(can_dev.devType<<","<<can_dev.devIndex<<", "<<can_dev.channelNum);
-    if (!VCI_InitCAN(can_dev.devType, can_dev.devIndex, can_dev.channelNum, &config)) {
-        INFO("VCI_InitCAN failed!");
-		return 0;
-    }
-    INFO("VCI_InitCAN succeeded!");
-
-    if (!VCI_StartCAN(can_dev.devType, can_dev.devIndex, can_dev.channelNum)) {
-        INFO("VCI_StartCAN failed!");
-		return 0;
-    }
-    INFO("VCI_StartCAN succeeded!")
     // 启动两个线程，分别为CAN消息接收线程与CAN消息发送线程
     INFO("Start to subscribe CAN0 info");
     static std::thread get_info(&ROEWEControl::get_can_info, this);
