@@ -22,7 +22,7 @@
 #define IP_IMU "195.0.0.84" //No use in UDP
 #define PORT_IMU 3000
 #define SIZE_BUF 72
-#define WAITOUT 500 //10 seconds
+#define WAITOUT 300 //6 seconds
 
 using namespace std;
 using namespace TiEV;
