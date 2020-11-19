@@ -6,53 +6,27 @@
 
 #include <zcm/zcm_coretypes.h>
 
-#ifndef __LANE_hpp__
-#define __LANE_hpp__
-
-#include "LinePoint.hpp"
-#include "LaneLine.hpp"
-#include "LaneLine.hpp"
+#ifndef __MsgTrafficLightSignal_hpp__
+#define __MsgTrafficLightSignal_hpp__
 
 
-class LANE
+
+class MsgTrafficLightSignal
 {
     public:
-        int32_t    lane_type;
+        int64_t    timestamp;
 
-        float      width;
+        int8_t     left;
 
-        LinePoint  stop_point;
+        int8_t     forward;
 
-        LaneLine   left_line;
-
-        LaneLine   right_line;
-
-    public:
-        #if __cplusplus > 199711L /* if c++11 */
-        static constexpr int8_t   TYPE_NONE = 0x00;
-        static constexpr int8_t   TYPE_STRAIGHT = 0x01;
-        static constexpr int8_t   TYPE_LEFT = 0x02;
-        static constexpr int8_t   TYPE_RIGHT = 0x04;
-        static constexpr int8_t   TYPE_UTURN = 0x08;
-        static constexpr int8_t   TYPE_STRAIGHT_LEFT = 0x03;
-        static constexpr int8_t   TYPE_STRAIGHT_RIGHT = 0x05;
-        static constexpr int8_t   TYPE_STRAIGHT_LEFT_RIGHT = 0x07;
-        #else
-        static const     int8_t   TYPE_NONE = 0x00;
-        static const     int8_t   TYPE_STRAIGHT = 0x01;
-        static const     int8_t   TYPE_LEFT = 0x02;
-        static const     int8_t   TYPE_RIGHT = 0x04;
-        static const     int8_t   TYPE_UTURN = 0x08;
-        static const     int8_t   TYPE_STRAIGHT_LEFT = 0x03;
-        static const     int8_t   TYPE_STRAIGHT_RIGHT = 0x05;
-        static const     int8_t   TYPE_STRAIGHT_LEFT_RIGHT = 0x07;
-        #endif
+        int8_t     right;
 
     public:
         /**
          * Destructs a message properly if anything inherits from it
         */
-        virtual ~LANE() {}
+        virtual ~MsgTrafficLightSignal() {}
 
         /**
          * Encode a message into binary form.
@@ -89,7 +63,7 @@ class LANE
         inline static int64_t getHash();
 
         /**
-         * Returns "LANE"
+         * Returns "MsgTrafficLightSignal"
          */
         inline static const char* getTypeName();
 
@@ -100,7 +74,7 @@ class LANE
         inline static uint64_t _computeHash(const __zcm_hash_ptr* p);
 };
 
-int LANE::encode(void* buf, uint32_t offset, uint32_t maxlen) const
+int MsgTrafficLightSignal::encode(void* buf, uint32_t offset, uint32_t maxlen) const
 {
     uint32_t pos = 0;
     int thislen;
@@ -115,7 +89,7 @@ int LANE::encode(void* buf, uint32_t offset, uint32_t maxlen) const
     return pos;
 }
 
-int LANE::decode(const void* buf, uint32_t offset, uint32_t maxlen)
+int MsgTrafficLightSignal::decode(const void* buf, uint32_t offset, uint32_t maxlen)
 {
     uint32_t pos = 0;
     int thislen;
@@ -131,92 +105,75 @@ int LANE::decode(const void* buf, uint32_t offset, uint32_t maxlen)
     return pos;
 }
 
-uint32_t LANE::getEncodedSize() const
+uint32_t MsgTrafficLightSignal::getEncodedSize() const
 {
     return 8 + _getEncodedSizeNoHash();
 }
 
-int64_t LANE::getHash()
+int64_t MsgTrafficLightSignal::getHash()
 {
     static int64_t hash = _computeHash(NULL);
     return hash;
 }
 
-const char* LANE::getTypeName()
+const char* MsgTrafficLightSignal::getTypeName()
 {
-    return "LANE";
+    return "MsgTrafficLightSignal";
 }
 
-int LANE::_encodeNoHash(void* buf, uint32_t offset, uint32_t maxlen) const
+int MsgTrafficLightSignal::_encodeNoHash(void* buf, uint32_t offset, uint32_t maxlen) const
 {
     uint32_t pos = 0;
     int thislen;
 
-    thislen = __int32_t_encode_array(buf, offset + pos, maxlen - pos, &this->lane_type, 1);
+    thislen = __int64_t_encode_array(buf, offset + pos, maxlen - pos, &this->timestamp, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
-    thislen = __float_encode_array(buf, offset + pos, maxlen - pos, &this->width, 1);
+    thislen = __boolean_encode_array(buf, offset + pos, maxlen - pos, &this->left, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
-    thislen = this->stop_point._encodeNoHash(buf, offset + pos, maxlen - pos);
+    thislen = __boolean_encode_array(buf, offset + pos, maxlen - pos, &this->forward, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
-    thislen = this->left_line._encodeNoHash(buf, offset + pos, maxlen - pos);
-    if(thislen < 0) return thislen; else pos += thislen;
-
-    thislen = this->right_line._encodeNoHash(buf, offset + pos, maxlen - pos);
+    thislen = __boolean_encode_array(buf, offset + pos, maxlen - pos, &this->right, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
     return pos;
 }
 
-int LANE::_decodeNoHash(const void* buf, uint32_t offset, uint32_t maxlen)
+int MsgTrafficLightSignal::_decodeNoHash(const void* buf, uint32_t offset, uint32_t maxlen)
 {
     uint32_t pos = 0;
     int thislen;
 
-    thislen = __int32_t_decode_array(buf, offset + pos, maxlen - pos, &this->lane_type, 1);
+    thislen = __int64_t_decode_array(buf, offset + pos, maxlen - pos, &this->timestamp, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
-    thislen = __float_decode_array(buf, offset + pos, maxlen - pos, &this->width, 1);
+    thislen = __boolean_decode_array(buf, offset + pos, maxlen - pos, &this->left, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
-    thislen = this->stop_point._decodeNoHash(buf, offset + pos, maxlen - pos);
+    thislen = __boolean_decode_array(buf, offset + pos, maxlen - pos, &this->forward, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
-    thislen = this->left_line._decodeNoHash(buf, offset + pos, maxlen - pos);
-    if(thislen < 0) return thislen; else pos += thislen;
-
-    thislen = this->right_line._decodeNoHash(buf, offset + pos, maxlen - pos);
+    thislen = __boolean_decode_array(buf, offset + pos, maxlen - pos, &this->right, 1);
     if(thislen < 0) return thislen; else pos += thislen;
 
     return pos;
 }
 
-uint32_t LANE::_getEncodedSizeNoHash() const
+uint32_t MsgTrafficLightSignal::_getEncodedSizeNoHash() const
 {
     uint32_t enc_size = 0;
-    enc_size += __int32_t_encoded_array_size(NULL, 1);
-    enc_size += __float_encoded_array_size(NULL, 1);
-    enc_size += this->stop_point._getEncodedSizeNoHash();
-    enc_size += this->left_line._getEncodedSizeNoHash();
-    enc_size += this->right_line._getEncodedSizeNoHash();
+    enc_size += __int64_t_encoded_array_size(NULL, 1);
+    enc_size += __boolean_encoded_array_size(NULL, 1);
+    enc_size += __boolean_encoded_array_size(NULL, 1);
+    enc_size += __boolean_encoded_array_size(NULL, 1);
     return enc_size;
 }
 
-uint64_t LANE::_computeHash(const __zcm_hash_ptr* p)
+uint64_t MsgTrafficLightSignal::_computeHash(const __zcm_hash_ptr*)
 {
-    const __zcm_hash_ptr* fp;
-    for(fp = p; fp != NULL; fp = fp->parent)
-        if(fp->v == LANE::getHash)
-            return 0;
-    const __zcm_hash_ptr cp = { p, (void*)LANE::getHash };
-
-    uint64_t hash = (uint64_t)0x64f90884723f9b46LL +
-         LinePoint::_computeHash(&cp) +
-         LaneLine::_computeHash(&cp) +
-         LaneLine::_computeHash(&cp);
-
+    uint64_t hash = (uint64_t)0x5564723f83885d01LL;
     return (hash<<1) + ((hash>>63)&1);
 }
 

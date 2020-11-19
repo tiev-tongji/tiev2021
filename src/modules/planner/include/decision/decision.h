@@ -1,6 +1,21 @@
 #ifndef __DECISION__H__
 #define __DECISION__H__
+#include "tiev_fsm.h"
 namespace TiEV {
+
+class MachineManager {
+public:
+    Context                context;
+    FSM::Instance          machine{ context };
+    static MachineManager* getInstance() {
+        static MachineManager instance;
+        return &instance;
+    }
+
+private:
+    MachineManager() {}
+    ~MachineManager() {}
+};
 void runTiEVFSM();
 void sendPath();
 void requestGlobalPathFromMapServer();

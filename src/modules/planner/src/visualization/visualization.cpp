@@ -7,6 +7,7 @@ namespace TiEV {
 using namespace std;
 
 void Visualization::init() {
+    string TiEV_cfg_pics_path      = Config::getInstance()->TiEV_CONFIG_DIRECT + "pics/";
     string TiEV_logo_path          = Config::getInstance()->TiEV_CONFIG_DIRECT + "pics/TiEV_logo.png";
     string TiEV_car_jpg_path       = Config::getInstance()->TiEV_CONFIG_DIRECT + "pics/TiEV_car.jpg";
     string TiEV_car_png_path       = Config::getInstance()->TiEV_CONFIG_DIRECT + "pics/TiEV_car.png";
@@ -36,6 +37,8 @@ void Visualization::init() {
 
     planner_map_left              = planner_window(cv::Rect(20, 100, MAX_COL, MAX_ROW));
     planner_map_right             = planner_window(cv::Rect(311, 100, MAX_COL, MAX_ROW));
+    auto_rect                     = cv::Mat(80, 80, CV_8UC3, TiEV_BLACK);
+    auto_window                   = planner_window(cv::Rect(10, 10, auto_rect.cols, auto_rect.rows));
     traffic_light_rect            = cv::Mat(60, 60, CV_8UC3, TiEV_BLACK);
     traffic_light_window          = planner_window(cv::Rect(190, 20, 3 * traffic_light_rect.cols + 20, traffic_light_rect.rows));
     left_traffic_light_window     = traffic_light_window(cv::Rect(0, 0, traffic_light_rect.cols, traffic_light_rect.rows));
@@ -45,6 +48,8 @@ void Visualization::init() {
     TiEV_car = cv::Mat(20, 9, CV_8UC3, TiEV_BLACK);
 
     cv::Mat car_img              = cv::imread(TiEV_car_jpg_path);
+    auto_start                   = cv::imread(TiEV_cfg_pics_path + "auto_start.jpg");
+    auto_end                     = cv::imread(TiEV_cfg_pics_path + "auto_end.jpg");
     traffic_light_gray_straight  = cv::imread(TiEV_traffic_light_path + "gray_straight.png");
     traffic_light_gray_left      = cv::imread(TiEV_traffic_light_path + "gray_left.png");
     traffic_light_gray_right     = cv::imread(TiEV_traffic_light_path + "gray_right.png");
@@ -54,6 +59,14 @@ void Visualization::init() {
     traffic_light_red_straight   = cv::imread(TiEV_traffic_light_path + "red_straight.png");
     traffic_light_red_left       = cv::imread(TiEV_traffic_light_path + "red_left.png");
     traffic_light_red_right      = cv::imread(TiEV_traffic_light_path + "red_right.png");
+    cv::resize(auto_start, auto_start, auto_rect.size(), 0, 0, cv::INTER_LANCZOS4);
+    cv::resize(auto_end, auto_end, auto_rect.size(), 0, 0, cv::INTER_LANCZOS4);
+    for(int r = 0; r < auto_rect.rows; ++r) {
+        for(int c = 0; c < auto_rect.cols; ++c) {
+            if((*auto_start.ptr<cv::Vec3b>(r, c))[0] > 200) *auto_start.ptr<cv::Vec3b>(r, c) = VEC_TiEV_BLACK;
+            if((*auto_end.ptr<cv::Vec3b>(r, c))[0] > 200) *auto_end.ptr<cv::Vec3b>(r, c)     = VEC_TiEV_BLACK;
+        }
+    }
     cv::resize(traffic_light_gray_left, traffic_light_gray_left, traffic_light_rect.size(), 0, 0, cv::INTER_LANCZOS4);
     cv::resize(traffic_light_gray_straight, traffic_light_gray_straight, traffic_light_rect.size(), 0, 0, cv::INTER_LANCZOS4);
     cv::resize(traffic_light_gray_right, traffic_light_gray_right, traffic_light_rect.size(), 0, 0, cv::INTER_LANCZOS4);
@@ -106,10 +119,6 @@ void Visualization::visualize() {
     remote_control.enabled = 0x00;
     while(!TiEV_Stop) {
         clear();
-        if(0x00 == remote_control.enabled)
-            print_text("!CarContolMode", "Manul", 2);
-        else
-            print_text("!CarContolMode", "Auto", 2);
         getTextInfo();
         draw_text_window();
         draw_planner_window();
@@ -122,8 +131,13 @@ void Visualization::visualize() {
         }
         else if(27 == key)
             remote_control.enabled = 0x00;
-        else if(32 == key)
+        else if(32 == key) {
             remote_control.enabled = 0x01;
+        }
+        if(remote_control.enabled)
+            auto_start.copyTo(auto_window);
+        else
+            auto_end.copyTo(auto_window);
         publishRemoteControl(remote_control);
     }
     cout << "Exit TiEV Visualization..." << endl;
@@ -314,18 +328,15 @@ bool Visualization::drawTrafficLight() {
     inner_handler.traffic_mtx.lock_shared();
     time_t current_time = getTimeStamp();
     if(current_time - inner_handler.update_time_traffic_light < TRAFFIC_LIGHT_TIMEOUT_US) {
-        int traffic_light_left     = inner_handler.tmp_traffic.turn_signal & 0x4;
-        int traffic_light_right    = inner_handler.tmp_traffic.turn_signal & 0x1;
-        int traffic_light_straight = inner_handler.tmp_traffic.turn_signal & 0x2;
-        if(inner_handler.tmp_traffic.turn_signal & 0x4)
+        if(inner_handler.tmp_traffic.left)
             traffic_light_green_left.copyTo(left_traffic_light_window);
         else
             traffic_light_red_left.copyTo(left_traffic_light_window);
-        if(inner_handler.tmp_traffic.turn_signal & 0x2)
+        if(inner_handler.tmp_traffic.forward)
             traffic_light_green_straight.copyTo(straight_traffic_light_window);
         else
             traffic_light_red_straight.copyTo(straight_traffic_light_window);
-        if(inner_handler.tmp_traffic.turn_signal & 0x1)
+        if(inner_handler.tmp_traffic.right)
             traffic_light_green_right.copyTo(right_traffic_light_window);
         else
             traffic_light_red_right.copyTo(right_traffic_light_window);
@@ -347,7 +358,7 @@ void Visualization::drawPathPlanner() {
     // 雷达地图
     bool lidar = drawLidarMap(left_map, right_map, 0);
     // 动态障碍物
-    bool dynamic = drawDynamicObjs(left_map, right_map, 0);
+    bool dynamic = drawDynamicObjs(left_map, right_map, 1);
     // 停车库位
     bool parking_spot = drawParkingLots(left_map, right_map, 0);
     // 视觉车道线
@@ -477,8 +488,9 @@ bool Visualization::drawDynamicObjs(cv::Mat& left_map, cv::Mat& right_map, int o
     assert(opt >= 0);
     assert(opt <= 2);
     time_t current_time = getTimeStamp();
+    inner_handler.objects_mtx.lock_shared();
     for(int i = 0; i < OBJECTS_SOURCE_NUM; ++i) {
-        inner_handler.objects_mtx.lock_shared();
+        std::cout << "SizeOfDynamic: " << inner_handler.tmp_objects[i].obj.size() << std::endl;
         if(current_time - inner_handler.update_time_objects[i] < OBJECT_LIST_TIMEOUT_US) {
             for(const auto& obj : inner_handler.tmp_objects[i].obj) {
                 vector<cv::Point> points;
@@ -498,7 +510,7 @@ bool Visualization::drawDynamicObjs(cv::Mat& left_map, cv::Mat& right_map, int o
                 vector<cv::Point> path;
                 for(int j = 0; j < obj.path.size(); ++j) {
                     int x = CAR_CEN_ROW - (obj.path[j].y - 1.48) / GRID_RESOLUTION;
-                    int y = CAR_CEN_COL - obj.path[j].x / GRID_RESOLUTION;
+                    int y = CAR_CEN_COL + obj.path[j].x / GRID_RESOLUTION;
                     path.emplace_back(cv::Point(y, x));
                 }
                 cv::Scalar dynamic_obj_color;
@@ -524,10 +536,8 @@ bool Visualization::drawDynamicObjs(cv::Mat& left_map, cv::Mat& right_map, int o
                 }
             }
         }
-        inner_handler.objects_mtx.unlock_shared();
-        return true;
     }
-    return false;
+    inner_handler.objects_mtx.unlock_shared();
 }
 
 // 绘制停车库位
@@ -577,25 +587,26 @@ bool Visualization::drawLanes(cv::Mat& left_map, cv::Mat& right_map, int opt) {
     time_t current_time = getTimeStamp();
     if(current_time - inner_handler.update_time_lanes < LANE_TIMEOUT_US) {
         inner_handler.lane_mtx.lock_shared();
-        for(const auto& lane : inner_handler.tmp_lanes.lanes) {
-            // 绘制停止线
-            if(lane.stop_point.x > 0) {
-                int left_line_back_x  = CAR_CEN_ROW - lane.left_line.points.back().y / GRID_RESOLUTION;
-                int left_line_back_y  = CAR_CEN_COL + lane.left_line.points.back().x / GRID_RESOLUTION;
-                int right_line_back_x = CAR_CEN_ROW - lane.right_line.points.back().y / GRID_RESOLUTION;
-                int right_line_back_y = CAR_CEN_COL + lane.right_line.points.back().x / GRID_RESOLUTION;
-                if(opt == 0) {
-                    cv::line(left_map, cv::Point(left_line_back_y, left_line_back_x), cv::Point(right_line_back_y, right_line_back_x), LANE_LINE_COLOR, 2);
-                }
-                else if(opt == 1) {
-                    cv::line(right_map, cv::Point(left_line_back_y, left_line_back_x), cv::Point(right_line_back_y, right_line_back_x), LANE_LINE_COLOR, 2);
-                }
-                else {
-                    cv::line(left_map, cv::Point(left_line_back_y, left_line_back_x), cv::Point(right_line_back_y, right_line_back_x), LANE_LINE_COLOR, 2);
-                    cv::line(right_map, cv::Point(left_line_back_y, left_line_back_x), cv::Point(right_line_back_y, right_line_back_x), LANE_LINE_COLOR, 2);
-                }
+        // draw stop line
+        if(inner_handler.tmp_lanes.stop_line.exist) {
+            vector<cv::Point> vis_stop_line;
+            for(const auto& stop_point : inner_handler.tmp_lanes.stop_line.stop_points) {
+                int x = CAR_CEN_ROW - stop_point.y / GRID_RESOLUTION;
+                int y = CAR_CEN_COL + stop_point.x / GRID_RESOLUTION;
+                vis_stop_line.push_back(cv::Point(y, x));
             }
-            if(lane.left_line.line_type & 0x01) {  // 左车道线为虚线
+            if(opt == 0)
+                cv::polylines(left_map, vis_stop_line, false, LANE_LINE_COLOR);
+            else if(opt == 1)
+                cv::polylines(right_map, vis_stop_line, false, LANE_LINE_COLOR);
+            else {
+                cv::polylines(left_map, vis_stop_line, false, LANE_LINE_COLOR);
+                cv::polylines(right_map, vis_stop_line, false, LANE_LINE_COLOR);
+            }
+        }
+
+        for(const auto& lane : inner_handler.tmp_lanes.lanes) {
+            if(lane.left_line.line_type == 1 || lane.left_line.line_type == 3) {  // 左车道线为虚线
                 vector<cv::Point> line;
                 for(const auto& point : lane.left_line.points) {
                     int x = CAR_CEN_ROW - point.y / GRID_RESOLUTION;
@@ -635,7 +646,7 @@ bool Visualization::drawLanes(cv::Mat& left_map, cv::Mat& right_map, int opt) {
                     cv::polylines(right_map, line, false, LANE_LINE_COLOR);
                 }
             }
-            if(lane.right_line.line_type & 0x01) {  // 右车道线为虚线
+            if(lane.right_line.line_type == 1 || lane.right_line.line_type == 3) {  // 右车道线为虚线
                 vector<cv::Point> line;
                 for(const auto& point : lane.right_line.points) {
                     int x = CAR_CEN_ROW - point.y / GRID_RESOLUTION;
@@ -885,7 +896,7 @@ void Visualization::msgReceiveUdp() {
     zcm_udp.subscribe("FUSIONMAP", &Handler::handleFUSIONMAP, &inner_handler);
     zcm_udp.subscribe("NAVINFO", &Handler::handleNAVINFO, &inner_handler);
     zcm_udp.subscribe("OBJECTLIST", &Handler::handleOBJECTLIST, &inner_handler);
-    zcm_udp.subscribe("TRAFFICLIGHT", &Handler::handleTRAFFICLIGHT, &inner_handler);
+    zcm_udp.subscribe("msgTrafficLightSignal", &Handler::handleTRAFFICLIGHT, &inner_handler);
     zcm_udp.subscribe("LANE_info", &Handler::handleLANES, &inner_handler);
     zcm_udp.subscribe("PARKINGSLOTS", &Handler::handlePARKINGSLOTS, &inner_handler);
     zcm_udp.subscribe("SLAMLOC", &Handler::handleSLAMLOC, &inner_handler);
@@ -905,14 +916,14 @@ void Visualization::Handler::handleFUSIONMAP(const zcm::ReceiveBuffer* rbuf, con
     lidar_mtx.unlock();
 }
 
-void Visualization::Handler::handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structTRAFFICLIGHT* msg) {
+void Visualization::Handler::handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgTrafficLightSignal* msg) {
     traffic_mtx.lock();
     tmp_traffic               = *msg;
     update_time_traffic_light = getTimeStamp();
     traffic_mtx.unlock();
 }
 
-void Visualization::Handler::handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structLANES* msg) {
+void Visualization::Handler::handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgRoadMarkingList* msg) {
     lane_mtx.lock();
     tmp_lanes         = *msg;
     update_time_lanes = getTimeStamp();

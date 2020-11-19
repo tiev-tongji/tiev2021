@@ -8,6 +8,7 @@
 #include "tievmsg.h"
 #include "visualization_msg.h"
 //#include <shared_mutex>
+#include <map>
 #include <thread>
 #include <thread>
 #include <tuple>
@@ -30,7 +31,7 @@ public:
     const static std::time_t NAV_INFO_TIMEOUT_US      = 1e6;
     const static std::time_t LIDAR_MAP_TIMEOUT_US     = 1e6;
     const static std::time_t LANE_TIMEOUT_US          = 2e5;
-    const static std::time_t TRAFFIC_LIGHT_TIMEOUT_US = 1e6;
+    const static std::time_t TRAFFIC_LIGHT_TIMEOUT_US = 2e6;
     const static std::time_t PARKING_SLOT_TIMEOUT_US  = 1e6;
     const static std::time_t OBJECT_LIST_TIMEOUT_US   = 1e6;
     const static std::time_t SLAM_LOC_TIMEOUT_US      = 1e6;
@@ -58,7 +59,8 @@ public:
 
     // 用于决策与规划等模块发送可视化信息至visualization
     visVISUALIZATION visualization;
-    void             publishVisualization();
+    map<string, string> text_info;
+    void publishVisualization();
     void setTargets(const vector<Pose>& targets);
     void setStartPoint(const Pose& start_point);
     void setSafeMap(double safe_map[MAX_ROW][MAX_COL]);
@@ -66,6 +68,9 @@ public:
     void setUsedMap(bool used_map[MAX_ROW][MAX_COL]);
     void clearPaths();
     void setSpeedPath(const SpeedPath& speed_path);
+    void clearTextInfo();
+    void addTextInfo(const string& name, const string& value);
+    void setTextInfo();
 
 private:
     MessageManager(){};
@@ -77,8 +82,8 @@ private:
         void handleFUSIONMAP(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structFUSIONMAP* msg);
         void handleRAINSIGNAL(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgRainDetectionSignal* msg);
         void handleOBJECTLIST(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structOBJECTLIST* msg);
-        void handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structTRAFFICLIGHT* msg);
-        void handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structLANES* msg);
+        void handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgTrafficLightSignal* msg);
+        void handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgRoadMarkingList* msg);
         void handlePARKINGSLOTS(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structPARKINGSLOTS* msg);
         void handleSLAMLOC(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structSLAMLOC* msg);
         void handleCANINFO(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structCANINFO* msg);
@@ -100,10 +105,10 @@ private:
         structFUSIONMAP        tmp_map;
         MsgRainDetectionSignal tmp_rain_signal;
         structOBJECTLIST       tmp_objects[OBJECTS_SOURCE_NUM];
-        structTRAFFICLIGHT     tmp_traffic;
+        MsgTrafficLightSignal  tmp_traffic;
         structSLAMLOC          tmp_slam_loc;
         structCANINFO          tmp_can_info;
-        structLANES            tmp_lanes;
+        MsgRoadMarkingList     tmp_lanes;
         structPARKINGSLOTS     tmp_slot;
     };
 

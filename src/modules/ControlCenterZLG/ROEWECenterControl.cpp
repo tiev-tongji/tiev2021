@@ -66,6 +66,7 @@ STATE ROEWEControl::init(){
     // 启动两个线程，分别为CAN消息接收线程与CAN消息发送线程
     INFO("Start to subscribe CAN0 info");
     static std::thread get_info(&ROEWEControl::get_can_info, this);
+	INFO("\n\n\nstart get_can_info thread\n\n\n");
     //get_info.join();
     usleep(100*1000);
     
@@ -85,7 +86,7 @@ void ROEWEControl::get_can_info(){
 	while(1){
 		uint32_t cnt = VCI_Receive(can_dev.devType, can_dev.devIndex, 
                           can_dev.channelNum, can, rcv_buff_size, rcv_wait_time);
-		printf("\ncnt = %d\n\n", cnt);
+		printf("\ncnt = %d\n", cnt);
 		for(int i = 0; i < cnt; i++){
 			switch(can[i].ID){
                 case 0x18B:

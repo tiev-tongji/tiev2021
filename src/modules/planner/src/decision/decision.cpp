@@ -1,31 +1,66 @@
 #include "decision.h"
+#include "Routing.h"
 #include "collision_check.h"
 #include "config.h"
 #include "map_manager.h"
-#include "tiev_fsm.h"
 #include "tiev_utils.h"
+#include <thread>
 #include <unistd.h>
 namespace TiEV {
+
 /**
  * 决策规划的线程
  */
 void runTiEVFSM() {
-    Config const* cfg = Config::getInstance();
+    MachineManager* mm  = MachineManager::getInstance();
+    Config const*   cfg = Config::getInstance();
     // map managet initialization
     MapManager* mapm = MapManager::getInstance();
-    mapm->readGlobalPathFile(cfg->roadmap_file);
+// mapm->readGlobalPathFile(cfg->roadmap_file);
+// Start a new thread for routing to update global path
+// #define routing
+#ifdef routing
+    thread routing_thread = thread(&MapManager::runRouting, mapm, 10000000, false);
+    routing_thread.detach();
+#endif
     // FSM...
-    Context       context;
-    FSM::Instance machine{ context };
+    // Context       context;
+    // FSM::Instance machine{ context };
     while(true) {
+        MessageManager* msgm = MessageManager::getInstance();
+        msgm->clearTextInfo();
+        time_t start_t = getTimeStamp();
         mapm->update();
-        context.update();  //更新途灵事件信息
-        machine.update();
+        mm->context.update();  //更新途灵事件信息
+        mm->machine.update();
+        cout << "machine active:" << mm->machine.isActive<NormalDriving>() << endl;
+        time_t end_t     = getTimeStamp();
+        int    time_cost = (end_t - start_t) / 1000;
+        msgm->addTextInfo("Time cost", to_string(time_cost));
+        if(mm->machine.isActive<NormalDriving>()) msgm->addTextInfo("FSM State", "NormalDriving");
+        if(mm->machine.isActive<BackTracking>()) msgm->addTextInfo("FSM State", "BackTracking");
+        if(mm->machine.isActive<Exploration>()) msgm->addTextInfo("FSM State", "Exploration");
+        if(mm->machine.isActive<FreeDriving>()) msgm->addTextInfo("FSM State", "FreeDriving");
+        if(mm->machine.isActive<GlobalPlanning>()) msgm->addTextInfo("FSM State", "GlobalPlanning");
+        if(mm->machine.isActive<GlobalReplanning>()) msgm->addTextInfo("FSM State", "GlobalReplanning");
+        if(mm->machine.isActive<IntersectionFreeDriving>()) msgm->addTextInfo("FSM State", "IntersectionFreeDriving");
+        if(mm->machine.isActive<LaneFreeDriving>()) msgm->addTextInfo("FSM State", "LaneFreeDriving");
+        if(mm->machine.isActive<ParkingPlanning>()) msgm->addTextInfo("FSM State", "ParkingPlanning");
+        if(mm->machine.isActive<ReplaceParkingPath>()) msgm->addTextInfo("FSM State", "ReplaceParkingPath");
+        if(mm->machine.isActive<SafeDriving>()) msgm->addTextInfo("FSM State", "SafeDriving");
+        if(mm->machine.isActive<SeekParkingSpot>()) msgm->addTextInfo("FSM State", "SeekParkingSpot");
+        if(mm->machine.isActive<SemiLaneFreeDriving>()) msgm->addTextInfo("FSM State", "SemiLaneFreeDriving");
+        if(mm->machine.isActive<Stop>()) msgm->addTextInfo("FSM State", "Stop");
+        if(mm->machine.isActive<TaskDecision>()) msgm->addTextInfo("FSM State", "TaskDecision");
+        if(mm->machine.isActive<TemporaryParkingPlanning>()) msgm->addTextInfo("FSM State", "TemporaryParkingPlanning");
+        if(mm->machine.isActive<TemporaryStop>()) msgm->addTextInfo("FSM State", "TemporaryStop");
+        if(mm->machine.isActive<Tracking>()) msgm->addTextInfo("FSM State", "Tracking");
         mapm->visualization();
     }
 }
 
 void sendPath() {
+    MachineManager* mm   = MachineManager::getInstance();
     MapManager*     mapm = MapManager::getInstance();
     MessageManager* msgm = MessageManager::getInstance();
     structAIMPATH   control_path;
@@ -33,6 +68,7 @@ void sendPath() {
     LidarMap        lidar;
     DynamicObjList  dynamic;
     RainSignal      rain_signal;
+    TrafficLight    traffic_light;
     unsigned char   lidar_map[MAX_ROW][MAX_COL];
     double          lidar_dis_map[MAX_ROW][MAX_COL];
     const int       dx[]  = { 0, 0, -1, 1, 1, 1, -1, -1 };
@@ -44,6 +80,7 @@ void sendPath() {
         msgm->getNavInfo(nav_info);
         msgm->getDynamicObjList(dynamic);
         msgm->getRainSignal(rain_signal);
+        msgm->getTrafficLight(traffic_light);
         // for lidar map and lidar dis map
         for(int r = 0; r < MAX_ROW; ++r) {
             for(int c = 0; c < MAX_COL; ++c) {
@@ -87,6 +124,29 @@ void sendPath() {
         // get maintained path
         vector<Pose> maintained_path = mapm->getMaintainedPath(nav_info);
         // run speed planner
+        double        max_speed      = mapm->getCurrentMapSpeed();
+        HDMapMode     road_mode      = mapm->getCurrentMapMode();
+        RoadDirection road_direction = mapm->getCurrentRoadDirection();
+
+        if(road_mode == HDMapMode::INTERSECTION_SOLID || road_mode == HDMapMode::INTERSECTION || road_mode == HDMapMode::PARKING) max_speed = mapm->getSpeedBySpeedMode(HDMapSpeed::LOW);
+        // add stop line
+        if(road_mode == HDMapMode::INTERSECTION_SOLID && traffic_light.detected) {
+            if((road_direction == RoadDirection::LEFT && !traffic_light.left) || (road_direction == RoadDirection::STRAIGHT && !traffic_light.straight)
+               || (road_direction == RoadDirection::RIGHT && !traffic_light.right)) {
+                HDMapPoint stop_line = mapm->getStopLine();
+                for(int i = 1; i <= stop_line.lane_num; ++i) {
+                    double     dis             = (i - stop_line.lane_seq) * stop_line.lane_width;
+                    Pose       other_stop_line = stop_line.getLateralPose(dis);
+                    DynamicObj dummy_obj;
+                    dummy_obj.width  = 1.5;
+                    dummy_obj.length = 3;
+                    dummy_obj.path.emplace_back(other_stop_line.x, other_stop_line.y, stop_line.ang, 0, 0, 0);
+                    dynamic.dynamic_obj_list.push_back(dummy_obj);
+                }
+            }
+        }
+        if(mm->machine.isActive<TemporaryParkingFSM>()) max_speed                           = mapm->getSpeedBySpeedMode(HDMapSpeed::VERY_LOW);
+        if(mm->machine.isActive<TemporaryStop>() || mm->machine.isActive<Stop>()) max_speed = 0;
         vector<pair<double, double>> speed_limits;
         bool add_collision_dynamic = false;
         for(const auto& p : maintained_path) {
@@ -98,9 +158,12 @@ void sendPath() {
                 dummy_obj.path.emplace_back(p.x, p.y, p.ang, 0, 0, 0);
                 dynamic.dynamic_obj_list.push_back(dummy_obj);
             }
-            speed_limits.emplace_back(p.s, min(sqrt(GRAVITY * MIU / (fabs(p.k) + 0.0001)), mapm->getCurrentMapSpeed()));
+            if(p.backward)
+                speed_limits.emplace_back(p.s, min(sqrt(GRAVITY * MIU / (fabs(p.k) + 0.0001)) * 0.7, 2.0));
+            else
+                speed_limits.emplace_back(p.s, min(sqrt(GRAVITY * MIU / (fabs(p.k) + 0.0001)) * 0.7, max_speed));
         }
-        if(!maintained_path.empty()) maintained_path.front().v = nav_info.current_speed;
+        if(!maintained_path.empty()) maintained_path.front().v = fabs(nav_info.current_speed);
         SpeedPath speed_path;
         if(!maintained_path.empty()) speed_path = SpeedOptimizer::RunSpeedOptimizer(dynamic.dynamic_obj_list, maintained_path, speed_limits, maintained_path.back().s);
         // send control trojectory
@@ -108,18 +171,19 @@ void sendPath() {
         control_path.num_points = speed_path.path.size();
         for(const auto& p : speed_path.path) {
             TrajectoryPoint tp;
-            tp.x                = (CAR_CEN_ROW - p.x)*GRID_RESOLUTION;
-            tp.y                = (CAR_CEN_COL - p.y)*GRID_RESOLUTION;
-            cout << "tp x y: x=" << tp.x << " y=" << tp.y << endl;
-            tp.theta            = p.ang - PI;
-            while(tp.theta > PI) tp.theta -= 2*PI;
-            while(tp.theta <= -PI) tp.theta += 2*PI;
-            tp.a                = p.a;
-            tp.k                = p.k;
-            tp.t                = p.t;
-            tp.v                = p.v;
+            tp.x     = (CAR_CEN_ROW - p.x) * GRID_RESOLUTION;
+            tp.y     = (CAR_CEN_COL - p.y) * GRID_RESOLUTION;
+            tp.theta = p.ang - PI;
+            while(tp.theta > PI)
+                tp.theta -= 2 * PI;
+            while(tp.theta <= -PI)
+                tp.theta += 2 * PI;
+            tp.a                                     = p.a;
+            tp.k                                     = p.k;
+            tp.t                                     = p.t;
+            tp.v                                     = p.v;
             if(tp.v < 0.5 && tp.v > 0.00000001) tp.v = 0.5;
-            if(p.backward) tp.v = -tp.v;
+            if(p.backward) tp.v                      = -tp.v;
             control_path.points.push_back(tp);
         }
         msgm->publishPath(control_path);
@@ -142,13 +206,31 @@ void sendPath() {
 void requestGlobalPathFromMapServer() {
     time_t          start_time = getTimeStamp();
     MessageManager* msg_m      = MessageManager::getInstance();
+    MapManager*     map_m      = MapManager::getInstance();
+    Routing*        routing    = Routing::getInstance();
     NavInfo         nav_info;
+    vector<Task>    task_list;
     while(true) {
         msg_m->getNavInfo(nav_info);
-        if(getTimeStamp() - start_time < 15e6) {
-            usleep(15e6 + start_time - getTimeStamp());
+        if(getTimeStamp() - start_time < 5e6) {
+            usleep(5e6 + start_time - getTimeStamp());
         }
         start_time = getTimeStamp();
+        vector<HDMapPoint> tmp_global_path;
+        HDMapMode          road_mode = map_m->getCurrentMapMode();
+        if(!nav_info.detected || road_mode == HDMapMode::INTERSECTION || road_mode == HDMapMode::INTERSECTION_SOLID) continue;
+        Task current_pos;
+        current_pos.lon_lat_position.lon = nav_info.lon;
+        current_pos.lon_lat_position.lat = nav_info.lat;
+        task_list.clear();
+        task_list.push_back(current_pos);
+        task_list.push_back(map_m->getCurrentTasks().back());
+        int cost = routing->findReferenceRoad(tmp_global_path, task_list, false);
+        if(cost == -1) continue;
+        cout << "Cost of global path: " << cost << endl;
+        if(true) {  // TODO: When to replace?
+            map_m->setGlobalPath(tmp_global_path);
+        }
     }
 }
 }  // namespace TiEV

@@ -4,7 +4,6 @@
 #include <mutex>
 #include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
-#include <shared_mutex>
 #include <string>
 #include <vector>
 #include <zcm/zcm-cpp.hpp>
@@ -135,6 +134,10 @@ private:
     cv::Mat traffic_light_yellow_straight;
     cv::Mat traffic_light_yellow_left;
     cv::Mat traffic_light_yellow_right;
+    cv::Mat auto_rect;
+    cv::Mat auto_window;
+    cv::Mat auto_start;
+    cv::Mat auto_end;
 
     cv::Mat text_window;
     cv::Mat speed_view_window;
@@ -186,7 +189,7 @@ private:
     const static time_t SLAM_LOC_TIMEOUT_US      = 1e6;
     const static time_t LIDAR_MAP_TIMEOUT_US     = 1e6;
     const static time_t LANE_TIMEOUT_US          = 2e5;
-    const static time_t TRAFFIC_LIGHT_TIMEOUT_US = 1e6;
+    const static time_t TRAFFIC_LIGHT_TIMEOUT_US = 2e6;
     const static time_t PARKING_SLOT_TIMEOUT_US  = 1e6;
     const static time_t VISUALIZATION_TIMEOUT_US = 1e6;
     const static time_t OBJECT_LIST_TIMEOUT_US   = 1e6;
@@ -197,8 +200,8 @@ private:
     public:
         void handleNAVINFO(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structNAVINFO* msg);
         void handleFUSIONMAP(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structFUSIONMAP* msg);
-        void handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structTRAFFICLIGHT* msg);
-        void handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structLANES* msg);
+        void handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgTrafficLightSignal* msg);
+        void handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgRoadMarkingList* msg);
         void handlePARKINGSLOTS(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structPARKINGSLOTS* msg);
         void handleOBJECTLIST(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structOBJECTLIST* msg);
         void handleSLAMLOC(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structSLAMLOC* msg);
@@ -213,15 +216,15 @@ private:
         time_t update_time_parking_slots;
         time_t update_time_visualization;
 
-        shared_mutex       nav_mtx, slam_loc_mtx, lidar_mtx, objects_mtx, traffic_mtx, lane_mtx, parking_lots_mtx, visualization_mtx;
-        structNAVINFO      tmp_nav;
-        structSLAMLOC      tmp_slam_loc;
-        structFUSIONMAP    tmp_lidar_map;
-        structTRAFFICLIGHT tmp_traffic;
-        structOBJECTLIST   tmp_objects[OBJECTS_SOURCE_NUM];
-        structLANES        tmp_lanes;
-        structPARKINGSLOTS tmp_slot;
-        visVISUALIZATION   tmp_visualization;
+        shared_mutex          nav_mtx, slam_loc_mtx, lidar_mtx, objects_mtx, traffic_mtx, lane_mtx, parking_lots_mtx, visualization_mtx;
+        structNAVINFO         tmp_nav;
+        structSLAMLOC         tmp_slam_loc;
+        structFUSIONMAP       tmp_lidar_map;
+        MsgTrafficLightSignal tmp_traffic;
+        structOBJECTLIST      tmp_objects[OBJECTS_SOURCE_NUM];
+        MsgRoadMarkingList    tmp_lanes;
+        structPARKINGSLOTS    tmp_slot;
+        visVISUALIZATION      tmp_visualization;
     };
 
     Handler  inner_handler;

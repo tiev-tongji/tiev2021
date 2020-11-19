@@ -6,27 +6,32 @@
 
 #include <zcm/zcm_coretypes.h>
 
-#ifndef __structLANES_hpp__
-#define __structLANES_hpp__
+#ifndef __MsgRoadMarkingList_hpp__
+#define __MsgRoadMarkingList_hpp__
 
 #include <vector>
-#include "LANE.hpp"
+#include "Lane.hpp"
+#include "StopLine.hpp"
 
 
-class structLANES
+class MsgRoadMarkingList
 {
     public:
         int32_t    current_lane_id;
 
         int32_t    num;
 
-        std::vector< LANE > lanes;
+        std::vector< Lane > lanes;
+
+        StopLine   stop_line;
+
+        int8_t     boundary_detected;
 
     public:
         /**
          * Destructs a message properly if anything inherits from it
         */
-        virtual ~structLANES() {}
+        virtual ~MsgRoadMarkingList() {}
 
         /**
          * Encode a message into binary form.
@@ -63,7 +68,7 @@ class structLANES
         inline static int64_t getHash();
 
         /**
-         * Returns "structLANES"
+         * Returns "MsgRoadMarkingList"
          */
         inline static const char* getTypeName();
 
@@ -74,7 +79,7 @@ class structLANES
         inline static uint64_t _computeHash(const __zcm_hash_ptr* p);
 };
 
-int structLANES::encode(void* buf, uint32_t offset, uint32_t maxlen) const
+int MsgRoadMarkingList::encode(void* buf, uint32_t offset, uint32_t maxlen) const
 {
     uint32_t pos = 0;
     int thislen;
@@ -89,7 +94,7 @@ int structLANES::encode(void* buf, uint32_t offset, uint32_t maxlen) const
     return pos;
 }
 
-int structLANES::decode(const void* buf, uint32_t offset, uint32_t maxlen)
+int MsgRoadMarkingList::decode(const void* buf, uint32_t offset, uint32_t maxlen)
 {
     uint32_t pos = 0;
     int thislen;
@@ -105,23 +110,23 @@ int structLANES::decode(const void* buf, uint32_t offset, uint32_t maxlen)
     return pos;
 }
 
-uint32_t structLANES::getEncodedSize() const
+uint32_t MsgRoadMarkingList::getEncodedSize() const
 {
     return 8 + _getEncodedSizeNoHash();
 }
 
-int64_t structLANES::getHash()
+int64_t MsgRoadMarkingList::getHash()
 {
     static int64_t hash = _computeHash(NULL);
     return hash;
 }
 
-const char* structLANES::getTypeName()
+const char* MsgRoadMarkingList::getTypeName()
 {
-    return "structLANES";
+    return "MsgRoadMarkingList";
 }
 
-int structLANES::_encodeNoHash(void* buf, uint32_t offset, uint32_t maxlen) const
+int MsgRoadMarkingList::_encodeNoHash(void* buf, uint32_t offset, uint32_t maxlen) const
 {
     uint32_t pos = 0;
     int thislen;
@@ -137,10 +142,16 @@ int structLANES::_encodeNoHash(void* buf, uint32_t offset, uint32_t maxlen) cons
         if(thislen < 0) return thislen; else pos += thislen;
     }
 
+    thislen = this->stop_line._encodeNoHash(buf, offset + pos, maxlen - pos);
+    if(thislen < 0) return thislen; else pos += thislen;
+
+    thislen = __boolean_encode_array(buf, offset + pos, maxlen - pos, &this->boundary_detected, 1);
+    if(thislen < 0) return thislen; else pos += thislen;
+
     return pos;
 }
 
-int structLANES::_decodeNoHash(const void* buf, uint32_t offset, uint32_t maxlen)
+int MsgRoadMarkingList::_decodeNoHash(const void* buf, uint32_t offset, uint32_t maxlen)
 {
     uint32_t pos = 0;
     int thislen;
@@ -157,10 +168,16 @@ int structLANES::_decodeNoHash(const void* buf, uint32_t offset, uint32_t maxlen
         if(thislen < 0) return thislen; else pos += thislen;
     }
 
+    thislen = this->stop_line._decodeNoHash(buf, offset + pos, maxlen - pos);
+    if(thislen < 0) return thislen; else pos += thislen;
+
+    thislen = __boolean_decode_array(buf, offset + pos, maxlen - pos, &this->boundary_detected, 1);
+    if(thislen < 0) return thislen; else pos += thislen;
+
     return pos;
 }
 
-uint32_t structLANES::_getEncodedSizeNoHash() const
+uint32_t MsgRoadMarkingList::_getEncodedSizeNoHash() const
 {
     uint32_t enc_size = 0;
     enc_size += __int32_t_encoded_array_size(NULL, 1);
@@ -168,19 +185,22 @@ uint32_t structLANES::_getEncodedSizeNoHash() const
     for (int a0 = 0; a0 < this->num; ++a0) {
         enc_size += this->lanes[a0]._getEncodedSizeNoHash();
     }
+    enc_size += this->stop_line._getEncodedSizeNoHash();
+    enc_size += __boolean_encoded_array_size(NULL, 1);
     return enc_size;
 }
 
-uint64_t structLANES::_computeHash(const __zcm_hash_ptr* p)
+uint64_t MsgRoadMarkingList::_computeHash(const __zcm_hash_ptr* p)
 {
     const __zcm_hash_ptr* fp;
     for(fp = p; fp != NULL; fp = fp->parent)
-        if(fp->v == structLANES::getHash)
+        if(fp->v == MsgRoadMarkingList::getHash)
             return 0;
-    const __zcm_hash_ptr cp = { p, (void*)structLANES::getHash };
+    const __zcm_hash_ptr cp = { p, (void*)MsgRoadMarkingList::getHash };
 
-    uint64_t hash = (uint64_t)0x88b27e6f5c7b0044LL +
-         LANE::_computeHash(&cp);
+    uint64_t hash = (uint64_t)0x733c4689a2969b5fLL +
+         Lane::_computeHash(&cp) +
+         StopLine::_computeHash(&cp);
 
     return (hash<<1) + ((hash>>63)&1);
 }

@@ -12,6 +12,7 @@
   */
 #include <iostream>
 #include <unistd.h>
+#include <math.h>
 
 #include "ControlCenterCommon.h"
 #include "ROEWECenterControl.h"
@@ -60,19 +61,20 @@ int main(){
     bool is_break = false;
     float speed_torque = 0;
     float angle_torque = 0;
-    float pitch_max = 0;
+    // float pitch_max = 0;
 
     veh_info_t veh_info;
     while(1){
         // 获取ZCM发送过来的信息
-        pitch_max = veh_nav_info.angle_pitch;
+        // pitch_max = veh_nav_info.angle_pitch;
         msgControl.get_remote_control_msg(&enable_pc_control);
+        enable_pc_control = true;
         msgControl.get_veh_control_msg(&veh_pc_control_info);
         msgControl.get_nav_info_msg(&veh_nav_info);
         INFO("enable_pc_control:" << (int)enable_pc_control); 
-        if (veh_nav_info.angle_pitch > pitch_max)
-        pitch_max = veh_nav_info.angle_pitch;
-        std::cout << "angle_pitch:" << veh_nav_info.angle_pitch << "/tpitch_max:" << pitch_max << std::endl;
+        // if (veh_nav_info.angle_pitch > pitch_max)
+        // pitch_max = veh_nav_info.angle_pitch;
+        // std::cout << "angle_pitch:" << veh_nav_info.angle_pitch << "/tpitch_max:" << pitch_max << std::endl;
         //enable_pc_control = true;
         //veh_pc_control_info.speed = 0;
         //veh_pc_control_info.angle = 0;
@@ -100,18 +102,20 @@ int main(){
         DCUMessage dcuMsg;
         //std::cout<< "isbreak: " << is_break << std:endl;
         //std::cout<< "speed_torque: " << speed_torque << std:endl;
-        if(is_break == true){
-            dcuMsg.AimPressure = speed_torque;
+        if(is_break == true && enable_pc_control){
+            dcuMsg.AimPressure = fmin(80.0, fabs(speed_torque));
             speed_torque = 0;
         }
         // 油门控制
         else{
-            dcuMsg.AimPressure = 1; //john: verify
+            dcuMsg.AimPressure = 0; //john: verify
         }
         ehb_control.sendDCUMessage(dcuMsg);
         if(!enable_pc_control){
             dcuMsg.AimPressure = 0;
         }
+        speed_torque = 0;
+        angle_torque = 500;
         veh_control.send_vehicle_control_info(speed_torque, angle_torque);
         veh_control.enable_vehicle_control(enable_pc_control);
 

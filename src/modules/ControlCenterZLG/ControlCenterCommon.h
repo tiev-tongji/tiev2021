@@ -43,7 +43,8 @@ typedef struct control_params{
 	float acc_P = 0;
 	float acc_I = 0;
 	float acc_D = 0;
-	
+	float acc_FF = 0;
+
 	float break_P = 0;
 	float break_I = 0;
 	float break_D = 0;
@@ -52,6 +53,8 @@ typedef struct control_params{
 	float steer_P = 0;
 	float steer_I = 0;
 	float steer_D = 0;
+	float steer_valve= 0;
+	float steer_change_coe = 0;
 } control_params_t;
 
 typedef struct nav_info{
@@ -82,6 +85,7 @@ inline STATE load_params_file(const std::string& params_file, control_params_t* 
 		assign_params(name, number, "acc_P", &params->acc_P);
 		assign_params(name, number, "acc_I", &params->acc_I);
 		assign_params(name, number, "acc_D", &params->acc_D);
+		assign_params(name, number, "acc_FF", &params->acc_FF);
 		assign_params(name, number, "break_P", &params->break_P);
 		assign_params(name, number, "break_I", &params->break_I);
 		assign_params(name, number, "break_D", &params->break_D);
@@ -89,6 +93,8 @@ inline STATE load_params_file(const std::string& params_file, control_params_t* 
 		assign_params(name, number, "steer_P", &params->steer_P);
 		assign_params(name, number, "steer_I", &params->steer_I);
 		assign_params(name, number, "steer_D", &params->steer_D);
+		assign_params(name, number, "steer_valve", &params->steer_valve);
+		assign_params(name, number, "steer_change_coe", &params->steer_change_coe);
 	}
 
 	return CC_OK;

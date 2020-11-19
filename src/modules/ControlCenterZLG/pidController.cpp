@@ -33,6 +33,7 @@ static float P_angle_old = 0;
 static float I_angle = 0;
 
 static float I_speed_limit = 300; // 2*50hz*3s
+static float I_angle_limit = 3000; // 2*50hz*3s
 
 // 默认正负一致
 inline void clamp(float& input, const float& hi){
@@ -47,7 +48,8 @@ inline void clamp(float& input, const float& hi){
 
 //STATE speed_pid_control(const float& veh_speed, float& desired_speed, const control_params_t& params, bool* is_break, float* control_output){
 STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& angle_pitch, const control_params_t& params, bool* is_break, float* control_output){
-        float FF_valve = 0;
+        float FF_valve = 2;
+	float FF_valve_throttle = 2;
         std::cout << "acc_P: " << params.acc_P << std::endl;
 	if(desired_speed == 0 || veh_speed * desired_speed < 0){
 	    INFO("stop car right now!");
@@ -88,12 +90,16 @@ STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& ang
     clamp(P_speed, veh_limit_speed_change);
 
     // 有一定速度后，才开始使用积分
-	//if (fabs(P_speed) > 1)
-		I_speed = I_speed + P_speed;
-	//	I_speed = I_speed + P_speed;
-	//else{
-	//	I_speed = 0;
-	//}
+	if (fabs(veh_speed) == 0){
+		if(I_speed >= 300) I_speed = 0;
+		else I_speed = I_speed + P_speed;
+	}
+	else{
+		if (fabs(P_speed) > 1)
+			I_speed = I_speed + P_speed;
+		else
+			I_speed = 0;
+	}
     // 50HZ
     clamp(I_speed, I_speed_limit);
     //INFO("I_Speed: " << I_speed);
@@ -106,14 +112,21 @@ STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& ang
     // 速度为正时，期望速度大于实际速度，加速
     // 速度为负时，期望速度小于实际速度，后退加速
     // TODO: 速度超过一点点如何处理？
+// INFO("------------------------------------------P_speed:" << P_speed << " veh_speed:" << veh_speed << " veh_break_enable:" << veh_break_enable);
     if(P_speed * veh_speed >= 0 || fabs(P_speed) < veh_break_enable){
         *is_break = false;
         float P_contribute = P_speed * params.acc_P;
         float I_contribute = I_speed * params.acc_I;
         float D_contribute = D_speed * params.acc_D;
-        *control_output = P_contribute + I_contribute + D_contribute;
+	float FF_contribute_throttle = 0;
+	if (angle_pitch > FF_valve_throttle)	 
+		FF_contribute_throttle = angle_pitch * (params.acc_FF );
+	else if (angle_pitch < -FF_valve_throttle){
+		FF_contribute_throttle = angle_pitch * (params.break_FF);
+	}
+        *control_output = FF_contribute_throttle + P_contribute + I_contribute + D_contribute;
 
-        INFO("ACC INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", " << "D: " << D_contribute);
+        INFO("ACC INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", " << "D: " << D_contribute << "," << "FF:" << FF_contribute_throttle);
     }
     // 需要进行减速处理
     else{
@@ -123,13 +136,15 @@ STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& ang
         float D_contribute = D_speed * params.break_D;
         //*control_output = -(P_contribute + I_contribute + D_contribute);
         float feedfoward_contribute = 0;
-        if (angle_pitch > FF_valve){
-        float feedfoward_contribute = angle_pitch * params.break_FF;
-        }
+	if (angle_pitch > FF_valve_throttle)	 
+		feedfoward_contribute = -angle_pitch * (params.acc_FF );
+	else if (angle_pitch < -FF_valve_throttle){
+		feedfoward_contribute = -angle_pitch * (params.break_FF);
+	}
         *control_output = -(feedfoward_contribute + P_contribute + I_contribute + D_contribute);
 
         //INFO("BREAK INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", " << "D: " << D_contribute);
-        INFO("BREAK INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", " << "D: " << D_contribute  << ", " << "D: " << D_contribute << ", " << "FF: " << feedfoward_contribute);
+        INFO("BREAK INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", " << "D: " << D_contribute << ", " << "FF: " << feedfoward_contribute);
     }
     
     return CC_OK;
@@ -138,7 +153,9 @@ STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& ang
 STATE angle_pid_control(const veh_info_t& veh_info, float& desired_angle, const control_params_t& params, float* control_output){
     
     // 正常模式计算
+	float k = 1;
     float P_angle = desired_angle - veh_info.angle;
+	if(fabs(P_angle) > params.steer_valve) k = params.steer_change_coe;
     
     if(veh_info.speed >= 40){
         // 速度较高时，最大转角限制
@@ -151,23 +168,25 @@ STATE angle_pid_control(const veh_info_t& veh_info, float& desired_angle, const 
 	}
 
     // 几乎处于停止状态时，不进行积分
-    if(veh_info.speed < veh_stop_speed){
+    if(veh_info.speed < veh_stop_speed || fabs(P_angle) < 20){
         I_angle = 0;
     }
     else{
         // 积分处理
         I_angle += P_angle;
     }
+    clamp(I_angle, I_angle_limit);
 
     // 微分项处理
     float D_angle= P_angle - P_angle_old;
     P_angle_old = P_angle;
 
-    float P_contribute = P_angle * params.steer_P;
+    float P_contribute = P_angle * params.steer_P * k;
     float I_contribute = I_angle * params.steer_I;
     float D_contribute = D_angle * params.steer_D;
 
     DEBUG("ANGLE INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", " << "D: " << D_contribute);
+    DEBUG("ANGLE INFO ==> desired_angle:" << desired_angle << " veh_ang:" << veh_info.angle << " P_angle:" << P_angle);
 
     *control_output = P_contribute + I_contribute + D_contribute;
     

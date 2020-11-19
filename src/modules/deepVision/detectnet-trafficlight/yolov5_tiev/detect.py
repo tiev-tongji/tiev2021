@@ -66,8 +66,8 @@ def detect(save_img=False):
     img = torch.zeros((1, 3, imgsz, imgsz), device=device)  # init img
     _ = model(img.half() if half else img) if device.type != 'cpu' else None  # run once
 
-    # count 20 times before change to true 
-    LimitCountNum = 20
+    # count 40 times before change to true 
+    LimitCountNum = 40
     countLeft = 0
     countForward = 0
     countRight = 0
@@ -113,16 +113,29 @@ def detect(save_img=False):
                 forward = True
                 right = True
                 # Print results
+                #for c in det[:, -1].unique():
+                #    n = (det[:, -1] == c).sum()  # detections per class
+                #    s += '%g %ss, ' % (n, names[int(c)])  # add to string
+
+                # START
+                noLeft = True
                 for c in det[:, -1].unique():
-                    n = (det[:, -1] == c).sum()  # detections per class
-                    s += '%g %ss, ' % (n, names[int(c)])  # add to string
-                    if c == 2 or c == 11:   # 2:'redCircle', 11:'redForward'
+                    if c in [3,4,5]:
+                        noLeft = False
+                for c in det[:, -1].unique():
+                    if noLeft and c == 2:
+                        forward = False
+                        left = False
+                    elif not noLeft and c == 2:
+                        forward = False
+                    elif c == 11:   # 2:'redCircle', 11:'redForward'
                         forward = False
                     elif c == 5:                     # 5:'redLeft'
                         left = False
                     elif c == 8:                     # 8:'redRight'
                         right = False
-
+                # END
+                
                 if left == False:
                     countLeft = LimitCountNum
                 elif lastLeft == False:
@@ -205,7 +218,7 @@ if __name__ == '__main__':
     parser.add_argument('--source', type=str, default='inference/images', help='source')  # file/folder, 0 for webcam
     parser.add_argument('--output', type=str, default='inference/output', help='output folder')  # output folder
     parser.add_argument('--img-size', type=int, default=640, help='inference size (pixels)')
-    parser.add_argument('--conf-thres', type=float, default=0.40, help='object confidence threshold')
+    parser.add_argument('--conf-thres', type=float, default=0.4, help='object confidence threshold')
     parser.add_argument('--iou-thres', type=float, default=0.45, help='IOU threshold for NMS')
     parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--view-img', action='store_true', help='display results')
