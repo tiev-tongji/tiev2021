@@ -114,8 +114,6 @@ int main(){
         if(!enable_pc_control){
             dcuMsg.AimPressure = 0;
         }
-        speed_torque = 0;
-        angle_torque = 500;
         veh_control.send_vehicle_control_info(speed_torque, angle_torque);
         veh_control.enable_vehicle_control(enable_pc_control);
 
