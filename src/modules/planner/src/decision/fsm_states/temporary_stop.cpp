@@ -30,8 +30,8 @@ void TemporaryStop::update(FullControl& control) {
         flag_parking = true;
     else {
         task_list.push_back(current_tasks.back());
-        int cost = routing->findReferenceRoad(tmp_global_path, task_list, false);
-        if(current_tasks.back().on_or_off) {  // On
+        int cost = routing->findReferenceRoad(tmp_global_path, task_list, false);  // TODO: *3 off-on-off-parking
+        if(current_tasks.back().on_or_off) {                                       // On
             time_t now_time = getTimeStamp();
             time_t end_time = Config::getInstance()->end_time;
             if(now_time + cost * 1e6 > end_time) {
