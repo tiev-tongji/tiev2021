@@ -22,7 +22,7 @@
 #define IP_IMU "195.0.0.84" //No use in UDP
 #define PORT_IMU 3000
 #define SIZE_BUF 72
-#define WAITOUT 150
+#define WAITOUT 500 //10 seconds
 
 using namespace std;
 using namespace TiEV;
@@ -208,7 +208,10 @@ void reportfunc(NComRxC *nrx, bool bReport, zcm::ZCM &zcm_publish)
 		// cout<<"nrx->mPDOP: " << nrx->mPDOP <<endl;
 		// cout<<"nrx->mHDOP: " << nrx->mHDOP <<endl;
 
-		if (nrx->mIsLatValid && nrx->mGpsNumObs >= 5) //if contain valid data
+		bool rtkValid = is_RTK_valid(nrx);
+
+		//if (nrx->mIsLatValid && nrx->mGpsNumObs >= 5) //if contain valid data
+		if (rtkValid && rtkstatusnumber == 0)
 		{
 			// cout<<"if (nrx->mIsLatValid) "<<endl;
 			navinfo.mLat = nrx->mLat;
@@ -317,8 +320,8 @@ void reportfunc(NComRxC *nrx, bool bReport, zcm::ZCM &zcm_publish)
 
 		int finalrtkstatus = 0;
 		// prevent the sudden switch to rtk
-		bool rtkValid = is_RTK_valid(nrx);
 		//if (0 == rtkstatusnumber && navinfo.mHPOSAccuracy < 0.3 && rtkValid)
+		cout <<"rtkstatusnumber = :" << rtkstatusnumber << endl;
 		if (0 == rtkstatusnumber && navinfo.mHPOSAccuracy < 0.3 && rtkValid)
 		{
 			finalrtkstatus = 1;
@@ -326,7 +329,7 @@ void reportfunc(NComRxC *nrx, bool bReport, zcm::ZCM &zcm_publish)
 		}
 		else
 		{ //rtk lost
-			if (navinfo.mHPOSAccuracy < 0.5 && rtkValid)
+			if (navinfo.mHPOSAccuracy < 0.3 && rtkValid)
 			{ //prevent the sudden switch to rtk
 				rtkstatusnumber--;
 			}
