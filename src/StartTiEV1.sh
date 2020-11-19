@@ -15,7 +15,7 @@ gnome-terminal -x bash -c "cd /home/autolab/tiev2020-code/src/modules/planner/bu
 
 gnome-terminal -x bash -c "cd /home/autolab/tiev2020-code/src/modules/Trajectory_Controller/build;./trajectory_controller;exec bash;"
 
-gnome-terminal -x bash -c "cd /home/autolab/tiev2020-code/src/modules/vision/RoadmarkingDect/;python3 road_marking_dect_online.py;exec bash;"
+gnome-terminal -x bash -c "cd /home/autolab/tiev2020/src/modules/vision/Roadmarking/;python3 road_marking_dect.py;exec bash;"
 
 gnome-terminal -x bash -c "cd /home/autolab/tiev2020-code/src/modules/SurroundVisionSlotDetection/;python3 main.py;exec bash;"
 

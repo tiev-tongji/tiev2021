@@ -129,6 +129,9 @@ void sendPath() {
         RoadDirection road_direction = mapm->getCurrentRoadDirection();
 
         if(road_mode == HDMapMode::INTERSECTION_SOLID || road_mode == HDMapMode::INTERSECTION || road_mode == HDMapMode::PARKING) max_speed = mapm->getSpeedBySpeedMode(HDMapSpeed::LOW);
+        if(mm->machine.isActive<SafeDriving>() || mm->machine.isActive<IntersectionFreeDriving>()) {
+            mapm->addPedestrian(dynamic, mapm->getForwardRefPath());
+        }
         // add stop line
         if(road_mode == HDMapMode::INTERSECTION_SOLID && traffic_light.detected) {
             if((road_direction == RoadDirection::LEFT && !traffic_light.left) || (road_direction == RoadDirection::STRAIGHT && !traffic_light.straight)

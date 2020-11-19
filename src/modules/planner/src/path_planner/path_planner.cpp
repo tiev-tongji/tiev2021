@@ -72,14 +72,12 @@ void PathPlanner::setStartMaintainedPath(const vector<Pose>& start_maintained_pa
     this->start_maintained_path.clear();
     this->start_maintained_path = start_maintained_path;
     for(auto& p : this->start_maintained_path) {
-        cout << "target maintained:" << p << endl;
         p.v = inf;
     }
     if(!start_maintained_path.empty()) start_point = start_maintained_path.back();
     if(!start_point.in_map() || start_maintained_path.empty()) {
         start_point = Pose(CAR_CEN_ROW, CAR_CEN_COL, PI);
     }
-    cout << "target start:" << start_point << endl;
 }
 
 void PathPlanner::setTargets(const vector<Pose>& targets) {
@@ -482,8 +480,6 @@ int PathPlanner::aStarAnalyticExpansionsInterval(double distance) {
 
 bool PathPlanner::aStarAnalyticExpansion(int target_index, const astate& state, vector<astate>& expansion_states, double radius) {
     expansion_states.clear();
-    cout << "rsc: start point:" << state.x << " " << state.y << " " << state.a << endl;
-    cout << "rsc: target point:" << targets[target_index] << endl;
     double       q0[] = { state.x, state.y, state.a };
     double       q1[] = { targets[target_index].x, targets[target_index].y, targets[target_index].ang };
     const double step = config->a_star_extention_step_meter / GRID_RESOLUTION;

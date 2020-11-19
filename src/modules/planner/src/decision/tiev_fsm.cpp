@@ -36,13 +36,11 @@ void OnRoadFSM::update(FullControl& control) {
             control.changeTo<TemporaryParkingPlanning>();
         }
     }
-    else if(!map.forward_ref_path.empty()) {
-        auto mode = map.forward_ref_path.front().mode;
-        if(mode == HDMapMode::INTERSECTION_SOLID || mode == HDMapMode::INTERSECTION)
-            control.changeTo<SafeDriving>();
-        else if(mode == HDMapMode::PARKING)
-            control.changeTo<SeekParkingSpot>();
-    }
+    auto mode = map_manager->getCurrentMapMode();
+    if(mode == HDMapMode::INTERSECTION_SOLID || mode == HDMapMode::INTERSECTION)
+        control.changeTo<SafeDriving>();
+    else if(mode == HDMapMode::PARKING)
+        control.changeTo<SeekParkingSpot>();
 }
 //----------------OnRoad Fsm--------------------
 
