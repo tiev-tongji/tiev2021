@@ -3,6 +3,7 @@ namespace TiEV {
 using namespace std;
 void Context::update() {
     MessageManager* msgm = MessageManager::getInstance();
+    /*
     msgm->getNavInfo(nav_info);
     msgm->getSlamInfo(slam_info);
     msgm->getTrafficLight(traffic_light);
@@ -10,6 +11,7 @@ void Context::update() {
     msgm->getWarningObjList(warning_obj_list);
     msgm->getParkingLotList(parking_lot_list);
     msgm->getLaneList(lane_list);
+    */
     cout << "context information update!" << endl;
 }
 
@@ -25,7 +27,7 @@ void OnRoadFSM::update(FullControl& control) {
     Pose        car_pose      = map.nav_info.car_pose;
     auto        current_tasks = map_manager->getCurrentTasks();
     double      sqr_dis       = 1e9;
-    if(!current_tasks.empty()) {
+    if(!control.isActive<TemporaryParkingPlanning>() && !current_tasks.empty()) {
         UtmPosition task_utm = current_tasks.back().utm_position;
         Pose        task_pose;
         task_pose.utm_position = task_utm;
@@ -52,11 +54,8 @@ void IntersectionFSM::enter(Control& control) {
 void IntersectionFSM::update(FullControl& control) {
     cout << "Intersection FSM update!" << endl;
     MapManager* map_manager = MapManager::getInstance();
-    Map&        map         = map_manager->getMap();
-    if(!map.forward_ref_path.empty()) {
-        auto mode = map.forward_ref_path.front().mode;
-        if(mode == HDMapMode::NORMAL) control.changeTo<NormalDriving>();
-    }
+    auto        mode        = map_manager->getCurrentMapMode();
+    if(mode == HDMapMode::NORMAL) control.changeTo<NormalDriving>();
 }
 //----------------Intersection Fsm--------------------
 
@@ -67,6 +66,9 @@ void ParkingFSM::enter(Control& control) {
 
 void ParkingFSM::update(FullControl& control) {
     cout << "Parking FSM update!" << endl;
+    MapManager* map_manager = MapManager::getInstance();
+    auto        mode        = map_manager->getCurrentMapMode();
+    if(mode != HDMapMode::PARKING) control.changeTo<NormalDriving>();
 }
 //----------------Parking Fsm--------------------
 

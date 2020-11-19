@@ -31,8 +31,8 @@ void FreeDriving::update(FullControl& control) {
 
     if(flag && !speed_path_list.empty())
         control.changeTo<NormalDriving>();
-    else if(speed_path_list.empty() && getTimeStamp() - entry_time > 3e6)
-        control.changeTo<GlobalReplanning>();
+    else if(speed_path_list.empty() && getTimeStamp() - entry_time > 3e6 && map_manager->getMaintainedPath(map.nav_info).size() < 10)
+        control.changeTo<Exploration>();
     else if(getTimeStamp() - entry_time > 5e6)
         control.changeTo<SemiLaneFreeDriving>();
 }

@@ -6,6 +6,7 @@ using namespace std;
 
 void Exploration::enter(Control& control) {
     cout << "entry Exploration..." << endl;
+    entry_time = getTimeStamp();
 }
 
 void Exploration::update(FullControl& control) {
@@ -26,6 +27,7 @@ void Exploration::update(FullControl& control) {
         control.changeTo<FreeDriving>();
     else {
         vector<Pose> explore_targets = map_manager->getExplorationTargets();
+        if(explore_targets.empty() || getTimeStamp() - entry_time > 30e6) control.changeTo<GlobalReplanning>();
         PathPlanner::getInstance()->runPlanner(map.dynamic_obj_list, map_manager->getCurrentMapSpeed(), true, map.lidar_dis_map, map.planning_dis_map, start_path, explore_targets,
                                                map.nav_info.current_speed, speed_path_list);
         map_manager->selectBestPath(speed_path_list);

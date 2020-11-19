@@ -8,7 +8,6 @@
 #include <fstream>
 #include <iostream>
 
-
 using namespace rapidjson;
 using namespace std;
 
@@ -54,6 +53,19 @@ void Config::init() {
     password                          = routing_config["password"].GetString();
     topo_name                         = routing_config["topo_name"].GetString();
     output                            = routing_config["output"].GetString();
+    auto& parking_task_pos            = doc["parking_task"];
+    parking_task.lon_lat_position.lon = parking_task_pos["lon"].GetDouble();
+    parking_task.lon_lat_position.lat = parking_task_pos["lat"].GetDouble();
+    parking_task.utm_position.utm_x   = parking_task_pos["utm_x"].GetDouble();
+    parking_task.utm_position.utm_y   = parking_task_pos["utm_y"].GetDouble();
+    auto parking_task_points          = parking_task_pos["task_points"].GetArray();
+    parking_task.task_points.resize(parking_task_points.Size());
+    for(int k = 0; k < parking_task_points.Size(); ++k) {
+        double utm_x                = parking_task_points[k]["utm_x"].GetDouble();
+        double utm_y                = parking_task_points[k]["utm_y"].GetDouble();
+        double heading              = parking_task_points[k]["heading"].GetDouble();
+        parking_task.task_points[k] = UtmPosition(utm_x, utm_y, heading);
+    }
 
     start_time = getTimeStamp();
     end_time   = start_time + 1e6 * 60 * 60 * 1.5;
@@ -109,6 +121,10 @@ void Config::outputConfigures() const {
     print(a_star_analytic_expansion_param_t);
     print(a_star_analytic_expansion_max_N);
     print(tasks.size());
+    cout << "parking task:" << parking_task.utm_position << endl;
+    cout << "parking task points:" << endl;
+    for(const auto& point : parking_task.task_points)
+        cout << "utm(" << point.utm_x << "," << point.utm_y << "," << point.heading << ") " << endl;
     for(auto& task : tasks) {
         cout << "- ";
         cout << "task utm position: " << task.utm_position << endl;
