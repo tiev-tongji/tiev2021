@@ -36,6 +36,7 @@ struct Map {
     std::vector<std::vector<Point2d>>   lane_center_list;  //当前地图匹配好的车道线0.5m一个点
     std::vector<Pose>                   start_maintained_path;
     std::vector<Task>                   current_task_points;  // The task points that have not been finished yet
+    Task                                parking_task;
     SpeedPath                           best_path;
     SpeedPath                           speed_maintained_path;
     std::vector<Pose>                   parking_spots;
@@ -70,7 +71,9 @@ public:
     void         visualization();
     void         maintainParkingSpots();
     vector<Task> getCurrentTasks();
+    Task         getParkingTask();
     void         popCurrentTask();
+    void         clearTask();
     bool         carInRoad();
     void setGlobalPath(const vector<HDMapPoint>& new_global_path);
     //获取目标点
@@ -80,6 +83,7 @@ public:
     std::vector<Pose> getParkingSpotTarget();
     std::vector<Pose> getTemporaryParkingTarget();
     std::vector<Pose> getTaskTarget();
+    std::vector<Pose> getUTurnTargets();
     // Pose getRefPathTarget(double s);
     //------
     std::vector<Pose> getMaintainedPath(NavInfo& nav_info);
@@ -98,6 +102,7 @@ protected:
     MapManager() {
         Config* config                = Config::getInstance();
         this->map.current_task_points = config->tasks;
+        this->map.parking_task        = config->parking_task;
     };
 
 private:
@@ -112,6 +117,7 @@ private:
     shared_mutex            ref_path_mutex;
     shared_mutex            global_path_mutex;
     shared_mutex            task_points_mutex;
+    shared_mutex            parking_task_mutex;
 
 private:
     //---------execute when update--------

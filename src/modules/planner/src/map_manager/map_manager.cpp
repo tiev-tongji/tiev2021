@@ -107,9 +107,22 @@ vector<Task> MapManager::getCurrentTasks() {
     task_points_mutex.unlock_shared();
     return res;
 }
+
+Task MapManager::getParkingTask() {
+    parking_task_mutex.lock_shared();
+    Task res = this->map.parking_task;
+    parking_task_mutex.unlock_shared();
+    return res;
+}
 void MapManager::popCurrentTask() {
     task_points_mutex.lock();
     this->map.current_task_points.pop_back();
+    task_points_mutex.unlock();
+}
+
+void MapManager::clearTask() {
+    task_points_mutex.lock();
+    this->map.current_task_points.clear();
     task_points_mutex.unlock();
 }
 
@@ -214,6 +227,27 @@ void MapManager::setGlobalPathDirection() {
             }
         }
     }
+}
+
+vector<Pose> MapManager::getUTurnTargets() {
+    vector<Pose> targets;
+    int          shortest_index_on_ref_path = shortestPointIndex(map.nav_info.car_pose, map.ref_path);
+    double       s                          = 0;
+    int          target_idx;
+    for(target_idx = shortest_index_on_ref_path; target_idx < map.ref_path.size(); ++target_idx) {
+        s += map.ref_path[target_idx].s - map.ref_path[shortest_index_on_ref_path].s;
+        if(s >= 5) {
+            break;
+        }
+    }
+    int    lane_num   = map.ref_path[target_idx].lane_num;
+    double lane_width = map.ref_path[target_idx].lane_width;
+    int    lane_seq   = map.ref_path[target_idx].lane_seq;
+    for(int i = 0; i < lane_num; ++i) {
+        Pose target = map.ref_path[target_idx].getLateralPose(lane_width * (i - lane_seq + 1));
+        if(map.accessible_map[int(target.x)][int(target.y)]) targets.push_back(target);
+    }
+    return targets;
 }
 
 int MapManager::getGlobalPathNearestIndex(int begin, int end) const {
@@ -882,7 +916,7 @@ void MapManager::maintainParkingSpots() {
             map.parking_spots[min_idx] = spot_pose;
         }
         else {
-            map.parking_spots.emplace_back(spot_pose);
+            map.parking_spots.push_back(spot_pose);
         }
     }
 }

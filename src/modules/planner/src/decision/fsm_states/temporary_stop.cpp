@@ -28,25 +28,38 @@ void TemporaryStop::update(FullControl& control) {
 
     if(current_tasks.empty())
         flag_parking = true;
+    else if(current_tasks.back().on_or_off && current_tasks.size() > 1) {
+        task_list.push_back(current_tasks.back());
+        task_list.push_back(current_tasks[current_tasks.size() - 2]);
+        task_list.push_back(map_manager->getParkingTask());
+        int    cost     = routing->findReferenceRoad(tmp_global_path, task_list, false);  // TODO: *3 off-on-off-parking
+        time_t now_time = getTimeStamp();
+        time_t end_time = Config::getInstance()->end_time;
+        if(now_time + cost * 1e6 > end_time) {
+            flag_parking = true;
+        }
+        else {
+            vector<Task> new_task_list;
+            new_task_list.push_back(current_pos);
+            new_task_list.push_back(current_tasks.back());
+            int cost = routing->findReferenceRoad(tmp_global_path, task_list, false);  // TODO: *3 off-on-off-parking
+            map_manager->setGlobalPath(tmp_global_path);
+        }
+    }
     else {
         task_list.push_back(current_tasks.back());
         int cost = routing->findReferenceRoad(tmp_global_path, task_list, false);  // TODO: *3 off-on-off-parking
-        if(current_tasks.back().on_or_off) {                                       // On
-            time_t now_time = getTimeStamp();
-            time_t end_time = Config::getInstance()->end_time;
-            if(now_time + cost * 1e6 > end_time) {
-                flag_parking = true;
-            }
-        }
+        map_manager->setGlobalPath(tmp_global_path);
     }
     if(flag_parking) {
-        Task parking_pos;
-        // TODO: set parking pos
-        task_list[1] = parking_pos;
-        tmp_global_path.clear();
+        vector<Task> new_task_list;
+        new_task_list.push_back(current_pos);
+        new_task_list.push_back(map_manager->getParkingTask());
         int cost = routing->findReferenceRoad(tmp_global_path, task_list, false);
+        map_manager->setGlobalPath(tmp_global_path);
     }
-    map_manager->setGlobalPath(tmp_global_path);
+    time_t time_pass = getTimeStamp() - entry_time;
+    if(time_pass < 20e6) usleep(20e6 - time_pass);
     control.changeTo<SemiLaneFreeDriving>();
 }
 }  // namespace TiEV
