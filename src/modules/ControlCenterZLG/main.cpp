@@ -12,7 +12,7 @@
   */
 #include <iostream>
 #include <unistd.h>
-
+#include "signal.h"
 #include "ControlCenterCommon.h"
 #include "ROEWECenterControl.h"
 #include "pidController.h"
