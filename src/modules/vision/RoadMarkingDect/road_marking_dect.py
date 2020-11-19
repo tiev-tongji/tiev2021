@@ -6,13 +6,13 @@ offline version need to read a video(in bird-eye view)
 '''
 import sys
 sys.path.append('./')
-#sys.path.append('./postproc_lane')
+sys.path.append('./otherinfo')
+sys.path.append('./postproc_lane')
 sys.path.insert(0, './tools')
 try:
     sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
 except:
     pass
-from structNAVINFO import structNAVINFO
 import cv2
 import numpy as np
 import torch
@@ -24,9 +24,13 @@ from pathlib import Path
 from pdb import set_trace as b
 import argparse
 from dataset import Apollo_data
-from structLASERMAP import structLASERMAP
+from structFUSIONMAP import structFUSIONMAP
+from structNAVINFO import structNAVINFO
+
 
 dtype = torch.float32
+LASERMAP_WIDTH = 251
+LASERMAP_HEIGHT = 501
 
 def init_args():
     parser = argparse.ArgumentParser()
@@ -37,6 +41,9 @@ def init_args():
     parser.add_argument('--with_post', type=bool, default=True, help='with post processing or not')
     parser.add_argument('--visual', type=bool, default=True, help='visualise the result')
     parser.add_argument('--device', type=str, default='cuda',help='cuda or cpu')
+    parser.add_argument('--ip', type=str, default='192.168.203.2', help='IP adress of basler')
+    parser.add_argument('--video_path', type=str, default='../data/record_imu_bev.avi',help='path to test video')
+    parser.add_argument('--off_line', action='store_true', default=False)
     return parser.parse_args()
 
 
@@ -97,12 +104,12 @@ class RoadMarkingOnLine():
     def wrap(self, inp, pitch_relative, warpPerspective):
         inp = self._equal_hist(inp, self.eh_type)
         inp = torch.tensor(inp, dtype=dtype)[None, :, :, :].permute(0, 3, 1, 2).cuda()
-
         rx = torch.tensor([1.55959], requires_grad=False)
         ry = torch.tensor([-0.0127525], requires_grad=False)
         rz = torch.tensor([-0.0], requires_grad=False)
-
+        #todo confirm
         bev = warpPerspective(inp, rx + (pitch_relative) / 180 * 3.14159265358, ry, rz)
+        # bev = warpPerspective(inp, rx - pitch_relative, ry, rz)
         return bev
 
     def go_through_CNN(self, net, bev):
@@ -118,7 +125,7 @@ class RoadMarkingOnLine():
         img = cv2.cvtColor(img_np,cv2.COLOR_RGB2BGR)
         return img, pred
 
-    def post_process(self, post_pro_path, img, pred, map, visual):
+    def post_process(self, post_pro_path, img, pred, laser_map, visual):
 
         template = torch.tensor([1,2,3,4,5,6,7,8,9,10,11,12,13,18,19,20,21,22,23,24,25,26,27,28,30]) \
             [None, :, None, None].to(self.device)
@@ -128,7 +135,7 @@ class RoadMarkingOnLine():
         from postproc_lane import process_tensor
         # status_list = process_tensor(img, pred_split, status_list)
         #[have_result, zcmok, Lane_num, lane_type(from right to left), line_type(from right to left), stop_line_exist, boundary_detected]
-        status_list = process_tensor(img, pred_split, map, status_list)
+        status_list = process_tensor(img, pred_split, laser_map, status_list)
         #print("now is ---------%d"%ii)
         if visual:
             predictions = pred.cpu().numpy()
@@ -136,6 +143,7 @@ class RoadMarkingOnLine():
             predictions_pil = predictions_pil.convert('RGB')
             pre_np = np.asarray(predictions_pil)
             pre_np = cv2.cvtColor(pre_np, cv2.COLOR_RGB2BGR)
+            # img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
             mask_img = cv2.addWeighted(img, 1.0, pre_np, 1.0, 0)
             mix_img = np.concatenate((img, pre_np, mask_img), axis=1)
             cv2.namedWindow('title', cv2.WINDOW_NORMAL)
@@ -150,73 +158,108 @@ def handler_navinfo(channel, msg):
     # global pitch
     global pitch_mean
     global pitch_relative
-    new_pitch = msg.mPitch
+    new_pitch = msg.angle_pitch
     # new_pitch  = msg.mPitch
     pitch_mean = lamda * pitch_mean + (1 - lamda) * new_pitch
     pitch_relative = new_pitch - pitch_mean
 
 # timestamp = 0
-map = np.zeros((401,151), np.int8)
+laser_map = np.zeros((LASERMAP_HEIGHT,LASERMAP_WIDTH), np.int8)
 def handler_lasermap(channel, msg):
     #global pitch
     # global timestamp
     # timestamp = msg.timestamp
-    global map
-    for i0 in range(401):
-        map[i0] = (bytearray(msg.cells[i0][:151]))
+    global laser_map
+    for i0 in range(LASERMAP_HEIGHT):
+        laser_map[i0] = (bytearray(msg.map_cells[i0][:LASERMAP_WIDTH]))
 
 if __name__ == '__main__':
     args = init_args()
-    zcm = ZCM("ipc")
+    zcm = ZCM("")
     if not zcm.good():
         print("Unable to initialize zcm")
         exit()
     zcm.start()
-    subs = zcm.subscribe("NAVINFO", structNAVINFO, handler_navinfo)
-    subs = zcm.subscribe("LASERMAP", structLASERMAP, handler_lasermap)
-
+    subs_navinfo = zcm.subscribe("NAVINFO", structNAVINFO, handler_navinfo)
+    subs_laser = zcm.subscribe("LASERMAP", structFUSIONMAP, handler_lasermap)
     roadmarking_dect = RoadMarkingOnLine(args.model_path, args.eh_type, args.device)
     # conecting to the first available camera
-    ip_address = "192.168.203.2"
-    info = pylon.DeviceInfo()
-    info.SetPropertyValue('IpAddress', ip_address)
-    camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice(info))
-    # Grabing Continusely (video) with minimal delay
-    camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
-    converter = pylon.ImageFormatConverter()
-    # converting to opencv bgr format
-    converter.OutputPixelFormat = pylon.PixelType_RGB8packed
-    converter.OutputBitAlignment = pylon.OutputBitAlignment_MsbAligned
-
     intrinsics = [[1495.9534703530474, 0.0, 950.1227781680075], [0.0, 1520.5021975095228, 626.1509450932696], [0.0, 0.0, 1.0]]
+
     raw_height, raw_width = (1200, 1920)
     warpPerspective = PerspectiveTransformerLayer((1024, 256), (raw_height, raw_width), intrinsics,
                                                   translate_z=-70,
                                                   rotation_order='zyx', dtype=dtype)
     net = roadmarking_dect.init_net()
-
-    while camera.IsGrabbing():
-        grabResult = camera.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
-        if grabResult.GrabSucceeded():
-            time1 = time.time()
-            image = converter.Convert(grabResult)
-            img = image.GetArray()
-
-            bev = roadmarking_dect.wrap(img, pitch_relative, warpPerspective)
-            img, pred = roadmarking_dect.go_through_CNN(net, bev)
-            if args.with_post:
-                #from postproc_lane import process_tensor
+    count = 0
+    if args.off_line:
+        video_path = args.video_path
+        cap = cv2.VideoCapture(video_path)
+        cap.set(cv2.CAP_PROP_FPS, 25)
+        count_i = 0
+        while cap.isOpened():
+            ret, img = cap.read()
+            if ret:
                 time1 = time.time()
-                status_list = list()
-                post_pro_path = "./postproc_lane"
-                #[have_result, zcmok, Lane_num, lane_type(from right to left), line_type(from right to left), stop_line_exist, boundary_detected]
-                status_list = roadmarking_dect.post_process(post_pro_path, img, pred, map, args.visual)
+                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                bev = roadmarking_dect.wrap(img, pitch_relative , warpPerspective)
+                # print("pitch_relative= ", pitch_relative)
+                img, pred = roadmarking_dect.go_through_CNN(net, bev)
+                if args.with_post:
+                    #[have_any_msg, zcmok, Lane_num, lane_type(from right to left), line_type(from right to left), stop_line_exist]
+                    # status_list = roadmarking_dect.post_process(img, pred)
+                    time1 = time.time()
+                    post_pro_path = "./postproc_lane"
+                    #[have_result, zcmok, Lane_num, lane_type(from right to left), line_type(from right to left), stop_line_exist, boundary_detected]
+                    status_list = roadmarking_dect.post_process(post_pro_path, img, pred, laser_map, args.visual)
+                    laser_map = np.zeros((LASERMAP_HEIGHT,LASERMAP_WIDTH), np.int8)
                 # print(status_list)
-            time2 = time.time()
-            print(time2 - time1)
-            k = cv2.waitKey(1)
-            if k == 27:
-                break
-        grabResult.Release()
-    camera.StopGrabbing()
+                time2 = time.time()
+                print(time2-time1)
+                k = cv2.waitKey(1)
+                if k == 27:
+                    break
+                # with open("./log.txt", 'a+', encoding='utf-8') as file:
+                #     file.writelines("%d\n" %count)
+                #     count = count + 1
+        cap.release()
+        cv2.destroyAllWindows()
+    else:
+        ip_address = args.ip
+        info = pylon.DeviceInfo()
+        info.SetPropertyValue('IpAddress', ip_address)
+        camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice(info))
+        # Grabing Continusely (video) with minimal delay
+        camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
+        converter = pylon.ImageFormatConverter()
+        # converting to opencv bgr format
+        converter.OutputPixelFormat = pylon.PixelType_RGB8packed
+        converter.OutputBitAlignment = pylon.OutputBitAlignment_MsbAligned
+        while camera.IsGrabbing():
+            grabResult = camera.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
+            if grabResult.GrabSucceeded():
+                time1 = time.time()
+                image = converter.Convert(grabResult)
+                img = image.GetArray()
+                # print("pitch_relative= ", pitch_relative)
+                bev = roadmarking_dect.wrap(img, pitch_relative, warpPerspective)
+                img, pred = roadmarking_dect.go_through_CNN(net, bev)
+                if args.with_post:
+                    time1 = time.time()
+                    post_pro_path = "./postproc_lane"
+                    #[have_result, zcmok, Lane_num, lane_type(from right to left), line_type(from right to left), stop_line_exist, boundary_detected]
+                    status_list = roadmarking_dect.post_process(post_pro_path, img, pred, laser_map, args.visual)
+                    laser_map = np.zeros((LASERMAP_HEIGHT,LASERMAP_WIDTH), np.int8)
+                    # print(status_list)
+                time2 = time.time()
+                print(time2 - time1)
+                k = cv2.waitKey(1)
+                if k == 27:
+                    break
+                # with open("./log.txt", 'a+', encoding='utf-8') as file:
+                #     file.writelines("%d\n" %count)
+                #     count = count + 1
+            grabResult.Release()
+        camera.StopGrabbing()
+
     zcm.stop()

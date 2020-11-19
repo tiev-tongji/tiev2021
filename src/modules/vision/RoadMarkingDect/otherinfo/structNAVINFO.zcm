@@ -1,0 +1,30 @@
+struct structNAVINFO
+{
+	//GPS time
+	int64_t timestamp;
+	//pos at front axis center
+	double mLat;
+	double mLon;
+	double mAlt;
+	//
+	double utmX;
+	double utmY;
+	//orientation
+	double mHeading;//Rad ISO EAST 0 CounterClockwise -PI ~ PI
+	float mPitch;//angle about the horizon [deg]
+	float mAngularRateZ;//Rad * s^-1 ISO CounterClockwise
+	//speed
+	float mSpeed3d;//current speed [m s^(-1)]
+	float mVe;//current east velocity [m s^(-1)]
+	float mVn;//current north velocity [m s^(-1)]
+	//status
+	float mCurvature;//current curvature [m ^ (-1)]
+	byte mRTKStatus; // 1 valid 0 invalid
+	float mHPOSAccuracy;//horizontal positioning precision in meters
+	byte isReckoningVaild; //1 valid 0 invalid 
+	int64_t mGpsNumObs; //number of satellites.
+
+	//no filtered Acceleration
+	double mAx;
+	double mAy;
+}

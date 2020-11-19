@@ -19,14 +19,14 @@
 #include "filter.h"
 #include "visualize.h"
 
-zcm::ZCM zcm_udp{"ipc"};
+zcm::ZCM zcm_udp{};
 
 namespace py = pybind11;
 namespace lm = LaneModel;
 using namespace Eigen;
 
-const float LANEWIDTH = 70;
-float pixel2real_ratio = 5.2 / 100;
+const float LANEWIDTH = 60;
+float pixel2real_ratio = 5.8 / 100;
 int min_stop_count = 200; //large for highway, small for ordinary road(200), median beneath highway(400)
 int min_lanemark_count = 500;
 
@@ -34,18 +34,18 @@ const int LASERMAPBEV_HEIGHT = 1024;
 const int LASERMAPBEV_WIDTH = 400;
 const int VISUALBEV_WIDTH = 256;
 
+const float LIDARRESOLUTION = 0.2;
+const int LIDARMAPWIDTH = 250;
+const int LIDARMAPHEIGHT = 350;
+
+const float THRESH_ADD_CURB = 3.0;
 //coodinate convertion
 cv::Point2f convert_to_lidar(const cv::Point2f& point_bev){
     cv::Point2f point_lidar;
     cv::Mat point_bev_ = (cv::Mat_<double>(3, 1)<< point_bev.x, point_bev.y, 1);
-//    static cv::Mat homography = (cv::Mat_<double>(3, 3) <<
-//                                4.49541030e-02,  2.78755872e-04, -5.85124919e+00,
-//                                3.22243481e-03, -4.76127770e-02,  4.97163722e+01,
-//                               -2.08830189e-04, -4.86239754e-05,  1.00000000e+00);
-    static cv::Mat homography = (cv::Mat_<double>(3, 3) <<
-                        -0.0410305872674881, -0.0103373109727542, 23.53885022741934,
-                        -0.03468408208563678, 0.002099521760837547, 7.260788823703837,
-                        -0.005287725315834751, 0.001003415840533877, 1.0);
+    static cv::Mat homography = (cv::Mat_<double>(3, 3) <<-0.0410305872674881, -0.0103373109727542, 23.53885022741934,
+                                                            -0.03468408208563678, 0.002099521760837547, 7.260788823703837,
+                                                            -0.005287725315834751, 0.001003415840533877, 1.0);
     cv::Mat point_lidar_ = homography * point_bev_;
     point_lidar.x = point_lidar_.at<double>(0, 0) / point_lidar_.at<double>(2, 0);
     point_lidar.y = point_lidar_.at<double>(1, 0) / point_lidar_.at<double>(2, 0);
@@ -55,20 +55,17 @@ cv::Point2f convert_to_lidar(const cv::Point2f& point_bev){
 
 cv::Point2i convert_to_bev(const cv::Point2f& point_lidar){
     cv::Point2f point_bev;
-    const float LIDARRESOLUTION = 0.2;
-    const int LIDARMAPWIDTH = 150;
-    const int LIDARMAPHEIGHT = 300;
-    cv::Mat point_lidar_ = (cv::Mat_<double>(3, 1)<< (point_lidar.y - LIDARMAPWIDTH/2)*LIDARRESOLUTION, (LIDARMAPHEIGHT - point_lidar.x)*LIDARRESOLUTION, 1);
-    static cv::Mat homography = (cv::Mat_<double>(3, 3) <<
-                                                        -0.0410305872674881, -0.0103373109727542, 23.53885022741934,
+
+    cv::Mat point_lidar_ = (cv::Mat_<double>(3, 1)<< point_lidar.x, point_lidar.y, 1);
+    static cv::Mat homography = (cv::Mat_<double>(3, 3) <<-0.0410305872674881, -0.0103373109727542, 23.53885022741934,
                                                         -0.03468408208563678, 0.002099521760837547, 7.260788823703837,
                                                         -0.005287725315834751, 0.001003415840533877, 1.0);
     cv::Mat point_bev_ = homography.inv() * point_lidar_;
     point_bev.x = point_bev_.at<double>(0, 0) / point_bev_.at<double>(2, 0);
     point_bev.y = point_bev_.at<double>(1, 0) / point_bev_.at<double>(2, 0);
     return cv::Point(
-            static_cast<int>(point_bev.y + .5),
-            static_cast<int>(point_bev.x + .5));
+            static_cast<int>(point_bev.x + .5),
+            static_cast<int>(point_bev.y + .5));
 }
 
 cv::Mat convert_lasermap_2bev(const cv::Mat laser_map_cropped){
@@ -79,14 +76,15 @@ cv::Mat convert_lasermap_2bev(const cv::Mat laser_map_cropped){
         for(int j=0; j<cols; j++){
             if(laser_map_cropped.at<uchar>(i,j) > 0){
                 cv::Point2i obstcal_point_laser(i, j);
-                cv::Point2i obstcal_point_bev = convert_to_bev(obstcal_point_laser);
+                cv::Point2i obstcal_point_lidar ((LIDARMAPHEIGHT - i)*LIDARRESOLUTION, (LIDARMAPWIDTH/2 - j)*LIDARRESOLUTION);
+                cv::Point2i obstcal_point_bev = convert_to_bev(obstcal_point_lidar);
 //                std::cout << "laser_point:    " << obstcal_point_laser << "    bev_point:   " << obstcal_point_bev <<std::endl;
-                if(obstcal_point_bev.x  <0 || obstcal_point_bev.x  >= LASERMAPBEV_HEIGHT ||
-                    obstcal_point_bev.y +(LASERMAPBEV_WIDTH-VISUALBEV_WIDTH)/2 <0 ||
-                    obstcal_point_bev.y +(LASERMAPBEV_WIDTH-VISUALBEV_WIDTH)/2>= LASERMAPBEV_WIDTH)
+                if(obstcal_point_bev.y  <0 || obstcal_point_bev.y  >= LASERMAPBEV_HEIGHT ||
+                    obstcal_point_bev.x +(LASERMAPBEV_WIDTH-VISUALBEV_WIDTH)/2 <0 ||
+                    obstcal_point_bev.x +(LASERMAPBEV_WIDTH-VISUALBEV_WIDTH)/2>= LASERMAPBEV_WIDTH)
                     continue;
                 else
-                    laser_map_bev.at<uchar>(obstcal_point_bev.x, obstcal_point_bev.y+(LASERMAPBEV_WIDTH-VISUALBEV_WIDTH)/2) = 1;
+                    laser_map_bev.at<uchar>(obstcal_point_bev.y, obstcal_point_bev.x+(LASERMAPBEV_WIDTH-VISUALBEV_WIDTH)/2) = 1;
             }
         }
     }
@@ -216,16 +214,18 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
     cv::Mat image = convertToCvMat<3>(_image);
     std::vector<cv::Mat> predict = splitToCvMat(_predict);
     cv::Mat laser_map = convertLMToCvMat(_laser_map);
-    cv::Mat laser_map_cropped = laser_map(cv::Rect(0,0,151,301));//get visual area from lasermap, car(lader) locat at botoom center. Real area 60m * 14m
+    //todo!!!
+//    cv::flip(laser_map, laser_map, 0);
+    cv::Mat laser_map_cropped = laser_map(cv::Rect(0,0,251,351));//get visual area from lasermap, car(lader) locat at botoom center. Real area 70m * 14m
 //    cv::Point2i test_point(300,75);
 //    std::cout << "_________" << convert_to_bev(test_point) << std::endl;
-    cv::imshow("windoe0", laser_map*255);
+    cv::imshow("win_lasermap", laser_map*255);
     cv::Mat laser_map_bev;
     laser_map_bev = convert_lasermap_2bev(laser_map_cropped);//convert laser map to bev todo:expand the area beyond the bev
-    cv::imshow("windoe", laser_map_bev*255);
+    cv::imshow("win_laserbev", laser_map_bev*255);
 //    cv::Mat manual_curb = cv::imread("/home/xzr/tiev-plus/modules/src/vision/RoadMarkingDect/tools/manual_curb.png", CV_LOAD_IMAGE_UNCHANGED);
 //    predict.push_back(manual_curb);
-    PRINT("ok");
+//    PRINT("ok");
     // static status
     // MOT Kalman Filter for lines
     const float THRES_MATCH_DISTANCE_PIX = 15;
@@ -476,18 +476,22 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
             cluster::Cluster_<float> right_curb;
             cluster::Cluster_<float> left_curb;
             std::vector<cluster::Cluster_<int>> curb_clusters;
-            printf("ok-2\n");
             // the right curb
             {
                 float min_x_temp = std::min(right_cluster[0].x, right_cluster.back().x);
                 float min_y_temp = std::min(right_cluster[0].y , right_cluster.back().y);
                 cv::Point2f corner_point(min_x_temp, min_y_temp);
-                image_align.revert(corner_point, corner_point);
+//                std::cout << "min_x_temp = " << min_x_temp <<std::endl;
+                image_align.revert(corner_point, corner_point);// todo confirm
+
                 cv::Mat temp = cv::Mat::zeros(LASERMAPBEV_HEIGHT,LASERMAPBEV_WIDTH, CV_8UC1);
-                std::cout<< corner_point.y <<"   " << "RIGHT" << "   " << static_cast<int>(corner_point.x) << "   " << std::endl;
+//                std::cout<< corner_point.y <<"   " << "RIGHT" << "   " << static_cast<int>(corner_point.x) << "   " << std::endl;
                 corner_point.y = std::max(0, static_cast<int>(corner_point.y+0.5));
                 corner_point.x = std::max(0, static_cast<int>(corner_point.x+0.5));
-                int x_range = static_cast<int>(corner_point.x+(LASERMAPBEV_WIDTH - VISUALBEV_WIDTH)/2+0.5);
+                int x_range = std::min(LASERMAPBEV_WIDTH, static_cast<int>(corner_point.x+(LASERMAPBEV_WIDTH - VISUALBEV_WIDTH)/2+0.5));
+                //todo!! A bug
+//                std::cout << "corner_point.x = " << corner_point.x <<std::endl << "x_range = " << x_range<<std::endl;
+//                std::cout <<"corner_point.y = "<< cornr_point.y << std::endl << "x_range = " << x_range << std::endl << "std::min = "<< std::min(static_cast<int>(x_range+LANEWIDTH*1.5+0.5) , LASERMAPBEV_WIDTH)<<std::endl;
                 cv::Mat right_curb_roi = temp(cv::Range(corner_point.y, LASERMAPBEV_HEIGHT),
                                               cv::Range(x_range, std::min(static_cast<int>(x_range+LANEWIDTH*1.5+0.5) , LASERMAPBEV_WIDTH)));//get visual area from lasermap, car(lader) locat at botoom center. Real area 60m * 14m
                 right_curb_roi.setTo(1);
@@ -512,12 +516,13 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
 
              //the left curb
             {
+
                 float min_x_temp = std::max(left_cluster[0].x, left_cluster.back().x);
                 float min_y_temp = std::min(left_cluster[0].y , left_cluster.back().y);
                 cv::Point2f corner_point(min_x_temp, min_y_temp);
-                image_align.revert(corner_point, corner_point);
+                image_align.revert(corner_point, corner_point); //todo confirm
                 cv::Mat temp2 = cv::Mat::zeros(LASERMAPBEV_HEIGHT,LASERMAPBEV_WIDTH, CV_8UC1);
-                std::cout<< corner_point.y <<"   " << "LEFT" << "   " << static_cast<int>(corner_point.x) << "   " << std::endl;
+//                std::cout<< corner_point.y <<"   " << "LEFT" << "   " << static_cast<int>(corner_point.x) << "   " << std::endl;
                 corner_point.y = std::max(0, static_cast<int>(corner_point.y+0.5));
                 corner_point.x = std::max(0, static_cast<int>(corner_point.x+0.5));
                 int x_range = static_cast<int>(corner_point.x+(LASERMAPBEV_WIDTH - VISUALBEV_WIDTH)/2+0.5);
@@ -539,19 +544,18 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
                 }
                 cv::imshow("left", lasermap_bev_leftcurb_roi*255);
             }
-            printf("ok-1\n");
             if(curb_clusters.size()>0){
                 printf("curbs_num %zu\n", curb_clusters.size());
                 std::vector<Polynomial> curb_observations;
-                printf("ok01\n");
+//                printf("ok01\n");
                 for(cluster::Cluster_<int>& cluster : curb_clusters){
                     Polynomial poly(cluster, y_bias);
                     curb_observations.push_back(poly);
-                    printf("ok02\n");
+//                    printf("ok02\n");
                 }
                 if(curb_observations.size() > 0){
                     filters_curb.update(curb_observations);
-                    printf("ok1\n");
+//                    printf("ok1\n");
                     std::vector<Survived<Polynomial> > survived_curbs = filters_curb.get_survived_targets();
                     printf("survived_curbs_num:  %zu\n",  survived_curbs.size());
                     //PRINT(survived_polys.size());
@@ -576,20 +580,20 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
 //                            image_align.align(ori_curb, aligned_curb);
                             if(aligned_curb.front().x > aligned_center.x){//right curb
                                 float dis_line_curb = std::abs(aligned_curb.front().x - right_cluster.front().x);
-                                if(dis_line_curb * pixel2real_ratio > 2.5){
+                                if(dis_line_curb * pixel2real_ratio > THRESH_ADD_CURB){
                                     add_right = true;
-                                    printf("@@add ok1\n");
+//                                    printf("@@add ok1\n");
                                     dis_right_curb = dis_line_curb;
                                 }
                             }
                             else{
                                 float dis_line_curb = std::abs(aligned_curb.front().x - left_cluster.front().x);
-                                if(dis_line_curb * pixel2real_ratio > 2.5){
+                                if(dis_line_curb * pixel2real_ratio > THRESH_ADD_CURB){
                                     add_left = true;
                                     dis_left_curb = dis_line_curb;
                                 }
                             }
-                            printf("@@new ok3\n");
+//                            printf("@@new ok3\n");
 //                            cv::polylines(tempshow, resampled_clusters[0], false, cvScalar(255), 4);
 //                            cv::imshow("curb", tempshow);
                         }
@@ -599,23 +603,40 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
         }
     }
 //    printf("after_resampled_clusters.size() %d = ", resampled_clusters.size());
-    printf("ok5\n");
     lm::Road<float> road_resampled(resampled_clusters);
+    float avg_lanewidth = 0.0;
 
-    printf("ok6\n");
+    {// add between too wide lines and get avg_lanewidth
+        auto lanes = road_resampled.lanes();
+        for (auto& lane : lanes){
+            lane->lanewidth = dynamic_cast<lm::Line<float>*>(lane->right())->points().front().x
+                              - dynamic_cast<lm::Line<float>*>(lane->left())->points().front().x;
+            if (lane->lanewidth > LANEWIDTH * 1.8){
+                road_resampled.push_right(dynamic_cast<lm::Line<float>*>(lane->left()), lane->lanewidth / 2, TYPE_DASHED);
+                lane->lanewidth = lane->lanewidth / 2;
+            }
+            avg_lanewidth += lane->lanewidth; // calculate avg_lanewidth
+        }
+
+        if(lanes.size()) {
+            avg_lanewidth = avg_lanewidth/lanes.size();
+        }else{
+            avg_lanewidth = LANEWIDTH;
+        }
+    }
 
     {// add line beside curb
         if(add_right){
 //                printf("@@@@  add right ok3\n");
-            road_resampled.push_right(dynamic_cast<lm::Line<float>*>(road_resampled.rightline()), dis_right_curb, TYPE_SOLID);
+            road_resampled.push_right(dynamic_cast<lm::Line<float>*>(road_resampled.rightline()), avg_lanewidth, TYPE_SOLID);// lane width may be avg_lanewidth
         }
         if(add_left){
             printf("!!!!!add left line!!!!\n");
-            road_resampled.push_left(dynamic_cast<lm::Line<float>*>(road_resampled.leftline()), dis_left_curb, TYPE_SOLID);
+            road_resampled.push_left(dynamic_cast<lm::Line<float>*>(road_resampled.leftline()), avg_lanewidth, TYPE_SOLID);
         }
     }
     bool mit_yelloesolid = false;
-    {//linetype
+    {//add line using curb
         auto lines = road_resampled.lines();
         for (auto& line : lines){
             cv::Mat line_mask = cv::Mat::zeros(solid_mask.rows, solid_mask.cols, CV_8UC1);
@@ -663,29 +684,7 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
     }
 
     //append line
-    {	float avg_lanewidth = 0;
-
-        {//between too wide lines
-            auto lines = road_resampled.lines();
-            auto lanes = road_resampled.lanes();
-
-            for (auto& lane : lanes){
-                lane->lanewidth = dynamic_cast<lm::Line<float>*>(lane->right())->points().front().x
-                                - dynamic_cast<lm::Line<float>*>(lane->left())->points().front().x;
-                if (lane->lanewidth > LANEWIDTH * 1.8){
-                    road_resampled.push_right(dynamic_cast<lm::Line<float>*>(lane->left()), lane->lanewidth / 2, TYPE_DASHED);
-                    lane->lanewidth = lane->lanewidth / 2;
-                }
-				avg_lanewidth += lane->lanewidth; // calculate avg_lanewidth
-            }
-
-            if(lanes.size()) {
-                avg_lanewidth = avg_lanewidth/lanes.size();
-            }else{
-                avg_lanewidth = LANEWIDTH;
-            }
-        }
-
+    {
         {//beside dashed line
             auto lines = road_resampled.lines();
             if(lines.size()){
@@ -1018,7 +1017,9 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
         }
 
         structlanes_zcm.num = valid_lane_size;
+//        printf("pub!!!!\n");
         zcm_udp.publish("LANE_info", &structlanes_zcm);
+//        printf("pub finished!!!!\n");
         {//creat dict return to python
             out_list.push_back(int(structlanes_zcm.num));
             for(int i=0; i<int(structlanes_zcm.num); i++){
@@ -1050,7 +1051,6 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
 //    if (DEBUG) {
 //      cv::waitKey(0);
 //    }
-
     return out_list;
 }
 
