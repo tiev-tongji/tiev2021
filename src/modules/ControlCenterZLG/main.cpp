@@ -68,7 +68,6 @@ int main(){
         // 获取ZCM发送过来的信息
         // pitch_max = veh_nav_info.angle_pitch;
         msgControl.get_remote_control_msg(&enable_pc_control);
-        enable_pc_control = true;
         msgControl.get_veh_control_msg(&veh_pc_control_info);
         msgControl.get_nav_info_msg(&veh_nav_info);
         INFO("enable_pc_control:" << (int)enable_pc_control); 
