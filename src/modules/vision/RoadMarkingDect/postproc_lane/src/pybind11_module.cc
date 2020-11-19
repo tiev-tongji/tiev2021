@@ -6,7 +6,7 @@
 
 #include <unistd.h>
 #include "zcmmsg/structRoadMarkingList.hpp"
-
+#include "time.h"
 #include "common.h"
 
 //#undef DEPLOY_IMSHOW
@@ -957,6 +957,7 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
 
     // struct zcm message
     int32_t valid_lane_size = 0; // TODO: seems every lane is valid
+    static long pub_time = 0;
     if(road_resampled.lanes().size()){
         out_list.push_back(1);
         if(!zcm_udp.good()){
@@ -1017,9 +1018,7 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
         }
 
         structlanes_zcm.num = valid_lane_size;
-//        printf("pub!!!!\n");
         zcm_udp.publish("LANE_info", &structlanes_zcm);
-//        printf("pub finished!!!!\n");
         {//creat dict return to python
             out_list.push_back(int(structlanes_zcm.num));
             for(int i=0; i<int(structlanes_zcm.num); i++){

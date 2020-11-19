@@ -20,6 +20,27 @@ void OnRoadFSM::enter(Control& control) {
 
 void OnRoadFSM::update(FullControl& control) {
     cout << "OnRoad Fsm update!" << endl;
+    MapManager* map_manager   = MapManager::getInstance();
+    Map&        map           = map_manager->getMap();
+    Pose        car_pose      = map.nav_info.car_pose;
+    auto        current_tasks = map_manager->getCurrentTasks();
+    double      sqr_dis       = 1e9;
+    if(!current_tasks.empty()) {
+        UtmPosition task_utm = current_tasks.back().utm_position;
+        Pose        task_pose;
+        task_pose.utm_position = task_utm;
+        task_pose.updateLocalCoordinate(map.nav_info.car_pose);
+        // cout << "The task: " << task_pose << " car pose:" << map.nav_info.car_pose << endl;
+        if(task_pose.in_map()) {
+            //    cout << "The task point is in map" << endl;
+            control.changeTo<TemporaryParkingPlanning>();
+        }
+    }
+    auto mode = map_manager->getCurrentMapMode();
+    if(mode == HDMapMode::INTERSECTION_SOLID || mode == HDMapMode::INTERSECTION)
+        control.changeTo<SafeDriving>();
+    else if(mode == HDMapMode::PARKING)
+        control.changeTo<SeekParkingSpot>();
 }
 //----------------OnRoad Fsm--------------------
 
@@ -30,6 +51,12 @@ void IntersectionFSM::enter(Control& control) {
 
 void IntersectionFSM::update(FullControl& control) {
     cout << "Intersection FSM update!" << endl;
+    MapManager* map_manager = MapManager::getInstance();
+    Map&        map         = map_manager->getMap();
+    if(!map.forward_ref_path.empty()) {
+        auto mode = map.forward_ref_path.front().mode;
+        if(mode == HDMapMode::NORMAL) control.changeTo<NormalDriving>();
+    }
 }
 //----------------Intersection Fsm--------------------
 

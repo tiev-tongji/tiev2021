@@ -1,0 +1,7 @@
+struct MsgTrafficLightSignal
+{
+    int64_t  timestamp;
+    boolean  left;
+    boolean  forward;
+    boolean  right;
+}

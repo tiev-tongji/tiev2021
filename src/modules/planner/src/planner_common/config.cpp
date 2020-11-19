@@ -3,8 +3,11 @@
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
+#include "tiev_utils.h"
+#include <algorithm>
 #include <fstream>
 #include <iostream>
+
 
 using namespace rapidjson;
 using namespace std;
@@ -43,10 +46,28 @@ void Config::init() {
     a_star_analytic_expansion_param_k = doc[nameof(a_star_analytic_expansion_param_k)].Get<double>();
     a_star_analytic_expansion_param_t = doc[nameof(a_star_analytic_expansion_param_t)].Get<double>();
     a_star_analytic_expansion_max_N   = doc[nameof(a_star_analytic_expansion_max_N)].Get<int>();
+    auto& routing_config              = doc["routing"];
+    host                              = routing_config["host"].GetString();
+    port                              = routing_config["port"].GetString();
+    dbname                            = routing_config["dbname"].GetString();
+    user                              = routing_config["user"].GetString();
+    password                          = routing_config["password"].GetString();
+    topo_name                         = routing_config["topo_name"].GetString();
+    output                            = routing_config["output"].GetString();
+
+    start_time = getTimeStamp();
+    end_time   = start_time + 1e6 * 60 * 60 * 1.5;
+
     tasks.clear();
     auto task_arr = doc["tasks"].GetArray();
     tasks.resize(task_arr.Size());
     for(int i = 0; i < task_arr.Size(); ++i) {
+        auto& task                    = task_arr[i]["task"];
+        tasks[i].lon_lat_position.lon = task["lon"].GetDouble();
+        tasks[i].lon_lat_position.lat = task["lat"].GetDouble();
+        tasks[i].utm_position.utm_x   = task["utm_x"].GetDouble();
+        tasks[i].utm_position.utm_y   = task["utm_y"].GetDouble();
+
         auto task_points_arr = task_arr[i]["task_points"].GetArray();
         tasks[i].task_points.resize(task_points_arr.Size());
         for(int j = 0; j < task_points_arr.Size(); ++j) {
@@ -55,7 +76,9 @@ void Config::init() {
             double heading          = task_points_arr[j]["heading"].GetDouble();
             tasks[i].task_points[j] = UtmPosition(utm_x, utm_y, heading);
         }
+        tasks[i].on_or_off = i % 2;
     }
+    reverse(tasks.begin(), tasks.end());
 #undef nameof
     input.close();
     outputConfigures();
@@ -88,8 +111,11 @@ void Config::outputConfigures() const {
     print(tasks.size());
     for(auto& task : tasks) {
         cout << "- ";
+        cout << "task utm position: " << task.utm_position << endl;
+        cout << "task lonlat position: " << task.lon_lat_position.lon << " " << task.lon_lat_position.lat << endl;
+        cout << "- ";
         for(auto& point : task.task_points)
-            cout << "(" << point.utm_x << "," << point.utm_y << "," << point.heading << ") ";
+            cout << "utm(" << point.utm_x << "," << point.utm_y << "," << point.heading << ") ";
         cout << endl;
     }
 #undef print

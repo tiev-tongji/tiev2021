@@ -24,25 +24,29 @@ class LaneLine
 
         std::vector< LinePoint > points;
 
+        int8_t     boundary_type;
+
+        int32_t    boundary_confidence;
+
     public:
         #if __cplusplus > 199711L /* if c++11 */
-        static constexpr int8_t   TYPE_SOLID = 0x00;
-        static constexpr int8_t   TYPE_DASHED = 0x01;
-        static constexpr int8_t   TYPE_WHITE = 0x00;
-        static constexpr int8_t   TYPE_YELLOW = 0x02;
-        static constexpr int8_t   TYPE_SOLID_WHITE = 0x00;
-        static constexpr int8_t   TYPE_SOLID_YELLOW = 0x02;
-        static constexpr int8_t   TYPE_DASHED_WHITE = 0x01;
-        static constexpr int8_t   TYPE_DASHED_YELLOW = 0x03;
+        static constexpr int8_t   kTypeSolid = 0x00;
+        static constexpr int8_t   kTypeDashed = 0x01;
+        static constexpr int8_t   kTypeWhite = 0x00;
+        static constexpr int8_t   kTypeYellow = 0x02;
+        static constexpr int8_t   kTypeSolidWhite = 0x00;
+        static constexpr int8_t   kTypeSolidYellow = 0x02;
+        static constexpr int8_t   kTypeDashedWhite = 0x01;
+        static constexpr int8_t   kTypeDashedYellow = 0x03;
         #else
-        static const     int8_t   TYPE_SOLID = 0x00;
-        static const     int8_t   TYPE_DASHED = 0x01;
-        static const     int8_t   TYPE_WHITE = 0x00;
-        static const     int8_t   TYPE_YELLOW = 0x02;
-        static const     int8_t   TYPE_SOLID_WHITE = 0x00;
-        static const     int8_t   TYPE_SOLID_YELLOW = 0x02;
-        static const     int8_t   TYPE_DASHED_WHITE = 0x01;
-        static const     int8_t   TYPE_DASHED_YELLOW = 0x03;
+        static const     int8_t   kTypeSolid = 0x00;
+        static const     int8_t   kTypeDashed = 0x01;
+        static const     int8_t   kTypeWhite = 0x00;
+        static const     int8_t   kTypeYellow = 0x02;
+        static const     int8_t   kTypeSolidWhite = 0x00;
+        static const     int8_t   kTypeSolidYellow = 0x02;
+        static const     int8_t   kTypeDashedWhite = 0x01;
+        static const     int8_t   kTypeDashedYellow = 0x03;
         #endif
 
     public:
@@ -163,6 +167,12 @@ int LaneLine::_encodeNoHash(void* buf, uint32_t offset, uint32_t maxlen) const
         if(thislen < 0) return thislen; else pos += thislen;
     }
 
+    thislen = __int8_t_encode_array(buf, offset + pos, maxlen - pos, &this->boundary_type, 1);
+    if(thislen < 0) return thislen; else pos += thislen;
+
+    thislen = __int32_t_encode_array(buf, offset + pos, maxlen - pos, &this->boundary_confidence, 1);
+    if(thislen < 0) return thislen; else pos += thislen;
+
     return pos;
 }
 
@@ -186,6 +196,12 @@ int LaneLine::_decodeNoHash(const void* buf, uint32_t offset, uint32_t maxlen)
         if(thislen < 0) return thislen; else pos += thislen;
     }
 
+    thislen = __int8_t_decode_array(buf, offset + pos, maxlen - pos, &this->boundary_type, 1);
+    if(thislen < 0) return thislen; else pos += thislen;
+
+    thislen = __int32_t_decode_array(buf, offset + pos, maxlen - pos, &this->boundary_confidence, 1);
+    if(thislen < 0) return thislen; else pos += thislen;
+
     return pos;
 }
 
@@ -198,6 +214,8 @@ uint32_t LaneLine::_getEncodedSizeNoHash() const
     for (int a0 = 0; a0 < this->num; ++a0) {
         enc_size += this->points[a0]._getEncodedSizeNoHash();
     }
+    enc_size += __int8_t_encoded_array_size(NULL, 1);
+    enc_size += __int32_t_encoded_array_size(NULL, 1);
     return enc_size;
 }
 
@@ -209,7 +227,7 @@ uint64_t LaneLine::_computeHash(const __zcm_hash_ptr* p)
             return 0;
     const __zcm_hash_ptr cp = { p, (void*)LaneLine::getHash };
 
-    uint64_t hash = (uint64_t)0x0a0e1d18725221fbLL +
+    uint64_t hash = (uint64_t)0x751d2907c6cc9fa3LL +
          LinePoint::_computeHash(&cp);
 
     return (hash<<1) + ((hash>>63)&1);

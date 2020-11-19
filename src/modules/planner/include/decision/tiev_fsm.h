@@ -68,116 +68,120 @@ using FSM = M::PeerRoot<
 
 //定义途灵中的状态机或状态，一定要和最上方状态机声明一致
 //----------------OnRoad Fsm--------------------
-struct OnRoadFSM : FSM::State {
+struct TiEVState : FSM::State {
+    time_t entry_time;
+};
+struct OnRoadFSM : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 
-struct GlobalPlanning : FSM::State {
+struct GlobalPlanning : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 
-struct NormalDriving : FSM::State {
+struct NormalDriving : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 
-struct LaneFreeDriving : FSM::State {
+struct LaneFreeDriving : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 
-struct SemiLaneFreeDriving : FSM::State {
+struct SemiLaneFreeDriving : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 
-struct FreeDriving : FSM::State {
+struct FreeDriving : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 
-struct GlobalReplanning : FSM::State {
+struct GlobalReplanning : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 
-struct Exploration : FSM::State {
+struct Exploration : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 //----------------OnRoad Fsm--------------------
 //----------------Intersection Fsm--------------------
-struct IntersectionFSM : FSM::State {
+struct IntersectionFSM : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 
-struct SafeDriving : FSM::State {
+struct SafeDriving : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
+    time_t expired_time;
 };
 
-struct IntersectionFreeDriving : FSM::State {
+struct IntersectionFreeDriving : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 //----------------Intersection Fsm--------------------
 //----------------Parking Fsm--------------------
-struct ParkingFSM : FSM::State {
+struct ParkingFSM : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 
-struct SeekParkingSpot : FSM::State {
+struct SeekParkingSpot : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 
-struct ParkingPlanning : FSM::State {
+struct ParkingPlanning : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 
-struct ReplaceParkingPath : FSM::State {
+struct ReplaceParkingPath : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 
-struct Stop : FSM::State {
+struct Stop : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 //----------------Parking Fsm--------------------
 //----------------TemporaryParking Fsm--------------------
-struct TemporaryParkingFSM : FSM::State {
+struct TemporaryParkingFSM : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 
-struct TemporaryParkingPlanning : FSM::State {
+struct TemporaryParkingPlanning : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 
-struct TemporaryStop : FSM::State {
+struct TemporaryStop : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 
-struct TaskDecision : FSM::State {
+struct TaskDecision : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 //----------------TemporaryParking Fsm--------------------
 //----------------Tracking State--------------------
-struct Tracking : FSM::State {
+struct Tracking : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };
 
-struct BackTracking : FSM::State {
+struct BackTracking : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };

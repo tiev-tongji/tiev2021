@@ -1,5 +1,6 @@
 #ifndef MAP_MANAGER_H
 #define MAP_MANAGER_H
+#include "Routing.h"
 #include "const.h"
 #include "message_manager.h"
 #include "pose.h"
@@ -21,6 +22,7 @@ struct Map {
     unsigned char lidar_map[MAX_ROW][MAX_COL];         //激光雷达地图
     unsigned char static_lidar_map[MAX_ROW][MAX_COL];  //激光雷达地图
     unsigned char line_block_map[MAX_ROW][MAX_COL];    //车道线封闭地图
+    unsigned char dynamic_obs_map[MAX_ROW][MAX_COL];   //
     double        lidar_dis_map[MAX_ROW][MAX_COL];     //激光障碍物距离地图
     double        planning_dis_map[MAX_ROW][MAX_COL];  //规划距离地图
     bool          accessible_map[MAX_ROW][MAX_COL];    //规划距离地图
@@ -33,7 +35,10 @@ struct Map {
     std::vector<std::vector<LinePoint>> boundary_line;
     std::vector<std::vector<Point2d>>   lane_center_list;  //当前地图匹配好的车道线0.5m一个点
     std::vector<Pose>                   start_maintained_path;
+    std::vector<Task>                   current_task_points;  // The task points that have not been finished yet
     SpeedPath                           best_path;
+    SpeedPath                           speed_maintained_path;
+    std::vector<Pose>                   parking_spots;
 
     int car_lane_id;
 };
@@ -51,20 +56,35 @@ public:
     double getCurrentMapSpeed();
     bool requestGlobalPath(const NavInfo& nav_info);  //请求全局路
     void readGlobalPathFile(const std::string& file_path);
-    void updateRefPath(bool need_opposite = false);  //获取局部参考路
-    void avoidPedestrian();                          // 对道路内且相隔一定距离内的行人进行避让
+    void runRouting(int interval, bool blocked);  // Update global path in a new thread
+    HDMapMode          getCurrentMapMode();
+    RoadDirection      getCurrentRoadDirection();
+    HDMapPoint         getStopLine();
+    vector<HDMapPoint> getForwardRefPath();
+    void updateRefPath(bool need_opposite = false);                                            //获取局部参考路
+    void addPedestrian(DynamicObjList& dynamic_obj_list, const vector<HDMapPoint>& ref_path);  // 对道路内且相隔一定距离内的行人进行避让
+    void blockStopLine();                                                                      // 封闭停止线，红灯时使用
     enum LaneLineBlockType { NO_BLOCK, SEMI_BLOCK, ALL_BLOCK };
-    void updatePlanningMap(LaneLineBlockType lane_line_block_type);
-    Map& getMap();
-    void visualization();
+    void updatePlanningMap(LaneLineBlockType lane_line_block_type, bool history = false);
+    Map&         getMap();
+    void         visualization();
+    void         maintainParkingSpots();
+    vector<Task> getCurrentTasks();
+    void         popCurrentTask();
+    bool         carInRoad();
+    void setGlobalPath(const vector<HDMapPoint>& new_global_path);
     //获取目标点
     std::vector<Pose> getLaneTargets();
     Pose              getBackTarget();
-    Pose              getExplorationTarget();
-    Pose              getParkingSpotTarget();
-    vector<Pose>      getTaskTargets();
+    std::vector<Pose> getExplorationTargets();
+    std::vector<Pose> getParkingSpotTarget();
+    std::vector<Pose> getTemporaryParkingTarget();
+    std::vector<Pose> getTaskTarget();
+    // Pose getRefPathTarget(double s);
     //------
     std::vector<Pose> getMaintainedPath(NavInfo& nav_info);
+    void getSpeedMaintainedPath(NavInfo& nav_info);
+    void              predictDynamicObsInMap();
     std::vector<Pose> getStartMaintainedPath();
     void maintainPath(NavInfo& nav_info, vector<Pose>& path);
     void selectBestPath(const std::vector<SpeedPath>& paths);
@@ -75,17 +95,23 @@ public:
     };
 
 protected:
-    MapManager(){};
+    MapManager() {
+        Config* config                = Config::getInstance();
+        this->map.current_task_points = config->tasks;
+    };
 
 private:
-    Map map;
-    int global_path_nearest_idx = -1;  // getRefPath中使用
+    Map    map;
+    int    global_path_nearest_idx = -1;  // getRefPath中使用
+    time_t global_path_update_time = -1;
 
     std::vector<HDMapPoint> global_path;
     std::vector<Pose>       maintained_path;
     static MapManager*      instance;
     shared_mutex            maintained_path_mutex;
     shared_mutex            ref_path_mutex;
+    shared_mutex            global_path_mutex;
+    shared_mutex            task_points_mutex;
 
 private:
     //---------execute when update--------
@@ -95,7 +121,7 @@ private:
     void laneMatch();                 // 车道线匹配
     void getBoundaryLine();
     void laneLineInterpolation();
-    void getPlanningDisMap();
+    void getPlanningDisMap(bool history = false);
     void getAccessibleMap();
     //--------tool----------------
     int  getCarLaneId();                             //获取车辆当前所在车道序号

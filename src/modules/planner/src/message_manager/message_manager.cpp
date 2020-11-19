@@ -15,12 +15,16 @@ bool MessageManager::getNavInfo(NavInfo& nav_info) {
     nav_info.reliable      = false;
     nav_info.car_pose      = Pose(CAR_CEN_ROW, CAR_CEN_COL, PI);
     nav_info.current_speed = 0;
+    nav_info.lon           = 0;
+    nav_info.lat           = 0;
     if(current_time - inner_handler.update_time_nav_info < NAV_INFO_TIMEOUT_US) {
         nav_info.detected                      = true;
         nav_info.car_pose.utm_position.utm_x   = inner_handler.tmp_nav.utmX;
         nav_info.car_pose.utm_position.utm_y   = inner_handler.tmp_nav.utmY;
         nav_info.car_pose.utm_position.heading = inner_handler.tmp_nav.mHeading;
         nav_info.current_speed                 = inner_handler.tmp_nav.mSpeed3d;
+        nav_info.lon                           = inner_handler.tmp_nav.mLon;
+        nav_info.lat                           = inner_handler.tmp_nav.mLat;
         if(inner_handler.tmp_nav.mRTKStatus == 1 || inner_handler.tmp_nav.isReckoningVaild) {
             nav_info.reliable = true;
         }
@@ -58,6 +62,26 @@ bool MessageManager::getRainSignal(RainSignal& rain_signal) {
     return rain_signal.detected;
 }
 
+void MessageManager::clearTextInfo() {
+    text_info.clear();
+}
+
+void MessageManager::setTextInfo() {
+    visualization.text_info.clear();
+    visualization.text_info_size = 0;
+    for(const auto& itr : text_info) {
+        visText vis_text;
+        vis_text.name  = itr.first;
+        vis_text.value = itr.second;
+        visualization.text_info.emplace_back(vis_text);
+        visualization.text_info_size += 1;
+    }
+}
+
+void MessageManager::addTextInfo(const string& name, const string& value) {
+    text_info[name] = value;
+}
+
 bool MessageManager::getDynamicObjList(DynamicObjList& dynamic_obj_list) {
     inner_handler.objects_mtx.lock_shared();
     time_t current_time_us = getTimeStamp();
@@ -77,7 +101,7 @@ bool MessageManager::getDynamicObjList(DynamicObjList& dynamic_obj_list) {
                 new_obj.type    = (ObjectType)obj.obj_type;
                 new_obj.width   = obj.width;
                 new_obj.length  = obj.length;
-                new_obj.heading = PI / 2 - obj.theta;
+                new_obj.heading = obj.theta + PI / 2;
                 normalizeAngle(new_obj.heading);
                 new_obj.corners.resize(4);
 #define copy_point(a, b)                                  \
@@ -119,11 +143,9 @@ bool MessageManager::getTrafficLight(TrafficLight& traffic_light) {
     traffic_light.detected = false;
     if(current_time - inner_handler.update_time_traffic_light < TRAFFIC_LIGHT_TIMEOUT_US) {
         traffic_light.detected = true;
-        uint8_t raw_signal     = inner_handler.tmp_traffic.raw_signal;
-        uint8_t turn_signal    = inner_handler.tmp_traffic.turn_signal;
-        traffic_light.left     = inner_handler.tmp_traffic.turn_signal & 0x4;
-        traffic_light.right    = inner_handler.tmp_traffic.turn_signal & 0x1;
-        traffic_light.straight = inner_handler.tmp_traffic.turn_signal & 0x2;
+        traffic_light.left     = inner_handler.tmp_traffic.left;
+        traffic_light.right    = inner_handler.tmp_traffic.right;
+        traffic_light.straight = inner_handler.tmp_traffic.forward;
     }
     inner_handler.traffic_mtx.unlock_shared();
     return traffic_light.detected;
@@ -147,16 +169,48 @@ bool MessageManager::getLaneList(LaneList& lane_list) {
                 // cout << "lane" << i << " direction:" << lane.type << " visual direction:" << inner_handler.tmp_lanes.lanes[i].lane_type << endl;
                 // if(lane.type == 0x00) lane.type = 0x07;
                 lane.width = inner_handler.tmp_lanes.lanes[i].width;
-                if(inner_handler.tmp_lanes.lanes[i].left_line.line_type & 0x01)
+                switch(inner_handler.tmp_lanes.lanes[i].left_line.line_type) {
+                case 1:
                     lane.left_line.type = LineType::DASH;
-                else
+                    break;
+                case 3:
+                    lane.left_line.type = LineType::DASH;
+                    break;
+                case 0:
                     lane.left_line.type = LineType::SOLID;
-                lane.left_line.distance = -inner_handler.tmp_lanes.lanes[i].left_line.distance;
-                if(inner_handler.tmp_lanes.lanes[i].right_line.line_type & 0x01)
-                    lane.right_line.type = LineType::DASH;
+                    break;
+                case 2:
+                    lane.left_line.type = LineType::SOLID;
+                    break;
+                default:
+                    lane.left_line.type = LineType::UNKNOWN_LINE;
+                }
+                if(inner_handler.tmp_lanes.lanes[i].left_line.boundary_confidence == 2) lane.left_line.type = LineType::BOUNDARY;
+                if(i < lane_list.current_id)
+                    lane.left_line.distance = -inner_handler.tmp_lanes.lanes[i].left_line.distance;
                 else
+                    lane.left_line.distance = inner_handler.tmp_lanes.lanes[i].left_line.distance;
+                switch(inner_handler.tmp_lanes.lanes[i].right_line.line_type) {
+                case 1:
+                    lane.right_line.type = LineType::DASH;
+                    break;
+                case 3:
+                    lane.right_line.type = LineType::DASH;
+                    break;
+                case 0:
                     lane.right_line.type = LineType::SOLID;
-                lane.right_line.distance = -inner_handler.tmp_lanes.lanes[i].right_line.distance;
+                    break;
+                case 2:
+                    lane.right_line.type = LineType::SOLID;
+                    break;
+                default:
+                    lane.right_line.type = LineType::UNKNOWN_LINE;
+                }
+                if(inner_handler.tmp_lanes.lanes[i].right_line.boundary_confidence == 2) lane.left_line.type = LineType::BOUNDARY;
+                if(i <= lane_list.current_id)
+                    lane.right_line.distance = -inner_handler.tmp_lanes.lanes[i].right_line.distance;
+                else
+                    lane.right_line.distance = inner_handler.tmp_lanes.lanes[i].right_line.distance;
                 for(auto& point : inner_handler.tmp_lanes.lanes[i].left_line.points) {
                     LinePoint p;
                     p.type = lane.left_line.type;
@@ -172,14 +226,6 @@ bool MessageManager::getLaneList(LaneList& lane_list) {
                     p.y    = CAR_CEN_COL + (point.x / GRID_RESOLUTION);
                     if(!p.in_map()) continue;
                     lane.right_line.points.push_back(p);
-                }
-                if(inner_handler.tmp_lanes.lanes[i].stop_point.y != -1) {
-                    lane.stop_point.x = CAR_CEN_ROW - (inner_handler.tmp_lanes.lanes[i].stop_point.y / GRID_RESOLUTION);
-                    lane.stop_point.y = CAR_CEN_COL + (inner_handler.tmp_lanes.lanes[i].stop_point.x / GRID_RESOLUTION);
-                }
-                else {
-                    lane.stop_point.x = -1;
-                    lane.stop_point.y = -1;
                 }
                 lane_list.lane_list.push_back(lane);
             }
@@ -245,14 +291,14 @@ void MessageManager::Handler::handleFUSIONMAP(const zcm::ReceiveBuffer* rbuf, co
     map_mtx.unlock();
 }
 
-void MessageManager::Handler::handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structTRAFFICLIGHT* msg) {
+void MessageManager::Handler::handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgTrafficLightSignal* msg) {
     traffic_mtx.lock();
     tmp_traffic               = *msg;
     update_time_traffic_light = getTimeStamp();
     traffic_mtx.unlock();
 }
 
-void MessageManager::Handler::handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structLANES* msg) {
+void MessageManager::Handler::handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgRoadMarkingList* msg) {
     lane_mtx.lock();
     update_time_lane = getTimeStamp();
     tmp_lanes        = *msg;
@@ -313,7 +359,7 @@ void MessageManager::msgReceiveIpc() {
 void MessageManager::msgReceiveUdp() {
     if(!zcm_udp.good()) return;
 
-    zcm_udp.subscribe("TRAFFICLIGHT", &Handler::handleTRAFFICLIGHT, &inner_handler);
+    zcm_udp.subscribe("MsgTrafficLightSignal", &Handler::handleTRAFFICLIGHT, &inner_handler);
     zcm_udp.subscribe("NAVINFO", &Handler::handleNAVINFO, &inner_handler);
     zcm_udp.subscribe("FUSIONMAP", &Handler::handleFUSIONMAP, &inner_handler);
     zcm_udp.subscribe("OBJECTLIST", &Handler::handleOBJECTLIST, &inner_handler);

@@ -12,6 +12,8 @@ public:
     Pose   car_pose;
     double current_speed;
     bool   reliable = false;
+    double lon;
+    double lat;
 };
 
 class SlamInfo {
@@ -101,7 +103,6 @@ class Lane {
 public:
     int      type;
     double   width;
-    Point2d  stop_point;
     LaneLine left_line;
     LaneLine right_line;
 };

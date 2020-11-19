@@ -19,6 +19,18 @@ struct UtmPosition {
     }
 };
 
+// longititude and latitude
+struct LonLatPosition {
+    double lon;
+    double lat;
+    double heading;
+    LonLatPosition(double lon_ = 0, double lat_ = 0, double heading_ = 0) : lon(lon_), lat(lat_), heading(heading_){};
+    friend std::ostream& operator<<(std::ostream& out, const LonLatPosition& position) {
+        out << "LonLatPosition:{" << position.lon << ", " << position.lat << ", " << position.heading << "}";
+        return out;
+    }
+};
+
 /**
  * 定义轨迹
  */
@@ -63,12 +75,18 @@ struct Pose : public Point2d {
         double qy          = (px * sinstdh + py * cosstdh);
         utm_position.utm_x = qx * GRID_RESOLUTION + standard_point.utm_position.utm_x;
         utm_position.utm_y = qy * GRID_RESOLUTION + standard_point.utm_position.utm_y;
-        double hd          = standard_point.utm_position.heading + standard_point.ang - ang;
+        double hd          = standard_point.utm_position.heading + ang - standard_point.ang;
         while(hd > PI)
             hd -= 2 * PI;
         while(hd <= -PI)
             hd += 2 * PI;
         utm_position.heading = hd;
+    }
+
+    inline double cosDeltaAngle(const Pose& other_pose) {
+        double cross = (*this).dot(other_pose);
+        double cos   = cross / ((*this).len() * other_pose.len());
+        return cos;
     }
 
     void updateLocalCoordinate(const Pose& standard_point) {
@@ -94,8 +112,8 @@ struct Pose : public Point2d {
  * 定义语义地图上的路径点
 */
 enum HDMapEvent { NONE, ENTRY_INTERSECTION, EXIT_INTERSECTION, STOP, CHANGE_HDMAP };
-enum HDMapMode { NORMAL, INTERSECTION_SOLID, INTERSECTION, PARKING, CHANGE };
-enum HDMapSpeed { VERY_LOW, LOW, MIDDLE, HIGH, VERY_HIGH };
+enum HDMapMode { NORMAL, INTERSECTION_SOLID, INTERSECTION, PARKING, CHANGE, UNKNOWN_MODE };
+enum HDMapSpeed {BACK_SPEED, STOP_SPEED, VERY_LOW, LOW, MIDDLE, HIGH, VERY_HIGH };
 enum RoadDirection { LEFT = 4, STRAIGHT = 2, RIGHT = 1, UTURN = 8 };        //二进制表示0000，最高位表示uturn,剩下为左直右
 enum BlockType { BlockNone, BlockRight = 1, BlockLeft = 2, BlockAll = 3 };  //二进制表示00，1表示封闭
 struct HDMapPoint : public Pose {
