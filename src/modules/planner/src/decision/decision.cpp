@@ -123,6 +123,7 @@ void sendPath() {
         }
         // get maintained path
         vector<Pose> maintained_path = mapm->getMaintainedPath(nav_info);
+        cout << "speed maintpath size:" << maintained_path.size() << endl;
         // run speed planner
         double        max_speed      = mapm->getCurrentMapSpeed();
         HDMapMode     road_mode      = mapm->getCurrentMapMode();
@@ -168,6 +169,8 @@ void sendPath() {
         }
         if(!maintained_path.empty()) maintained_path.front().v = fabs(nav_info.current_speed);
         SpeedPath speed_path;
+        for(const auto &p:speed_limits)
+        cout << "speed limit:" << p.first << " "<<  p.second << endl;
         if(!maintained_path.empty()) speed_path = SpeedOptimizer::RunSpeedOptimizer(dynamic.dynamic_obj_list, maintained_path, speed_limits, maintained_path.back().s);
         // send control trojectory
         control_path.points.clear();

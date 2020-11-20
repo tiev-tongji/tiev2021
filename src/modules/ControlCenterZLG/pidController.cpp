@@ -32,7 +32,7 @@ static float P_angle_old = 0;
 // 角度积分项
 static float I_angle = 0;
 
-static float I_speed_limit = 300; // 2*50hz*3s
+static float I_speed_limit = 600; // 2*50hz*3s
 static float I_angle_limit = 3000; // 2*50hz*3s
 
 // 默认正负一致
@@ -54,8 +54,8 @@ STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& ang
 	if(desired_speed == 0 || veh_speed * desired_speed < 0){
 	    INFO("stop car right now!");
 	    *is_break = true;
-	    *control_output = 10;
-            *control_output += fabs(veh_speed) * params.break_P;
+	    *control_output = 100;
+        *control_output += fabs(veh_speed) * params.break_P;
 	    return CC_OK;
 	}
 
@@ -91,7 +91,7 @@ STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& ang
 
     // 有一定速度后，才开始使用积分
 	if (fabs(veh_speed) == 0){
-		if(I_speed >= 300) I_speed = 0;
+		if(I_speed >= I_speed_limit) I_speed = 0;
 		else I_speed = I_speed + P_speed;
 	}
 	else{
