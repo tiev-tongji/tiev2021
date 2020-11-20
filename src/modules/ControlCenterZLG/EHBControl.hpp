@@ -80,7 +80,7 @@ private:
 	DCUMessage dcuMessage_;
 public:
  	unsigned int rcv_wait_time;
-    unsigned int rcv_buff_size;
+    int rcv_buff_size;
     CAN_DEV_INFO can_dev;
     VCI_INIT_CONFIG config;
 };

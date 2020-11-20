@@ -33,7 +33,6 @@ void runTiEVFSM() {
         mapm->update();
         mm->context.update();  //更新途灵事件信息
         mm->machine.update();
-        cout << "machine active:" << mm->machine.isActive<NormalDriving>() << endl;
         time_t end_t     = getTimeStamp();
         int    time_cost = (end_t - start_t) / 1000;
         msgm->addTextInfo("Time cost", to_string(time_cost));
@@ -55,6 +54,7 @@ void runTiEVFSM() {
         if(mm->machine.isActive<TemporaryParkingPlanning>()) msgm->addTextInfo("FSM State", "TemporaryParkingPlanning");
         if(mm->machine.isActive<TemporaryStop>()) msgm->addTextInfo("FSM State", "TemporaryStop");
         if(mm->machine.isActive<Tracking>()) msgm->addTextInfo("FSM State", "Tracking");
+        if(mm->machine.isActive<UTurn>()) msgm->addTextInfo("FSM State", "UTurn");
         mapm->visualization();
     }
 }
@@ -133,6 +133,8 @@ void sendPath() {
             mapm->addPedestrian(dynamic, mapm->getForwardRefPath());
         }
         // add stop line
+        // cout << "Road direction:" << road_direction << endl;
+        // cout << "Road mode:" << road_mode << endl;
         if(road_mode == HDMapMode::INTERSECTION_SOLID && traffic_light.detected) {
             if((road_direction == RoadDirection::LEFT && !traffic_light.left) || (road_direction == RoadDirection::STRAIGHT && !traffic_light.straight)
                || (road_direction == RoadDirection::RIGHT && !traffic_light.right)) {
@@ -168,6 +170,7 @@ void sendPath() {
         }
         if(!maintained_path.empty()) maintained_path.front().v = fabs(nav_info.current_speed);
         SpeedPath speed_path;
+        if(!maintained_path.empty()) cout << "pid maintained path size:" << maintained_path.size() << " s=" << maintained_path.back().s << endl;
         if(!maintained_path.empty()) speed_path = SpeedOptimizer::RunSpeedOptimizer(dynamic.dynamic_obj_list, maintained_path, speed_limits, maintained_path.back().s);
         // send control trojectory
         control_path.points.clear();
@@ -185,9 +188,32 @@ void sendPath() {
             tp.k                                     = p.k;
             tp.t                                     = p.t;
             tp.v                                     = p.v;
-            if(tp.v < 0.5 && tp.v > 0.00000001) tp.v = 0.5;
+            if(road_mode == HDMapMode::IN_PARK) tp.v = min(tp.v, mapm->getCurrentMapSpeed());
+            if(tp.v < 0.5 && tp.v > 0.0000001) tp.v  = 0.5;
             if(p.backward) tp.v                      = -tp.v;
             control_path.points.push_back(tp);
+        }
+        if(control_path.points.empty()) {
+            control_path.num_points = 10;
+            for(int i = 0; i < 10; ++i) {
+                TrajectoryPoint tp;
+                tp.x     = 0.1 * i;
+                tp.y     = 0.0;
+                tp.theta = 0;
+                tp.a     = 0;
+                tp.k     = 0;
+                tp.t     = 0.1 * i;
+                tp.v     = 0;
+                control_path.points.push_back(tp);
+            }
+        }
+        for(int i = 0; i < speed_path.path.size(); ++i) {
+            Pose p = speed_path.path[i];
+            cout << "pid speed path " << i << " " << p << endl;
+        }
+        for(int i = 0; i < control_path.points.size(); ++i) {
+            TrajectoryPoint p = control_path.points[i];
+            cout << "pid path " << i << ":{x=" << p.x << " y=" << p.y << " theta=" << p.theta << " a=" << p.a << " v=" << p.v << endl;
         }
         msgm->publishPath(control_path);
         // visual maintained path
@@ -210,25 +236,34 @@ void requestGlobalPathFromMapServer() {
     time_t          start_time = getTimeStamp();
     MessageManager* msg_m      = MessageManager::getInstance();
     MapManager*     map_m      = MapManager::getInstance();
+    MachineManager* mm         = MachineManager::getInstance();
     Routing*        routing    = Routing::getInstance();
     NavInfo         nav_info;
     vector<Task>    task_list;
     while(true) {
         msg_m->getNavInfo(nav_info);
-        if(getTimeStamp() - start_time < 5e6) {
-            usleep(5e6 + start_time - getTimeStamp());
+        if(getTimeStamp() - start_time < 2e6) {
+            usleep(2e6 + start_time - getTimeStamp());
         }
         start_time = getTimeStamp();
         vector<HDMapPoint> tmp_global_path;
         HDMapMode          road_mode = map_m->getCurrentMapMode();
-        if(!nav_info.detected || road_mode == HDMapMode::INTERSECTION || road_mode == HDMapMode::INTERSECTION_SOLID) continue;
+        // mode
+        if(!nav_info.detected || road_mode == HDMapMode::INTERSECTION || road_mode == HDMapMode::INTERSECTION_SOLID || road_mode == HDMapMode::IN_PARK) continue;
+        // fsm state
+        if(mm->machine.isActive<UTurn>() || mm->machine.isActive<GlobalReplanning>() || mm->machine.isActive<ParkingFSM>() || mm->machine.isActive<TemporaryParkingFSM>()) continue;
         Task current_pos;
         current_pos.lon_lat_position.lon = nav_info.lon;
         current_pos.lon_lat_position.lat = nav_info.lat;
         task_list.clear();
         task_list.push_back(current_pos);
-        task_list.push_back(map_m->getCurrentTasks().back());
-        int cost = routing->findReferenceRoad(tmp_global_path, task_list, false);
+        vector<Task> current_tasks = map_m->getCurrentTasks();
+        if(!current_tasks.empty())
+            task_list.push_back(current_tasks.back());
+        else
+            task_list.push_back(map_m->getParkingTask());
+        int cost                      = -1;
+        if(task_list.size() > 1) cost = routing->findReferenceRoad(tmp_global_path, task_list, false);
         if(cost == -1) continue;
         cout << "Cost of global path: " << cost << endl;
         if(true) {  // TODO: When to replace?

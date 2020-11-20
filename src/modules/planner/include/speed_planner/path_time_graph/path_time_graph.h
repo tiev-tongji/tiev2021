@@ -24,7 +24,7 @@ private:
     double path_length_;
     double total_time_;
 
-    const double Default_Path_Width_        = 2;
+    const double Default_Path_Width_        = 1.7;
     const double Trajectory_Time_Resolution = 0.05;  // Temporarily set
 
 public:

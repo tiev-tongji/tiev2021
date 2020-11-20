@@ -62,7 +62,7 @@ struct Pose : public Point2d {
 
     friend std::ostream& operator<<(std::ostream& out, const Pose& pose) {
         out << "Pose:{utm position:(" << pose.utm_position.utm_x << ", " << pose.utm_position.utm_y << ", " << pose.utm_position.heading << ") x=" << pose.x << ", y=" << pose.y << ", ang=" << pose.ang
-            << ", k=" << pose.k << ", v=" << pose.v << ", s=" << pose.s << ", t=" << pose.t << "}";
+            << ", k=" << pose.k << ", v=" << pose.v << ", s=" << pose.s << ", t=" << pose.t << ", backward=" << pose.backward << "}";
         return out;
     }
 
@@ -112,8 +112,8 @@ struct Pose : public Point2d {
  * 定义语义地图上的路径点
 */
 enum HDMapEvent { NONE, ENTRY_INTERSECTION, EXIT_INTERSECTION, STOP, CHANGE_HDMAP };
-enum HDMapMode { NORMAL, INTERSECTION_SOLID, INTERSECTION, PARKING, CHANGE, UNKNOWN_MODE };
-enum HDMapSpeed {BACK_SPEED, STOP_SPEED, VERY_LOW, LOW, MIDDLE, HIGH, VERY_HIGH };
+enum HDMapMode { NORMAL, INTERSECTION_SOLID, INTERSECTION, PARKING, CHANGE, IN_PARK, UNKNOWN_MODE };
+enum HDMapSpeed { BACK_SPEED, STOP_SPEED, VERY_LOW, LOW, MIDDLE, HIGH, VERY_HIGH };
 enum RoadDirection { LEFT = 4, STRAIGHT = 2, RIGHT = 1, UTURN = 8 };        //二进制表示0000，最高位表示uturn,剩下为左直右
 enum BlockType { BlockNone, BlockRight = 1, BlockLeft = 2, BlockAll = 3 };  //二进制表示00，1表示封闭
 struct HDMapPoint : public Pose {

@@ -69,7 +69,7 @@ void EHBControl::init(){
 
 // 读取EHB制动信息
 int EHBControl::canInfoRead(){
-	while(1){
+	while(true){
 		int nbytes;
 		VCI_CAN_OBJ frame[rcv_buff_size];
 		uint32_t cnt = VCI_Receive(can_dev.devType, can_dev.devIndex, 

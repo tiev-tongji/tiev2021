@@ -298,7 +298,7 @@ void MessageManager::Handler::handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf,
     traffic_mtx.unlock();
 }
 
-void MessageManager::Handler::handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgRoadMarkingList* msg) {
+void MessageManager::Handler::handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structRoadMarkingList* msg) {
     lane_mtx.lock();
     update_time_lane = getTimeStamp();
     tmp_lanes        = *msg;
@@ -359,7 +359,7 @@ void MessageManager::msgReceiveIpc() {
 void MessageManager::msgReceiveUdp() {
     if(!zcm_udp.good()) return;
 
-    zcm_udp.subscribe("MsgTrafficLightSignal", &Handler::handleTRAFFICLIGHT, &inner_handler);
+    zcm_udp.subscribe("msgTrafficLightSignal", &Handler::handleTRAFFICLIGHT, &inner_handler);
     zcm_udp.subscribe("NAVINFO", &Handler::handleNAVINFO, &inner_handler);
     zcm_udp.subscribe("FUSIONMAP", &Handler::handleFUSIONMAP, &inner_handler);
     zcm_udp.subscribe("OBJECTLIST", &Handler::handleOBJECTLIST, &inner_handler);

@@ -10,7 +10,11 @@ void Stop::enter(Control& control) {
 
 void Stop::update(FullControl& control) {
     // TODO: shutdown
-
+    MapManager*  map_manager = MapManager::getInstance();
+    Map&         map         = map_manager->getMap();
+    vector<Pose> stop_path;
+    stop_path.push_back(map.nav_info.car_pose);
+    map_manager->maintainPath(map.nav_info, stop_path);
     // MapManager* map_manager = MapManager::getInstance();
 }
 }  // namespace TiEV

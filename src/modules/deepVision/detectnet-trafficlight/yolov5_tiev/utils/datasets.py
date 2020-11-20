@@ -368,8 +368,8 @@ class LoadStreamsBasler:  # basler cameras
                 # Access the image data
                 image = self.converter.Convert(grabResult)
                 img = image.GetArray()
-                img = cv2.flip(img, 0)
-                img = cv2.flip(img, 1)
+                img = cv2.flip(img,1)
+                img = cv2.flip(img,0)
                 self.imgs[index] = img
             grabResult.Release()
 
@@ -386,15 +386,12 @@ class LoadStreamsBasler:  # basler cameras
 
         # Letterbox
         img = [letterbox(x, new_shape=self.img_size, auto=self.rect)[0] for x in img0]
-
         # Stack
         img = np.stack(img, 0)
-
         # Convert
         img = img[:, :, :, ::-1].transpose(0, 3, 1, 2)  # BGR to RGB, to bsx3x416x416
 #        img = img[::-1, :, :, :]
         img = np.ascontiguousarray(img)
-
         return self.sources, img, img0, None
 
     def __len__(self):

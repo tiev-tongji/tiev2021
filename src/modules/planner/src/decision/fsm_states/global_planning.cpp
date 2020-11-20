@@ -13,6 +13,8 @@ void GlobalPlanning::update(FullControl& control) {
     cout << "Global Planning update..." << endl;
     // for test
     map_manager->updateRefPath();
+    Map& map = map_manager->getMap();
+    if(!map.nav_info.detected || map_manager->getForwardRefPath().empty()) return;
     control.changeTo<NormalDriving>();
     // control.changeTo<Tracking>();
     // TODO: map_manager->runRouting();

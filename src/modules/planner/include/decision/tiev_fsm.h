@@ -39,7 +39,8 @@ using FSM = M::PeerRoot<
                  S(SemiLaneFreeDriving),  //
                  S(FreeDriving),          //
                  S(GlobalReplanning),     //
-                 S(Exploration)           //
+                 S(Exploration),          //
+                 S(UTurn)                 //
                  >,
     // Intersection Fsm
     M::Composite<S(IntersectionFSM),
@@ -107,6 +108,11 @@ struct GlobalReplanning : TiEVState {
 };
 
 struct Exploration : TiEVState {
+    void enter(Control& control);
+    void update(FullControl& control);
+};
+
+struct UTurn : TiEVState {
     void enter(Control& control);
     void update(FullControl& control);
 };

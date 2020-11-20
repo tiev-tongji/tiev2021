@@ -1,4 +1,5 @@
 *.pt
+*.pkl
 build/
 *.so
 *.o

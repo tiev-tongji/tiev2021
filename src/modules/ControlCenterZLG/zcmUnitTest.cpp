@@ -28,8 +28,8 @@ public:
 
 int main(){
 
-    zcm::ZCM veh_status_sub {""};
-    zcm::ZCM veh_control_pub {""};
+    zcm::ZCM veh_status_sub {"ipc"};
+    zcm::ZCM veh_control_pub {"ipc"};
     
     if(!veh_status_sub.good()){
         ERR("veh_status_pub init error");
@@ -39,18 +39,17 @@ int main(){
         ERR("veh_control_sub init error");
         return CC_ERR;
     }
-
-    while(1){
-        static int i = 0;
+    int i = 0;
+    while(i<10){
         i++;
         structCANCONTROL veh_control {};
-        veh_control.aimspeed = i;
-        veh_control.aimsteer = i*10;
+        veh_control.aimspeed = 3;
+        veh_control.aimsteer = 10;
 
         structREMOTECONTROL remote_control {};
         remote_control.enabled = i % 1;
 
-        veh_control_pub.publish("REMOTECONTROL", &remote_control);
+        // veh_control_pub.publish("REMOTECONTROL", &remote_control);
         veh_control_pub.publish("CANCONTROL", &veh_control);
 
         usleep(100*1000);

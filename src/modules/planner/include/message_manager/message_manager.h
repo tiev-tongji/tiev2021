@@ -83,7 +83,7 @@ private:
         void handleRAINSIGNAL(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgRainDetectionSignal* msg);
         void handleOBJECTLIST(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structOBJECTLIST* msg);
         void handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgTrafficLightSignal* msg);
-        void handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgRoadMarkingList* msg);
+        void handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structRoadMarkingList* msg);
         void handlePARKINGSLOTS(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structPARKINGSLOTS* msg);
         void handleSLAMLOC(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structSLAMLOC* msg);
         void handleCANINFO(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structCANINFO* msg);
@@ -108,7 +108,7 @@ private:
         MsgTrafficLightSignal  tmp_traffic;
         structSLAMLOC          tmp_slam_loc;
         structCANINFO          tmp_can_info;
-        MsgRoadMarkingList     tmp_lanes;
+        structRoadMarkingList  tmp_lanes;
         structPARKINGSLOTS     tmp_slot;
     };
 

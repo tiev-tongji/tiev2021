@@ -30,6 +30,7 @@ Routing::Routing() {
 Routing::~Routing() {}
 
 int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path, const std::vector<Task>& task_points, bool blocked) {
+    global_path.clear();
     if(task_points.size() < 2) {
         std::cout << "task points size < 2 !!!" << std::endl;
         return -1;

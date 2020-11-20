@@ -81,6 +81,7 @@ public:
     double a_star_curvature_changed_punishment;
     // NOTICE: READ-ONLY
     vector<Task> tasks;
+    Task         parking_task;
 
     // Configuration of routing
     string host;

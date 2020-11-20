@@ -1,3 +1,4 @@
+#include "collision_check.h"
 #include "map_manager.h"
 #include "tiev_fsm.h"
 #include <iostream>
@@ -18,6 +19,7 @@ void SemiLaneFreeDriving::update(FullControl& control) {
     vector<Pose>      targets    = map_manager->getLaneTargets();
     Map&              map        = map_manager->getMap();
     vector<SpeedPath> speed_path_list;
+
     PathPlanner::getInstance()->runPlanner(map.dynamic_obj_list, map_manager->getCurrentMapSpeed(), true, map.lidar_dis_map, map.planning_dis_map, start_path, targets, map.nav_info.current_speed,
                                            speed_path_list);
     map_manager->selectBestPath(speed_path_list);
