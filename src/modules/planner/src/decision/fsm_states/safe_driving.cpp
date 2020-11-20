@@ -20,7 +20,8 @@ void SafeDriving::update(FullControl& control) {
     vector<Pose>      targets    = map_manager->getLaneTargets();
     vector<SpeedPath> speed_path_list;
     // 红绿灯
-    RoadDirection direction = map_manager->getForwardRefPath().front().direction;
+    // RoadDirection direction = map_manager->getForwardRefPath().front().direction;
+    RoadDirection direction = map_manager->getCurrentRoadDirection();
     if(map.traffic_light.detected) {
         if((direction == RoadDirection::RIGHT && !map.traffic_light.right) || (direction == RoadDirection::LEFT && !map.traffic_light.left)
            || (direction == RoadDirection::STRAIGHT && !map.traffic_light.straight)) {

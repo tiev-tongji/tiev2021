@@ -27,6 +27,6 @@ void UTurn::update(FullControl& control) {
     map_manager->maintainPath(map.nav_info, map.best_path.path);
     vector<HDMapPoint> forward_ref_path = map_manager->getForwardRefPath();
     if(map_manager->carInRoad() && !forward_ref_path.empty() && forward_ref_path.front().cosDeltaAngle(map.nav_info.car_pose) > cos(PI / 3)) control.changeTo<NormalDriving>();
-    if(getTimeStamp() - entry_time > 60e6) control.changeTo<FreeDriving>();
+    if(getTimeStamp() - entry_time > 20e6) control.changeTo<FreeDriving>();
 }
 }  // namespace TiEV

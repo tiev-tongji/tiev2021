@@ -1178,7 +1178,7 @@ vector<Pose> MapManager::getMaintainedPath(NavInfo& nav_info) {
                 break;
         }
     }
-    if(res.size() < path.size() && !res.empty() && res.back().s <= 2) {
+    if(res.size() < path.size() && !res.empty() && res.back().s <= 3) {
         res.clear();
         bool back_ward    = path[shortest_index].backward;
         int  second_index = -1;
