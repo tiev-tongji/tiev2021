@@ -19,6 +19,7 @@ const int veh_limit_speed_change = 10;
 const int veh_high_speed = 40;
 const int veh_limit_angle = 40;
 const int veh_limit_angle_change = 20;
+const float TOL = 0.1;
 
 // 原先的期望速度
 static float old_desired_speed = 0;
@@ -50,11 +51,11 @@ inline void clamp(float& input, const float& hi){
 STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& angle_pitch, const control_params_t& params, bool* is_break, float* control_output){
         float FF_valve = 2;
 	float FF_valve_throttle = 2;
-        std::cout << "acc_P: " << params.acc_P << std::endl;
-	if(desired_speed == 0 || veh_speed * desired_speed < 0){
+        std::cout << "acc_P: " << params.acc_P <<"desired_speed: " <<desired_speed<<std::endl;
+	if(fabs(desired_speed) < TOL || veh_speed * desired_speed < 0){
 	    INFO("stop car right now!");
 	    *is_break = true;
-	    *control_output = 100;
+	    *control_output = 40;
         *control_output += fabs(veh_speed) * params.break_P;
 	    return CC_OK;
 	}
