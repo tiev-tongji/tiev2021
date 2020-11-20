@@ -28,7 +28,7 @@ const double dd[5][5] = { 2.0 * sqrt2, sqrt5, 2.0,   sqrt5, 2.0 * sqrt2, sqrt5, 
                           1.0,         2.0,   sqrt5, sqrt2, 1.0,         sqrt2, sqrt5, 2.0 * sqrt2, sqrt5, 2.0,   sqrt5, 2.0 * sqrt2 };
 const double lengths[]        = { 10.0 / GRID_RESOLUTION, 5.0 / GRID_RESOLUTION, 2.0 / GRID_RESOLUTION };
 const int    length_num       = sizeof(lengths) / sizeof(lengths[0]);
-const double radiuses[]       = { 6.0 / GRID_RESOLUTION, 14.0 / GRID_RESOLUTION, 20.0 / GRID_RESOLUTION };
+const double radiuses[]       = { 5.5 / GRID_RESOLUTION, 14.0 / GRID_RESOLUTION, 20.0 / GRID_RESOLUTION };
 const double circle_lengths[] = { lengths[length_num - 1], lengths[length_num - 1], lengths[length_num - 1] };
 const int    radius_num       = sizeof(radiuses) / sizeof(radiuses[0]);
 
@@ -256,7 +256,7 @@ void PathPlanner::planSpeed(int target_index) {
             max_speed = 2;
             point.ang = PI + point.ang;
         }
-        speed_limits[target_index].emplace_back(point.s, min(sqrt(g_tims_miu / (point.k + 0.0001)) * 0.7, max_speed));
+        speed_limits[target_index].emplace_back(point.s, min(sqrt(g_tims_miu / (point.k + 0.0001)) * 5.5, max_speed));
     }
 
     // speed_limits[target_index][0].second = current_speed;
@@ -354,22 +354,21 @@ void PathPlanner::aStarPlan(int target_index) {
     while(!timeout() && !using_queue.empty()) {
         int current_index = using_queue.top().second;
         using_queue.pop();
-        current_state            = stored_states[current_index];
-        double current_euclidean = euclideanDistance(current_state.x, current_state.y, targets[target_index].x, targets[target_index].y);
-        double current_spfa      = aStarGetDistanceToTarget(target_index, current_state.x, current_state.y);
-        int    N                 = aStarAnalyticExpansionsInterval(current_spfa);
+        current_state       = stored_states[current_index];
+        double current_spfa = aStarGetDistanceToTarget(target_index, current_state.x, current_state.y);
+        int    N            = aStarAnalyticExpansionsInterval(current_spfa);
 
         ++state_cnt;
 #ifndef NO_RS
-        if((!backward_enabled || current_state.cost >= stop_s - 0.5) && (state_cnt >= N || !analytic_expansion_first_tried)) {
+        if((!backward_enabled || current_state.cost >= (stop_s - 0.5) / GRID_RESOLUTION) && (state_cnt >= N || !analytic_expansion_first_tried)) {
 
             analytic_expansion_first_tried = true;
             state_cnt                      = 0;
 
-            double r = max(1.0 / curvatures[current_speed_id] / GRID_RESOLUTION, 6.0 / GRID_RESOLUTION);
+            double r = max(1.0 / curvatures[current_speed_id] / GRID_RESOLUTION, 5.5 / GRID_RESOLUTION);
 
             if(aStarAnalyticExpansion(target_index, current_state, analytic_expansion_states, r)) {
-                if(analytic_expansion_states.size() >= 0) {
+                if(analytic_expansion_states.size() > 0) {
                     analytic_expansion_states[0].prior_index = current_index;
                     for(int i                                    = 1; i < analytic_expansion_states.size(); ++i)
                         analytic_expansion_states[i].prior_index = stored_states.size() + i - 1;
@@ -380,8 +379,8 @@ void PathPlanner::aStarPlan(int target_index) {
             }
             else if(analytic_expansion_states.size()) {
                 // If the analytic expansion is failed, select some points and add them to open-list.
-                int jump_step                            = (int)ceil(6.0 / config->a_star_extention_step_meter);
-                int jump_size                            = (analytic_expansion_states.size() / 2 / jump_step) * jump_step;
+                int jump_step                            = (int)ceil(5.5 / config->a_star_extention_step_meter);
+                int jump_size                            = analytic_expansion_states.size();
                 int old_l                                = stored_states.size();
                 analytic_expansion_states[0].prior_index = current_index;
                 stored_states.insert(stored_states.end(), analytic_expansion_states.begin(), analytic_expansion_states.begin() + jump_size);
@@ -395,11 +394,11 @@ void PathPlanner::aStarPlan(int target_index) {
         }
 #endif
 
-        aStarExtend(current_state, extended_states, current_euclidean);
+        aStarExtend(current_state, extended_states, current_spfa);
 
         for(auto& path : extended_states) {
             if(path.size() <= 1) continue;
-            bool could_reach_target = (current_euclidean <= (path.back().cost - path.front().cost) * 2);
+            bool could_reach_target = (current_spfa <= (path.back().cost - path.front().cost) * 2);
             path[1].prior_index     = current_index;
             int old_l               = stored_states.size() + 1;
             stored_states.insert(stored_states.end(), path.begin() + 1, path.end());
@@ -496,7 +495,7 @@ bool PathPlanner::aStarAnalyticExpansion(int target_index, const astate& state, 
             rs.interpolate(q0, path, x / rs.rho_, q);
             Pose   p(q[0], q[1], q[2]);
             double expansion_r = current_speed * EXPANSION_R_RATIO + 0.2;
-            if(!collision(p, abs_safe_map, expansion_r) && !collision(p, lane_safe_map)) {
+            if(p.in_map() && !collision(p, abs_safe_map, expansion_r) && !collision(p, lane_safe_map)) {
                 // if(isCarSafeHere(q[0], q[1], PI - q[2], abs_safe_map, lane_safe_map, current_speed)) {
                 expansion_states.emplace_back(q[0], q[1], q[2]);
                 expansion_states.back().curvature = ((q[2] == last_q[2]) ? 0 : (1.0 / radius));
@@ -517,7 +516,7 @@ bool PathPlanner::aStarAnalyticExpansion(int target_index, const astate& state, 
             dubins_path_sample(&tmpath, x, q);
             Pose   p(q[0], q[1], q[2]);
             double expansion_r = current_speed * EXPANSION_R_RATIO + 0.2;
-            if(!collision(p, abs_safe_map, expansion_r) && !collision(p, lane_safe_map)) {
+            if(p.in_map() && !collision(p, abs_safe_map, expansion_r) && !collision(p, lane_safe_map)) {
                 // if(isCarSafeHere(q[0], q[1], PI - q[2], abs_safe_map, lane_safe_map, current_speed)) {
                 expansion_states.emplace_back(q[0], q[1], q[2]);
                 expansion_states.back().curvature = ((q[2] == last_q[2]) ? 0 : (1.0 / radius));
@@ -546,7 +545,7 @@ void PathPlanner::aStarExtend(const astate& source, vector<vector<astate>>& dest
     const double ppa  = source.a;
     const double pix2 = PI * 2.0;
     // don't change direction before stop_s
-    if(source.cost < stop_s - 0.5) {
+    if(source.cost < (stop_s - 0.5) / GRID_RESOLUTION) {
         if(start_point.backward)
             primitives_list[0] = NULL;
         else
@@ -600,10 +599,7 @@ void PathPlanner::aStarExtend(const astate& source, vector<vector<astate>>& dest
                 double y = sina * p.x + cosa * p.y + source.y;
                 p.x      = x;
                 p.y      = y;
-                if(p.backward)
-                    p.cost = p.cost + source.cost;
-                else
-                    p.cost = p.cost + source.cost;
+                p.cost   = p.cost + source.cost;
                 Pose   pp(p.x, p.y, p.a);
                 double expansion_r = current_speed * EXPANSION_R_RATIO + 0.2;
                 if(!pp.in_map() || collision(pp, abs_safe_map, expansion_r) || collision(pp, lane_safe_map)) {
