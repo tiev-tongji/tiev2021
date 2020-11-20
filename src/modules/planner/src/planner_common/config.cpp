@@ -68,7 +68,7 @@ void Config::init() {
     }
 
     start_time = getTimeStamp();
-    end_time   = start_time + 1e6 * 60 * 60 * 1.5;
+    end_time   = start_time + 1e6 * 60 * 60 * 0.5;
 
     tasks.clear();
     auto task_arr = doc["tasks"].GetArray();

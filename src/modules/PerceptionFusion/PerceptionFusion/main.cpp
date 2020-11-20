@@ -116,7 +116,7 @@ int main() {
 
     //removed for updating the map 20201120 John
     // if(mode != 0)
-        // node.RunFinalOptimization();
+    //     node.RunFinalOptimization();
 
     //savemap or not
     bool SaveMapFlag = atoi(pd.getData("SaveMapFlag").c_str());

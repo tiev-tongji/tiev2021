@@ -240,14 +240,14 @@ void sendPath() {
                 control_path.points.push_back(tp);
             }
         }
-        for(int i = 0; i < speed_path.path.size(); ++i) {
-            Pose p = speed_path.path[i];
-            cout << "pid speed path " << i << " " << p << endl;
-        }
-        for(int i = 0; i < control_path.points.size(); ++i) {
-            TrajectoryPoint p = control_path.points[i];
-            cout << "pid path " << i << ":{x=" << p.x << " y=" << p.y << " theta=" << p.theta << " a=" << p.a << " v=" << p.v << endl;
-        }
+        // for(int i = 0; i < speed_path.path.size(); ++i) {
+        //     Pose p = speed_path.path[i];
+        //     cout << "pid speed path " << i << " " << p << endl;
+        // }
+        // for(int i = 0; i < control_path.points.size(); ++i) {
+        //     TrajectoryPoint p = control_path.points[i];
+        //     cout << "pid path " << i << ":{x=" << p.x << " y=" << p.y << " theta=" << p.theta << " a=" << p.a << " v=" << p.v << endl;
+        // }
         msgm->publishPath(control_path);
         // visual maintained path
         visVISUALIZATION& vis = msgm->visualization;
@@ -300,7 +300,7 @@ void requestGlobalPathFromMapServer() {
         int cost                      = -1;
         if(task_list.size() > 1) cost = routing->findReferenceRoad(tmp_global_path, task_list, false);
         if(cost == -1) continue;
-        cout << "Cost of global path: " << cost << endl;
+        cout << "Cost of global path: " << cost << " size:" << tmp_global_path.size() << endl;
         if(!tmp_global_path.empty()) {  // TODO: When to replace?
             map_m->setGlobalPath(tmp_global_path);
         }

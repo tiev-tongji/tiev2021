@@ -46,7 +46,7 @@ public:
         //  exceed_speed_penalty_ = 0.5;
         exceed_speed_penalty_ = 100;
         low_speed_penalty_    = 100;
-        max_acceleration_     = 3.0;
+        max_acceleration_     = 2.5;
         max_deceleration_     = -1.0;
         accel_penalty_        = 0;
         decel_penalty_        = 2;

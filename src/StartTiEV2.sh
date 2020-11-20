@@ -7,7 +7,7 @@ gnome-terminal -x bash -c "source activate second;cd /home/autolab/tiev2020-code
 
 gnome-terminal -x bash -c "cd /home/autolab/tiev2020-code/src/modules/Sick/build;./Sick;exec bash;"
 
-gnome-terminal -x bash -c "cd /home/autolab/tiev2020-code/src/modules/ControlCenterZLG/build;./CONTROL;exec bash;"
+#gnome-terminal -x bash -c "cd /home/autolab/tiev2020-code/src/modules/ControlCenterZLG/build;./CONTROL;exec bash;"
 
 gnome-terminal -x bash -c "cd /home/autolab/tiev2020-code/src/modules/PerceptionFusion/PerceptionFusion/build;./perceptionfusion;exec bash;"
 
