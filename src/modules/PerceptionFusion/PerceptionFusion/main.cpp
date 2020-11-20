@@ -113,8 +113,11 @@ int main() {
     node.StartTrajectoryWithDefaultTopics(trajectory_options);
 
     node.FinishAllTrajectories();
-    if(mode != 0)
-        node.RunFinalOptimization();
+
+    //removed for updating the map 20201120 John
+    // if(mode != 0)
+    //     node.RunFinalOptimization();
+
     //savemap or not
     bool SaveMapFlag = atoi(pd.getData("SaveMapFlag").c_str());
     if (SaveMapFlag == true || mode == 2)

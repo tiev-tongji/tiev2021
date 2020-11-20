@@ -256,6 +256,7 @@ vector<Pose> MapManager::getUTurnTargets() {
         double a = map.ref_path[shortest_index_on_ref_path].ang;
         maintained_uturn_target.push_back(Pose(x, y, a));
     }
+    for(auto&p: maintained_uturn_target) p.updateGlobalCoordinate(map.nav_info.car_pose);
 
     return maintained_uturn_target;
 }

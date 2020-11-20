@@ -194,7 +194,9 @@ void sendPath() {
         }
         if(!maintained_path.empty()) maintained_path.front().v = fabs(nav_info.current_speed);
         SpeedPath speed_path;
-        if(!maintained_path.empty()) cout << "pid maintained path size:" << maintained_path.size() << " s=" << maintained_path.back().s << endl;
+        //for(const auto &p:speed_limits)
+        //cout << "speed limit:" << p.first << " "<<  p.second << endl;
+        //if(!maintained_path.empty()) cout << "pid maintained path size:" << maintained_path.size() << " s=" << maintained_path.back().s << endl;
         if(!maintained_path.empty()) speed_path = SpeedOptimizer::RunSpeedOptimizer(dynamic.dynamic_obj_list, maintained_path, speed_limits, maintained_path.back().s);
         // anti-conversion
         for(auto& point : speed_path.path) {
@@ -238,14 +240,14 @@ void sendPath() {
                 control_path.points.push_back(tp);
             }
         }
-        for(int i = 0; i < speed_path.path.size(); ++i) {
-            Pose p = speed_path.path[i];
-            cout << "pid speed path " << i << " " << p << endl;
-        }
-        for(int i = 0; i < control_path.points.size(); ++i) {
-            TrajectoryPoint p = control_path.points[i];
-            cout << "pid path " << i << ":{x=" << p.x << " y=" << p.y << " theta=" << p.theta << " a=" << p.a << " v=" << p.v << endl;
-        }
+        // for(int i = 0; i < speed_path.path.size(); ++i) {
+        //     Pose p = speed_path.path[i];
+        //     cout << "pid speed path " << i << " " << p << endl;
+        // }
+        // for(int i = 0; i < control_path.points.size(); ++i) {
+        //     TrajectoryPoint p = control_path.points[i];
+        //     cout << "pid path " << i << ":{x=" << p.x << " y=" << p.y << " theta=" << p.theta << " a=" << p.a << " v=" << p.v << endl;
+        // }
         msgm->publishPath(control_path);
         // visual maintained path
         visVISUALIZATION& vis = msgm->visualization;
@@ -298,7 +300,7 @@ void requestGlobalPathFromMapServer() {
         int cost                      = -1;
         if(task_list.size() > 1) cost = routing->findReferenceRoad(tmp_global_path, task_list, false);
         if(cost == -1) continue;
-        cout << "Cost of global path: " << cost << endl;
+        cout << "Cost of global path: " << cost << " size:" << tmp_global_path.size() << endl;
         if(!tmp_global_path.empty()) {  // TODO: When to replace?
             map_m->setGlobalPath(tmp_global_path);
         }

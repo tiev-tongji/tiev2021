@@ -658,7 +658,26 @@ void * perception_Node::genFUSIONMap(void* __this)
         {
            memset(current_map.data,0,GRID_ROW*GRID_COL* sizeof(uint8_t));
         }
-       
+      //for jiugongge traffic light ghost car 
+       if(fusionmap.utmX  < 288878.307 + 10 && 288878.307 - 10 < fusionmap.utmX
+         && fusionmap.utmY  < 3497489.420 + 10 && 3497489.420 - 10 < fusionmap.utmY)
+        {
+           memset(current_map.data,0,GRID_ROW*GRID_COL* sizeof(uint8_t));
+        }
+       //for jiugongge zhinengche dasha ghost parking car 
+       if(fusionmap.utmX  < 288734.701 + 20 && 288734.701 - 20 < fusionmap.utmX
+         && fusionmap.utmY  < 3497470.977 + 20 && 3497470.977 - 20 < fusionmap.utmY)
+        {
+           memset(current_map.data,0,GRID_ROW*GRID_COL* sizeof(uint8_t));
+        }
+        //for jiugongge under bridge 20201112 john
+       if(fusionmap.utmX  < 289700.619 + 50 && 289700.619 - 50 < fusionmap.utmX
+         && fusionmap.utmY  < 3497211.064 + 50 && 3497211.064 -50 < fusionmap.utmY ||
+         fusionmap.utmX  < 289567.404 + 50 && 289567.404 - 50 < fusionmap.utmX
+         && fusionmap.utmY  < 3497347.990 +50 && 3497347.990 -50 < fusionmap.utmY)
+        {
+           memset(current_map.data,0,GRID_ROW*GRID_COL* sizeof(uint8_t));
+        }
 
        //fusion TODO JOHN
         if (bRecvSICKMAP) {

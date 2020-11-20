@@ -2,7 +2,7 @@ configuration_directory=../../Cartographer/configuration_files
 configuration_basename=backpack_2d.lua
 
 LoadMapFlag=1
-#map_filename=/home/autolab/map_logger/2020_11_17_0_3
+#map_filename=/home/autolab/map_logger/2020_11_21_2_23
 
 #zhinengche diku 
 #map_filename=/home/autolab/map_logger/2019_11_15_6_17

@@ -25,7 +25,7 @@ void TemporaryParkingPlanning::update(FullControl& control) {
     map_manager->maintainPath(map.nav_info, map.best_path.path);
     Pose& current_pose = map.nav_info.car_pose;
 
-    if(point2PointDis(current_pose, targets.front()) <= 1.5 && fabs(current_pose.cosDeltaAngle(targets.front())) > cos(PI / 6)) {
+    if(point2PointDis(current_pose, targets.front()) <= 2.1 && fabs(current_pose.cosDeltaAngle(targets.front())) > cos(PI / 3)) {
         control.changeTo<TemporaryStop>();
     }
 }

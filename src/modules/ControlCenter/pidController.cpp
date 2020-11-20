@@ -44,6 +44,7 @@ inline void clamp(float &input, const float &hi) {
   return;
 }
 
+<<<<<<< HEAD
 // STATE speed_pid_control(const float& veh_speed, float& desired_speed, const
 // control_params_t& params, bool* is_break, float* control_output){
 STATE speed_pid_control(const float &veh_speed, float &desired_speed,
@@ -126,6 +127,89 @@ STATE speed_pid_control(const float &veh_speed, float &desired_speed,
       FF_contribute_throttle = angle_pitch * (params.acc_FF);
     else if (angle_pitch < -FF_valve_throttle) {
       FF_contribute_throttle = angle_pitch * (params.break_FF);
+=======
+//STATE speed_pid_control(const float& veh_speed, float& desired_speed, const control_params_t& params, bool* is_break, float* control_output){
+STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& angle_pitch, const control_params_t& params, bool* is_break, float* control_output){
+        float FF_valve = 2;
+	float FF_valve_throttle = 2;
+       // std::cout << "acc_P: " << params.acc_P << std::endl;
+//	if(desired_speed == 0 || veh_speed * desired_speed < 0){
+//	    INFO("stop car right now!");
+///	    *is_break = true;
+//	    *control_output = 10;
+ //           *control_output += fabs(veh_speed) * params.break_P;
+//	    return CC_OK;
+//	}
+
+	float F_t = 0;					// Real_time output Torque
+	float P_speed = 0;				// Real_time Error speed
+
+    // // 原有速度与现有速度的期望反向时，先进行停车处理
+    // // TODO: 考虑更新过快时候的问题
+	// if(old_desired_speed * desired_speed < 0 && veh_speed != 0){
+	// 	desired_speed = 0;
+	// }
+
+    //// 期望速度与实际速度反向时，先进行停车处理
+    //if(desired_speed * veh_speed < 0){
+    //    desired_speed = 0;
+    //}
+
+    int8_t enable_forward = 1;   // 默认向前开车
+
+    // 预设速度小于0，并且实际速度低于一定值，则可进行倒车
+	if (desired_speed < 0 && veh_speed <= veh_stop_speed){
+		enable_forward = -1;
+	}
+
+    // TODO: 确认是否存在负的速度，需要在外面进行处理，看是否能处理
+	// Car_Speed *= forwardOrBack;
+
+	P_speed = desired_speed - veh_speed;
+	old_desired_speed = desired_speed;
+	
+    // 对P值进行最大的限定
+    clamp(P_speed, veh_limit_speed_change);
+
+    // 有一定速度后，才开始使用积分
+	if (fabs(veh_speed) == 0){
+		if(I_speed >= 300) I_speed = 0;
+		else I_speed = I_speed + P_speed;
+	}
+	else{
+		if (fabs(P_speed) > 1)
+			I_speed = I_speed + P_speed;
+		else
+			I_speed = 0;
+	}
+    // 50HZ
+    clamp(I_speed, I_speed_limit);
+    //INFO("I_Speed: " << I_speed);
+
+    // 微分项处理
+    float D_speed = 0;
+    D_speed = P_speed - P_speed_old;
+    P_speed_old = P_speed;
+
+    // 速度为正时，期望速度大于实际速度，加速
+    // 速度为负时，期望速度小于实际速度，后退加速
+    // TODO: 速度超过一点点如何处理？
+// INFO("------------------------------------------P_speed:" << P_speed << " veh_speed:" << veh_speed << " veh_break_enable:" << veh_break_enable);
+    if(P_speed * veh_speed >= 0 || fabs(P_speed) < veh_break_enable){
+        *is_break = false;
+        float P_contribute = P_speed * params.acc_P;
+        float I_contribute = I_speed * params.acc_I;
+        float D_contribute = D_speed * params.acc_D;
+	float FF_contribute_throttle = 0;
+	if (angle_pitch > FF_valve_throttle)	 
+		FF_contribute_throttle = angle_pitch * (params.acc_FF );
+	else if (angle_pitch < -FF_valve_throttle){
+		FF_contribute_throttle = angle_pitch * (params.break_FF);
+	}
+        *control_output = FF_contribute_throttle + P_contribute + I_contribute + D_contribute;
+
+        INFO("ACC INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", " << "D: " << D_contribute << "," << "FF:" << FF_contribute_throttle);
+>>>>>>> 5a557b69889017cddf0fce121c58c56c04492b47
     }
     *control_output =
         FF_contribute_throttle + P_contribute + I_contribute + D_contribute;
