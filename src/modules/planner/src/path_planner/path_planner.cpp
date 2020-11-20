@@ -360,7 +360,7 @@ void PathPlanner::aStarPlan(int target_index) {
 
         ++state_cnt;
 #ifndef NO_RS
-        if((!backward_enabled || current_state.cost >= (stop_s - 0.5) / GRID_RESOLUTION) && (state_cnt >= N || !analytic_expansion_first_tried)) {
+        if((!backward_enabled || current_state.cost >= (stop_s - 0.5 / GRID_RESOLUTION)) && (state_cnt >= N || !analytic_expansion_first_tried)) {
 
             analytic_expansion_first_tried = true;
             state_cnt                      = 0;
@@ -545,7 +545,7 @@ void PathPlanner::aStarExtend(const astate& source, vector<vector<astate>>& dest
     const double ppa  = source.a;
     const double pix2 = PI * 2.0;
     // don't change direction before stop_s
-    if(source.cost < (stop_s - 0.5) / GRID_RESOLUTION) {
+    if(source.cost < (stop_s - 0.5 / GRID_RESOLUTION)) {
         if(start_point.backward)
             primitives_list[0] = NULL;
         else

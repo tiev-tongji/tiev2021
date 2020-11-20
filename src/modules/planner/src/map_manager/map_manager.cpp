@@ -230,24 +230,34 @@ void MapManager::setGlobalPathDirection() {
 }
 
 vector<Pose> MapManager::getUTurnTargets() {
-    vector<Pose> targets;
-    int          shortest_index_on_ref_path = shortestPointIndex(map.nav_info.car_pose, map.ref_path);
-    double       s                          = 0;
-    int          target_idx;
-    for(target_idx = shortest_index_on_ref_path; target_idx < map.ref_path.size(); ++target_idx) {
-        s = map.ref_path[target_idx].s - map.ref_path[shortest_index_on_ref_path].s;
-        if(s >= 10) {
-            break;
+    if(!maintained_uturn_target.empty()) {
+        for(auto& target : maintained_uturn_target) {
+            target.updateLocalCoordinate(map.nav_info.car_pose);
         }
+        return maintained_uturn_target;
     }
-    int    lane_num   = map.ref_path[target_idx].lane_num;
-    double lane_width = map.ref_path[target_idx].lane_width;
-    int    lane_seq   = map.ref_path[target_idx].lane_seq;
-    for(int i = 0; i < lane_num; ++i) {
-        Pose target = map.ref_path[target_idx].getLateralPose(lane_width * (i - lane_seq + 1));
-        if(map.accessible_map[int(target.x)][int(target.y)]) targets.push_back(target);
+    vector<HDMapPoint> tmp;
+    for(int i = 0; i < map.ref_path.size(); ++i) {
+        HDMapPoint point     = map.ref_path[i];
+        double     delta_cos = point.cosDeltaAngle(map.nav_info.car_pose);
+        if(delta_cos < cos(PI * 2 / 3)) tmp.push_back(point);
     }
-    return targets;
+    int shortest_index_on_rev_path = shortestPointIndex(map.nav_info.car_pose, tmp);
+    int shortest_index_on_ref_path = shortestPointIndex(map.nav_info.car_pose, map.ref_path);
+    if(shortest_index_on_rev_path >= 0) {
+        double x = tmp[shortest_index_on_rev_path].x;
+        double y = tmp[shortest_index_on_rev_path].y;
+        double a = tmp[shortest_index_on_rev_path].ang;
+        maintained_uturn_target.push_back(Pose(x, y, a));
+    }
+    else if(shortest_index_on_ref_path >= 0) {
+        double x = map.ref_path[shortest_index_on_ref_path].x;
+        double y = map.ref_path[shortest_index_on_ref_path].y;
+        double a = map.ref_path[shortest_index_on_ref_path].ang;
+        maintained_uturn_target.push_back(Pose(x, y, a));
+    }
+
+    return maintained_uturn_target;
 }
 
 int MapManager::getGlobalPathNearestIndex(int begin, int end) const {
@@ -1112,7 +1122,7 @@ vector<Pose> MapManager::getStartMaintainedPath() {
         p.s -= path[shortest_index].s;
         if(p.s >= 0 && p.s < maintained_s) res.push_back(p);
     }
-    if(!res.empty() && point2PointSqrDis(res.front(), map.nav_info.car_pose) > 25) res.clear();
+    if(!res.empty() && point2PointSqrDis(res.front(), map.nav_info.car_pose) > 5) res.clear();
     return res;
 }
 
@@ -1148,7 +1158,7 @@ vector<Pose> MapManager::getMaintainedPath(NavInfo& nav_info) {
                 break;
         }
     }
-    if(res.size() <= 2) {
+    if(res.size() < path.size() && !res.empty() && res.back().s <= 2) {
         res.clear();
         bool back_ward    = path[shortest_index].backward;
         int  second_index = -1;
