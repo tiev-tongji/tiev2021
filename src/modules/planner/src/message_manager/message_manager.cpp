@@ -214,16 +214,16 @@ bool MessageManager::getLaneList(LaneList& lane_list) {
                 for(auto& point : inner_handler.tmp_lanes.lanes[i].left_line.points) {
                     LinePoint p;
                     p.type = lane.left_line.type;
-                    p.x    = CAR_CEN_ROW - (point.y / GRID_RESOLUTION);
-                    p.y    = CAR_CEN_COL + (point.x / GRID_RESOLUTION);
+                    p.x    = CAR_CEN_ROW - (point.x / GRID_RESOLUTION);
+                    p.y    = CAR_CEN_COL - (point.y / GRID_RESOLUTION);
                     if(!p.in_map()) continue;
                     lane.left_line.points.push_back(p);
                 }
                 for(auto& point : inner_handler.tmp_lanes.lanes[i].right_line.points) {
                     LinePoint p;
                     p.type = lane.right_line.type;
-                    p.x    = CAR_CEN_ROW - (point.y / GRID_RESOLUTION);
-                    p.y    = CAR_CEN_COL + (point.x / GRID_RESOLUTION);
+                    p.x    = CAR_CEN_ROW - (point.x / GRID_RESOLUTION);
+                    p.y    = CAR_CEN_COL - (point.y / GRID_RESOLUTION);
                     if(!p.in_map()) continue;
                     lane.right_line.points.push_back(p);
                 }

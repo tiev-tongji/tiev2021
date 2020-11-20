@@ -123,12 +123,32 @@ void sendPath() {
         }
         // get maintained path
         vector<Pose> maintained_path = mapm->getMaintainedPath(nav_info);
+        int          end_point       = maintained_path.size();
+        for(int i = 1; i < maintained_path.size(); ++i)
+            if(maintained_path[i].backward != maintained_path[i - 1].backward) {
+                end_point = i;
+                break;
+            }
+
+        vector<Pose> new_maintained_path;
+        new_maintained_path.insert(new_maintained_path.begin(), maintained_path.begin() + end_point, maintained_path.end());
+        for(auto& p : new_maintained_path) {
+            p.v = 0;
+            p.t = inf;
+        }
+
+        if(end_point != maintained_path.size()) {
+            maintained_path.resize(end_point);
+            maintained_path.back().v = 0;
+        }
+
         // run speed planner
         double        max_speed      = mapm->getCurrentMapSpeed();
         HDMapMode     road_mode      = mapm->getCurrentMapMode();
         RoadDirection road_direction = mapm->getCurrentRoadDirection();
 
-        if(road_mode == HDMapMode::INTERSECTION_SOLID || road_mode == HDMapMode::INTERSECTION || road_mode == HDMapMode::PARKING) max_speed = mapm->getSpeedBySpeedMode(HDMapSpeed::LOW);
+        if(road_mode == HDMapMode::INTERSECTION_SOLID || road_mode == HDMapMode::INTERSECTION || road_mode == HDMapMode::PARKING)
+            max_speed = min(max_speed, mapm->getSpeedBySpeedMode(HDMapSpeed::LOW));
         if(mm->machine.isActive<SafeDriving>() || mm->machine.isActive<IntersectionFreeDriving>()) {
             mapm->addPedestrian(dynamic, mapm->getForwardRefPath());
         }
@@ -150,10 +170,9 @@ void sendPath() {
                 }
             }
         }
-        if(mm->machine.isActive<TemporaryParkingFSM>()) max_speed                           = mapm->getSpeedBySpeedMode(HDMapSpeed::VERY_LOW);
+        if(mm->machine.isActive<TemporaryParkingFSM>()) max_speed                           = min(max_speed, mapm->getSpeedBySpeedMode(HDMapSpeed::VERY_LOW));
         if(mm->machine.isActive<TemporaryStop>() || mm->machine.isActive<Stop>()) max_speed = 0;
-        vector<pair<double, double>> speed_limits;
-        bool add_collision_dynamic = false;
+        bool add_collision_dynamic                                                          = false;
         for(const auto& p : maintained_path) {
             if(!add_collision_dynamic && collision(p, lidar_dis_map)) {
                 add_collision_dynamic = true;
@@ -163,15 +182,28 @@ void sendPath() {
                 dummy_obj.path.emplace_back(p.x, p.y, p.ang, 0, 0, 0);
                 dynamic.dynamic_obj_list.push_back(dummy_obj);
             }
-            if(p.backward)
-                speed_limits.emplace_back(p.s, min(sqrt(GRAVITY * MIU / (fabs(p.k) + 0.0001)) * 0.7, 2.0));
-            else
-                speed_limits.emplace_back(p.s, min(sqrt(GRAVITY * MIU / (fabs(p.k) + 0.0001)) * 0.7, max_speed));
+        }
+        // conversion
+        vector<pair<double, double>> speed_limits;
+        for(auto& point : maintained_path) {
+            if(point.backward) {
+                max_speed = min(2.0, max_speed);
+                point.ang = PI + point.ang;
+            }
+            speed_limits.emplace_back(point.s, min(sqrt(GRAVITY * MIU / (point.k + 0.0001)) * 0.6, max_speed));
         }
         if(!maintained_path.empty()) maintained_path.front().v = fabs(nav_info.current_speed);
         SpeedPath speed_path;
         if(!maintained_path.empty()) cout << "pid maintained path size:" << maintained_path.size() << " s=" << maintained_path.back().s << endl;
         if(!maintained_path.empty()) speed_path = SpeedOptimizer::RunSpeedOptimizer(dynamic.dynamic_obj_list, maintained_path, speed_limits, maintained_path.back().s);
+        // anti-conversion
+        for(auto& point : speed_path.path) {
+            if(point.backward) {
+                point.ang = point.ang - PI;
+                point.v   = -point.v;
+                point.a   = -point.a;
+            }
+        }
         // send control trojectory
         control_path.points.clear();
         control_path.num_points = speed_path.path.size();
@@ -190,7 +222,6 @@ void sendPath() {
             tp.v                                     = p.v;
             if(road_mode == HDMapMode::IN_PARK) tp.v = min(tp.v, mapm->getCurrentMapSpeed());
             if(tp.v < 0.5 && tp.v > 0.0000001) tp.v  = 0.5;
-            if(p.backward) tp.v                      = -tp.v;
             control_path.points.push_back(tp);
         }
         if(control_path.points.empty()) {
@@ -266,7 +297,7 @@ void requestGlobalPathFromMapServer() {
         if(task_list.size() > 1) cost = routing->findReferenceRoad(tmp_global_path, task_list, false);
         if(cost == -1) continue;
         cout << "Cost of global path: " << cost << endl;
-        if(true) {  // TODO: When to replace?
+        if(!tmp_global_path.empty()) {  // TODO: When to replace?
             map_m->setGlobalPath(tmp_global_path);
         }
     }
