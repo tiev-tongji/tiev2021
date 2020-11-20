@@ -67,13 +67,8 @@ void Config::init() {
         parking_task.task_points[k] = UtmPosition(utm_x, utm_y, heading);
     }
 
-<<<<<<< HEAD
     start_time = doc["start_time"].GetInt64();
     end_time   = start_time + 1e6 * 60 * 90;
-=======
-    start_time = getTimeStamp();
-    end_time   = start_time + 1e6 * 60 * 60 * 0.5;
->>>>>>> 5a557b69889017cddf0fce121c58c56c04492b47
 
     tasks.clear();
     auto task_arr = doc["tasks"].GetArray();

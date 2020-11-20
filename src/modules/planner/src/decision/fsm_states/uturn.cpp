@@ -6,7 +6,9 @@ using namespace std;
 
 void UTurn::enter(Control& control) {
     cout << "entry UTurn..." << endl;
-    entry_time = getTimeStamp();
+    entry_time              = getTimeStamp();
+    MapManager* map_manager = MapManager::getInstance();
+    map_manager->maintained_uturn_target.clear();
 }
 
 void UTurn::update(FullControl& control) {

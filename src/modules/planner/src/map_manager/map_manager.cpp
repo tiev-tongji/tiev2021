@@ -230,6 +230,7 @@ void MapManager::setGlobalPathDirection() {
 }
 
 vector<Pose> MapManager::getUTurnTargets() {
+#if 0
     if(!maintained_uturn_target.empty()) {
         for(auto& target : maintained_uturn_target) {
             target.updateLocalCoordinate(map.nav_info.car_pose);
@@ -258,6 +259,24 @@ vector<Pose> MapManager::getUTurnTargets() {
     }
     for(auto&p: maintained_uturn_target) p.updateGlobalCoordinate(map.nav_info.car_pose);
 
+    return maintained_uturn_target;
+#endif
+    if(!maintained_uturn_target.empty()) {
+        for(auto& target : maintained_uturn_target) {
+            target.updateLocalCoordinate(map.nav_info.car_pose);
+        }
+        return maintained_uturn_target;
+    }
+    if(map.forward_ref_path.empty()) return maintained_uturn_target;
+    for(int i = map.forward_ref_path.size() - 1; i >= 0; --i) {
+        HDMapPoint point = map.forward_ref_path[i];
+        if(map.accessible_map[int(point.x)][int(point.y)]) {
+            maintained_uturn_target.push_back(Pose(point.x, point.y, point.ang));
+            break;
+        }
+    }
+    for(auto& p : maintained_uturn_target)
+        p.updateGlobalCoordinate(map.nav_info.car_pose);
     return maintained_uturn_target;
 }
 
