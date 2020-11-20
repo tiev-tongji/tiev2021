@@ -134,6 +134,8 @@ void sendPath() {
             mapm->addPedestrian(dynamic, mapm->getForwardRefPath());
         }
         // add stop line
+        // cout << "Road direction:" << road_direction << endl;
+        // cout << "Road mode:" << road_mode << endl;
         if(road_mode == HDMapMode::INTERSECTION_SOLID && traffic_light.detected) {
             if((road_direction == RoadDirection::LEFT && !traffic_light.left) || (road_direction == RoadDirection::STRAIGHT && !traffic_light.straight)
                || (road_direction == RoadDirection::RIGHT && !traffic_light.right)) {
@@ -188,7 +190,8 @@ void sendPath() {
             tp.k                                     = p.k;
             tp.t                                     = p.t;
             tp.v                                     = p.v;
-            if(tp.v < 0.5 && tp.v > 0.00000001) tp.v = 0.5;
+            if(road_mode == HDMapMode::IN_PARK) tp.v = min(tp.v, mapm->getCurrentMapSpeed());
+            if(tp.v < 0.5 && tp.v > 0.0000001) tp.v  = 0.5;
             if(p.backward) tp.v                      = -tp.v;
             control_path.points.push_back(tp);
         }
@@ -219,8 +222,8 @@ void requestGlobalPathFromMapServer() {
     vector<Task>    task_list;
     while(true) {
         msg_m->getNavInfo(nav_info);
-        if(getTimeStamp() - start_time < 5e6) {
-            usleep(5e6 + start_time - getTimeStamp());
+        if(getTimeStamp() - start_time < 2e6) {
+            usleep(2e6 + start_time - getTimeStamp());
         }
         start_time = getTimeStamp();
         vector<HDMapPoint> tmp_global_path;
@@ -228,7 +231,7 @@ void requestGlobalPathFromMapServer() {
         // mode
         if(!nav_info.detected || road_mode == HDMapMode::INTERSECTION || road_mode == HDMapMode::INTERSECTION_SOLID || road_mode == HDMapMode::IN_PARK) continue;
         // fsm state
-        if(mm->machine.isActive<UTurn>() || mm->machine.isActive<GlobalReplanning>() || mm->machine.isActive<ParkingFSM>() || mm->machine.isActive<TemporaryParkingFSM>()) continue;
+        if(mm->machine.isActive<UTurn>() || mm->machine.isActive<GlobalReplanning>() || mm->machine.isActive<ParkingFSM>() || mm->machine.isActive<TemporaryStop>()) continue;
         Task current_pos;
         current_pos.lon_lat_position.lon = nav_info.lon;
         current_pos.lon_lat_position.lat = nav_info.lat;

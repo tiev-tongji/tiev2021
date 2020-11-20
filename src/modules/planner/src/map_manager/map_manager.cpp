@@ -235,7 +235,7 @@ vector<Pose> MapManager::getUTurnTargets() {
     double       s                          = 0;
     int          target_idx;
     for(target_idx = shortest_index_on_ref_path; target_idx < map.ref_path.size(); ++target_idx) {
-        s += map.ref_path[target_idx].s - map.ref_path[shortest_index_on_ref_path].s;
+        s = map.ref_path[target_idx].s - map.ref_path[shortest_index_on_ref_path].s;
         if(s >= 5) {
             break;
         }
@@ -368,6 +368,7 @@ void MapManager::updateRefPath(bool need_opposite) {
 void MapManager::addPedestrian(DynamicObjList& dynamic_obj_list, const vector<HDMapPoint>& ref_path) {
     const int tmp_inf = 9999999;
     int       idx     = tmp_inf;
+    if(ref_path.empty()) return;
     for(const auto& obj : dynamic_obj_list.dynamic_obj_list) {
         if(obj.type != ObjectType::PEDESTRIAN) continue;
         Pose obj_init_pose  = obj.path.front();
@@ -538,6 +539,14 @@ vector<HDMapPoint> MapManager::getForwardRefPath() {
     vector<HDMapPoint> res = map.forward_ref_path;
     ref_path_mutex.unlock_shared();
     return res;
+}
+
+HDMapSpeed MapManager::getCurrentSpeedMode() {
+    ref_path_mutex.lock_shared();
+    vector<HDMapPoint> res = map.forward_ref_path;
+    ref_path_mutex.unlock_shared();
+    if(res.empty()) return HDMapSpeed::STOP_SPEED;
+    return res.front().speed_mode;
 }
 
 void MapManager::handleLidarMap() {
@@ -811,6 +820,7 @@ vector<Pose> MapManager::getLaneTargets() {
     for(const auto& line : map.lane_center_list) {
         for(int i = line.size() - 1; i >= 0; --i) {
             const Point2d& p = line[i];
+            if(point2PointDis(p, map.nav_info.car_pose) < 3 / GRID_RESOLUTION) break;
             if(map.accessible_map[int(p.x)][int(p.y)]) {
                 double ang = PI;
                 if(i - 1 >= 0) {
@@ -1235,7 +1245,8 @@ void MapManager::selectBestPath(const vector<SpeedPath>& paths) {
     map.best_path                 = SpeedPath();
     vector<SpeedPath> speed_paths = paths;
     if(speed_paths.empty()) return;
-    if(!map.speed_maintained_path.path.empty()) speed_paths.push_back(map.speed_maintained_path);
+    if(map.nav_info.current_speed > 0.5 && !map.speed_maintained_path.path.empty() && point2PointDis(map.speed_maintained_path.path.front(), map.nav_info.car_pose) <= 3)
+        speed_paths.push_back(map.speed_maintained_path);
     int best_speed_path_index = -1;
     int max_index             = -1;
     for(int i = 0; i < speed_paths.size(); ++i) {
