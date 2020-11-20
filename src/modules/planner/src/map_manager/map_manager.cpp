@@ -236,7 +236,7 @@ vector<Pose> MapManager::getUTurnTargets() {
     int          target_idx;
     for(target_idx = shortest_index_on_ref_path; target_idx < map.ref_path.size(); ++target_idx) {
         s = map.ref_path[target_idx].s - map.ref_path[shortest_index_on_ref_path].s;
-        if(s >= 5) {
+        if(s >= 10) {
             break;
         }
     }
@@ -1124,18 +1124,51 @@ vector<Pose> MapManager::getMaintainedPath(NavInfo& nav_info) {
         p.updateLocalCoordinate(nav_info.car_pose);
     }
     if(path.empty()) return path;
-    int          shortest_index = shortestPointIndex(nav_info.car_pose, path);
+    int    shortest_index = shortestPointIndex(nav_info.car_pose, path);
+    double base_s         = path[shortest_index].s;
+    for(auto& p : path) {
+        p.s -= base_s;
+    }
     vector<Pose> res;
     if(path[shortest_index].backward) {
         for(auto p : path) {
-            p.s -= path[shortest_index].s;
-            if(p.s <= 0) res.push_back(p);
+            if(p.s < 0) continue;
+            if(p.backward)
+                res.push_back(p);
+            else
+                break;
         }
     }
     else {
         for(auto p : path) {
-            p.s -= path[shortest_index].s;
-            if(p.s >= 0) res.push_back(p);
+            if(p.s < 0) continue;
+            if(!p.backward)
+                res.push_back(p);
+            else
+                break;
+        }
+    }
+    if(res.size() <= 2) {
+        res.clear();
+        bool back_ward    = path[shortest_index].backward;
+        int  second_index = -1;
+        for(int k = 0; k < path.size(); ++k) {
+            Pose p = path[k];
+            if(p.s < 0) continue;
+            if(p.backward == back_ward) {
+                continue;
+            }
+            second_index = k;
+            break;
+        }
+        for(int k = second_index; k < path.size(); ++k) {
+            Pose p = path[k];
+            if(p.s < 0) continue;
+            if(p.backward != back_ward) {
+                res.push_back(p);
+            }
+            else
+                break;
         }
     }
     return res;

@@ -62,7 +62,7 @@ struct Pose : public Point2d {
 
     friend std::ostream& operator<<(std::ostream& out, const Pose& pose) {
         out << "Pose:{utm position:(" << pose.utm_position.utm_x << ", " << pose.utm_position.utm_y << ", " << pose.utm_position.heading << ") x=" << pose.x << ", y=" << pose.y << ", ang=" << pose.ang
-            << ", k=" << pose.k << ", v=" << pose.v << ", s=" << pose.s << ", t=" << pose.t << "}";
+            << ", k=" << pose.k << ", v=" << pose.v << ", s=" << pose.s << ", t=" << pose.t << ", backward=" << pose.backward << "}";
         return out;
     }
 

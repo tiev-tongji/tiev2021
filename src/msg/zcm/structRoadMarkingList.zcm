@@ -65,7 +65,7 @@ struct StopLine
 }
 
 
-struct MsgRoadMarkingList
+struct structRoadMarkingList
 {
 	int32_t current_lane_id; //the lane index of ego car, from right to left is 0, 1, 2, 3....
 	int32_t num;			//the numbers of lane

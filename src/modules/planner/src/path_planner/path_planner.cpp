@@ -312,10 +312,12 @@ double PathPlanner::aStarHeuristic(int target_index, const astate& current) {
         curve_distance = astar_dubins_distance_table.getDistance(q0, q1);
     // double euclidean                                      = euclideanDistance(current.x, current.y, tx, ty);
     // double p1                                             = max(euclidean, curve_distance);
+    double backward_punish                                = 0;
+    if(current.backward) backward_punish                  = 10;
     double spfa_dis                                       = aStarGetDistanceToTarget(target_index, current.x, current.y);
     double curvature_changed_punish                       = 0;
     if(current.prior_index >= 0) curvature_changed_punish = 200 * fabs(current.curvature - astar_stored_states[target_index][current.prior_index].curvature);
-    return (max(curve_distance, spfa_dis) + curvature_changed_punish);
+    return (max(curve_distance, spfa_dis) + curvature_changed_punish + backward_punish);
 #else
     return 0;
 #endif
@@ -452,7 +454,7 @@ void PathPlanner::aStarPlan(int target_index) {
                 p.s        = st.cost * GRID_RESOLUTION;
                 p.k        = fabs(st.curvature / GRID_RESOLUTION);
                 p.backward = st.backward;
-                speed_paths[target_index].path.push_back(p);
+                if(p.in_map()) speed_paths[target_index].path.push_back(p);
 #ifdef COUT_DEBUG_INFO
                 cerr << st.x << ", " << st.y << ", " << st.a << "," << endl;
 #endif
@@ -471,7 +473,7 @@ void PathPlanner::aStarPlan(int target_index) {
     }
 #endif
 
-    for(auto& p : stored_states)
+    for(const auto& p : stored_states)
         astar_used[target_index].map[(int)round(p.x)][(int)round(p.y)] = true;
 }
 
@@ -577,7 +579,7 @@ void PathPlanner::aStarExtend(const astate& source, vector<vector<astate>>& dest
             double back_y      = sina * back_p.x + cosa * back_p.y + source.y;
             Pose   back_pose   = Pose(back_x, back_y, back_ang);
             double expansion_r = current_speed * EXPANSION_R_RATIO + 0.2;
-            if(sfar > arc_length && current_euclidean > arc_length && !collision(back_pose, lane_safe_map) && !collision(back_pose, abs_safe_map, expansion_r)) {
+            if(back_pose.in_map() && sfar > arc_length && current_euclidean > arc_length && !collision(back_pose, lane_safe_map) && !collision(back_pose, abs_safe_map, expansion_r)) {
                 auto back_state  = destination[i].back();
                 auto front_state = destination[i].front();
                 destination[i].resize(2);
@@ -599,12 +601,12 @@ void PathPlanner::aStarExtend(const astate& source, vector<vector<astate>>& dest
                 p.x      = x;
                 p.y      = y;
                 if(p.backward)
-                    p.cost = 2 * p.cost + source.cost;
+                    p.cost = p.cost + source.cost;
                 else
                     p.cost = p.cost + source.cost;
                 Pose   pp(p.x, p.y, p.a);
                 double expansion_r = current_speed * EXPANSION_R_RATIO + 0.2;
-                if(collision(pp, abs_safe_map, expansion_r) || collision(pp, lane_safe_map)) {
+                if(!pp.in_map() || collision(pp, abs_safe_map, expansion_r) || collision(pp, lane_safe_map)) {
                     // if(!isCarSafeHere(p.x, p.y, p.a, abs_safe_map, lane_safe_map, current_speed)) {
                     // destination[i].clear();
                     destination[i].resize(j);
@@ -704,8 +706,9 @@ void PathPlanner::primitives::addPrimitive(vector<astate>& forward_primitive, bo
 
         backward_primitives.push_back(forward_primitive);
         for(auto& p : backward_primitives.back()) {
-            p.x = -p.x;
-            p.a = -p.a;
+            p.x        = -p.x;
+            p.a        = -p.a;
+            p.backward = true;
         }
     }
 }
