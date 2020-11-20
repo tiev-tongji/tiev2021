@@ -67,8 +67,8 @@ void Config::init() {
         parking_task.task_points[k] = UtmPosition(utm_x, utm_y, heading);
     }
 
-    start_time = getTimeStamp();
-    end_time   = start_time + 1e6 * 60 * 60 * 1.5;
+    start_time = doc["start_time"].GetInt64();
+    end_time   = start_time + 1e6 * 60 * 90;
 
     tasks.clear();
     auto task_arr = doc["tasks"].GetArray();
@@ -88,7 +88,7 @@ void Config::init() {
             double heading          = task_points_arr[j]["heading"].GetDouble();
             tasks[i].task_points[j] = UtmPosition(utm_x, utm_y, heading);
         }
-        tasks[i].on_or_off = i % 2;
+        tasks[i].on_or_off = task["on"].GetInt();
     }
     reverse(tasks.begin(), tasks.end());
 #undef nameof
@@ -121,6 +121,7 @@ void Config::outputConfigures() const {
     print(a_star_analytic_expansion_param_t);
     print(a_star_analytic_expansion_max_N);
     print(tasks.size());
+    cout << "start_time" << start_time << endl;
     cout << "parking task:" << parking_task.utm_position << endl;
     cout << "parking task points:" << endl;
     for(const auto& point : parking_task.task_points)
@@ -129,6 +130,7 @@ void Config::outputConfigures() const {
         cout << "- ";
         cout << "task utm position: " << task.utm_position << endl;
         cout << "task lonlat position: " << task.lon_lat_position.lon << " " << task.lon_lat_position.lat << endl;
+        cout << "task on or off: " << task.on_or_off << endl;
         cout << "- ";
         for(auto& point : task.task_points)
             cout << "utm(" << point.utm_x << "," << point.utm_y << "," << point.heading << ") ";
