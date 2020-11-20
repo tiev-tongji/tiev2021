@@ -14,9 +14,9 @@ void TemporaryParkingPlanning::update(FullControl& control) {
     auto&       map         = map_manager->getMap();
     map_manager->updateRefPath();
     map_manager->updatePlanningMap(MapManager::LaneLineBlockType::NO_BLOCK);
-    vector<Pose> start_path     = map_manager->getStartMaintainedPath();
-    vector<Pose> targets        = map_manager->getTemporaryParkingTarget();
-    if(targets.empty()) targets = map_manager->getLaneTargets();
+    vector<Pose> start_path = map_manager->getStartMaintainedPath();
+    vector<Pose> targets    = map_manager->getTemporaryParkingTarget();
+    // if(targets.empty()) targets = map_manager->getLaneTargets();
     if(targets.empty()) return;
     vector<SpeedPath> speed_path_list;
     PathPlanner::getInstance()->runPlanner(map.dynamic_obj_list, map_manager->getCurrentMapSpeed(), true, map.lidar_dis_map, map.planning_dis_map, start_path, targets, map.nav_info.current_speed,

@@ -85,6 +85,7 @@ public:
     std::vector<Pose> getTemporaryParkingTarget();
     std::vector<Pose> getTaskTarget();
     std::vector<Pose> getUTurnTargets();
+    std::vector<Pose> maintained_uturn_target;
     // Pose getRefPathTarget(double s);
     //------
     std::vector<Pose> getMaintainedPath(NavInfo& nav_info);
