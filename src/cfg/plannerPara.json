@@ -8,9 +8,9 @@
 	"recommended_speeds": {
 		"BACK": -3,
 		"STOP": 0,
-		"VERYLOW": 10,
-		"LOW": 20,
-		"MID": 40,
+		"VERYLOW": 8,
+		"LOW": 15,
+		"MID": 30,
 		"HIGH": 50,
 		"VERYHIGH": 60
 	},

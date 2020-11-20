@@ -62,6 +62,7 @@ public:
     RoadDirection      getCurrentRoadDirection();
     HDMapPoint         getStopLine();
     vector<HDMapPoint> getForwardRefPath();
+    HDMapSpeed         getCurrentSpeedMode();
     void updateRefPath(bool need_opposite = false);                                            //获取局部参考路
     void addPedestrian(DynamicObjList& dynamic_obj_list, const vector<HDMapPoint>& ref_path);  // 对道路内且相隔一定距离内的行人进行避让
     void blockStopLine();                                                                      // 封闭停止线，红灯时使用

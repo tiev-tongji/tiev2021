@@ -28,7 +28,7 @@ void TemporaryStop::update(FullControl& control) {
 
     if(current_tasks.empty())
         flag_parking = true;
-    else if(current_tasks.back().on_or_off && current_tasks.size() > 1) {
+    else if(!current_tasks.back().on_or_off && current_tasks.size() > 1) {
         task_list.push_back(current_tasks.back());
         task_list.push_back(current_tasks[current_tasks.size() - 2]);
         task_list.push_back(map_manager->getParkingTask());
@@ -60,6 +60,6 @@ void TemporaryStop::update(FullControl& control) {
     }
     time_t time_pass = getTimeStamp() - entry_time;
     if(time_pass < 20e6) usleep(20e6 - time_pass);
-    control.changeTo<SemiLaneFreeDriving>();
+    control.changeTo<UTurn>();
 }
 }  // namespace TiEV

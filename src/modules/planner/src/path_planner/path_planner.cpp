@@ -10,6 +10,7 @@
 using namespace std;
 
 namespace TiEV {
+const double EXPANSION_R_RATIO = 0.06;
 
 const double sqrt2 = 1.414213562;
 const double sqrt5 = 2.2360679775;
@@ -484,14 +485,15 @@ bool PathPlanner::aStarAnalyticExpansion(int target_index, const astate& state, 
     double       q1[] = { targets[target_index].x, targets[target_index].y, targets[target_index].ang };
     const double step = config->a_star_extention_step_meter / GRID_RESOLUTION;
     double       q[3], last_q[3] = { state.x, state.y, state.a }, x = step, length;
-    if(!backward_enabled) {
-        DubinsPath tmpath;
-        dubins_shortest_path(&tmpath, q0, q1, radius);
-        length = dubins_path_length(&tmpath);
+    // if(backward_enabled && point2PointDis(Point2d(), Point2d())){
+    if(backward_enabled && targets[target_index].x < state.x) {  // restrict backward RS on roads for Uturn
+        ReedsSheppStateSpace                 rs(radius);
+        ReedsSheppStateSpace::ReedsSheppPath path = rs.reedsShepp(q0, q1);
+        length                                    = path.length() * rs.rho_;
         while(x < length) {
-            dubins_path_sample(&tmpath, x, q);
+            rs.interpolate(q0, path, x / rs.rho_, q);
             Pose   p(q[0], q[1], q[2]);
-            double expansion_r = current_speed * 0.06;
+            double expansion_r = current_speed * EXPANSION_R_RATIO + 0.2;
             if(!collision(p, abs_safe_map, expansion_r) && !collision(p, lane_safe_map)) {
                 // if(isCarSafeHere(q[0], q[1], PI - q[2], abs_safe_map, lane_safe_map, current_speed)) {
                 expansion_states.emplace_back(q[0], q[1], q[2]);
@@ -506,13 +508,13 @@ bool PathPlanner::aStarAnalyticExpansion(int target_index, const astate& state, 
         }
     }
     else {
-        ReedsSheppStateSpace                 rs(radius);
-        ReedsSheppStateSpace::ReedsSheppPath path = rs.reedsShepp(q0, q1);
-        length                                    = path.length() * rs.rho_;
+        DubinsPath tmpath;
+        dubins_shortest_path(&tmpath, q0, q1, radius);
+        length = dubins_path_length(&tmpath);
         while(x < length) {
-            rs.interpolate(q0, path, x / rs.rho_, q);
+            dubins_path_sample(&tmpath, x, q);
             Pose   p(q[0], q[1], q[2]);
-            double expansion_r = current_speed * 0.06;
+            double expansion_r = current_speed * EXPANSION_R_RATIO + 0.2;
             if(!collision(p, abs_safe_map, expansion_r) && !collision(p, lane_safe_map)) {
                 // if(isCarSafeHere(q[0], q[1], PI - q[2], abs_safe_map, lane_safe_map, current_speed)) {
                 expansion_states.emplace_back(q[0], q[1], q[2]);
@@ -574,7 +576,7 @@ void PathPlanner::aStarExtend(const astate& source, vector<vector<astate>>& dest
             double back_x      = cosa * back_p.x - sina * back_p.y + source.x;
             double back_y      = sina * back_p.x + cosa * back_p.y + source.y;
             Pose   back_pose   = Pose(back_x, back_y, back_ang);
-            double expansion_r = current_speed * 0.06;
+            double expansion_r = current_speed * EXPANSION_R_RATIO + 0.2;
             if(sfar > arc_length && current_euclidean > arc_length && !collision(back_pose, lane_safe_map) && !collision(back_pose, abs_safe_map, expansion_r)) {
                 auto back_state  = destination[i].back();
                 auto front_state = destination[i].front();
@@ -601,7 +603,7 @@ void PathPlanner::aStarExtend(const astate& source, vector<vector<astate>>& dest
                 else
                     p.cost = p.cost + source.cost;
                 Pose   pp(p.x, p.y, p.a);
-                double expansion_r = current_speed * 0.06;
+                double expansion_r = current_speed * EXPANSION_R_RATIO + 0.2;
                 if(collision(pp, abs_safe_map, expansion_r) || collision(pp, lane_safe_map)) {
                     // if(!isCarSafeHere(p.x, p.y, p.a, abs_safe_map, lane_safe_map, current_speed)) {
                     // destination[i].clear();
@@ -660,7 +662,7 @@ bool PathPlanner::aStarIsLineSafe(const astate& a, const astate& b) {
     astate       tmp(a.x, a.y, b.a);
     for(int i = 0; i <= step_num; ++i) {
         Pose   p(tmp.x, tmp.y, tmp.a);
-        double expansion_r = current_speed * 0.06;
+        double expansion_r = current_speed * EXPANSION_R_RATIO + 0.2;
         if(collision(p, abs_safe_map, expansion_r) || collision(p, lane_safe_map)) return false;
         // if(!isCarSafeHere(tmp.x, tmp.y, tmp.a, abs_safe_map, lane_safe_map, current_speed)) return false;
         tmp.x += dx;
