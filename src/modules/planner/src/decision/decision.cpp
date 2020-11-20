@@ -171,8 +171,9 @@ void sendPath() {
         }
         if(!maintained_path.empty()) maintained_path.front().v = fabs(nav_info.current_speed);
         SpeedPath speed_path;
-        for(const auto &p:speed_limits)
-        cout << "speed limit:" << p.first << " "<<  p.second << endl;
+        //for(const auto &p:speed_limits)
+        //cout << "speed limit:" << p.first << " "<<  p.second << endl;
+        //if(!maintained_path.empty()) cout << "pid maintained path size:" << maintained_path.size() << " s=" << maintained_path.back().s << endl;
         if(!maintained_path.empty()) speed_path = SpeedOptimizer::RunSpeedOptimizer(dynamic.dynamic_obj_list, maintained_path, speed_limits, maintained_path.back().s);
         // send control trojectory
         control_path.points.clear();
@@ -194,6 +195,28 @@ void sendPath() {
             if(tp.v < 0.5 && tp.v > 0.0000001) tp.v  = 0.5;
             if(p.backward) tp.v                      = -tp.v;
             control_path.points.push_back(tp);
+        }
+        if(control_path.points.empty()) {
+            control_path.num_points = 10;
+            for(int i = 0; i < 10; ++i) {
+                TrajectoryPoint tp;
+                tp.x     = 0.1 * i;
+                tp.y     = 0.0;
+                tp.theta = 0;
+                tp.a     = 0;
+                tp.k     = 0;
+                tp.t     = 0.1 * i;
+                tp.v     = 0;
+                control_path.points.push_back(tp);
+            }
+        }
+        for(int i = 0; i < speed_path.path.size(); ++i) {
+            Pose p = speed_path.path[i];
+            cout << "pid speed path " << i << " " << p << endl;
+        }
+        for(int i = 0; i < control_path.points.size(); ++i) {
+            TrajectoryPoint p = control_path.points[i];
+            cout << "pid path " << i << ":{x=" << p.x << " y=" << p.y << " theta=" << p.theta << " a=" << p.a << " v=" << p.v << endl;
         }
         msgm->publishPath(control_path);
         // visual maintained path
@@ -231,7 +254,7 @@ void requestGlobalPathFromMapServer() {
         // mode
         if(!nav_info.detected || road_mode == HDMapMode::INTERSECTION || road_mode == HDMapMode::INTERSECTION_SOLID || road_mode == HDMapMode::IN_PARK) continue;
         // fsm state
-        if(mm->machine.isActive<UTurn>() || mm->machine.isActive<GlobalReplanning>() || mm->machine.isActive<ParkingFSM>() || mm->machine.isActive<TemporaryStop>()) continue;
+        if(mm->machine.isActive<UTurn>() || mm->machine.isActive<GlobalReplanning>() || mm->machine.isActive<ParkingFSM>() || mm->machine.isActive<TemporaryParkingFSM>()) continue;
         Task current_pos;
         current_pos.lon_lat_position.lon = nav_info.lon;
         current_pos.lon_lat_position.lat = nav_info.lat;

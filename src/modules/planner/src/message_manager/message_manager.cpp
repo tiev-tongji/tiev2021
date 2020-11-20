@@ -298,7 +298,7 @@ void MessageManager::Handler::handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf,
     traffic_mtx.unlock();
 }
 
-void MessageManager::Handler::handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgRoadMarkingList* msg) {
+void MessageManager::Handler::handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structRoadMarkingList* msg) {
     lane_mtx.lock();
     update_time_lane = getTimeStamp();
     tmp_lanes        = *msg;

@@ -78,22 +78,22 @@ bool GriddedPathTimeGraph::Search(SpeedData* speed_data) {
         if(bs > speed_data->TotalLength()) {
             boundary.set_boundary_type(STBoundary::BoundaryType::YIELD);
 
-            std::cout << "Boundary type: YIELD" << std::endl;
+            // std::cout << "Boundary type: YIELD" << std::endl;
             continue;
         }
         double s_on_speed_data = speed_data->GetSByTime(t);
 
         if(s_on_speed_data > us) {  // st boundary beneath the speed profile
             boundary.set_boundary_type(STBoundary::BoundaryType::OVERTAKE);
-            std::cout << "Boundary type: OVERTAKE" << std::endl;
+            // std::cout << "Boundary type: OVERTAKE" << std::endl;
         }
         else if(s_on_speed_data < bs) {  // st boundary above the speed profile
             boundary.set_boundary_type(STBoundary::BoundaryType::YIELD);
-            std::cout << "Boundary type: YIELD" << std::endl;
+            // std::cout << "Boundary type: YIELD" << std::endl;
         }
         else {
             boundary.set_boundary_type(STBoundary::BoundaryType::CAR_COLLISION);
-            std::cout << "Boundary type: COLLISION" << std::endl;
+            // std::cout << "Boundary type: COLLISION" << std::endl;
         }
     }
     return true;
@@ -368,12 +368,12 @@ bool GriddedPathTimeGraph::RetrieveSpeedProfile(SpeedData* speed_data) {
     }
 
     if(best_end_point == nullptr) {
-        std::cout << "RetrieveSpeedProfile: No best_end_point found!" << std::endl;
+        // std::cout << "RetrieveSpeedProfile: No best_end_point found!" << std::endl;
         return false;
     }
 
-    std::cout << "Best end point: " << std::endl;
-    std::cout << best_end_point->total_cost() << ' ' << best_end_point->st_point().s() << best_end_point->st_point().t() << std::endl;
+    // std::cout << "Best end point: " << std::endl;
+    // std::cout << best_end_point->total_cost() << ' ' << best_end_point->st_point().s() << best_end_point->st_point().t() << std::endl;
 
     std::vector<SpeedPoint> speed_profile;
     const StGraphPoint*     cur_point = best_end_point;
@@ -389,7 +389,7 @@ bool GriddedPathTimeGraph::RetrieveSpeedProfile(SpeedData* speed_data) {
     // The first s-t point is not at the initial coordinate
     const double Eps = std::numeric_limits<double>::epsilon();
     if(speed_profile.front().t() > Eps || speed_profile.front().s() > Eps) {
-        std::cout << "RetrieveSpeedProfile: The first s-t point is not at the initial coordinate!" << std::endl;
+        // std::cout << "RetrieveSpeedProfile: The first s-t point is not at the initial coordinate!" << std::endl;
         return false;
     }
 
