@@ -38,7 +38,7 @@ with open("task_points.txt", "r") as file:
             point["heading"] = float(task_points[4])
             task["task_points"].append(point)
         json_data["tasks"].append(task)
-    json_str = json.dumps(json_data)
+    json_str = json.dumps(json_data, indent=4)
 
 with open("任务点序列.json", "w") as json_file:
     json_file.write(json_str)
