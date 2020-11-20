@@ -1,9 +1,10 @@
 import json
 
-
+print("输入任务点序列长度:")
+num = int(input())
 print("输入任务点序列:")
 orders = list()
-for i in range(6):
+for i in range(num):
     k = int(input())
     orders.append(k)
 print(orders)

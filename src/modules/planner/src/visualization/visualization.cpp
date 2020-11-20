@@ -591,8 +591,8 @@ bool Visualization::drawLanes(cv::Mat& left_map, cv::Mat& right_map, int opt) {
         if(inner_handler.tmp_lanes.stop_line.exist) {
             vector<cv::Point> vis_stop_line;
             for(const auto& stop_point : inner_handler.tmp_lanes.stop_line.stop_points) {
-                int x = CAR_CEN_ROW - stop_point.y / GRID_RESOLUTION;
-                int y = CAR_CEN_COL + stop_point.x / GRID_RESOLUTION;
+                int x = CAR_CEN_ROW - stop_point.x / GRID_RESOLUTION;
+                int y = CAR_CEN_COL - stop_point.y / GRID_RESOLUTION;
                 vis_stop_line.push_back(cv::Point(y, x));
             }
             if(opt == 0)
@@ -609,8 +609,8 @@ bool Visualization::drawLanes(cv::Mat& left_map, cv::Mat& right_map, int opt) {
             if(lane.left_line.line_type == 1 || lane.left_line.line_type == 3) {  // 左车道线为虚线
                 vector<cv::Point> line;
                 for(const auto& point : lane.left_line.points) {
-                    int x = CAR_CEN_ROW - point.y / GRID_RESOLUTION;
-                    int y = CAR_CEN_COL + point.x / GRID_RESOLUTION;
+                    int x = CAR_CEN_ROW - point.x / GRID_RESOLUTION;
+                    int y = CAR_CEN_COL - point.y / GRID_RESOLUTION;
                     if(x < 0 || x >= MAX_ROW || y < 0 || y >= MAX_COL) continue;
                     line.emplace_back(cv::Point(y, x));
                 }
@@ -632,8 +632,8 @@ bool Visualization::drawLanes(cv::Mat& left_map, cv::Mat& right_map, int opt) {
             else {  // 左车道线为实线
                 vector<cv::Point> line;
                 for(const auto& point : lane.left_line.points) {
-                    int x = CAR_CEN_ROW - point.y / GRID_RESOLUTION;
-                    int y = CAR_CEN_COL + point.x / GRID_RESOLUTION;
+                    int x = CAR_CEN_ROW - point.x / GRID_RESOLUTION;
+                    int y = CAR_CEN_COL - point.y / GRID_RESOLUTION;
                     if(x < 0 || x >= MAX_ROW || y < 0 || y >= MAX_COL) continue;
                     line.emplace_back(cv::Point(y, x));
                 }
@@ -649,8 +649,8 @@ bool Visualization::drawLanes(cv::Mat& left_map, cv::Mat& right_map, int opt) {
             if(lane.right_line.line_type == 1 || lane.right_line.line_type == 3) {  // 右车道线为虚线
                 vector<cv::Point> line;
                 for(const auto& point : lane.right_line.points) {
-                    int x = CAR_CEN_ROW - point.y / GRID_RESOLUTION;
-                    int y = CAR_CEN_COL + point.x / GRID_RESOLUTION;
+                    int x = CAR_CEN_ROW - point.x / GRID_RESOLUTION;
+                    int y = CAR_CEN_COL - point.y / GRID_RESOLUTION;
                     if(x < 0 || x >= MAX_ROW || y < 0 || y >= MAX_COL) continue;
                     line.emplace_back(cv::Point(y, x));
                 }
@@ -672,8 +672,8 @@ bool Visualization::drawLanes(cv::Mat& left_map, cv::Mat& right_map, int opt) {
             else {  // 右车道线为实线
                 vector<cv::Point> line;
                 for(const auto& point : lane.right_line.points) {
-                    int x = CAR_CEN_ROW - point.y / GRID_RESOLUTION;
-                    int y = CAR_CEN_COL + point.x / GRID_RESOLUTION;
+                    int x = CAR_CEN_ROW - point.x / GRID_RESOLUTION;
+                    int y = CAR_CEN_COL - point.y / GRID_RESOLUTION;
                     if(x < 0 || x >= MAX_ROW || y < 0 || y >= MAX_COL) continue;
                     line.emplace_back(cv::Point(y, x));
                 }
@@ -923,7 +923,7 @@ void Visualization::Handler::handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf, 
     traffic_mtx.unlock();
 }
 
-void Visualization::Handler::handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgRoadMarkingList* msg) {
+void Visualization::Handler::handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structRoadMarkingList* msg) {
     lane_mtx.lock();
     tmp_lanes         = *msg;
     update_time_lanes = getTimeStamp();

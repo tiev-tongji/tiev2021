@@ -201,7 +201,7 @@ private:
         void handleNAVINFO(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structNAVINFO* msg);
         void handleFUSIONMAP(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structFUSIONMAP* msg);
         void handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgTrafficLightSignal* msg);
-        void handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const MsgRoadMarkingList* msg);
+        void handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structRoadMarkingList* msg);
         void handlePARKINGSLOTS(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structPARKINGSLOTS* msg);
         void handleOBJECTLIST(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structOBJECTLIST* msg);
         void handleSLAMLOC(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structSLAMLOC* msg);
@@ -222,7 +222,7 @@ private:
         structFUSIONMAP       tmp_lidar_map;
         MsgTrafficLightSignal tmp_traffic;
         structOBJECTLIST      tmp_objects[OBJECTS_SOURCE_NUM];
-        MsgRoadMarkingList    tmp_lanes;
+        structRoadMarkingList tmp_lanes;
         structPARKINGSLOTS    tmp_slot;
         visVISUALIZATION      tmp_visualization;
     };
