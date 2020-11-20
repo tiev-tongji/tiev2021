@@ -26,7 +26,7 @@ namespace lm = LaneModel;
 using namespace Eigen;
 
 const float LANEWIDTH = 60;
-float pixel2real_ratio = 5.8 / 100;
+float pixel2real_ratio = 5.95 / 100;
 int min_stop_count = 200; //large for highway, small for ordinary road(200), median beneath highway(400)
 int min_lanemark_count = 500;
 
@@ -38,7 +38,9 @@ const float LIDARRESOLUTION = 0.2;
 const int LIDARMAPWIDTH = 250;
 const int LIDARMAPHEIGHT = 350;
 
-const float THRESH_ADD_CURB = 3.0;
+const float THRESH_ADD_CURB = 3.5;
+const float RANGE_CURB_DIS_RATIO = 1.3;
+
 //coodinate convertion
 cv::Point2f convert_to_lidar(const cv::Point2f& point_bev){
     cv::Point2f point_lidar;
@@ -487,18 +489,19 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
                 cv::Mat temp = cv::Mat::zeros(LASERMAPBEV_HEIGHT,LASERMAPBEV_WIDTH, CV_8UC1);
 //                std::cout<< corner_point.y <<"   " << "RIGHT" << "   " << static_cast<int>(corner_point.x) << "   " << std::endl;
                 corner_point.y = std::max(0, static_cast<int>(corner_point.y+0.5));
+		corner_point.y = (corner_point.y < LASERMAPBEV_HEIGHT ? corner_point.y : LASERMAPBEV_HEIGHT);
                 corner_point.x = std::max(0, static_cast<int>(corner_point.x+0.5));
                 int x_range = std::min(LASERMAPBEV_WIDTH, static_cast<int>(corner_point.x+(LASERMAPBEV_WIDTH - VISUALBEV_WIDTH)/2+0.5));
                 //todo!! A bug
 //                std::cout << "corner_point.x = " << corner_point.x <<std::endl << "x_range = " << x_range<<std::endl;
-//                std::cout <<"corner_point.y = "<< cornr_point.y << std::endl << "x_range = " << x_range << std::endl << "std::min = "<< std::min(static_cast<int>(x_range+LANEWIDTH*1.5+0.5) , LASERMAPBEV_WIDTH)<<std::endl;
+                std::cout <<"corner_point.y = "<< corner_point.y << std::endl << "x_range = " << x_range << std::endl << "std::min = "<< std::min(static_cast<int>(x_range+LANEWIDTH*RANGE_CURB_DIS_RATIO+0.5) , LASERMAPBEV_WIDTH)<<std::endl;
                 cv::Mat right_curb_roi = temp(cv::Range(corner_point.y, LASERMAPBEV_HEIGHT),
-                                              cv::Range(x_range, std::min(static_cast<int>(x_range+LANEWIDTH*1.5+0.5) , LASERMAPBEV_WIDTH)));//get visual area from lasermap, car(lader) locat at botoom center. Real area 60m * 14m
+                                              cv::Range(x_range, std::min(static_cast<int>(x_range+LANEWIDTH*RANGE_CURB_DIS_RATIO+0.5) , LASERMAPBEV_WIDTH)));//get visual area from lasermap, car(lader) locat at botoom center. Real area 60m * 14m
                 right_curb_roi.setTo(1);
                 cv::Mat lasermap_bev_rightcurb_roi = temp.mul(laser_map_bev);
                 cluster::Cluster right_curb;
                 for(int i= corner_point.y; i<LASERMAPBEV_HEIGHT; i++){
-                    for(int j= x_range; j<std::min(static_cast<int>(x_range+LANEWIDTH*1.5+0.5) , LASERMAPBEV_WIDTH); j++){
+                    for(int j= x_range; j<std::min(static_cast<int>(x_range+LANEWIDTH*RANGE_CURB_DIS_RATIO+0.5) , LASERMAPBEV_WIDTH); j++){
                         if(lasermap_bev_rightcurb_roi.at<uchar>(i, j) > 0){
                             right_curb.push_back(cv::Point2i(static_cast<int>(j-(LASERMAPBEV_WIDTH - VISUALBEV_WIDTH)/2+0.5), i));
                         }
@@ -524,15 +527,18 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
                 cv::Mat temp2 = cv::Mat::zeros(LASERMAPBEV_HEIGHT,LASERMAPBEV_WIDTH, CV_8UC1);
 //                std::cout<< corner_point.y <<"   " << "LEFT" << "   " << static_cast<int>(corner_point.x) << "   " << std::endl;
                 corner_point.y = std::max(0, static_cast<int>(corner_point.y+0.5));
+		corner_point.y = (corner_point.y < LASERMAPBEV_HEIGHT ? corner_point.y : LASERMAPBEV_HEIGHT);
                 corner_point.x = std::max(0, static_cast<int>(corner_point.x+0.5));
                 int x_range = static_cast<int>(corner_point.x+(LASERMAPBEV_WIDTH - VISUALBEV_WIDTH)/2+0.5);
+                x_range = (x_range > LASERMAPBEV_WIDTH / 2 ? LASERMAPBEV_WIDTH/2 : x_range);
+                std::cout <<"corner_point.y = "<< corner_point.y << std::endl << "x_range = " << x_range << std::endl << "std::max = "<< std::max(static_cast<int>(x_range-LANEWIDTH*RANGE_CURB_DIS_RATIO+0.5),0) << std::endl;
                 cv::Mat left_curb_roi = temp2(cv::Range(corner_point.y, LASERMAPBEV_HEIGHT),
-                                              cv::Range(std::max(static_cast<int>(x_range-LANEWIDTH*1.5+0.5),0) , x_range));//get visual area from lasermap, car(lader) locat at botoom center. Real area 60m * 14m
+                                              cv::Range(std::max(static_cast<int>(x_range-LANEWIDTH*RANGE_CURB_DIS_RATIO+0.5),0) , x_range));//get visual area from lasermap, car(lader) locat at botoom center. Real area 60m * 14m
                 left_curb_roi.setTo(1);
                 cv::Mat lasermap_bev_leftcurb_roi = temp2.mul(laser_map_bev);
                 cluster::Cluster left_curb;
                 for(int i= corner_point.y; i<LASERMAPBEV_HEIGHT; i++){
-                    for(int j= std::max(static_cast<int>(x_range-LANEWIDTH*1.5+0.5),0); j<x_range; j++){
+                    for(int j= std::max(static_cast<int>(x_range-LANEWIDTH*RANGE_CURB_DIS_RATIO+0.5),0); j<x_range; j++){
                         if(lasermap_bev_leftcurb_roi.at<uchar>(i, j) > 0){
                             left_curb.push_back(cv::Point2i(static_cast<int>(j-(LASERMAPBEV_WIDTH - VISUALBEV_WIDTH)/2+0.5), i));
                         }
@@ -853,11 +859,11 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
 
             float count_scaler[6];
             count_scaler[0] = (float)lanemark_count[0] / 600;
-            count_scaler[1] = (float)lanemark_count[1] / 1300;
-            count_scaler[2] = (float)lanemark_count[2] / 1000;
-            count_scaler[3] = (float)lanemark_count[3] / 1000;
-            count_scaler[4] = (float)lanemark_count[4] / 1500;
-            count_scaler[5] = (float)lanemark_count[5] / 1500;
+            count_scaler[1] = (float)lanemark_count[1] / 800;
+            count_scaler[2] = (float)lanemark_count[2] / 800;
+            count_scaler[3] = (float)lanemark_count[3] / 800;
+            count_scaler[4] = (float)lanemark_count[4] / 1000;
+            count_scaler[5] = (float)lanemark_count[5] / 1000;
 
             int8_t lane_type = 0x00;//TYPE_NONE
             float min_scaler = 1;
