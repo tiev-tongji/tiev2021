@@ -221,10 +221,10 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
     cv::Mat laser_map_cropped = laser_map(cv::Rect(0,0,251,351));//get visual area from lasermap, car(lader) locat at botoom center. Real area 70m * 14m
 //    cv::Point2i test_point(300,75);
 //    std::cout << "_________" << convert_to_bev(test_point) << std::endl;
-    cv::imshow("win_lasermap", laser_map*255);
+//    cv::imshow("win_lasermap", laser_map*255);
     cv::Mat laser_map_bev;
     laser_map_bev = convert_lasermap_2bev(laser_map_cropped);//convert laser map to bev todo:expand the area beyond the bev
-    cv::imshow("win_laserbev", laser_map_bev*255);
+//    cv::imshow("win_laserbev", laser_map_bev*255);
 //    cv::Mat manual_curb = cv::imread("/home/xzr/tiev-plus/modules/src/vision/RoadMarkingDect/tools/manual_curb.png", CV_LOAD_IMAGE_UNCHANGED);
 //    predict.push_back(manual_curb);
 //    PRINT("ok");
@@ -305,7 +305,7 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
     image_align.set_yaw(yaw_angle);
     PRINT(image_align.ok());
     PRINT(image_align.get_yaw());
-    IMSHOW(line_mask);
+//    IMSHOW(line_mask);
 
     // rotate the image with the yaw angle
     cv::Mat aligned_line_mask;
@@ -352,13 +352,13 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
         std::sort(aligned_clusters.begin(), aligned_clusters.end(), cluster::less_than<int>);
         cv::Mat aligned_clusters_image = aligned_image.clone();
         visualize::visualize(aligned_clusters, aligned_clusters_image);
-        IMSHOW(aligned_clusters_image);
+//        IMSHOW(aligned_clusters_image);
     }
     if (DEBUG) {
         std::sort(filtered_clusters.begin(), filtered_clusters.end(), cluster::less_than<float>);
         cv::Mat filtered_clusters_image = aligned_image.clone();
         visualize::visualize(filtered_clusters, filtered_clusters_image);
-        IMSHOW(filtered_clusters_image);
+//        IMSHOW(filtered_clusters_image);
     }
 
 
@@ -511,7 +511,7 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
                     right_curb_size = right_curb.size();
                     curb_clusters.push_back(right_curb);
                 }
-                cv::imshow("right", lasermap_bev_rightcurb_roi*255);
+//                cv::imshow("right", lasermap_bev_rightcurb_roi*255);
 //                cv::Mat tempshow = cv::Mat::zeros(LASERMAPBEV_HEIGHT,LASERMAPBEV_WIDTH, CV_8UC1);
 //                cv::polylines(tempshow, right_curb, false, cvScalar(255), 4);
 //                cv::imshow("curb", tempshow);
@@ -548,7 +548,7 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
                     left_curb_size = left_curb.size();
                     curb_clusters.push_back(left_curb);
                 }
-                cv::imshow("left", lasermap_bev_leftcurb_roi*255);
+//                cv::imshow("left", lasermap_bev_leftcurb_roi*255);
             }
             if(curb_clusters.size()>0){
                 printf("curbs_num %zu\n", curb_clusters.size());
@@ -722,8 +722,8 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
                         visualize::visualize(road_resampled, road_aligned_image, CENTER);
                         cv::Mat result_image;
                         image_align.revert(road_aligned_image, result_image);
-                        DEPLOY_IMSHOW(result_image, key);
-                        IMSHOW(result_image);
+//                        DEPLOY_IMSHOW(result_image, key);
+//                        IMSHOW(result_image);
                         if (key == 27) exit(0);
                     }
                     road_resampled.clear();
@@ -1048,8 +1048,8 @@ std::vector<int> process_tensor(py::array_t<uchar_t> _image, py::array_t<uchar_t
         int key=0;
         cv::Mat result_image = image;//.clone();
         visualize::visualize(road_resampled, result_image, CENTER);
-        DEPLOY_IMSHOW(result_image, key);
-        IMSHOW(result_image);
+//        DEPLOY_IMSHOW(result_image, key);
+//        IMSHOW(result_image);
         if (key == 27) exit(0);
     }
 
