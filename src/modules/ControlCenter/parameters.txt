@@ -2,7 +2,7 @@ acc_P 10
 acc_I 0.1
 acc_D 0.0
 acc_FF 10 
-break_P 4
+break_P 1.8
 break_I 0.00
 break_D 0.00
 break_FF 6   

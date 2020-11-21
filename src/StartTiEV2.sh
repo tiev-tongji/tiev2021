@@ -7,10 +7,12 @@ gnome-terminal -x bash -c "source activate second;cd /home/autolab/tiev2020-code
 
 gnome-terminal -x bash -c "cd /home/autolab/tiev2020-code/src/modules/Sick/build;./Sick;exec bash;"
 
+#gnome-terminal -x bash -c "cd /home/autolab/tiev2020-code/src/modules/ControlCenterZLG/build;./CONTROL;exec bash;"
+
 gnome-terminal -x bash -c "cd /home/autolab/tiev2020-code/src/modules/PerceptionFusion/PerceptionFusion/build;./perceptionfusion;exec bash;"
 
 gnome-terminal -x bash -c "cd /home/autolab/tiev2020-code/src/modules/planner/build/src;./visualization/visualization;exec bash;"
 
 gnome-terminal -x bash -c "cd /home/autolab/tiev2020-code/src/modules/Trajectory_Controller/build;./trajectory_controller;exec bash;"
 
-gnome-terminal -x bash -c "ssh autolab@192.168.222.110;exec bash;"
+#gnome-terminal -x bash -c "ssh autolab@192.168.222.110;exec bash;"

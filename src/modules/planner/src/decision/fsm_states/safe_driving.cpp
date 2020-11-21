@@ -5,7 +5,8 @@ namespace TiEV {
 using namespace std;
 
 void SafeDriving::enter(Control& control) {
-    expired_time = getTimeStamp() + 15 * 1000 * 1000;
+    expired_time = getTimeStamp() + 10 * 1000 * 1000;
+    entry_time   = getTimeStamp() + 10 * 1000 * 1000;
     cout << "entry Safe Driving..." << endl;
 }
 
@@ -19,7 +20,8 @@ void SafeDriving::update(FullControl& control) {
     vector<Pose>      targets    = map_manager->getLaneTargets();
     vector<SpeedPath> speed_path_list;
     // 红绿灯
-    RoadDirection direction = map_manager->getForwardRefPath().front().direction;
+    // RoadDirection direction = map_manager->getForwardRefPath().front().direction;
+    RoadDirection direction = map_manager->getCurrentRoadDirection();
     if(map.traffic_light.detected) {
         if((direction == RoadDirection::RIGHT && !map.traffic_light.right) || (direction == RoadDirection::LEFT && !map.traffic_light.left)
            || (direction == RoadDirection::STRAIGHT && !map.traffic_light.straight)) {
@@ -35,12 +37,19 @@ void SafeDriving::update(FullControl& control) {
     map_manager->selectBestPath(speed_path_list);
     map_manager->maintainPath(map.nav_info, map.best_path.path);
 
-    if(map.nav_info.current_speed < 0.05) {
+    if(map.nav_info.current_speed < 0.5) {
         time_t now_time = getTimeStamp();
         if(now_time >= expired_time) control.changeTo<IntersectionFreeDriving>();
     }
     else {
-        expired_time = getTimeStamp() + 20e6;
+        expired_time = getTimeStamp() + 10e6;
+    }
+    if(speed_path_list.empty()) {
+        time_t now_time = getTimeStamp();
+        if(now_time >= entry_time) control.changeTo<IntersectionFreeDriving>();
+    }
+    else {
+        entry_time = getTimeStamp() + 10e6;
     }
 }
 }  // namespace TiEV

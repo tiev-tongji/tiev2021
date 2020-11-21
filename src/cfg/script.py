@@ -19,18 +19,19 @@ with open("task_points.txt", "r") as file:
         idx = int(items[0])-1
         result[idx].append(items[2:])
 
-    for order in orders:
-        if len(result[order - 1]) == 0:
+    for i in range(len(orders)):
+        if len(result[orders[i] - 1]) == 0:
             continue
         task = dict()
         task["task"] = dict()
-        task["task"]["lon"] = float(result[order - 1][0][0])
-        task["task"]["lat"] = float(result[order - 1][0][1])
-        task["task"]["utm_x"] = float(result[order - 1][0][2])
-        task["task"]["utm_y"] = float(result[order - 1][0][3])
-        task["task"]["heading"] = float(result[order - 1][0][4])
+        task["task"]["lon"] = float(result[orders[i] - 1][0][0])
+        task["task"]["lat"] = float(result[orders[i] - 1][0][1])
+        task["task"]["utm_x"] = float(result[orders[i] - 1][0][2])
+        task["task"]["utm_y"] = float(result[orders[i] - 1][0][3])
+        task["task"]["heading"] = float(result[orders[i] - 1][0][4])
+        task["task"]["on"] = i % 2
         task["task_points"] = list()
-        for task_points in result[order - 1]:
+        for task_points in result[orders[i] - 1]:
             point = dict()
             point["lon"] = float(task_points[0])
             point["lat"] = float(task_points[1])

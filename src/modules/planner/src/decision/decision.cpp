@@ -194,7 +194,9 @@ void sendPath() {
         }
         if(!maintained_path.empty()) maintained_path.front().v = fabs(nav_info.current_speed);
         SpeedPath speed_path;
-        if(!maintained_path.empty()) cout << "pid maintained path size:" << maintained_path.size() << " s=" << maintained_path.back().s << endl;
+        //for(const auto &p:speed_limits)
+        //cout << "speed limit:" << p.first << " "<<  p.second << endl;
+        //if(!maintained_path.empty()) cout << "pid maintained path size:" << maintained_path.size() << " s=" << maintained_path.back().s << endl;
         if(!maintained_path.empty()) speed_path = SpeedOptimizer::RunSpeedOptimizer(dynamic.dynamic_obj_list, maintained_path, speed_limits, maintained_path.back().s);
         // anti-conversion
         for(auto& point : speed_path.path) {
@@ -238,14 +240,14 @@ void sendPath() {
                 control_path.points.push_back(tp);
             }
         }
-        for(int i = 0; i < speed_path.path.size(); ++i) {
-            Pose p = speed_path.path[i];
-            cout << "pid speed path " << i << " " << p << endl;
-        }
-        for(int i = 0; i < control_path.points.size(); ++i) {
-            TrajectoryPoint p = control_path.points[i];
-            cout << "pid path " << i << ":{x=" << p.x << " y=" << p.y << " theta=" << p.theta << " a=" << p.a << " v=" << p.v << endl;
-        }
+        // for(int i = 0; i < speed_path.path.size(); ++i) {
+        //     Pose p = speed_path.path[i];
+        //     cout << "pid speed path " << i << " " << p << endl;
+        // }
+        // for(int i = 0; i < control_path.points.size(); ++i) {
+        //     TrajectoryPoint p = control_path.points[i];
+        //     cout << "pid path " << i << ":{x=" << p.x << " y=" << p.y << " theta=" << p.theta << " a=" << p.a << " v=" << p.v << endl;
+        // }
         msgm->publishPath(control_path);
         // visual maintained path
         visVISUALIZATION& vis = msgm->visualization;
@@ -282,7 +284,9 @@ void requestGlobalPathFromMapServer() {
         // mode
         if(!nav_info.detected || road_mode == HDMapMode::INTERSECTION || road_mode == HDMapMode::INTERSECTION_SOLID || road_mode == HDMapMode::IN_PARK) continue;
         // fsm state
-        if(mm->machine.isActive<UTurn>() || mm->machine.isActive<GlobalReplanning>() || mm->machine.isActive<ParkingFSM>() || mm->machine.isActive<TemporaryParkingFSM>()) continue;
+        if(mm->machine.isActive<UTurn>() || mm->machine.isActive<GlobalReplanning>() || mm->machine.isActive<ParkingFSM>() || mm->machine.isActive<TemporaryParkingFSM>()
+           || mm->machine.isActive<IntersectionFSM>())
+            continue;
         Task current_pos;
         current_pos.lon_lat_position.lon = nav_info.lon;
         current_pos.lon_lat_position.lat = nav_info.lat;
@@ -296,7 +300,7 @@ void requestGlobalPathFromMapServer() {
         int cost                      = -1;
         if(task_list.size() > 1) cost = routing->findReferenceRoad(tmp_global_path, task_list, false);
         if(cost == -1) continue;
-        cout << "Cost of global path: " << cost << endl;
+        cout << "Cost of global path: " << cost << " size:" << tmp_global_path.size() << endl;
         if(!tmp_global_path.empty()) {  // TODO: When to replace?
             map_m->setGlobalPath(tmp_global_path);
         }

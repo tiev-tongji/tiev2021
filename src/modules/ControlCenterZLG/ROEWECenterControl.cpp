@@ -81,42 +81,42 @@ STATE ROEWEControl::init(){
 void ROEWEControl::get_can_info(){
     int nbytes;
     float car_angle, car_speed;
-	unsigned char veh_control_mode;
-	VCI_CAN_OBJ can[rcv_buff_size];
-	while(1){
-		uint32_t cnt = VCI_Receive(can_dev.devType, can_dev.devIndex, 
-                          can_dev.channelNum, can, rcv_buff_size, rcv_wait_time);
-		printf("\ncnt = %d\n", cnt);
-		for(int i = 0; i < cnt; i++){
-			switch(can[i].ID){
-                case 0x18B:
-                    this->get_m_EPS_HSC_FrP01(&can[i], &car_angle);
-                    car_angle_ = car_angle;
-                    DEBUG("CANINFO: car_angle ==> " << car_angle_);
-                    break;
-                case 0x302:
-                    this->get_m_VCU2MAB_2(&can[i], &car_speed);
-                    car_speed_ = car_speed;
-                    DEBUG("CANINFO: car_speed ==> " << car_speed_);
-                    break;
-				case 0x312:
-					this->get_m_EPS2VMS(&can[i], &veh_control_mode);
-                    veh_control_mode_ = veh_control_mode;
-                    DEBUG("CANINFO: veh_control_mode ==> " << int(veh_control_mode_));
-                    break;
-				
-                default:
-                    break;
-			}
-		}
-        // 100HZ 接收
+    unsigned char veh_control_mode;
+    VCI_CAN_OBJ can[rcv_buff_size];
+    while(1){
+	    uint32_t cnt = VCI_Receive(can_dev.devType, can_dev.devIndex, 
+			    can_dev.channelNum, can, rcv_buff_size, rcv_wait_time);
+	    //printf("\ncnt = %d\n", cnt);
+	    for(int i = 0; i < cnt; i++){
+		    switch(can[i].ID){
+			    case 0x18B:
+				    this->get_m_EPS_HSC_FrP01(&can[i], &car_angle);
+				    car_angle_ = car_angle;
+				    DEBUG("CANINFO: car_angle ==> " << car_angle_);
+				    break;
+			    case 0x302:
+				    this->get_m_VCU2MAB_2(&can[i], &car_speed);
+				    car_speed_ = car_speed;
+				    DEBUG("CANINFO: car_speed ==> " << car_speed_);
+				    break;
+			    case 0x312:
+				    this->get_m_EPS2VMS(&can[i], &veh_control_mode);
+				    veh_control_mode_ = veh_control_mode;
+				    DEBUG("CANINFO: veh_control_mode ==> " << int(veh_control_mode_));
+				    break;
+
+			    default:
+				    break;
+		    }
+	    }
+	    // 100HZ 接收
 	    usleep(10*1000);
-	}
+    }
 }
 
 void ROEWEControl::send_can_info(){
-    int nbytes;
-    float angle_torque, speed_torque;
+	int nbytes;
+	float angle_torque, speed_torque;
 	VCI_CAN_OBJ frame[3];
 	VCI_CAN_OBJ canObj[2];
 

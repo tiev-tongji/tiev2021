@@ -19,6 +19,7 @@ const int veh_limit_speed_change = 10;
 const int veh_high_speed = 40;
 const int veh_limit_angle = 40;
 const int veh_limit_angle_change = 20;
+const float TOL = 0.1;
 
 // 原先的期望速度
 static float old_desired_speed = 0;
@@ -32,7 +33,7 @@ static float P_angle_old = 0;
 // 角度积分项
 static float I_angle = 0;
 
-static float I_speed_limit = 300; // 2*50hz*3s
+static float I_speed_limit = 600; // 2*50hz*3s
 static float I_angle_limit = 3000; // 2*50hz*3s
 
 // 默认正负一致
@@ -50,15 +51,7 @@ inline void clamp(float& input, const float& hi){
 STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& angle_pitch, const control_params_t& params, bool* is_break, float* control_output){
         float FF_valve = 2;
 	float FF_valve_throttle = 2;
-        std::cout << "acc_P: " << params.acc_P << std::endl;
-	if(desired_speed == 0 || veh_speed * desired_speed < 0){
-	    INFO("stop car right now!");
-	    *is_break = true;
-	    *control_output = 10;
-            *control_output += fabs(veh_speed) * params.break_P;
-	    return CC_OK;
-	}
-
+        std::cout << "acc_P: " << params.acc_P <<"desired_speed: " <<desired_speed<<std::endl;
 	float F_t = 0;					// Real_time output Torque
 	float P_speed = 0;				// Real_time Error speed
 
@@ -91,7 +84,7 @@ STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& ang
 
     // 有一定速度后，才开始使用积分
 	if (fabs(veh_speed) == 0){
-		if(I_speed >= 300) I_speed = 0;
+		if(I_speed >= I_speed_limit) I_speed = 0;
 		else I_speed = I_speed + P_speed;
 	}
 	else{
