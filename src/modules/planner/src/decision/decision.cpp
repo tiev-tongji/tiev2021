@@ -299,8 +299,9 @@ void requestGlobalPathFromMapServer() {
             task_list.push_back(map_m->getParkingTask());
         int cost                      = -1;
         if(task_list.size() > 1) cost = routing->findReferenceRoad(tmp_global_path, task_list, false);
+        cout << "Cost of global path: " << cost << endl;
         if(cost == -1) continue;
-        cout << "Cost of global path: " << cost << " size:" << tmp_global_path.size() << endl;
+        cout << "global path size:" << tmp_global_path.size() << endl;
         if(!tmp_global_path.empty()) {  // TODO: When to replace?
             map_m->setGlobalPath(tmp_global_path);
         }

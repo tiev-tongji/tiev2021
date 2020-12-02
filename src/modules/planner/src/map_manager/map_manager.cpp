@@ -976,7 +976,11 @@ std::vector<Pose> MapManager::getParkingSpotTarget() {
 std::vector<Pose> MapManager::getTemporaryParkingTarget() {
     vector<Pose> targets;
     auto         current_tasks = this->getCurrentTasks();
-    if(current_tasks.empty()) return targets;
+    if(current_tasks.empty()){
+        Task parking_task = this->getParkingTask();
+        if(parking_task.task_points.empty()) return targets;
+        current_tasks.push_back(parking_task);
+    }
     for(auto spot : current_tasks.back().task_points) {
         Pose p;
         p.utm_position = spot;

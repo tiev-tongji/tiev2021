@@ -53,6 +53,7 @@ void TemporaryStop::update(FullControl& control) {
         map_manager->setGlobalPath(tmp_global_path);
     }
     if(flag_parking) {
+        map_manager->clearTask();
         vector<Task> new_task_list;
         new_task_list.push_back(current_pos);
         new_task_list.push_back(map_manager->getParkingTask());

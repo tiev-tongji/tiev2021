@@ -26,8 +26,8 @@ void GlobalReplanning::update(FullControl& control) {
     int                cost = -1;
     vector<HDMapPoint> tmp_global_path;
     if(task_list.size() > 1) cost = routing->findReferenceRoad(tmp_global_path, task_list, true);
-    if(cost == -1) return;
     cout << "Cost of global path: " << cost << endl;
+    if(cost == -1) return;
     map_m->setGlobalPath(tmp_global_path);
     control.changeTo<UTurn>();
 }

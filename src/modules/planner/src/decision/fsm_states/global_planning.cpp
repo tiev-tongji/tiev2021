@@ -1,5 +1,6 @@
 #include "map_manager.h"
 #include "tiev_fsm.h"
+#include <unistd.h>
 #include <iostream>
 namespace TiEV {
 using namespace std;
@@ -10,7 +11,8 @@ void GlobalPlanning::enter(Control& control) {
 
 void GlobalPlanning::update(FullControl& control) {
     MapManager* map_manager = MapManager::getInstance();
-    cout << "Global Planning update..." << endl;
+    //cout << "Global Planning update..." << endl;
+    usleep(20*1000);
     // for test
     map_manager->updateRefPath();
     Map& map = map_manager->getMap();
