@@ -10,10 +10,10 @@ Date 2017.11
 
 # IP配置
 - 子网掩码 24，默认网关 192.168.0.23
-- Linux工控机 IP 192.168.0.188 (交换机) | 192.168.1.188(HDL64) | DHCP WIFI
+- Linux工控机 IP 192.168.222.1 (交换机) |HDL64|SICK|LUX|IMU| DHCP WIFI
 - !Windows工控机(输出RTK，2016代码，默认网关) IP 192.168.0.23 (交换机) | DHCP HUAWEI
-- Windows工控机(视觉) IP 192.168.0.111 (交换机) | IP 192.168.0.188(相机)
-- Linux嵌入式控制器(TX2) IP 192.168.0.110 (交换机)
+- Linux工控机(视觉) IP 192.168.222.2 (交换机) | IP 192.168.0.188(相机)
+- Linux嵌入式控制器(TX2) IP 192.168.222.110 (交换机)
 - SICK雷达(前) IP 192.168.222.22 (交换机)
 - SICK雷达(后) IP 192.168.222.11 (交换机)
 - LUX 雷达 IP 192.168.0.10 (交换机)
@@ -23,9 +23,8 @@ Date 2017.11
 
 # 用户名密码
 - Linux工控机 autolab tjlab222
-- Windows工控机 remote tjtiev
-- TX2嵌入式控制器 ubuntu ubuntu
-- Windows工控机 remote remote
+- Linux工控机 autolab tjlab222
+- TX2嵌入式控制器 autolab tjlab222 | su autolab 
 
 # 操作流程
 1. 上车前首先确认：是否连接充电枪，轮胎是否缺气，外观是否损坏
