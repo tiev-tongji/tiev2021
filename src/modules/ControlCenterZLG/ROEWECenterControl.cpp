@@ -60,7 +60,7 @@ void ROEWEControl::get_can_info(){
     while(1){
 	    uint32_t cnt = VCI_Receive(can_dev.devType, can_dev.devIndex, 
 			    can_dev.channelNum, can, rcv_buff_size, rcv_wait_time);
-	    //printf("\ncnt = %d\n", cnt);
+		// INFO("cnt0 = "<<cnt);
 	    for(int i = 0; i < cnt; i++){
 		    switch(can[i].ID){
 			    case 0x18B:
@@ -115,11 +115,8 @@ void ROEWEControl::send_can_info(){
 		 /* Transmit the can message */
         VCI_Transmit(can_dev.devType, can_dev.devIndex, 
                         can_dev.channelNum, &canObj[0], 1);
-        VCI_Transmit(can_dev.devType, can_dev.devIndex, 
-                        can_dev.channelNum, &canObj[1], 1);
-		// if(nbytes != sizeof(frame)){
-		// 	ERR("CAN0 Send ERROR!");
-		// }
+        // VCI_Transmit(can_dev.devType, can_dev.devIndex, 
+        //                 can_dev.channelNum, &canObj[1], 1);
 	}
 }
 

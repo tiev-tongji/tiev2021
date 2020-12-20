@@ -12,12 +12,8 @@
   */
 #include <iostream>
 #include <unistd.h>
-<<<<<<< HEAD
-#include <math.h>
-
-=======
 #include "signal.h"
->>>>>>> 9b26ed9f4780fb16d57ef3f5868130af7c812cb6
+#include <math.h>
 #include "ControlCenterCommon.h"
 #include "ROEWECenterControl.h"
 #include "pidController.h"
@@ -109,18 +105,18 @@ int main(){
     // 车身CAN控制初始化
     ROEWEControl veh_control;
     veh_control.can_dev = can_device;
-    veh_control.can_dev.channelNum = 1;
+    veh_control.can_dev.channelNum = 0;
     veh_control.init();
     
     EHBControl ehb_control;
     ehb_control.can_dev = can_device;
-    veh_control.can_dev.channelNum = 0;
+    ehb_control.can_dev.channelNum = 1;
     ehb_control.init();
     
     //for esr
     ESRControl esr_control;
     esr_control.can_dev = can_device;
-    veh_control.can_dev.channelNum = 0;
+    esr_control.can_dev.channelNum = 0;
     esr_control.init();
     nav_info_t veh_nav_info;
     
@@ -139,11 +135,11 @@ int main(){
         msgControl.get_remote_control_msg(&enable_pc_control);
         msgControl.get_veh_control_msg(&veh_pc_control_info);
         msgControl.get_nav_info_msg(&veh_nav_info);
+        enable_pc_control = true;
         INFO("enable_pc_control:" << (int)enable_pc_control); 
         // if (veh_nav_info.angle_pitch > pitch_max)
         // pitch_max = veh_nav_info.angle_pitch;
         // std::cout << "angle_pitch:" << veh_nav_info.angle_pitch << "/tpitch_max:" << pitch_max << std::endl;
-        //enable_pc_control = true;
         //veh_pc_control_info.speed = 0;
         //veh_pc_control_info.angle = 0;
         
@@ -162,6 +158,7 @@ int main(){
 
         // PID算法计算
        // speed_pid_control(veh_info.speed, veh_pc_control_info.speed, params, &is_break, &speed_torque);
+        enable_pc_control = true;
         speed_pid_control(veh_info.speed, veh_pc_control_info.speed, veh_nav_info.angle_pitch, params, &is_break, &speed_torque);
         angle_pid_control(veh_info, veh_pc_control_info.angle, params, &angle_torque);
 
@@ -178,6 +175,8 @@ int main(){
         else{
             dcuMsg.AimPressure = 0; //john: verify
         }
+        is_break = true;
+        dcuMsg.AimPressure = 30;
         ehb_control.sendDCUMessage(dcuMsg);
         if(!enable_pc_control){
             dcuMsg.AimPressure = 0;

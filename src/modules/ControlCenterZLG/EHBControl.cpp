@@ -15,9 +15,9 @@
 #include "ControlCenterCommon.h"
 using namespace std;
 
-#define Debug 0
+#define Debug 1
 
-#define SHOW(x) cout << #x << " = " << x+0 << endl
+#define SHOW(x) cout << #x << " = " << x+0 << "  "
 
 EHBControl::EHBControl(){
 	sendCount = 0;
@@ -50,6 +50,7 @@ int EHBControl::canInfoRead(){
 		VCI_CAN_OBJ frame[rcv_buff_size];
 		uint32_t cnt = VCI_Receive(can_dev.devType, can_dev.devIndex, 
                           can_dev.channelNum, frame, rcv_buff_size, rcv_wait_time);
+		// INFO("cnt1 = "<<cnt);
 		for (int i = 0; i < cnt; i++)
 		{
 			if (frame[i].ID == 0x304)
@@ -72,16 +73,11 @@ void EHBControl::canInfoSend(){
 		VCI_CAN_OBJ frame[1];
 		frame[0].ID = 0x303;
 		frame[0].DataLen = 8;
-		int nbytes;
 		send_m_TX2_EHB(frame);
-		nbytes = write(CAN_PORT, &frame[0], sizeof(frame[0]));
-		if(nbytes != sizeof(frame))
-		{
-			std::cout << "CAN Send ERROR!" << std::endl;
-		}
-		
+		INFO("send ehb: "<<(int)frame[0].Data[4]);
+		VCI_Transmit(can_dev.devType, can_dev.devIndex, can_dev.channelNum, frame, 1);
 	}
-        return;
+	return;
 }
 
 void EHBControl::keyboardControl(){
@@ -141,10 +137,11 @@ void EHBControl::get_m_EHB_TX2(VCI_CAN_OBJ *frame){
 	ehbMessage_.EHBFaultCode = frame->Data[4];
 	ehbMessage_.AimPressureAnswered = frame->Data[5];
 	if(Debug == 1){
+		cout<<"ehb info:  ";
 		SHOW(ehbMessage_.EHBStatus);
 		SHOW(ehbMessage_.ParkingBrakeRequest);
 		SHOW(ehbMessage_.ActualPressure);
-		cout << "~~~~~~~~~~~~~~~~~~~" << endl;
+		cout << endl;
 	}
 }
 
