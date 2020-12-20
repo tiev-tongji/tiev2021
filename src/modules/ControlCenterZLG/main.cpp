@@ -29,7 +29,7 @@ void exit_handler(int s)
 	exit(1);
 }
 
-bool init_start_CAN(const CAN_DEV_INFO& can_device, const VCI_INIT_CONFIG& config, const short& CAN1, const short& CAN2)
+bool init_start_CAN(const CAN_DEV_INFO& can_device, VCI_INIT_CONFIG& config, const short& CAN0, const short& CAN1)
 {
     //OpenCAN
     // enable_control_ = true;

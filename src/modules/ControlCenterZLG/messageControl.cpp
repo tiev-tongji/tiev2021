@@ -75,10 +75,12 @@ STATE messageControl::pub_veh_status_msg(veh_info_t& veh_info){
     veh_status.timestamp = tv.tv_sec*1000000 + tv.tv_usec;
     
     veh_status_pub.publish("CANINFO", &veh_status);
+    return 0;
 }
 
 STATE messageControl::pub_esr_objinfo_msg(structESROBJINFO* esrObjInfo){
     veh_status_pub.publish("ESROBJINFO", esrObjInfo);
+    return 0;
 }
 STATE messageHandle::get_veh_control_msg(veh_info_t* veh_info){
     std::lock_guard<std::mutex> lk(veh_info_lock);

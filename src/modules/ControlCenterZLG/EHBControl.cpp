@@ -15,7 +15,7 @@
 #include "ControlCenterCommon.h"
 using namespace std;
 
-#define DEBUG 0
+#define Debug 0
 
 #define SHOW(x) cout << #x << " = " << x+0 << endl
 
@@ -140,7 +140,7 @@ void EHBControl::get_m_EHB_TX2(VCI_CAN_OBJ *frame){
 	ehbMessage_.BrakePedalTravel = frame->Data[3];
 	ehbMessage_.EHBFaultCode = frame->Data[4];
 	ehbMessage_.AimPressureAnswered = frame->Data[5];
-	if(DEBUG == 1){
+	if(Debug == 1){
 		SHOW(ehbMessage_.EHBStatus);
 		SHOW(ehbMessage_.ParkingBrakeRequest);
 		SHOW(ehbMessage_.ActualPressure);

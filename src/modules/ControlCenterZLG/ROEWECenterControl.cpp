@@ -247,6 +247,7 @@ STATE ROEWEControl::get_m_EPS_HSC_FrP01(VCI_CAN_OBJ *frame, float* car_angle){
 
 	m_EPS_HSC_FrP01.SteeringAngleValidHSC1 = frame->Data[4] >> 7;
 	unsigned char SteeringAngleValidHSC1 = m_EPS_HSC_FrP01.SteeringAngleValidHSC1;
+	return 0;
 }
 
 // 车速获取
