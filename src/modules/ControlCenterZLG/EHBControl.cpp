@@ -15,7 +15,7 @@
 #include "ControlCenterCommon.h"
 using namespace std;
 
-#define DEBUG 0
+#define Debug 0
 
 #define SHOW(x) cout << #x << " = " << x+0 << endl
 
@@ -29,33 +29,9 @@ EHBControl::~EHBControl(){
 }
 
 void EHBControl::init(){
-	config.AccCode = 0;
-    config.AccMask = 0xffffffff;
-    config.Filter = 1;
-    config.Mode = 0;
-    config.Timing0 = 0xC0;
-    config.Timing1 = 0x3A;  //500kbps
+
     rcv_buff_size = 1000;
     rcv_wait_time = 100;
-    
-	//enable_control_ = true;
-    // if (!VCI_OpenDevice(can_dev.devType, can_dev.devIndex, 0)) {
-    //     INFO("VCI_OpenDevice failed!");
-	// 	return;
-    // }
-    // INFO("VCI_OpenDevice succeeded!");
-
-    if (!VCI_InitCAN(can_dev.devType, can_dev.devIndex, can_dev.channelNum, &config)) {
-        INFO("VCI_InitCAN failed!");
-		return;
-    }
-    INFO("VCI_InitCAN succeeded!");
-
-    if (!VCI_StartCAN(can_dev.devType, can_dev.devIndex, can_dev.channelNum)) {
-        INFO("VCI_StartCAN failed!");
-		return;
-    }
-    INFO("VCI_StartCAN succeeded!")
     openCAN = true;
 
 	INFO("Start to subscribe EHB info");
@@ -164,7 +140,7 @@ void EHBControl::get_m_EHB_TX2(VCI_CAN_OBJ *frame){
 	ehbMessage_.BrakePedalTravel = frame->Data[3];
 	ehbMessage_.EHBFaultCode = frame->Data[4];
 	ehbMessage_.AimPressureAnswered = frame->Data[5];
-	if(DEBUG == 1){
+	if(Debug == 1){
 		SHOW(ehbMessage_.EHBStatus);
 		SHOW(ehbMessage_.ParkingBrakeRequest);
 		SHOW(ehbMessage_.ActualPressure);

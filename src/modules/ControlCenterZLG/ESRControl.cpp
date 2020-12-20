@@ -82,7 +82,6 @@ void ESRControl::canInfoRead()
 {
     int nbytes;
     VCI_CAN_OBJ frame[rcv_buff_size];
-    int C1 = EHB_CAN_PORT;
 
     while (1)
     {
@@ -397,7 +396,6 @@ void ESRControl::canInfoWrite()
         float speed = 0;     //
         float yawRate = 0;   //
         float radius = 8191; //todo
-        int C1 = EHB_CAN_PORT;
 
         nav_info_lock.lock();
         speed = navInfo.speed;
