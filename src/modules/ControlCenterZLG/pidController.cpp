@@ -12,6 +12,7 @@
  */
 #include "pidController.h"
 #include <math.h>
+#define PID_DEBUG 0
 
 const int veh_stop_speed = 1;
 const int veh_break_enable = 3;
@@ -51,7 +52,8 @@ inline void clamp(float& input, const float& hi){
 STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& angle_pitch, const control_params_t& params, bool* is_break, float* control_output){
         float FF_valve = 2;
 	float FF_valve_throttle = 2;
-        std::cout << "acc_P: " << params.acc_P <<"desired_speed: " <<desired_speed<<std::endl;
+    if (PID_DEBUG)
+        INFO( "acc_P: " << params.acc_P <<"desired_speed: " <<desired_speed);
 	float F_t = 0;					// Real_time output Torque
 	float P_speed = 0;				// Real_time Error speed
 
@@ -118,8 +120,8 @@ STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& ang
 		FF_contribute_throttle = angle_pitch * (params.break_FF);
 	}
         *control_output = FF_contribute_throttle + P_contribute + I_contribute + D_contribute;
-
-        INFO("ACC INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", " << "D: " << D_contribute << "," << "FF:" << FF_contribute_throttle);
+        if(PID_DEBUG)
+            INFO("ACC INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", " << "D: " << D_contribute << "," << "FF:" << FF_contribute_throttle);
     }
     // 需要进行减速处理
     else{
@@ -137,7 +139,8 @@ STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& ang
         *control_output = -(feedfoward_contribute + P_contribute + I_contribute + D_contribute);
 
         //INFO("BREAK INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", " << "D: " << D_contribute);
-        INFO("BREAK INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", " << "D: " << D_contribute << ", " << "FF: " << feedfoward_contribute);
+        if(PID_DEBUG)
+            INFO("BREAK INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", " << "D: " << D_contribute << ", " << "FF: " << feedfoward_contribute);
     }
     
     return CC_OK;
@@ -177,9 +180,13 @@ STATE angle_pid_control(const veh_info_t& veh_info, float& desired_angle, const 
     float P_contribute = P_angle * params.steer_P * k;
     float I_contribute = I_angle * params.steer_I;
     float D_contribute = D_angle * params.steer_D;
-
-    DEBUG("ANGLE INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", " << "D: " << D_contribute);
-    DEBUG("ANGLE INFO ==> desired_angle:" << desired_angle << " veh_ang:" << veh_info.angle << " P_angle:" << P_angle);
+    if (PID_DEBUG)
+    {
+        DEBUG("ANGLE INFO ==> P: " << P_contribute << ", "
+                                   << "I: " << I_contribute << ", "
+                                   << "D: " << D_contribute);
+        DEBUG("ANGLE INFO ==> desired_angle:" << desired_angle << " veh_ang:" << veh_info.angle << " P_angle:" << P_angle);
+    }
 
     *control_output = P_contribute + I_contribute + D_contribute;
     

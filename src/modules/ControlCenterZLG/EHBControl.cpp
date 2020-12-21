@@ -13,6 +13,7 @@
 
 #include "EHBControl.hpp"
 #include "ControlCenterCommon.h"
+#include "nature.h"
 using namespace std;
 
 #define Debug 1
@@ -56,7 +57,7 @@ int EHBControl::canInfoRead(){
 			if (frame[i].ID == 0x304)
 			{
 				get_m_EHB_TX2(&frame[i]);
-			//	return 0;
+				return 0;
 			}
 		}
 		usleep(50 * 1000);
@@ -74,8 +75,11 @@ void EHBControl::canInfoSend(){
 		frame[0].ID = 0x303;
 		frame[0].DataLen = 8;
 		send_m_TX2_EHB(frame);
+		// std::time_t time_now = TiEV::getTimeStamp();
 		INFO("send ehb: "<<(int)frame[0].Data[4]);
-		VCI_Transmit(can_dev.devType, can_dev.devIndex, can_dev.channelNum, frame, 1);
+		// int i = VCI_Transmit(can_dev.devType, can_dev.devIndex, can_dev.channelNum, frame, 1);
+		INFO("vci return = "<<VCI_Transmit(can_dev.devType, can_dev.devIndex, can_dev.channelNum, frame, 1));
+		// INFO("time = "<<TiEV::getTimeStamp() - time_now);
 	}
 	return;
 }
