@@ -32,14 +32,14 @@ then
 	tmux split-window -h -t tiev:tiev2020.0
 	tmux split-window -h -t tiev:tiev2020.2
 	#start visualization
-	tmux send-keys -t tiev:tiev2020.0 'cd ~/tiev2020-code/src/modules/planner/build/' C-m
-	tmux send-keys -t tiev:tiev2020.0 './src/visualization/visualization' C-m
+	tmux send-keys -t tiev:tiev2020.0 'cd ~/tiev2020-code/scripts/' C-m
+	tmux send-keys -t tiev:tiev2020.0 './visualization.sh' C-m
 	#start planner
-	tmux send-keys -t tiev:tiev2020.1 'cd ~/tiev2020-code/src/modules/planner/build/' C-m
-	tmux send-keys -t tiev:tiev2020.1 './src/planner' C-m
+	tmux send-keys -t tiev:tiev2020.1 'cd ~/tiev2020-code/scripts/' C-m
+	tmux send-keys -t tiev:tiev2020.1 './planner.sh' C-m
 	#start trajectory controller
-	tmux send-keys -t tiev:tiev2020.2 'cd ~/tiev2020-code/src/modules/Trajectory_Controller/build' C-m
-	tmux send-keys -t tiev:tiev2020.2 './trajectory_controller' C-m
+	tmux send-keys -t tiev:tiev2020.2 'cd ~/tiev2020-code/scripts/' C-m
+	tmux send-keys -t tiev:tiev2020.2 './trajectory_controller.sh' C-m
 	##start vehicle controller
 	#tmux send-keys -t tiev:tiev2020.3 'cd ~/tiev2020-code/src/modules/planner/build/src' C-m
 	#tmux send-keys -t tiev:tiev2020.3 './planner' C-m
