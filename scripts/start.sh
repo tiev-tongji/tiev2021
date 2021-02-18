@@ -37,9 +37,9 @@ then
 	#start planner
 	tmux send-keys -t tiev:tiev2020.1 'cd ~/tiev2020-code/src/modules/planner/build/' C-m
 	tmux send-keys -t tiev:tiev2020.1 './src/planner' C-m
-	##start trajectory controller
-	#tmux send-keys -t tiev:tiev2020.2 'cd ~/tiev2020-code/src/modules/planner/build/src' C-m
-	#tmux send-keys -t tiev:tiev2020.2 './planner' C-m
+	#start trajectory controller
+	tmux send-keys -t tiev:tiev2020.2 'cd ~/tiev2020-code/src/modules/Trajectory_Controller/build' C-m
+	tmux send-keys -t tiev:tiev2020.2 './trajectory_controller' C-m
 	##start vehicle controller
 	#tmux send-keys -t tiev:tiev2020.3 'cd ~/tiev2020-code/src/modules/planner/build/src' C-m
 	#tmux send-keys -t tiev:tiev2020.3 './planner' C-m
