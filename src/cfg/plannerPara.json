@@ -3,6 +3,12 @@
 	"rs_distance_table_path": "/home/autolab/tiev2020-code/src/cfg/reeds_shepp_distance_table",
 	"dubins_distance_table_path": "/home/autolab/tiev2020-code/src/cfg/dubins_distance_table",
 	"control_mode": 0,
+	"#control_mode_annotation": {
+		"PlanningWithMapMode": 0,
+		"TrackingWithMapMode": 1,
+		"PlanningWithDebugMode": 2,
+		"TrackingWithDebugMode": 3
+	},
 	"debug_event_mode": 10,
 	"debug_speed_mode": 5,
 	"recommended_speeds": {
@@ -55,54 +61,54 @@
 		]
 	},
 	"tasks": [
-        {
-            "task": {
-                "lon": 120.7726857,
-                "lat": 31.59314617,
-                "utm_x": 288670.3885,
-                "utm_y": 3497493.043,
-                "heading": -2.682605028,
-                "on": 0
-            },
-            "task_points": [
-                {
-                    "lon": 120.7726857,
-                    "lat": 31.59314617,
-                    "utm_x": 288670.3885,
-                    "utm_y": 3497493.043,
-                    "heading": -2.682605028
-                },
-                {
-                    "lon": 120.772626,
-                    "lat": 31.59311874,
-                    "utm_x": 288664.66,
-                    "utm_y": 3497490.118,
-                    "heading": -2.672174931
-                },
-                {
-                    "lon": 120.7725685,
-                    "lat": 31.5930925,
-                    "utm_x": 288659.146,
-                    "utm_y": 3497487.319,
-                    "heading": -2.674777985
-                },
-                {
-                    "lon": 120.7725156,
-                    "lat": 31.59306977,
-                    "utm_x": 288654.0701,
-                    "utm_y": 3497484.901,
-                    "heading": -2.707845926
-                },
-                {
-                    "lon": 120.7724556,
-                    "lat": 31.59304536,
-                    "utm_x": 288648.3286,
-                    "utm_y": 3497482.311,
-                    "heading": -2.721189022
-                }
-            ]
-        }
-    ],
+		{
+			"task": {
+				"lon": 120.7726857,
+				"lat": 31.59314617,
+				"utm_x": 288670.3885,
+				"utm_y": 3497493.043,
+				"heading": -2.682605028,
+				"on": 0
+			},
+			"task_points": [
+				{
+					"lon": 120.7726857,
+					"lat": 31.59314617,
+					"utm_x": 288670.3885,
+					"utm_y": 3497493.043,
+					"heading": -2.682605028
+				},
+				{
+					"lon": 120.772626,
+					"lat": 31.59311874,
+					"utm_x": 288664.66,
+					"utm_y": 3497490.118,
+					"heading": -2.672174931
+				},
+				{
+					"lon": 120.7725685,
+					"lat": 31.5930925,
+					"utm_x": 288659.146,
+					"utm_y": 3497487.319,
+					"heading": -2.674777985
+				},
+				{
+					"lon": 120.7725156,
+					"lat": 31.59306977,
+					"utm_x": 288654.0701,
+					"utm_y": 3497484.901,
+					"heading": -2.707845926
+				},
+				{
+					"lon": 120.7724556,
+					"lat": 31.59304536,
+					"utm_x": 288648.3286,
+					"utm_y": 3497482.311,
+					"heading": -2.721189022
+				}
+			]
+		}
+	],
 	"task1": {
 		"task": {
 			"utm_x": 288627.0727,

@@ -25,6 +25,9 @@ void MapManager::update() {
 
 double MapManager::getSpeedBySpeedMode(int speed_mode) {
   Config* cfg = Config::getInstance();
+  if (cfg->control_mode == ControlMode::PlanningWithDebugMode ||
+      cfg->control_mode == ControlMode::TrakingWithDebugMode)
+    speed_mode = cfg->debug_speed_mode;
   switch (speed_mode) {
     case 0:
       return cfg->back_speed / 3.6;
@@ -471,10 +474,16 @@ bool MapManager::carInRoad() {
 void MapManager::updatePlanningMap(LaneLineBlockType lane_line_block_type,
                                    bool history) {
   memset(map.line_block_map, 0, sizeof(map.line_block_map));
-  if (lane_line_block_type == LaneLineBlockType::NO_BLOCK)
-    ;
-  // block uncrrect lane in intersection
-  else {
+  if (lane_line_block_type == LaneLineBlockType::NO_BLOCK) {
+    if (map.boundary_line.size() > 1) {
+      const auto& line = map.boundary_line.back();
+      for (const auto& p : line) {
+        if (p.type == LineType::BOUNDARY)
+          map.line_block_map[int(p.x)][int(p.y)] = 1;
+      }
+    }
+  } else {
+    // block uncrrect lane in intersection
     for (const auto& p : map.ref_path) {
       if (getCurrentMapMode() == HDMapMode::INTERSECTION_SOLID) break;
       if (p.mode == HDMapMode::INTERSECTION_SOLID) {
