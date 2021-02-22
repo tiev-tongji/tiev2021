@@ -57,7 +57,7 @@ class Config {
   // NOTICE: READ-ONLY
   ControlMode control_mode;
   // NOTICE: READ-ONLY
-  HDMapMode debug_event_mode;
+  bool enable_routing_by_file;
   // NOTICE: READ-ONLY
   HDMapSpeed debug_speed_mode;
 

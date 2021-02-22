@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <queue>
+#include <shared_mutex>
 #include "collision_check.h"
 #include "tiev_utils.h"
 
@@ -65,12 +66,13 @@ bool MapManager::requestGlobalPath(const NavInfo& nav_info) {
 }
 
 void MapManager::readGlobalPathFile(const string& file_path) {
-  const string error_header = "Read road-map file failed : ";
+  const string error_header = "ERROR:Read road-map file failed : ";
 
+  std::unique_lock<std::shared_mutex> locker(global_path_mutex);
   global_path.clear();
   fstream input(file_path, ios::in);
   if (!input.is_open()) {
-    cout << error_header << "file not exist." << endl;
+    cout << error_header << file_path << " not exist." << endl;
     return;
   }
 
@@ -79,20 +81,18 @@ void MapManager::readGlobalPathFile(const string& file_path) {
   stringstream buffer_stream(buffer);
 
   // check number of fields
-  /*
   const int field_num = 12;
   int field_num_in_file = 0;
-  */
-  /*
-  while(buffer_stream >> field){
-      cout << "Add field: " << field << endl;
-      ++field_num_in_file;
-  }*/
+  while (buffer_stream >> field) {
+    cout << "Add field: " << field << endl;
+    ++field_num_in_file;
+  }
 
-  // if(field_num_in_file != field_num){
-  //    cout << error_header << "content of input file is in illegal format." <<
-  //    endl; return;
-  //}
+  if (field_num_in_file != field_num) {
+    cout << error_header << "content of input file is in illegal format."
+         << endl;
+    return;
+  }
 
   double lon, lat, utm_x, utm_y, heading, curve, lane_width;
   int id, mode, speed_mode, event, block_type, lane_num, lane_seq;
@@ -1345,6 +1345,31 @@ void MapManager::getSpeedMaintainedPath(NavInfo& nav_info) {
 
 void MapManager::predictDynamicObsInMap() {
   memset(map.dynamic_obs_map, 0, sizeof(map.dynamic_obs_map));
+  const auto add_obs_between = [&](Point2d start, Point2d end) {
+    Point2d direction = (end - start).getDirection();
+    for (int i = 0; i < (end - start).len(); ++i) {
+      Point2d now = start + direction * i;
+      if (now.in_map()) map.dynamic_obs_map[(int)now.x][(int)now.y] = 1;
+    }
+  };
+  for (const auto& obstacle : map.dynamic_obj_list.dynamic_obj_list) {
+    if (obstacle.path.size() > 1) {
+      Point2d start = obstacle.path[0];
+      Point2d end = obstacle.path[1];
+      double v = (end - start).len();
+      // if the obstacle's velocity lower than 2m/s, then it should be regarded
+      // static obstacle
+      if (v / GRID_RESOLUTION < 2) {
+        for (int i = 0; i < obstacle.corners.size(); ++i) {
+          const auto& start = obstacle.corners[i];
+          const auto& end =
+              obstacle.corners[(i + 1) % (int)obstacle.corners.size()];
+          add_obs_between(start, end);
+        }
+      }
+    }
+  }
+  return;
   SpeedPath speed_maintained_path = map.speed_maintained_path;
   for (const auto& st_boundary : speed_maintained_path.st_boundaries) {
     if (st_boundary.obs_type == ObjectType::PEDESTRIAN ||
