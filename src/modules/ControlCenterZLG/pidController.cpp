@@ -12,6 +12,7 @@
  */
 #include "pidController.h"
 #include <math.h>
+#define PID_DEBUG 1
 
 const int veh_stop_speed = 1;
 const int veh_break_enable = 3;
@@ -20,6 +21,12 @@ const int veh_high_speed = 40;
 const int veh_limit_angle = 40;
 const int veh_limit_angle_change = 20;
 const float TOL = 0.1;
+const float L = 2.3;
+const float L_r = 1.2623;
+const float m_f = 601.5;
+const float m_r = 494.5;
+const float C_alpha_f = 60164;
+const float C_alpha_r = 63776;
 
 // 原先的期望速度
 static float old_desired_speed = 0;
@@ -35,6 +42,7 @@ static float I_angle = 0;
 
 static float I_speed_limit = 600; // 2*50hz*3s
 static float I_angle_limit = 3000; // 2*50hz*3s
+float Kv = m_f/(2*C_alpha_f)-m_r/(2*C_alpha_r);
 
 // 默认正负一致
 inline void clamp(float& input, const float& hi){
@@ -51,7 +59,8 @@ inline void clamp(float& input, const float& hi){
 STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& angle_pitch, const control_params_t& params, bool* is_break, float* control_output){
         float FF_valve = 2;
 	float FF_valve_throttle = 2;
-        std::cout << "acc_P: " << params.acc_P <<"desired_speed: " <<desired_speed<<std::endl;
+    if (PID_DEBUG)
+        INFO( "acc_P: " << params.acc_P <<"desired_speed: " <<desired_speed);
 	float F_t = 0;					// Real_time output Torque
 	float P_speed = 0;				// Real_time Error speed
 
@@ -118,8 +127,8 @@ STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& ang
 		FF_contribute_throttle = angle_pitch * (params.break_FF);
 	}
         *control_output = FF_contribute_throttle + P_contribute + I_contribute + D_contribute;
-
-        INFO("ACC INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", " << "D: " << D_contribute << "," << "FF:" << FF_contribute_throttle);
+        if(PID_DEBUG)
+            INFO("ACC INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", " << "D: " << D_contribute << "," << "FF:" << FF_contribute_throttle);
     }
     // 需要进行减速处理
     else{
@@ -137,13 +146,15 @@ STATE speed_pid_control(const float& veh_speed, float& desired_speed, float& ang
         *control_output = -(feedfoward_contribute + P_contribute + I_contribute + D_contribute);
 
         //INFO("BREAK INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", " << "D: " << D_contribute);
-        INFO("BREAK INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", " << "D: " << D_contribute << ", " << "FF: " << feedfoward_contribute);
+        if(PID_DEBUG)
+            INFO("BREAK INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", "
+             << "D: " << D_contribute << ", " << "FF: " << feedfoward_contribute);
     }
     
     return CC_OK;
 }
 
-STATE angle_pid_control(const veh_info_t& veh_info, float& desired_angle, const control_params_t& params, float* control_output){
+STATE angle_pid_control(const veh_info_t& veh_info, float& desired_angle, float Cur, const control_params_t& params, float* control_output){
     
     // 正常模式计算
 	float k = 1;
@@ -173,15 +184,32 @@ STATE angle_pid_control(const veh_info_t& veh_info, float& desired_angle, const 
     // 微分项处理
     float D_angle= P_angle - P_angle_old;
     P_angle_old = P_angle;
+    float P_contribute, I_contribute, D_contribute, FF_contribute = 0;
+    if(veh_info.speed <= 20){
+        P_contribute = P_angle * params.steer_P * k;
+        I_contribute = I_angle * params.steer_I;
+        D_contribute = D_angle * params.steer_D;
+        //DEBUG("Curvature INFO ==> curvature:" << Cur);
+        FF_contribute = L*Cur + Kv * veh_info.speed * veh_info.speed*Cur - params.steer_FF * (-L_r*Cur + m_r/(2*C_alpha_r)*veh_info.speed*veh_info.speed*Cur);
+    }else{
+        P_contribute = P_angle * params.steer_PH * k;
+        I_contribute = I_angle * params.steer_IH;
+        D_contribute = D_angle * params.steer_DH;
 
-    float P_contribute = P_angle * params.steer_P * k;
-    float I_contribute = I_angle * params.steer_I;
-    float D_contribute = D_angle * params.steer_D;
+        //DEBUG("Curvature INFO ==> curvature:" << Cur);
+        FF_contribute = L*Cur + Kv * veh_info.speed * veh_info.speed*Cur - params.steer_FFH * (-L_r*Cur + m_r/(2*C_alpha_r)*veh_info.speed*veh_info.speed*Cur);
+    }
 
-    DEBUG("ANGLE INFO ==> P: " << P_contribute << ", " << "I: " << I_contribute << ", " << "D: " << D_contribute);
-    DEBUG("ANGLE INFO ==> desired_angle:" << desired_angle << " veh_ang:" << veh_info.angle << " P_angle:" << P_angle);
 
-    *control_output = P_contribute + I_contribute + D_contribute;
+    if (PID_DEBUG)
+    {
+        DEBUG("ANGLE INFO ==> P: " << P_contribute << ", "
+                                   << "I: " << I_contribute << ", "
+                                   << "D: " << D_contribute<<" FF: "<<FF_contribute <<" KV:  "<<Kv);
+        DEBUG("ANGLE INFO ==> desired_angle:" << desired_angle << " veh_ang:" << veh_info.angle << " P_angle:" << P_angle);
+    }
+
+    *control_output = P_contribute + I_contribute + D_contribute + FF_contribute;
     
     return CC_OK;
 }
