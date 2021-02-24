@@ -20,9 +20,44 @@
 #include "messageControl.h"
 #include "EHBControl.hpp"
 #include "ESRControl.hpp"
+#include "structCANCONTROLZLG.hpp"
+#include "zcm_receiver.h"
+
+using namespace std;
+
+void CANControlZLGThread(double &current_throttle,double &current_steer,double &current_brake,int8_t &current_reverse) {
+  zcm::ZCM zcm{};
+  if (!zcm.good()) {
+    cout << "message publish zcm is not good" << endl;
+    return;
+  }
+
+  while (1) {
+    long start_time, end_time, used_time;
+
+    start_time = clock();
+
+    //zcmreceiver.getCANControlInfo(current_timestamp, current_throttle, current_steer, current_brake,current_reverse) {
+    structCANCONTROLZLG control_info;
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    control_info.timestamp = tv.tv_sec * 1000000 + tv.tv_usec;
+    control_info.throttle = current_throttle;
+    control_info.steer = current_steer;
+    control_info.brake = current_brake;
+    control_info.reverse = current_reverse;
+    zcm.publish("CANCONTROLZLG", &control_info);
+    end_time = clock();
+    used_time =
+        1000 * (long)(1000.0 * (end_time - start_time) / CLOCKS_PER_SEC);
+    if (used_time < 20)
+      usleep((20 - used_time) * 1000); // freq:50Hz
+  }
+}
 
 static control_params_t params;
 const std::string params_file = "parameters.txt";
+ZcmReceiver zcmreceiver;
 
 void exit_handler(int s)
 {
@@ -68,7 +103,7 @@ bool init_start_CAN(const CAN_DEV_INFO& can_device, VCI_INIT_CONFIG& config, con
     return 1;
 }
 
-int main(){
+int main(int argc, char *argv[]){
     // 参数载入
     load_params_file(params_file, &params);
 
@@ -131,6 +166,7 @@ int main(){
 
     veh_info_t veh_info;
     int prev_speed_sign = 0;
+    
     while(1){
         // 获取ZCM发送过来的信息
         // pitch_max = veh_nav_info.angle_pitch;
@@ -188,18 +224,34 @@ int main(){
         if(!enable_pc_control){
             dcuMsg.AimPressure = 0;
         }
-        speed_torque = fmin(speed_torque, 130.0);
-        //angle_torque = fmax(fmin(angle_torque, 4.0),-4.0);
+        speed_torque = fmin(speed_torque, 90.0);
+        angle_torque = fmax(fmin(angle_torque, 4.0),-4.0);
 
         //speed_torque = 90.0;
-
+        double current_throttle = 0;
+        double current_brake = 0;
+        double current_steer = 0;
+        int8_t reverse = 0;
+        if (speed_torque >=0){
+            current_throttle = current_speed_torque/90;
+            current_brake = 0;
+        }
+        else{
+            current_throttle = 0;
+            current_brake = fabs(speedtorque)/80;
+        }
+        if (veh_pc_control_info.speed<0) current_reverse = 1;
+        else current_reverse = 0;
+        current_steer = angle_torque/4;
+        
         veh_control.send_vehicle_control_info(speed_torque, angle_torque);
         veh_control.enable_vehicle_control(enable_pc_control);
 
+        init();
+        thread task1(CANControlZLGThread(double &current_throttle,double &current_steer,double &current_brake,int8_t &current_reverse)));
+        task1.detach();
+        zcmreceiver.zcmMsgReceive();
         usleep(20 * 1000);
     }
-    
-
-
     return 0;
 }
