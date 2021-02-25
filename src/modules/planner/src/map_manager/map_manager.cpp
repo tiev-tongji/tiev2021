@@ -81,7 +81,7 @@ void MapManager::readGlobalPathFile(const string& file_path) {
   stringstream buffer_stream(buffer);
 
   // check number of fields
-  const int field_num = 12;
+  const int field_num = 14;
   int field_num_in_file = 0;
   while (buffer_stream >> field) {
     cout << "Add field: " << field << endl;
