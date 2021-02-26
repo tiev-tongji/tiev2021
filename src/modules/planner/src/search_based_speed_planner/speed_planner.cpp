@@ -12,8 +12,9 @@ const std::vector<Step> Step::children() const {
     double t = t_ + kT_interval;
     double s = s_ + v_ * kT_interval + a * kT_interval * kT_interval / 2;
     double v = v_ + a * kT_interval;
+    double aa = a;
     if (v < 0 || t > 5) continue;
-    children.emplace_back(s, t, v, a);
+    children.emplace_back(s, t, v, aa);
     children.back().set_father(*this);
   }
   return children;
@@ -84,8 +85,10 @@ bool SpeedPlanner::SpeedPlanning(
     }
     for (const auto &st_box : st_box_list) {
       if (step.t() < st_box.ld.x || step.t() > st_box.rd.x) continue;
-      if (Segment(st_box.ld, st_box.rd)
-              .cross(Segment(st_box.ld, Point2d(step.t(), step.s()))) >= 0) {
+      double sin_theta =
+          Segment(st_box.ld, st_box.rd)
+              .cross(Segment(st_box.ld, Point2d(step.t(), step.s())));
+      if (sin_theta >= 0) {
         return false;
       }
     }
@@ -149,8 +152,13 @@ bool SpeedPlanner::SpeedPlanning(
       }
     }
     if (!speed_seted) {
-      pose.t = last_pose.t + (pose.s - last_pose.s) / (last_pose.v + 1e-8);
-      pose.v = last_pose.v;
+      if (last_pose.v < 0.25) {
+        pose.v = 0;
+        pose.t = 10000;
+      } else {
+        pose.t = last_pose.t + (pose.s - last_pose.s) / (last_pose.v + 1e-8);
+        pose.v = last_pose.v;
+      }
       pose.a = 0;
     }
     last_pose = pose;

@@ -16,6 +16,11 @@ constexpr double kT_interval = 0.5;                                 // second
 
 struct STBox {
   Point2d ld, lu, rd, ru;
+  friend std::ostream &operator<<(std::ostream &out, const STBox &box) {
+    out << "STBox:{left down=" << box.ld << " right down=" << box.rd
+        << " left up=" << box.lu << " right up=" << box.ru << "}";
+    return out;
+  }
 };
 
 class Step {

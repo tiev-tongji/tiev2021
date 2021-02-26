@@ -211,6 +211,11 @@ void sendPath() {
         dummy_obj.width = 1.5;
         dummy_obj.length = 3;
         dummy_obj.path.emplace_back(p.x, p.y, p.ang, 0, 0, 0);
+        dummy_obj.path.emplace_back(p.x, p.y, p.ang, 0, 0, 0);
+        dummy_obj.path.emplace_back(p.x, p.y, p.ang, 0, 0, 0);
+        dummy_obj.path.emplace_back(p.x, p.y, p.ang, 0, 0, 0);
+        dummy_obj.path.emplace_back(p.x, p.y, p.ang, 0, 0, 0);
+        dummy_obj.path.emplace_back(p.x, p.y, p.ang, 0, 0, 0);
         dynamic.dynamic_obj_list.push_back(dummy_obj);
       }
     }
@@ -234,7 +239,8 @@ void sendPath() {
     //   std::cout << pose << endl;
     // }
     // std::cout << "path speed result end............................." <<
-    // endl; anti-conversion
+    // endl;
+    //  anti-conversion
     for (auto& point : maintained_path) {
       if (point.backward) {
         point.ang = point.ang - PI;
