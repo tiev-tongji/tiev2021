@@ -305,7 +305,7 @@ void requestGlobalPathFromMapServer() {
   Routing* routing = Routing::getInstance();
   NavInfo nav_info;
   vector<Task> task_list;
-  while (Config::getInstance()->enable_routing_by_file) {
+  while (!Config::getInstance()->enable_routing_by_file) {
     msg_m->getNavInfo(nav_info);
     if (getTimeStamp() - start_time < 2e6) {
       usleep(2e6 + start_time - getTimeStamp());
