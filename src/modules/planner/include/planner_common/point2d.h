@@ -40,6 +40,55 @@ struct Point2d {
   }
 };
 
+class Segment {
+ public:
+  Segment() = default;
+  Segment(const Point2d& start, const Point2d& end) {
+    start_ = start;
+    end_ = end;
+    x_ = end.x - start.x;
+    y_ = end.y - start.y;
+  }
+  Segment(const double& x, const double& y) : x_(x), y_(y){};
+
+  const Point2d start() { return start_; }
+  const Point2d end() { return end_; }
+  const double x() const { return x_; }
+  const double y() const { return y_; }
+  inline const double dot(const Segment& other) const {
+    return x_ * other.x() + y_ * other.y();
+  };
+  inline double cross(const Segment& other) const {
+    return x_ * other.y() - y_ * other.x();
+  };
+  inline double len() const { return sqrt(sqrLen()); };
+  inline double sqrLen() const { return x_ * x_ + y_ * y_; };
+  inline double getRad() const { return atan2(y_, x_); }
+  inline Point2d getDirection() const {
+    return Point2d(x_ / len(), y_ / len());
+  }
+  inline Segment operator*(const double k) const {
+    return Segment(x_ * k, y_ * k);
+  };
+  inline Segment operator/(const double k) const {
+    return Segment(x_ / k, y_ / k);
+  }
+  inline Segment operator+(const Segment& other) const {
+    return Segment(x_ + other.x(), y_ + other.y());
+  };
+  inline Segment operator-(const Segment& other) const {
+    return Segment(x_ - other.x(), y_ - other.y());
+  };
+  friend std::ostream& operator<<(std::ostream& out, const Segment& segment) {
+    out << "Segment:{x=" << segment.x_ << " y=" << segment.y_ << "}";
+    return out;
+  }
+
+ private:
+  Point2d start_, end_;
+  double x_, y_;
+};
+
 }  // namespace TiEV
 
 #endif

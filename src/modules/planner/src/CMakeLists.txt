@@ -7,6 +7,7 @@ add_subdirectory(decision)
 add_subdirectory(test)
 add_subdirectory(visualization)
 add_subdirectory(routing)
+add_subdirectory(search_based_speed_planner)
 
 add_executable(planner main.cpp)
-target_link_libraries(planner decision path_planner speed_planner map_manager message_manager routing planner_common coordinate_converter zcm )
+target_link_libraries(planner decision path_planner search_based_speed_planner speed_planner map_manager message_manager routing planner_common coordinate_converter zcm )
