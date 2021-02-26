@@ -106,6 +106,7 @@ void MapManager::readGlobalPathFile(const string& file_path) {
   }
   filtPoints();
   setGlobalPathDirection();
+  std::cout << "Map file already loaded!Enjoy!" << endl;
 }
 
 vector<Task> MapManager::getCurrentTasks() {
