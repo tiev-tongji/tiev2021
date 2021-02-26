@@ -97,7 +97,7 @@ bool SpeedPlanner::SpeedPlanning(
   std::unordered_set<Step, StepHash> visited_steps;
   std::vector<Step> speed_result;
   std::function<bool(const Step &)> dfs = [&](const Step &step) {
-    // std::cout << "search now:" << step << endl;
+    std::cout << "search now:" << step << endl;
     if (step.t() >= 5) {
       Step back_step = step;
       while (back_step.has_father()) {
@@ -120,7 +120,14 @@ bool SpeedPlanner::SpeedPlanning(
   const auto start_pose = trajectory->front();
   Step initial_step(start_pose.s, start_pose.t, car_speed, start_pose.a);
   step_pq.push(initial_step);
-  if (!dfs(initial_step)) return false;
+  if (!dfs(initial_step)) {
+    for (auto &pose : *trajectory) {
+      pose.v = 0;
+      pose.a = 0;
+      pose.t = 10000;
+    }
+    return false;
+  }
   // std::cout << "speed_result size:" << speed_result.size() << endl;
   // for (const auto &step : speed_result) {
   //   std::cout << step << endl;

@@ -9,10 +9,10 @@
 
 namespace TiEV {
 
-const std::vector<double> acceleration = {4,  3.5,  3,  2.5,  2,  1.5,
-                                          1,  0.5,  0,  -0.5, -1, -1.5,
-                                          -2, -2.5, -3, -3.5, -4};  // m/s^2
-constexpr double kT_interval = 0.5;                                 // second
+const std::vector<double> acceleration = {4,   3.5,  3,    2.5, 2,    1.5, 1,
+                                          0.5, 0,    -0.5, -1,  -1.5, -2,  -2.5,
+                                          -3,  -3.5, -4,   -5,  -6};  // m/s^2
+constexpr double kT_interval = 0.5;                                   // second
 
 struct STBox {
   Point2d ld, lu, rd, ru;

@@ -228,18 +228,32 @@ void sendPath() {
       point.a = 4;
       point.v = min(sqrt(GRAVITY * MIU / (point.k + 0.0001)) * 0.6, max_speed);
     }
+    //-------------------test-------------------------
+    maintained_path.clear();
+    for (int i = 0; i < 500; ++i) {
+      maintained_path.emplace_back(i * 0.2, 0, 0, 0, 25, 2, i * 0.2);
+    }
+    DynamicObj dummy_obj;
+    dummy_obj.width = 1.5;
+    dummy_obj.length = 3;
+    dummy_obj.path.emplace_back(20, 0, 0, 0, 0, 0);
+    dummy_obj.path.emplace_back(20, 0, 0, 0, 0, 0);
+    dummy_obj.path.emplace_back(20, 0, 0, 0, 0, 0);
+    dummy_obj.path.emplace_back(20, 0, 0, 0, 0, 0);
+    dummy_obj.path.emplace_back(20, 0, 0, 0, 0, 0);
+    dummy_obj.path.emplace_back(20, 0, 0, 0, 0, 0);
+    dynamic.dynamic_obj_list.push_back(dummy_obj);
+    //-------------------test-------------------------
     if (!maintained_path.empty())
       std::cout << "speed  planning state:"
-                << speed_planner.SpeedPlanning(dynamic.dynamic_obj_list,
-                                               nav_info.current_speed,
+                << speed_planner.SpeedPlanning(dynamic.dynamic_obj_list, 10,
                                                &maintained_path)
                 << endl;
-    // std::cout << "path speed result start............................." <<
-    // endl; for (const auto& pose : maintained_path) {
-    //   std::cout << pose << endl;
-    // }
-    // std::cout << "path speed result end............................." <<
-    // endl;
+    std::cout << "path speed result start............................." << endl;
+    for (const auto& pose : maintained_path) {
+      // std::cout << pose << endl;
+    }
+    std::cout << "path speed result end............................." << endl;
     //  anti-conversion
     for (auto& point : maintained_path) {
       if (point.backward) {
