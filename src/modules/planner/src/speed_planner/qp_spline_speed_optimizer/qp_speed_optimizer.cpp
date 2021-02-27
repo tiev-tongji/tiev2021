@@ -82,11 +82,15 @@ bool QpSpeedOptimizer::Process(PathTimeGraph& st_graph_data, const SpeedData& re
      */
     std::vector<double> speed_lower_bound(t_evaluated_.size(), 0.0);
     std::vector<double> speed_upper_bound;
+
+    std::cout << "DEBUG: speed upper bound=";
     for(auto const& t : t_evaluated_) {
         double path_s  = reference_dp_speed_points.GetSByTime(t);
         double upper_v = speed_limit_.GetSpeedLimit(path_s);
         speed_upper_bound.emplace_back(upper_v);
+        std::cout << upper << " ";
     }
+    std::cout << std::endl;
 
     if(!spline_constraint->AddDerivativeBoundary(t_evaluated_, speed_lower_bound, speed_upper_bound)) {
         std::cout << "QpSpeedOptimizer: Fail to apply speed constraint!" << std::endl;
