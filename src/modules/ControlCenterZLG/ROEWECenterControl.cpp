@@ -35,34 +35,8 @@ ROEWEControl::~ROEWEControl(){
 }
 
 STATE ROEWEControl::init(){
-    config.AccCode = 0;
-    config.AccMask = 0xffffffff;
-    config.Filter = 1;
-    config.Mode = 0;
-    config.Timing0 = 0xC0;
-    config.Timing1 = 0x3A;  //500kbps
     rcv_buff_size = 1000;
     rcv_wait_time = 100;
-    
-	// enable_control_ = true;
-    if (!VCI_OpenDevice(can_dev.devType, can_dev.devIndex, 0)) {
-        INFO("VCI_OpenDevice failed!");
-		return 0;
-    }
-    INFO("VCI_OpenDevice succeeded!");
-
-	INFO(can_dev.devType<<","<<can_dev.devIndex<<", "<<can_dev.channelNum);
-    if (!VCI_InitCAN(can_dev.devType, can_dev.devIndex, can_dev.channelNum, &config)) {
-        INFO("VCI_InitCAN failed!");
-		return 0;
-    }
-    INFO("VCI_InitCAN succeeded!");
-
-    if (!VCI_StartCAN(can_dev.devType, can_dev.devIndex, can_dev.channelNum)) {
-        INFO("VCI_StartCAN failed!");
-		return 0;
-    }
-    INFO("VCI_StartCAN succeeded!")
     // 启动两个线程，分别为CAN消息接收线程与CAN消息发送线程
     INFO("Start to subscribe CAN0 info");
     static std::thread get_info(&ROEWEControl::get_can_info, this);
@@ -86,7 +60,7 @@ void ROEWEControl::get_can_info(){
     while(1){
 	    uint32_t cnt = VCI_Receive(can_dev.devType, can_dev.devIndex, 
 			    can_dev.channelNum, can, rcv_buff_size, rcv_wait_time);
-	    //printf("\ncnt = %d\n", cnt);
+		// INFO("cnt0 = "<<cnt);
 	    for(int i = 0; i < cnt; i++){
 		    switch(can[i].ID){
 			    case 0x18B:
@@ -143,9 +117,6 @@ void ROEWEControl::send_can_info(){
                         can_dev.channelNum, &canObj[0], 1);
         VCI_Transmit(can_dev.devType, can_dev.devIndex, 
                         can_dev.channelNum, &canObj[1], 1);
-		// if(nbytes != sizeof(frame)){
-		// 	ERR("CAN0 Send ERROR!");
-		// }
 	}
 }
 
@@ -274,6 +245,7 @@ STATE ROEWEControl::get_m_EPS_HSC_FrP01(VCI_CAN_OBJ *frame, float* car_angle){
 
 	m_EPS_HSC_FrP01.SteeringAngleValidHSC1 = frame->Data[4] >> 7;
 	unsigned char SteeringAngleValidHSC1 = m_EPS_HSC_FrP01.SteeringAngleValidHSC1;
+	return 0;
 }
 
 // 车速获取
@@ -291,7 +263,7 @@ STATE ROEWEControl::get_m_VCU2MAB_2(VCI_CAN_OBJ * frame,  float* car_speed){
 	tmp1 = tmp1 << 8;
 	unsigned short MotorTorque_short = tmp1 + m_VCU2MAB_2.MotorTorque[0];
 	float MotorTorque = MotorTorque_short * 0.5 + (-512);
-	//INFO("MotorTorque:" << MotorTorque);
+	INFO("ACC MotorTorque:" << MotorTorque);
 
 	m_VCU2MAB_2.MotorSpeed[0] = frame->Data[3];
 	m_VCU2MAB_2.MotorSpeed[1] = frame->Data[2];
@@ -336,6 +308,7 @@ STATE ROEWEControl::get_m_EPS2VMS(VCI_CAN_OBJ * frame, unsigned char* control_mo
 	tmp1 = tmp1 << 8;
 	unsigned short SteeringTorqueHSC1_short = tmp1 + m_EPS2VMS.SteeringTorqueHSC1[0];
 	float SteeringTorqueHSC1 = SteeringTorqueHSC1_short *0.01 + (-10);
+    INFO("STEER SteeringTorqueHSC1:" << SteeringTorqueHSC1);
 
 	m_EPS2VMS.EPS_MotorCurrent[0] = frame->Data[3];
 	m_EPS2VMS.EPS_MotorCurrent[1] = frame->Data[2];

@@ -17,16 +17,9 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <iostream>
-#include <fstream>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
 #include <sys/time.h>
-#include <linux/can.h>
-#include <linux/can/raw.h>
-#include <net/if.h>
 #include <termios.h> 
 #include <atomic>
 #include <thread>
@@ -61,10 +54,6 @@ public:
 	void init();
 	EHBMessage getEHBMessage();
 	void sendDCUMessage(DCUMessage msg);
-        int getCANPort(){//for ESR
-		if(openCAN) return CAN_PORT;
-		else return -1;
-	}
 private:
 	int canInfoRead();
 	void canInfoSend();
@@ -73,7 +62,6 @@ private:
 private:
 	void keyboardControl();
 	int getch();
-	int CAN_PORT;
 	bool openCAN;
 	int sendCount;
 	EHBMessage ehbMessage_;

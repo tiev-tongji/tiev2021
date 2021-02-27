@@ -13,11 +13,12 @@
 
 #include "EHBControl.hpp"
 #include "ControlCenterCommon.h"
+#include "nature.h"
 using namespace std;
 
-#define DEBUG 0
+#define Debug 1
 
-#define SHOW(x) cout << #x << " = " << x+0 << endl
+#define SHOW(x) cout << #x << " = " << x+0 << "  "
 
 EHBControl::EHBControl(){
 	sendCount = 0;
@@ -29,33 +30,9 @@ EHBControl::~EHBControl(){
 }
 
 void EHBControl::init(){
-	config.AccCode = 0;
-    config.AccMask = 0xffffffff;
-    config.Filter = 1;
-    config.Mode = 0;
-    config.Timing0 = 0xC0;
-    config.Timing1 = 0x3A;  //500kbps
+
     rcv_buff_size = 1000;
     rcv_wait_time = 100;
-    
-	//enable_control_ = true;
-    // if (!VCI_OpenDevice(can_dev.devType, can_dev.devIndex, 0)) {
-    //     INFO("VCI_OpenDevice failed!");
-	// 	return;
-    // }
-    // INFO("VCI_OpenDevice succeeded!");
-
-    if (!VCI_InitCAN(can_dev.devType, can_dev.devIndex, can_dev.channelNum, &config)) {
-        INFO("VCI_InitCAN failed!");
-		return;
-    }
-    INFO("VCI_InitCAN succeeded!");
-
-    if (!VCI_StartCAN(can_dev.devType, can_dev.devIndex, can_dev.channelNum)) {
-        INFO("VCI_StartCAN failed!");
-		return;
-    }
-    INFO("VCI_StartCAN succeeded!")
     openCAN = true;
 
 	INFO("Start to subscribe EHB info");
@@ -74,12 +51,13 @@ int EHBControl::canInfoRead(){
 		VCI_CAN_OBJ frame[rcv_buff_size];
 		uint32_t cnt = VCI_Receive(can_dev.devType, can_dev.devIndex, 
                           can_dev.channelNum, frame, rcv_buff_size, rcv_wait_time);
+		// INFO("cnt1 = "<<cnt);
 		for (int i = 0; i < cnt; i++)
 		{
 			if (frame[i].ID == 0x304)
 			{
 				get_m_EHB_TX2(&frame[i]);
-			//	return 0;
+				return 0;
 			}
 		}
 		usleep(50 * 1000);
@@ -96,16 +74,14 @@ void EHBControl::canInfoSend(){
 		VCI_CAN_OBJ frame[1];
 		frame[0].ID = 0x303;
 		frame[0].DataLen = 8;
-		int nbytes;
 		send_m_TX2_EHB(frame);
-		nbytes = write(CAN_PORT, &frame[0], sizeof(frame[0]));
-		if(nbytes != sizeof(frame))
-		{
-			std::cout << "CAN Send ERROR!" << std::endl;
-		}
-		
+		// std::time_t time_now = TiEV::getTimeStamp();
+		INFO("send ehb: "<<(int)frame[0].Data[4]);
+		// int i = VCI_Transmit(can_dev.devType, can_dev.devIndex, can_dev.channelNum, frame, 1);
+		INFO("vci return = "<<VCI_Transmit(can_dev.devType, can_dev.devIndex, can_dev.channelNum, frame, 1));
+		// INFO("time = "<<TiEV::getTimeStamp() - time_now);
 	}
-        return;
+	return;
 }
 
 void EHBControl::keyboardControl(){
@@ -164,11 +140,12 @@ void EHBControl::get_m_EHB_TX2(VCI_CAN_OBJ *frame){
 	ehbMessage_.BrakePedalTravel = frame->Data[3];
 	ehbMessage_.EHBFaultCode = frame->Data[4];
 	ehbMessage_.AimPressureAnswered = frame->Data[5];
-	if(DEBUG == 1){
+	if(Debug == 1){
+		cout<<"ehb info:  ";
 		SHOW(ehbMessage_.EHBStatus);
 		SHOW(ehbMessage_.ParkingBrakeRequest);
 		SHOW(ehbMessage_.ActualPressure);
-		cout << "~~~~~~~~~~~~~~~~~~~" << endl;
+		cout << endl;
 	}
 }
 
