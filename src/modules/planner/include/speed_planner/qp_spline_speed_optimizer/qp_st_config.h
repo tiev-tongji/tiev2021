@@ -25,7 +25,7 @@ public:
         number_of_discrete_graph_t_ = 11;
         spline_order_               = 5;
         vehicle_upper_speed_limit_  = 16.66;  // m/s
-        max_acceleration_           = 2.5;    // m/s^2
+        max_acceleration_           = 3;    // m/s^2
         max_deceleration_           = -1.0;   // m/s^2
 
         velocity_kernel_weight_ = 0;
