@@ -151,6 +151,7 @@ bool QpSpeedOptimizer::Process(PathTimeGraph& st_graph_data, const SpeedData& re
      * Add initial point speed constraint
      */
     if(!spline_constraint->AddPointDerivativeConstraint(0.0, init_point_.v)) {
+        std::cout << "DEBUG: Initial speed=" << init_point_.v << std::endl;
         std::cout << "QpSpeedOptimizer: Fail to apply initial speed constraint!" << std::endl;
         return false;
     }
