@@ -59,9 +59,7 @@ SpeedOptimizer::SpeedOptimizer(std::vector<Obstacle>& obstacle_list, std::vector
                                double t_start, double t_end)
     : st_data_(obstacle_list, trajectory, s_start, s_end, t_start, t_end), gridded_path_time_graph_(st_data_, obstacle_list, trajectory.front(), SpeedLimit(speed_limit)),
       obstacle_list_(obstacle_list), trajectory_(trajectory), path_range_(s_start, s_end), time_range_(t_start, t_end),
-      qp_speed_optimizer_(trajectory.front(), trajectory.back(), SpeedLimit(speed_limit)) {
-          std::cout << "DEBUG: length of trajectory=" << trajectory.back().s << std::endl; 
-      }
+      qp_speed_optimizer_(trajectory.front(), trajectory.back(), SpeedLimit(speed_limit)) {}
 
 bool SpeedOptimizer::DP_Process() {
     return gridded_path_time_graph_.Search(&dp_speed_data_);
