@@ -5,7 +5,6 @@
 #include "collision_check.h"
 #include "config.h"
 #include "map_manager.h"
-#include "speed_planner.h"
 #include "tiev_utils.h"
 namespace TiEV {
 
@@ -83,7 +82,6 @@ void sendPath() {
   MapManager* mapm = MapManager::getInstance();
   MessageManager* msgm = MessageManager::getInstance();
   structAIMPATH control_path;
-  SpeedPlanner speed_planner;
   NavInfo nav_info;
   LidarMap lidar;
   DynamicObjList dynamic;
@@ -211,51 +209,33 @@ void sendPath() {
         dummy_obj.width = 1.5;
         dummy_obj.length = 3;
         dummy_obj.path.emplace_back(p.x, p.y, p.ang, 0, 0, 0);
-        dummy_obj.path.emplace_back(p.x, p.y, p.ang, 0, 0, 0);
-        dummy_obj.path.emplace_back(p.x, p.y, p.ang, 0, 0, 0);
-        dummy_obj.path.emplace_back(p.x, p.y, p.ang, 0, 0, 0);
-        dummy_obj.path.emplace_back(p.x, p.y, p.ang, 0, 0, 0);
-        dummy_obj.path.emplace_back(p.x, p.y, p.ang, 0, 0, 0);
         dynamic.dynamic_obj_list.push_back(dummy_obj);
       }
     }
     // conversion
+    vector<pair<double, double>> speed_limits;
     for (auto& point : maintained_path) {
       if (point.backward) {
         max_speed = min(2.0, max_speed);
         point.ang = PI + point.ang;
       }
-      point.a = 4;
-      point.v = min(sqrt(GRAVITY * MIU / (point.k + 0.0001)) * 0.6, max_speed);
+      speed_limits.emplace_back(
+          point.s,
+          min(sqrt(GRAVITY * MIU / (point.k + 0.0001)) * 0.6, max_speed));
     }
-    //-------------------test-------------------------
-    maintained_path.clear();
-    for (int i = 0; i < 500; ++i) {
-      maintained_path.emplace_back(i * 0.2, 0, 0, 0, 25, 2, i * 0.2);
-    }
-    DynamicObj dummy_obj;
-    dummy_obj.width = 1.5;
-    dummy_obj.length = 3;
-    dummy_obj.path.emplace_back(20, 0, 0, 0, 0, 0);
-    dummy_obj.path.emplace_back(20, 0, 0, 0, 0, 0);
-    dummy_obj.path.emplace_back(20, 0, 0, 0, 0, 0);
-    dummy_obj.path.emplace_back(20, 0, 0, 0, 0, 0);
-    dummy_obj.path.emplace_back(20, 0, 0, 0, 0, 0);
-    dummy_obj.path.emplace_back(20, 0, 0, 0, 0, 0);
-    dynamic.dynamic_obj_list.push_back(dummy_obj);
-    //-------------------test-------------------------
     if (!maintained_path.empty())
-      std::cout << "speed  planning state:"
-                << speed_planner.SpeedPlanning(dynamic.dynamic_obj_list, 10,
-                                               &maintained_path)
-                << endl;
-    std::cout << "path speed result start............................." << endl;
-    for (const auto& pose : maintained_path) {
-      // std::cout << pose << endl;
-    }
-    std::cout << "path speed result end............................." << endl;
-    //  anti-conversion
-    for (auto& point : maintained_path) {
+      maintained_path.front().v = fabs(nav_info.current_speed);
+    SpeedPath speed_path;
+    // for(const auto &p:speed_limits)
+    // cout << "speed limit:" << p.first << " "<<  p.second << endl;
+    // if(!maintained_path.empty()) cout << "pid maintained path size:" <<
+    // maintained_path.size() << " s=" << maintained_path.back().s << endl;
+    if (!maintained_path.empty())
+      speed_path = SpeedOptimizer::RunSpeedOptimizer(
+          dynamic.dynamic_obj_list, maintained_path, speed_limits,
+          maintained_path.back().s);
+    // anti-conversion
+    for (auto& point : speed_path.path) {
       if (point.backward) {
         point.ang = point.ang - PI;
         point.v = -point.v;
@@ -264,8 +244,8 @@ void sendPath() {
     }
     // send control trojectory
     control_path.points.clear();
-    control_path.num_points = maintained_path.size();
-    for (const auto& p : maintained_path) {
+    control_path.num_points = speed_path.path.size();
+    for (const auto& p : speed_path.path) {
       TrajectoryPoint tp;
       tp.x = (CAR_CEN_ROW - p.x) * GRID_RESOLUTION;
       tp.y = (CAR_CEN_COL - p.y) * GRID_RESOLUTION;
@@ -295,6 +275,15 @@ void sendPath() {
         control_path.points.push_back(tp);
       }
     }
+    // for(int i = 0; i < speed_path.path.size(); ++i) {
+    //     Pose p = speed_path.path[i];
+    //     cout << "pid speed path " << i << " " << p << endl;
+    // }
+    // for(int i = 0; i < control_path.points.size(); ++i) {
+    //     TrajectoryPoint p = control_path.points[i];
+    //     cout << "pid path " << i << ":{x=" << p.x << " y=" << p.y << "
+    //     theta=" << p.theta << " a=" << p.a << " v=" << p.v << endl;
+    // }
     msgm->publishPath(control_path);
     // visual maintained path
     visVISUALIZATION& vis = msgm->visualization;
@@ -306,6 +295,7 @@ void sendPath() {
       vp.y = p.y;
       vis.maintained_path.push_back(vp);
     }
+    msgm->setSpeedPath(speed_path);
     auto time_interval = getTimeStamp() - start_time;
     if (time_interval < 10 * 1000) usleep(10 * 1000 - time_interval);
   }
