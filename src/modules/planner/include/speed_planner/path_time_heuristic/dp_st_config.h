@@ -38,7 +38,7 @@ public:
     DpStConfig() {
         matrix_dimension_s_        = 501;
         matrix_dimension_t_        = 11;
-        vehicle_upper_speed_limit_ = 22;
+        vehicle_upper_speed_limit_ = 16;
         safe_time_buffer_          = 3.0;
         // safe_distance_ = 3.0;
         safe_distance_   = 3.0;
@@ -46,7 +46,7 @@ public:
         //  exceed_speed_penalty_ = 0.5;
         exceed_speed_penalty_ = 1;
         low_speed_penalty_    = 2;
-        max_acceleration_     = 3;
+        max_acceleration_     = 5;
         max_deceleration_     = -1.0;
         accel_penalty_        = 2;
         decel_penalty_        = 2;
