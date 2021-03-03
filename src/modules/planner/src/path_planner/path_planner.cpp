@@ -324,11 +324,14 @@ double PathPlanner::aStarHeuristic(int target_index, const astate& current) {
 }
 
 bool PathPlanner::aStarIsTarget(int target_index, const astate& current) {
-    const double ts = 2.0;
-    const double ta = 0.3;
+    const double ts = 1.0;
+    const double ta = 0.1;
     if(abs(current.x - targets[target_index].x) > ts) return false;
     if(abs(current.y - targets[target_index].y) > ts) return false;
-    if(abs(current.a - targets[target_index].ang > ta)) return false;
+    if(abs(current.a - targets[target_index].ang) > ta) return false;
+    cout << "target: " << targets[target_index].x << "," <<
+        targets[target_index].y << "," << targets[target_index].ang << endl;
+    cout << "current: " << current.x << "," << current.y << "," << current.a << endl;
     return true;
 }
 
@@ -374,6 +377,9 @@ void PathPlanner::aStarPlan(int target_index) {
                         analytic_expansion_states[i].prior_index = stored_states.size() + i - 1;
                     stored_states.insert(stored_states.end(), analytic_expansion_states.begin(), analytic_expansion_states.end());
                     end_index = stored_states.size() - 1;
+#ifdef COUT_DEBUG_INFO
+                    cout << "analytic expansion succeed" << endl;
+#endif
                     break;
                 }
             }
@@ -417,7 +423,6 @@ void PathPlanner::aStarPlan(int target_index) {
             if(aStarUpdateCost(stored_states.size() - 1, target_index))
                 using_queue.push(make_pair(-aStarHeuristic(target_index, stored_states.back()) - stored_states.back().cost, stored_states.size() - 1));
         }
-
         if(end_index >= 0) break;
     }
 
@@ -431,6 +436,9 @@ void PathPlanner::aStarPlan(int target_index) {
 #ifndef SHOW_ALL_STATES
     // collect the path
     if(end_index > 0) {
+#ifdef COUT_DEBUG_INFO
+    cout << "succ" << endl;
+#endif
         speed_paths[target_index].path.clear();
         int             cur = end_index, count = 0;
         vector<astate>  tmp_states;
@@ -470,6 +478,10 @@ void PathPlanner::aStarPlan(int target_index) {
         speed_paths[target_index].path.clear();
         have_result[target_index] = false;
     }
+#else
+    for(const auto& p : stored_states)
+        speed_paths[target_index].path.push_back(Pose(p.x, p.y));
+    have_result[target_index] = true;
 #endif
 
     for(const auto& p : stored_states)
@@ -698,12 +710,14 @@ void PathPlanner::primitives::addPrimitive(vector<astate>& forward_primitive, bo
         for(auto& p : forward_primitives.back()) {
             p.y = -p.y;
             p.a = -p.a;
+            p.curvature = -p.curvature;
         }
 
         backward_primitives.push_back(forward_primitive);
         for(auto& p : backward_primitives.back()) {
             p.x        = -p.x;
-            p.a        = -p.a;
+            p.a         = -p.a;
+            p.curvature = -p.curvature;
             p.backward = true;
         }
     }
@@ -720,7 +734,7 @@ void PathPlanner::aStarInitializeExtendedPositions() {
     for(int spdid = 0; spdid < speed_cnt; ++spdid) {
         // create arcs with smaller curvature first
         astar_speed_primitives[spdid].addPrimitive(lines[spdid], false);
-        for(int i = speed_cnt - 1; i >= spdid; --i) {
+        for(int i = min(speed_cnt - 1, spdid + 2); i >= max(0, spdid - 1); --i) {
             astar_speed_primitives[spdid].addPrimitive(arcs[i]);
         }
     }
