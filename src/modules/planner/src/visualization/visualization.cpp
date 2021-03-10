@@ -993,7 +993,7 @@ void Visualization::msgReceiveUdp() {
   zcm_udp.subscribe("PARKINGSLOTS", &Handler::handlePARKINGSLOTS,
                     &inner_handler);
   zcm_udp.subscribe("SLAMLOC", &Handler::handleSLAMLOC, &inner_handler);
-  zcm_udp.subscribe("VISUALIZATION", &Handler::handleVISUALIZATION,
+  zcm_ipc.subscribe("VISUALIZATION", &Handler::handleVISUALIZATION,
                     &inner_handler);
 
   zcm_udp.run();
