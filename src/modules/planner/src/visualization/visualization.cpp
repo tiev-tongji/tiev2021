@@ -7,7 +7,7 @@ namespace TiEV {
 using namespace std;
 
 void Visualization::init() {
-	cout << "initialize visualization" << endl;
+  cout << "initialize visualization" << endl;
   string TiEV_cfg_pics_path =
       Config::getInstance()->TiEV_CONFIG_DIRECT + "pics/";
   string TiEV_logo_path =
@@ -997,6 +997,15 @@ void Visualization::msgReceiveUdp() {
                     &inner_handler);
 
   zcm_udp.run();
+}
+
+void Visualization::msgReceiveIpc() {
+  if (!zcm_ipc.good()) return;
+
+  zcm_ipc.subscribe("VISUALIZATION", &Handler::handleVISUALIZATION,
+                    &inner_handler);
+
+  zcm_ipc.run();
 }
 
 void Visualization::publishRemoteControl(

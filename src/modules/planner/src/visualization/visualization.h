@@ -101,6 +101,7 @@ class Visualization {
   void print_text(const char* name, const char* text, int text_position = 0);
   void set_speed_view(cv::Mat& speed_mat);
   void msgReceiveUdp();
+  void msgReceiveIpc();
   void publishRemoteControl(const structREMOTECONTROL& remote_control);
 
  private:
