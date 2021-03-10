@@ -392,7 +392,7 @@ void MessageManager::publishSlamControl(const structSLAMCONTROL& slam_control) {
 }
 
 void MessageManager::publishVisualization() {
-  zcm_udp.publish("VISUALIZATION", &visualization);
+  zcm_ipc.publish("VISUALIZATION", &visualization);
 }
 
 void MessageManager::msgReceiveIpc() {

@@ -82,6 +82,7 @@ bool QpSpeedOptimizer::Process(PathTimeGraph& st_graph_data, const SpeedData& re
      */
     std::vector<double> speed_lower_bound(t_evaluated_.size(), 0.0);
     std::vector<double> speed_upper_bound;
+
     for(auto const& t : t_evaluated_) {
         double path_s  = reference_dp_speed_points.GetSByTime(t);
         double upper_v = speed_limit_.GetSpeedLimit(path_s);
@@ -150,20 +151,11 @@ bool QpSpeedOptimizer::Process(PathTimeGraph& st_graph_data, const SpeedData& re
     /**
      * Add initial point speed constraint
      */
+
     if(!spline_constraint->AddPointDerivativeConstraint(0.0, init_point_.v)) {
         std::cout << "QpSpeedOptimizer: Fail to apply initial speed constraint!" << std::endl;
         return false;
     }
-#if 1
-    if(target_point_.s - reference_dp_speed_points.back().s() <= 1) {
-        double last_s = reference_dp_speed_points.back().s();
-        double last_v = sqrt(max(0.0, init_point_.v * init_point_.v + 2 * qp_st_config_.max_deceleration() * last_s));
-        if(!spline_constraint->AddPointDerivativeConstraint(reference_dp_speed_points.back().t(), last_v)) {
-            std::cout << "QpSpeedOptimizer: Fail to apply target speed constraint!" << std::endl;
-            return false;
-        }
-    }
-#endif
 
     // Debug
     // std::cout << "QP The speed of the first point: " << init_point_.v << std::endl << std::endl;

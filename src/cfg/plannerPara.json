@@ -1,20 +1,20 @@
 {
-	"roadmap_file": "/home/autolab/tiev2020-code/logs/path/2020_1116_jiugongge_1740.txt",
-	"rs_distance_table_path": "/home/autolab/tiev2020-code/src/cfg/reeds_shepp_distance_table",
-	"dubins_distance_table_path": "/home/autolab/tiev2020-code/src/cfg/dubins_distance_table",
+	"roadmap_file": "/home/simulation/ref-road-tiev2020/demo0225-1.txt",
+	"rs_distance_table_path": "/home/simulation/tiev2020-code/src/cfg/reeds_shepp_distance_table",
+	"dubins_distance_table_path": "/home/simulation/tiev2020-code/src/cfg/dubins_distance_table",
 	"enable_routing_by_file": 1,
 	"#enable_routing_by_file": {
 		"0": "disable routing by roadmap_file, and routing will request routing-server on internet",
 		"1": "enable routing by roadmap_file in car"
 	},
-	"control_mode": 0,
+	"control_mode": 3,
 	"#control_mode_annotation": {
 		"PlanningWithMapMode": 0,
 		"TrackingWithMapMode": 1,
 		"PlanningWithDebugMode": 2,
 		"TrackingWithDebugMode": 3
 	},
-	"debug_speed_mode": 5,
+	"debug_speed_mode": 6,
 	"recommended_speeds": {
 		"BACK": -3,
 		"STOP": 0,
@@ -22,7 +22,7 @@
 		"LOW": 15,
 		"MID": 30,
 		"HIGH": 30,
-		"VERYHIGH": 30
+		"VERYHIGH": 80
 	},
 	"max_acceleration": 1.0,
 	"max_deceleration": -1.0,
