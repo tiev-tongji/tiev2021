@@ -999,6 +999,15 @@ void Visualization::msgReceiveUdp() {
   zcm_udp.run();
 }
 
+void Visualization::msgReceiveIpc() {
+  if (!zcm_ipc.good()) return;
+
+  zcm_ipc.subscribe("VISUALIZATION", &Handler::handleVISUALIZATION,
+                    &inner_handler);
+
+  zcm_ipc.run();
+}
+
 void Visualization::publishRemoteControl(
     const structREMOTECONTROL& remote_control) {
   zcm_udp.publish("REMOTECONTROL", &remote_control);
