@@ -212,6 +212,12 @@ void sendPath() {
         dynamic.dynamic_obj_list.push_back(dummy_obj);
       }
     }
+    std::cout << "add collision dynamic:" << add_collision_dynamic << std::endl;
+    for(const auto &dyo: dynamic.dynamic_obj_list){
+        std::cout << "dynamic_obj: id=" << dyo.id << " width=" << dyo.width << " length=" << dyo.length << " heading=" << dyo.heading << " path={";
+        for(const auto &p:dyo.path) std::cout << "[" << p.x << " " << p.y << "]";
+        std::cout << "}" << std::endl;
+    }
     // conversion
     vector<pair<double, double>> speed_limits;
     for (auto& point : maintained_path) {

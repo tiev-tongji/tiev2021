@@ -129,6 +129,7 @@ bool MessageManager::getDynamicObjList(DynamicObjList& dynamic_obj_list) {
           new_obj.path[k].y = CAR_CEN_COL + obj.path[k].x / GRID_RESOLUTION;
           new_obj.path[k].t = k;
           new_obj.path[k].ang = new_obj.heading;
+          new_obj.path[k].v = obj.v;
           // cout << "obj" << j << "x y:" << obj.path[k].x << " " <<
           // obj.path[k].y << endl;
         }

@@ -42,7 +42,7 @@ public:
         safe_time_buffer_          = 3.0;
         // safe_distance_ = 3.0;
         safe_distance_   = 3.0;
-        obstacle_weight_ = 1.0;
+        obstacle_weight_ = 0.1;
         //  exceed_speed_penalty_ = 0.5;
         exceed_speed_penalty_ = 100;
         low_speed_penalty_    = 100;
