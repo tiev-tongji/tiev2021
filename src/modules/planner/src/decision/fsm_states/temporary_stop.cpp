@@ -43,7 +43,7 @@ void TemporaryStop::update(FullControl& control) {
             vector<Task> new_task_list;
             new_task_list.push_back(current_pos);
             new_task_list.push_back(current_tasks.back());
-            int cost = routing->findReferenceRoad(tmp_global_path, task_list, false);  // TODO: *3 off-on-off-parking
+            int cost = routing->findReferenceRoad(tmp_global_path, new_task_list, false);  // TODO: *3 off-on-off-parking
             map_manager->setGlobalPath(tmp_global_path);
         }
     }
@@ -57,7 +57,7 @@ void TemporaryStop::update(FullControl& control) {
         vector<Task> new_task_list;
         new_task_list.push_back(current_pos);
         new_task_list.push_back(map_manager->getParkingTask());
-        int cost = routing->findReferenceRoad(tmp_global_path, task_list, false);
+        int cost = routing->findReferenceRoad(tmp_global_path, new_task_list, false);
         map_manager->setGlobalPath(tmp_global_path);
     }
     time_t time_pass = getTimeStamp() - entry_time;

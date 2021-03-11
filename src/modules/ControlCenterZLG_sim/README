@@ -1,0 +1,68 @@
+This project is based on TX2 which contains 2 CAN bus
+1. Using CAN bus to communicate
+2. Using LCM to communicate
+
+/********************************/
+Usage for CAN BUS in TX2:
+Rebuild kernel for TX2 and add CAN Module in kernel
+refer from <https://devtalk.nvidia.com/default/topic/1006762/jetson-tx2/how-can-i-use-can-bus-in-tx2-/3> 
+Install LCM repo in TX2
+refer from <https://github.com/lcm-proj/lcm> 
+Install can-utils in TX2
+sudo apt-get install can-utils
+
+Start CAN bus first:
+modprobe can
+modprobe can_raw
+modprobe mttcan
+ip link set can0 type can bitrate 500000 dbitrate 2000000 berr-reporting on fd on
+ip link set up can0
+ip link set can1 type can bitrate 500000 dbitrate 2000000 berr-reporting on fd on
+ip link set up can1
+
+/********************************/
+Using GPIO 393
+Add GPIO detection using for remote emergency control
+
+/********************************/
+Usage for LCM:
+
+Using LCM on a single host
+
+Since LCM uses UDP Multicast as a transport mechanism, a valid multicast route must always be defined. This means that to use LCM, even for inter-application communication on a single host, you must have a multicast-enabled network interface. If your computer is already connected to the Internet, LCM will generally "just work" because the default route will allow LCM to find the correct network interface for multicast traffic.
+
+If your computer is not connected to any network, you may need to explicitly enable multicast traffic by adding multicast entries to your system's routing table. On Linux, you can setup the loopback interface for multicast with the following commands:
+
+  sudo ifconfig lo multicast
+  sudo route add -net 224.0.0.0 netmask 240.0.0.0 dev lo
+Remember, you must always do this to use LCM if your machine is not connected to any external network.
+
+Using LCM across multiple hosts
+
+Choosing a TTL
+
+LCM by default uses a time-to-live (TTL) value of 0. This will prevent any LCM packets from being transmitted on the wire. Only local applications will see them. Choose a value of 1 for the entire subnet to see the traffic. Even larger values will enable the packets to pass through routers. However, these routers must be set up with multicast routing tables in order to successfully relay multicast traffic.
+
+There are two ways to set the TTL. First, LCM constructors in all languages provide a way to set the TTL (e.g. see lcm_create()), so you can set this in your code. Second, if your program does not explicitly set its provider URL, then you can use the LCM_DEFAULT_URL environment variable. For exaple, in the bash shell:
+
+  export LCM_DEFAULT_URL=udpm://239.255.76.67:7667?ttl=1
+
+Add sudo ifconfig XXX multicast
+    sudo route add -net 224.0.0.0 netmask 240.0.0.0 dev XXX
+in /etc/rc.local
+Add export LCM_DEFAULT_URL=udpm://239.255.76.67:7667?ttl=1
+in ~/.bashrc
+
+Importance: lcm::LCM lcm_car("udpm://239.255.76.67:7667?ttl=1");
+
+
+/********************************/
+Usage for project:
+
+cd build
+sudo ./CAN_COM
+
+
+
+UPDATE 11-16
+增加EHB损坏保护机制

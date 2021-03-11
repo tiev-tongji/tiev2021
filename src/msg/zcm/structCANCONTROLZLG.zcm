@@ -1,0 +1,8 @@
+struct structCANCONTROLZLG
+{
+	int64_t timestamp; 
+    double throttle;    // [0.0, 1.0]
+    double steer;        // [-1.0, 1.0]
+    double brake;       // [0.0, 1.0]
+    boolean reverse;  // Determines whether the vehicle will move backwards. Default is False. 
+}
