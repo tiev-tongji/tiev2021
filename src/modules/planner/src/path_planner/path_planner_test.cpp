@@ -1,11 +1,11 @@
+#include "opencv2/opencv.hpp"
 #include "path_planner/path_planner.h"
 #include "planner_common/config.h"
-#include "planner_common/pose.h"
 #include "planner_common/const.h"
+#include "planner_common/pose.h"
 #include <iostream>
 #include <termio.h>
 #include <thread>
-#include "opencv2/opencv.hpp"
 
 using namespace std;
 using namespace TiEV;
@@ -92,8 +92,9 @@ void generate_safe_map(double safe_map[MAX_ROW][MAX_COL]) {
                 int ty = dy + ny;
                 if(tx >= 0 && tx < MAX_ROW &&
                     ty >= 0 && ty < MAX_COL){
-                    if(safe_map[nx][ny] + 1 < safe_map[tx][ty]){
-                        safe_map[tx][ty] = safe_map[nx][ny] + 1;
+                    double dis = sqrt(dx * dx + dy * dy);
+                    if(safe_map[nx][ny] + dis < safe_map[tx][ty]){
+                        safe_map[tx][ty] = safe_map[nx][ny] + dis;
                         que.push(make_pair(tx, ty));
                     }
                 }
@@ -102,14 +103,62 @@ void generate_safe_map(double safe_map[MAX_ROW][MAX_COL]) {
     }
 }
 
-void draw(PathPlanner* planner, cv::Mat& view) {
+void show_curvature_graph(PathPlanner* planner) {
+    int graph_cols = 600, graph_rows = 160, border = 20;
+    int rows = graph_rows + 2 * border,
+        cols = graph_cols + 2 * border;
+    cv::Mat view = cv::Mat::zeros(rows, cols, CV_8UC3);
+    view = cv::Scalar(255, 255, 255);
+
+    // draw axises
+    cv::line(view, {border, rows - border}, {border, border}, cv::Scalar(0, 0, 0));
+    cv::line(view, {border, rows - border}, {cols - border, rows - border}, cv::Scalar(0, 0, 0));
+    cv::line(view, {border, rows - border - graph_rows / 2},
+        {cols - border, rows - border - graph_rows / 2},
+        cv::Scalar(50, 50, 50), 1, cv::LineTypes::LINE_4);
+
+    // draw curvatures
+    auto res = vector<SpeedPath>();
+    planner->getResults(res);
+    for(auto& path : res) {
+        double total_s = path.path.back().s;
+        for(auto& p : path.path) {
+            double rel_s = p.s / total_s;
+            int c = border + (int)round(rel_s * graph_cols);
+            double rel_k = min(p.k, 0.3);
+            rel_k = max(p.k, -0.3);
+            rel_k /= 0.3;
+            int r = rows - border - graph_rows / 2 - (int)round(rel_k * graph_rows / 2);
+            view.at<cv::Vec3b>(r, c) = cv::Vec3b(0, 0, 255);
+        }
+    }
+
+    cv::imshow("Path Curvatures", view);
+}
+
+void draw_planner_map(PathPlanner* planner, cv::Mat& view) {
+    int costs[MAX_ROW][MAX_COL] = {0};
+    planner->getCostMap(costs);
+    int max_costs = 1;
+    for (int i = 0; i < MAX_ROW; ++i)
+        for (int j = 0; j < MAX_COL; ++j)
+            max_costs = max(max_costs, costs[i][j]);
+    for (int i = 0; i < MAX_ROW; ++i)
+        for (int j = 0; j < MAX_COL; ++j) {
+            if (costs[i][j] == 0) continue;
+            double rel_cost = costs[i][j] / (double)max_costs;
+            view.at<cv::Vec3b>(i, j) = cv::Vec3b(
+                200 * (1 - rel_cost) + 30,
+                200 * (1 - rel_cost) + 30, 255);
+        }
+
     // draw results
     auto res = vector<SpeedPath>();
     planner->getResults(res);
     for(auto& path : res) {
         for(auto& p : path.path) {
             int i = round(p.x), j = round(p.y);
-            view.at<cv::Vec3b>(i, j) = cv::Vec3b(0x00, 0x00, 0xff);
+            view.at<cv::Vec3b>(i, j) = cv::Vec3b(128, 200, 0);
         }
     }
     // draw target pose
@@ -119,20 +168,63 @@ void draw(PathPlanner* planner, cv::Mat& view) {
             targetPose.y + 20 * sin(targetPose.ang),
             targetPose.x + 20 * cos(targetPose.ang)
         ),
-        cv::Scalar(255, 0, 0)
+        cv::Scalar(128, 128, 255), 1, 8, 0, 0.3
     );
     // draw start pose
     cv::arrowedLine(view,
         cv::Point(CAR_CEN_COL, CAR_CEN_ROW),
         cv::Point(CAR_CEN_COL, CAR_CEN_ROW - 20),
-        cv::Scalar(255, 128, 0)
+        cv::Scalar(128, 128, 255), 1, 8, 0, 0.3
     );
+}
+
+void show_heuristic(PathPlanner* planner) {
+    double xy_distance[MAX_ROW][MAX_COL];
+    pair<double, double> xya_distance[MAX_ROW][MAX_COL];
+    planner->getDistanceMaps(xy_distance, xya_distance);
+    double max_dis = 1e-5;
+    for (int i = 0; i < MAX_ROW; ++i)
+        for (int j = 0; j < MAX_COL; ++j) {
+            if (xy_distance[i][j] > 10000.0) xy_distance[i][j] = -1.0;
+            if (xya_distance[i][j].first > 10000.0)
+                xya_distance[i][j].first = -1.0;
+            max_dis = max(max_dis, xy_distance[i][j]);
+            max_dis = max(max_dis, xya_distance[i][j].first);
+        }
+    cv::Mat view_xy = cv::Mat::zeros(MAX_ROW, MAX_COL, CV_8UC3);
+    cv::Mat view_xya = cv::Mat::zeros(MAX_ROW, MAX_COL, CV_8UC3);
+    for (int i = 0; i < MAX_ROW; ++i)
+        for (int j = 0; j < MAX_COL; ++j) {
+            double f_xy = xy_distance[i][j] / max_dis;
+            double f_xya = xya_distance[i][j].first / max_dis;
+            if (f_xy >= 0.0) view_xy.at<Vec3b>(i, j) =
+                Vec3b((1 - f_xy) * 230, 64, f_xy * 230);
+            if (f_xya >= 0.0) view_xya.at<Vec3b>(i, j) =
+                Vec3b((1 - f_xya) * 230, 64, f_xya * 230);
+        }
+    for (int i = 0; i <= MAX_ROW; i += 12)
+        for (int j = 0; j <= MAX_COL; j += 12) {
+            if (xya_distance[i][j].first < 0.0) continue;
+            double start_x = j + 0.0;
+            double start_y = i + 0.0;
+            double theta = xya_distance[i][j].second;
+            double end_x = start_x + sin(theta) * 8.0;
+            double end_y = start_y + cos(theta) * 8.0;
+            cv::arrowedLine(view_xya,
+                {(int)start_x, (int)start_y},
+                {(int)end_x, (int)end_y},
+                cv::Scalar(0, 0, 0), 1, 8, 0, 0.3);
+        }
+    cv::Mat view = Mat(MAX_ROW, 2 * MAX_COL, CV_8UC3);
+    view_xy.copyTo(view(Rect(0, 0, MAX_COL, MAX_ROW)));
+    view_xya.copyTo(view(Rect(MAX_COL, 0, MAX_COL, MAX_ROW)));
+    cv::imshow("Heuristic Values", view);
 }
 
 int main(int argc, char** argv){
     read_args(argc, argv);
     PathPlanner* planner = PathPlanner::getInstance();
-    cv::namedWindow("PathPlanner Test", cv::WINDOW_NORMAL);
+    cv::namedWindow("PathPlanner Test");
     cv::setMouseCallback("PathPlanner Test", on_mouse);
     cv::Mat map_image = cv::imread(map_file_path);
     cv::resize(map_image, map_image, cv::Size(MAX_COL, MAX_ROW));
@@ -156,8 +248,10 @@ int main(int argc, char** argv){
         planner->plan();
 
         cv::Mat view_image = map_image.clone();
-        draw(planner, view_image);
+        draw_planner_map(planner, view_image);
         cv::imshow("PathPlanner Test", view_image);
+        show_curvature_graph(planner);
+        show_heuristic(planner);
         operationStatus = WaitingForTargetPoint;
     }
     return 0;
