@@ -185,12 +185,12 @@ void draw_planner_map(PathPlanner* planner, cv::Mat& view) {
         cv::Point(targetPose.y, targetPose.x),
         cv::Point(targetPose.y + 20 * sin(targetPose.ang),
             targetPose.x + 20 * cos(targetPose.ang)),
-        cv::Scalar(0, 0, 0), 2, 8, 0, 0.3);
+        cv::Scalar(0, 200, 0), 2, 8, 0, 0.3);
     // draw start pose
     cv::arrowedLine(view,
         cv::Point(CAR_CEN_COL, CAR_CEN_ROW),
         cv::Point(CAR_CEN_COL, CAR_CEN_ROW - 20),
-        cv::Scalar(0, 0, 0), 2, 8, 0, 0.3);
+        cv::Scalar(0, 0, 200), 2, 8, 0, 0.3);
 }
 
 void show_heuristic(PathPlanner* planner) {

@@ -12,6 +12,8 @@ namespace TiEV {
     void PathPlanner::hybrid_astar_planner::plan(
         const astate& _start_state,
         const astate& _target_state,
+        double _start_speed_m_s,
+        bool _is_backward_enabled,
         double (*_safe_map)[MAX_COL],
         time_t max_duration) {
 
@@ -22,18 +24,27 @@ namespace TiEV {
 
         start_state = _start_state;
         target_state = _target_state;
+        start_speed_m_s = _start_speed_m_s;
+        _is_backward_enabled |= start_state.is_backward;
+        is_backward_enabled = _is_backward_enabled;
+
         memset(node_history_map, 0, sizeof(node_history_map));
         result.clear();
         analytic_expansion_result.clear();
         primitive_pool.clear();
-        while (!node_pool.empty()) node_pool.pop();
-        planning_map.init(target_state, _safe_map);
+
+        // clear node_pool
+        vector<node> node_pool_storage;
+        node_pool_storage.reserve((1 << 18));
+        node_pool = priority_queue(less<node>(), move(node_pool_storage));
+        planning_map.init(target_state, _safe_map, is_backward_enabled);
 
         log(1, "hybrid astar planner initialized");
 
         // push start_state to node pool
         node_pool.push({
             planning_map.get_heuristic(start_state),
+            start_speed_m_s,
             primitive_ptr()
         });
 
@@ -46,7 +57,6 @@ namespace TiEV {
         // the target in sampled_states of the last primitive.
         int target_offset = -1;
         while (!(is_time_out() || target_reached)) {
-
             // get current node
             node current = node_pool.top();
             node_pool.pop();
@@ -70,13 +80,27 @@ namespace TiEV {
                 break;
             }
 
-            // expand current state
+            // get base primitives to expand current state
             const vector<const base_primitive*>* bases;
             if (current.ptr.is_null())
                 bases = &base_primitives->get_nexts(current_state);
-            else bases = &base_primitives->get_nexts(*current.ptr);
+            else
+                bases = &base_primitives->get_nexts(*current.ptr);
+
+            bool reverse_allowed = is_backward_enabled &&
+                (current.minimum_speed == 0.0);
+            double maximum_curvature_allowed = GRID_RESOLUTION * TiEV::GRAVITY *
+                TiEV::MIU / (current.minimum_speed * current.minimum_speed);
 
             for (const auto* base : *bases) {
+                // if this expansion changes the driving direction (backward/forward)
+                bool reversed_expansion = (base->get_states().front().
+                    is_backward != current_state.is_backward);
+                // check if the base primitive is legal now
+                if ((reverse_allowed == false && reversed_expansion) ||
+                    (base->get_maximum_curvature() > maximum_curvature_allowed))
+                    continue;
+
                 // create primitive from base
                 primitive expansion(base, current.ptr, current_state);
                 // check if primitive crashed
@@ -87,7 +111,7 @@ namespace TiEV {
                     target_offset = planning_map.try_get_target_index(expansion);
                     // add primitive into pool
                     primitive_pool.emplace_back(move(expansion));
-
+                    // if target has been reached
                     if (target_offset >= 0) {
                         last_primitive_ptr = primitive_ptr(&primitive_pool,
                             primitive_pool.size() - 1);
@@ -96,16 +120,20 @@ namespace TiEV {
                     }
                     // else create node and push it to queue
                     else node_pool.push({
-                        planning_map.get_heuristic(end_state) + end_state.s + node_history_map
+                        planning_map.get_heuristic(end_state) +
+                            end_state.s + 10.0 * node_history_map
                                 [(int)round(end_state.x) >> HISTORY_MAP_SHIFT_FACTOR]
-                                [(int)round(end_state.y) >> HISTORY_MAP_SHIFT_FACTOR] * 5,
+                                [(int)round(end_state.y) >> HISTORY_MAP_SHIFT_FACTOR]
+                                [get_angle_index(end_state.a)],
+                        max(0.0, current.minimum_speed - base->get_length() *
+                            SPEED_DESCENT_FACTOR),
                         primitive_ptr(&primitive_pool, primitive_pool.size() - 1)
                     });
                 }
             }
         }
 
-        log(1, "end searching after ", iterations, "iterations");
+        log(1, "end searching after ", iterations, " iterations");
         log(1, "searching duration: ", (getTimeStamp() - start_time) / 1000, " ms");
 
         if (target_reached) {
@@ -148,9 +176,10 @@ namespace TiEV {
     void PathPlanner::hybrid_astar_planner::merge_history_map(int (*output_map)[MAX_COL]) const {
         for (int i = 0; i < MAX_ROW; ++i)
             for (int j = 0; j < MAX_COL; ++j)
-                output_map[i][j] += node_history_map
-                    [i >> HISTORY_MAP_SHIFT_FACTOR]
-                    [j >> HISTORY_MAP_SHIFT_FACTOR];
+                for (int k = 0; k < HISTORY_MAP_DEPTH; ++k)
+                    output_map[i][j] += node_history_map
+                        [i >> HISTORY_MAP_SHIFT_FACTOR]
+                        [j >> HISTORY_MAP_SHIFT_FACTOR][k];
     }
 
     void PathPlanner::hybrid_astar_planner::merge_xy_distance_map(
@@ -166,12 +195,13 @@ namespace TiEV {
     void PathPlanner::hybrid_astar_planner::record_history(const astate& state) {
         const int hist_x = (int)round(state.x) >> HISTORY_MAP_SHIFT_FACTOR;
         const int hist_y = (int)round(state.y) >> HISTORY_MAP_SHIFT_FACTOR;
-        ++ node_history_map[hist_x][hist_y];
+        const int hist_a = get_angle_index(state.a);
+        ++ node_history_map[hist_x][hist_y][hist_a];
     }
 
     bool PathPlanner::hybrid_astar_planner::is_time_out() {
 #ifdef NO_TIME_LIMIT
-        return false;
+        return (++iterations) >= 1000000;
 #endif
         constexpr int mod = (1 << 11) - 1;
         if (!((++iterations) & mod)) {
@@ -218,5 +248,11 @@ namespace TiEV {
             x += step;
         }
         return true;
+    }
+
+    int PathPlanner::hybrid_astar_planner::get_angle_index(double ang) {
+        double norm_ang = M_PI - ang;
+        norm_ang -= floor(norm_ang / (2 * PI)) * (2 * PI);
+        return (int)(norm_ang / HISTORY_MAP_DELTA_A) % HISTORY_MAP_DEPTH;
     }
 }

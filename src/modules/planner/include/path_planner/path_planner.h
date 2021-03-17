@@ -17,7 +17,7 @@
 using namespace std;
 
 // #define NO_ANALYTIC_EXPANSION
-// #define NO_TIME_LIMIT
+#define NO_TIME_LIMIT
 
 namespace TiEV {
 
@@ -94,7 +94,6 @@ private:
     DynamicObjList dynamic_obj_list;
     double         current_speed  = 0;
     double         velocity_limit = 20;
-    double         stop_s         = 0;
 
     // visualization
     bool used_map[MAX_ROW][MAX_COL];
@@ -147,6 +146,8 @@ private:
     class node {
     public:
         double score;
+        double minimum_speed;
+
         primitive_ptr ptr;
 
         bool operator < (const node& n) const {
@@ -159,29 +160,28 @@ private:
             base_primitive(const vector<astate>& sampled_states);
             const vector<astate>& get_states() const;
             double get_length() const;
+            double get_maximum_curvature() const;
 
         private:
             vector<astate> sampled_states;
+            double max_curvature;
     };
 
     class arc_base_primitive : public base_primitive {
         public:
             arc_base_primitive(
-                double radius,
-                bool is_left,
+                double curvature,
                 bool is_backward,
                 double length,
                 double sampling_step);
 
         private:
-            double radius;
-            bool is_left;
+            bool curvature;
             bool is_backward;
             double sampling_step;
 
             static vector<astate> generate_arc(
-                double radius,
-                bool is_left,
+                double curvature,
                 bool is_backward,
                 double length,
                 double sampling_step);
@@ -242,9 +242,7 @@ private:
         private:
             vector<base_primitive> primitives;
             vector<vector<const base_primitive*>> nexts;
-    };
-
-    arc_base_primitive_set test_arcs;
+    }arc_base_primitives;
 
     class primitive {
     public:
@@ -278,7 +276,8 @@ private:
     class local_planning_map {
         public:
             void init(const astate& target,
-                double (*safe_map)[MAX_COL]);
+                double (*safe_map)[MAX_COL],
+                bool is_backward_enabled);
 
             bool is_crashed(int x, int y) const;
             bool is_crashed(const astate& state) const;
@@ -295,6 +294,7 @@ private:
         private:
             astate target;
             double (*safe_map)[MAX_COL];
+            bool backward_enabled;
 
             static constexpr int XY_MAP_SHIFT_FACTOR = 1;
             static constexpr int XY_MAP_ROWS = ((MAX_ROW - 1) >> XY_MAP_SHIFT_FACTOR) + 1;
@@ -308,6 +308,7 @@ private:
             static constexpr int XYA_MAP_DEPTH = 32;
             static constexpr double XYA_MAP_DELTA_A = (M_PI * 2) / (XYA_MAP_DEPTH);
             double xya_distance_map[XYA_MAP_ROWS][XYA_MAP_COLS][XYA_MAP_DEPTH];
+            double xya_reverse_distance_map[XYA_MAP_ROWS][XYA_MAP_COLS][XYA_MAP_DEPTH];
             bool xya_safe_map[XYA_MAP_ROWS][XYA_MAP_COLS];
 
             template<class T, int buffer_size>
@@ -337,7 +338,9 @@ private:
 
             static int get_angle_index(double ang);
             void calculate_xy_distance_map();
-            void calculate_xya_distance_map();
+            void calculate_xya_distance_map(bool is_backward_enabled);
+            void _calculate_xya_distance_map(const pair<pair<int, int>, double> deltas[8],
+                double output_distance_map[XYA_MAP_ROWS][XYA_MAP_COLS][XYA_MAP_DEPTH]);
             double get_maximum_safe_distance(const astate& state) const;
     };
 
@@ -350,6 +353,8 @@ private:
             void plan(
                 const astate& start_state,
                 const astate& target_state,
+                double start_speed_m_s,
+                bool is_backward_enabled,
                 double (*safe_map)[MAX_COL],
                 time_t max_duration);
             bool get_have_result() const;
@@ -363,17 +368,22 @@ private:
             void record_history(const astate& state);
             bool is_time_out();
             bool try_analytic_expansion(const astate& from_state, double heuristic);
+            static int get_angle_index(double ang);
 
             time_t start_time;
             time_t dead_line;
             long iterations;
 
             astate start_state, target_state;
+            double start_speed_m_s;
+            bool is_backward_enabled;
+
+            static constexpr double SPEED_DESCENT_FACTOR = 1.0;
 
             local_planning_map planning_map;
             const base_primitive_set* base_primitives;
             vector<primitive> primitive_pool;
-            priority_queue<node> node_pool;
+            priority_queue<node, vector<node>> node_pool;
             vector<astate> analytic_expansion_result;
 
             static constexpr int HISTORY_MAP_SHIFT_FACTOR = 2;
@@ -381,12 +391,21 @@ private:
                 ((MAX_ROW - 1) >> HISTORY_MAP_SHIFT_FACTOR) + 1;
             static constexpr int HISTORY_MAP_COLS =
                 ((MAX_COL - 1) >> HISTORY_MAP_SHIFT_FACTOR) + 1;
-            int node_history_map[MAX_ROW][MAX_COL];
+            static constexpr int HISTORY_MAP_DEPTH = 8;
+            static constexpr double HISTORY_MAP_DELTA_A =
+                (M_PI * 2) / HISTORY_MAP_DEPTH;
+            int node_history_map[MAX_ROW][MAX_COL][HISTORY_MAP_DEPTH];
 
             vector<astate> result;
             bool have_result;
     // TODO
-    } hybrid_astar_planners[MAX_TARGET_NUM] = { &test_arcs, &test_arcs, &test_arcs, &test_arcs, &test_arcs };
+    } hybrid_astar_planners[MAX_TARGET_NUM] = {
+        &arc_base_primitives,
+        &arc_base_primitives,
+        &arc_base_primitives,
+        &arc_base_primitives,
+        &arc_base_primitives
+    };
 
 public:
     /* Safe map is an integer map

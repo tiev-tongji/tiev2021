@@ -138,7 +138,6 @@ void PathPlanner::setDynamicObjList(const DynamicObjList& dynamic_obj_list) {
 void PathPlanner::setCurrentSpeed(double speed) {
     if(is_planning) return;
     current_speed = speed;
-    stop_s = (speed * speed) / (2 * MIU * GRAVITY) / GRID_RESOLUTION * 1.1;
 }
 
 void PathPlanner::plan() {
@@ -214,6 +213,7 @@ void PathPlanner::planner_thread(int target_index) {
 
     log(0, "thread ", target_index, " planner ready");
     planner->plan(start_state, target_state,
+        current_speed, backward_enabled,
         safe_map, config->plan_time_limit_ms * 1000);
     log(0, "thread ", target_index, " planned");
 
