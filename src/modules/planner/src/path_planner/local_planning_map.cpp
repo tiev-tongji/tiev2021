@@ -27,22 +27,20 @@ namespace TiEV {
         return safe_map[x][y] <= COLLISION_CIRCLE_SMALL_R / GRID_RESOLUTION;
     }
 
-    bool PathPlanner::local_planning_map::is_crashed(
-        const astate& state) const {
-        return is_crashed(
-            (int)round(state.x),
-            (int)round(state.y));
+    bool PathPlanner::local_planning_map::is_crashed(const astate& state) const {
+        return collision(state.x, state.y, state.a, safe_map, 0.0);
     }
 
     bool PathPlanner::local_planning_map::is_crashed(primitive& prim) const {
         if (!is_in_map(prim.get_end_state())) return true;
-        double safe_distance = get_maximum_safe_distance(prim.get_start_state());
-        if (prim.get_length() < safe_distance)
-            return false;
-        for (auto& state : prim.get_states()) {
+        double safe_distance = get_maximum_safe_distance(
+            prim.get_start_state());
+        if (prim.get_length() < safe_distance) return false;
+        for (const auto& state : prim.get_states()) {
             if (state.s <= safe_distance) continue;
             else if (is_crashed(state)) return true;
-            else safe_distance = get_maximum_safe_distance(state);
+            else safe_distance = state.s +
+                get_maximum_safe_distance(state);
         }
         return false;
     }
@@ -188,11 +186,21 @@ namespace TiEV {
 
     void PathPlanner::local_planning_map::
         calculate_xya_distance_map() {
+        // calculate xya_safe_map by counting safe and unsafe small grid
+        // cells in each xya big grid cell. if safe cells are more then
+        // the big grid is considered safe.
         memset(xya_safe_map, 1, sizeof(xya_safe_map));
-        for (int i = 0; i < MAX_ROW; ++i)
-            for (int j = 0; j < MAX_COL; ++j)
-                xya_safe_map[i >> XYA_MAP_SHIFT_FACTOR][j >> XYA_MAP_SHIFT_FACTOR]
-                    &= !is_crashed(i, j);
+        for (int i = 0; i < XYA_MAP_ROWS; ++i)
+            for (int j = 0; j < XYA_MAP_COLS; ++j) {
+                int idx = (i << XYA_MAP_SHIFT_FACTOR);
+                int jdx = (j << XYA_MAP_SHIFT_FACTOR);
+                int safe_factor = 0;
+                for (int di = 0; di < (1 << XYA_MAP_SHIFT_FACTOR); ++di)
+                    for (int dj = 0; dj < (1 << XYA_MAP_SHIFT_FACTOR); ++dj)
+                        if (is_crashed(idx + di, jdx + dj)) --safe_factor;
+                        else ++safe_factor;
+                xya_safe_map[i][j] = safe_factor >= 0;
+            }
 
         #define vec(a, b) {{a, b}, (1 << XYA_MAP_SHIFT_FACTOR) * len(a, b)}
         constexpr pair<pair<int, int>, double> deltas[] = {
@@ -253,7 +261,7 @@ namespace TiEV {
     double PathPlanner::local_planning_map::
         get_maximum_safe_distance(const astate& state) const {
         int dis_x = (int)round(state.x), dis_y = (int)round(state.y);
-        double dis = safe_map[dis_x][dis_y] / M_SQRT2 - 2.0;
+        double dis = safe_map[dis_x][dis_y] - sqrt(2);
         return dis - COLLISION_CIRCLE_BIG_R / GRID_RESOLUTION;
     }
 }

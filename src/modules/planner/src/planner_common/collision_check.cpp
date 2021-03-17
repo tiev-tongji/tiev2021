@@ -3,23 +3,35 @@
 
 namespace TiEV {
 using namespace std;
-bool collision(const Pose& pose, const double dis_map[MAX_ROW][MAX_COL], double expansion_r) {
-    Point2d current_point(pose.x, pose.y);
-    Point2d direct_vect(cos(pose.ang), sin(pose.ang));
-    Point2d circle_center2 = current_point + direct_vect * (circle_dis2 / GRID_RESOLUTION);
-    if(circle_center2.in_map()) {
-        if(dis_map[int(circle_center2.x)][int(circle_center2.y)] > (expansion_r + COLLISION_CIRCLE_BIG_R) / GRID_RESOLUTION) return false;
-        if(dis_map[int(circle_center2.x)][int(circle_center2.y)] <= (expansion_r + COLLISION_CIRCLE_SMALL_R) / GRID_RESOLUTION) return true;
+
+bool collision(double x, double y, double ang, const double dis_map[MAX_ROW][MAX_COL], double expansion_r) {
+    int circle_center_2_x = round(x + cos(ang) * (circle_dis2 / GRID_RESOLUTION));
+    int circle_center_2_y = round(y + sin(ang) * (circle_dis2 / GRID_RESOLUTION));
+    double big_r = (expansion_r + COLLISION_CIRCLE_BIG_R) / GRID_RESOLUTION;
+    double small_r = (expansion_r + COLLISION_CIRCLE_SMALL_R) / GRID_RESOLUTION;
+    if (circle_center_2_x >= 0 && circle_center_2_x < MAX_ROW &&
+        circle_center_2_y >= 0 && circle_center_2_y < MAX_COL) {
+        if(dis_map[circle_center_2_x][circle_center_2_y] > big_r) return false;
+        if(dis_map[circle_center_2_x][circle_center_2_y] <= small_r) return true;
     }
-    Point2d circle_center1 = current_point + direct_vect * (circle_dis1 / GRID_RESOLUTION);
-    if(circle_center1.in_map()) {
-        if(dis_map[int(circle_center1.x)][int(circle_center1.y)] <= (expansion_r + COLLISION_CIRCLE_SMALL_R) / GRID_RESOLUTION) return true;
+    int circle_center_1_x = round(x + cos(ang) * (circle_dis1 / GRID_RESOLUTION));
+    int circle_center_1_y = round(y + sin(ang) * (circle_dis1 / GRID_RESOLUTION));
+    if (circle_center_1_x >= 0 && circle_center_1_x < MAX_ROW &&
+        circle_center_1_y >= 0 && circle_center_1_y < MAX_COL) {
+        if (dis_map[circle_center_1_x][circle_center_1_y] <= small_r) return true;
     }
-    Point2d circle_center3 = current_point + direct_vect * (circle_dis3 / GRID_RESOLUTION);
-    if(circle_center3.in_map()) {
-        if(dis_map[int(circle_center3.x)][int(circle_center3.y)] <= (expansion_r + COLLISION_CIRCLE_SMALL_R) / GRID_RESOLUTION) return true;
+    int circle_center_3_x = round(x + cos(ang) * (circle_dis3 / GRID_RESOLUTION));
+    int circle_center_3_y = round(y + sin(ang) * (circle_dis3 / GRID_RESOLUTION));
+    if (circle_center_3_x >= 0 && circle_center_3_x < MAX_ROW &&
+        circle_center_3_y >= 0 && circle_center_3_y < MAX_COL) {
+        if(dis_map[circle_center_3_x][circle_center_3_y] <= small_r) return true;
     }
+
     return false;
+}
+
+bool collision(const Pose& pose, const double dis_map[MAX_ROW][MAX_COL], double expansion_r) {
+    return collision(pose.x, pose.y, pose.ang, dis_map, expansion_r);
 }
 
 bool collision(const vector<Pose>& path, const double dis_map[MAX_ROW][MAX_COL], double expansion_r) {
@@ -32,4 +44,5 @@ bool collision(const vector<Pose>& path, const double dis_map[MAX_ROW][MAX_COL],
     }
     return false;
 }
+
 }  // namespace TiEV

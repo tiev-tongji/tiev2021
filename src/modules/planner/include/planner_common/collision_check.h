@@ -22,6 +22,7 @@ const double circle_dis2 = -((CAR_LENGTH + CAR_BUMPER_LENGTH) / 2 - (CAR_FRONT_A
 const double circle_dis1 = circle_dis2 + COLLISION_CIRCLE_SMALL_R;
 const double circle_dis3 = circle_dis2 - COLLISION_CIRCLE_SMALL_R;
 
+bool collision(double x, double y, double ang, const double dis_map[MAX_ROW][MAX_COL], double expansion_r = 0.0);
 bool collision(const Pose& pose, const double dis_map[MAX_ROW][MAX_COL], double expansion_r = 0);
 bool collision(const std::vector<Pose>& path, const double dis_map[MAX_ROW][MAX_COL], double expansion_r = 0);
 
