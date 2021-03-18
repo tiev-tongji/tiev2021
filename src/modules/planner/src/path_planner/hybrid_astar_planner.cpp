@@ -43,7 +43,7 @@ namespace TiEV {
 
         // push start_state to node pool
         node_pool.push({
-            planning_map.get_heuristic(start_state),
+            planning_map.get_heuristic(start_state, start_state.is_backward),
             start_speed_m_s,
             primitive_ptr()
         });
@@ -67,7 +67,7 @@ namespace TiEV {
                 current_state = _start_state;
             } else {
                 current_state = current.ptr->get_end_state();
-                record_history(current_state);
+                ++history(current_state);
             }
 
             if (try_analytic_expansion(current_state,
@@ -120,13 +120,9 @@ namespace TiEV {
                     }
                     // else create node and push it to queue
                     else node_pool.push({
-                        planning_map.get_heuristic(end_state) +
-                            end_state.s + 10.0 * node_history_map
-                                [(int)round(end_state.x) >> HISTORY_MAP_SHIFT_FACTOR]
-                                [(int)round(end_state.y) >> HISTORY_MAP_SHIFT_FACTOR]
-                                [get_angle_index(end_state.a)],
-                        max(0.0, current.minimum_speed - base->get_length() *
-                            SPEED_DESCENT_FACTOR),
+                        planning_map.get_heuristic(end_state, reverse_allowed) +
+                            end_state.s + 5.0 * history(end_state),
+                        max(0.0, current.minimum_speed - base->get_length() * SPEED_DESCENT_FACTOR),
                         primitive_ptr(&primitive_pool, primitive_pool.size() - 1)
                     });
                 }
@@ -192,11 +188,10 @@ namespace TiEV {
         planning_map.merge_xya_distance_map(output_map);
     }
 
-    void PathPlanner::hybrid_astar_planner::record_history(const astate& state) {
-        const int hist_x = (int)round(state.x) >> HISTORY_MAP_SHIFT_FACTOR;
-        const int hist_y = (int)round(state.y) >> HISTORY_MAP_SHIFT_FACTOR;
-        const int hist_a = get_angle_index(state.a);
-        ++ node_history_map[hist_x][hist_y][hist_a];
+    int& PathPlanner::hybrid_astar_planner::history(const astate& state) {
+        return node_history_map[(int)round(state.x) >> HISTORY_MAP_SHIFT_FACTOR]
+            [(int)round(state.y) >> HISTORY_MAP_SHIFT_FACTOR]
+            [get_angle_index(state.a)];
     }
 
     bool PathPlanner::hybrid_astar_planner::is_time_out() {

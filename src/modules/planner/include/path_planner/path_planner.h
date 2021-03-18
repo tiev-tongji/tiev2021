@@ -17,7 +17,7 @@
 using namespace std;
 
 // #define NO_ANALYTIC_EXPANSION
-#define NO_TIME_LIMIT
+// #define NO_TIME_LIMIT
 
 namespace TiEV {
 
@@ -283,7 +283,7 @@ private:
             bool is_crashed(const astate& state) const;
             bool is_crashed(primitive& primitive) const;
 
-            double get_heuristic(const astate& state) const;
+            double get_heuristic(const astate& state, bool can_reverse) const;
             bool is_target(const astate& state) const;
             int try_get_target_index(primitive& primitive) const;
             bool is_in_map(const astate& state) const;
@@ -365,7 +365,7 @@ private:
             void merge_xya_distance_map(pair<double, double> (*output_map)[MAX_COL]) const;
 
         private:
-            void record_history(const astate& state);
+            int& history(const astate& state);
             bool is_time_out();
             bool try_analytic_expansion(const astate& from_state, double heuristic);
             static int get_angle_index(double ang);

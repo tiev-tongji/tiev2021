@@ -47,19 +47,19 @@ namespace TiEV {
         return false;
     }
 
-    double PathPlanner::local_planning_map::get_heuristic(const astate& state) const {
+    double PathPlanner::local_planning_map::get_heuristic(
+        const astate& state, bool can_reverse) const {
         const int x_idx = (int)round(state.x);
         const int y_idx = (int)round(state.y);
         const int xya_idx_x = x_idx >> XYA_MAP_SHIFT_FACTOR;
         const int xya_idx_y = y_idx >> XYA_MAP_SHIFT_FACTOR;
         const int xya_idx_a = get_angle_index(state.a);
+
         double xya = xya_distance_map[xya_idx_x][xya_idx_y][xya_idx_a];
-        if (backward_enabled) {
-            double xya_reverse = xya_reverse_distance_map
-                [xya_idx_x][xya_idx_y][xya_idx_a];
-            return min(xya, xya_reverse);
-        }
-        return xya;
+        double xya_reverse = xya_reverse_distance_map[xya_idx_x][xya_idx_y][xya_idx_a];
+        if (can_reverse) return min(xya, xya_reverse);
+        else if (state.is_backward) return xya_reverse;
+        else return xya;
     }
 
     int PathPlanner::local_planning_map::try_get_target_index(
