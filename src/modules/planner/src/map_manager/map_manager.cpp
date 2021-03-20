@@ -637,7 +637,7 @@ void MapManager::handleLidarMap() {
         continue;
       }
       map.static_lidar_map[r][c] = map.lidar.map[r][c];
-      if (map.lidar.map[r][c] & 04) continue;
+      if (map.lidar.map[r][c] & 0x04) continue;
       map.lidar_map[r][c] = map.lidar.map[r][c];
       if (map.lidar_map[r][c] != 0) {
         map.lidar_dis_map[r][c] = 0;
