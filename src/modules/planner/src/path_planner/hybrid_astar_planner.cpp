@@ -35,16 +35,16 @@ namespace TiEV {
 
         // clear node_pool
         vector<node> node_pool_storage;
-        node_pool_storage.reserve((1 << 18));
-        node_pool = priority_queue(less<node>(), move(node_pool_storage));
-        planning_map.init(target_state, _safe_map, is_backward_enabled);
+        while (!node_pool.empty()) node_pool.pop();
+        planning_map.init(target_state, _safe_map,
+            is_backward_enabled, BACKWARD_COST_FACTOR);
 
         log(1, "hybrid astar planner initialized");
 
         // push start_state to node pool
         node_pool.push({
             planning_map.get_heuristic(start_state, start_state.is_backward),
-            start_speed_m_s,
+            start_speed_m_s, 0.0, 0.0,
             primitive_ptr()
         });
 
@@ -88,7 +88,8 @@ namespace TiEV {
                 bases = &base_primitives->get_nexts(*current.ptr);
 
             bool reverse_allowed = is_backward_enabled &&
-                (current.minimum_speed == 0.0);
+                (current.minimum_speed == 0.0) &&
+                (current.dis_after_reverse >= MIN_DISTANCE_BETWEEN_REVERSING);
             double maximum_curvature_allowed = GRID_RESOLUTION * TiEV::GRAVITY *
                 TiEV::MIU / (current.minimum_speed * current.minimum_speed);
 
@@ -119,12 +120,20 @@ namespace TiEV {
                         break;
                     }
                     // else create node and push it to queue
-                    else node_pool.push({
-                        planning_map.get_heuristic(end_state, reverse_allowed) +
-                            end_state.s + 5.0 * history(end_state),
-                        max(0.0, current.minimum_speed - base->get_length() * SPEED_DESCENT_FACTOR),
-                        primitive_ptr(&primitive_pool, primitive_pool.size() - 1)
-                    });
+                    else {
+                        double heuristic = planning_map.get_heuristic(end_state, reverse_allowed);
+                        double minimum_speed = max(0.0, current.minimum_speed -
+                            base->get_length() * SPEED_DESCENT_FACTOR);
+                        double cost = current.cost + base->get_length();
+                        if (end_state.is_backward) cost += base->get_length() * BACKWARD_COST_FACTOR;
+                        double dis_after_reverse = base->get_length();
+                        if (!reversed_expansion) dis_after_reverse += current.dis_after_reverse;
+
+                        node_pool.push({
+                            heuristic + cost, minimum_speed, cost, dis_after_reverse,
+                            primitive_ptr(&primitive_pool, primitive_pool.size() - 1)
+                        });
+                    }
                 }
             }
         }
@@ -176,11 +185,6 @@ namespace TiEV {
                     output_map[i][j] += node_history_map
                         [i >> HISTORY_MAP_SHIFT_FACTOR]
                         [j >> HISTORY_MAP_SHIFT_FACTOR][k];
-    }
-
-    void PathPlanner::hybrid_astar_planner::merge_xy_distance_map(
-        double (*output_map)[MAX_COL]) const {
-        planning_map.merge_xy_distance_map(output_map);
     }
 
     void PathPlanner::hybrid_astar_planner::merge_xya_distance_map(

@@ -85,7 +85,7 @@ bool PathPlanner::getResults(vector<SpeedPath>& results) {
     return any_result;
 }
 
-void PathPlanner::getCostMap(int (*output_map)[MAX_COL]) const {
+void PathPlanner::getCostMaps(int (*output_map)[MAX_COL]) const {
     if(is_planning) return;
     memset(output_map, 0, sizeof(output_map));
     for (int i = 0; i < targets.size(); ++i)
@@ -93,13 +93,10 @@ void PathPlanner::getCostMap(int (*output_map)[MAX_COL]) const {
 }
 
 void PathPlanner::getDistanceMaps(
-    double (*xy_dis_map)[MAX_COL],
     pair<double, double> (*xya_dis_map)[MAX_COL]) const {
     if(is_planning) return;
-    memset(xy_dis_map, 0x7f, sizeof(double) * MAX_ROW * MAX_COL);
     memset(xya_dis_map, 0x7f, sizeof(double) * MAX_ROW * MAX_COL);
     for (int i = 0; i < targets.size(); ++i) {
-        hybrid_astar_planners[i].merge_xy_distance_map(xy_dis_map);
         hybrid_astar_planners[i].merge_xya_distance_map(xya_dis_map);
     }
 }

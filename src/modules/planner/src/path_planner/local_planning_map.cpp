@@ -11,18 +11,17 @@ namespace TiEV {
     void PathPlanner::local_planning_map::init(
         const astate& _target,
         double (*_safe_map)[MAX_COL],
-        bool _backward_enabled) {
+        bool _backward_enabled,
+        double _backward_cost_factor) {
         target = _target;
         safe_map = _safe_map;
         backward_enabled = _backward_enabled;
+        backward_cost_factor = _backward_cost_factor;
 
-        // time_t time_1 = getTimeStamp();
-        // calculate_xy_distance_map();
+        time_t time_1 = getTimeStamp();
+        calculate_xya_distance_map();
         time_t time_2 = getTimeStamp();
-        // log(1, "xy_distance_map calculated in ", (time_2 - time_1) / 1000, " ms");
-        calculate_xya_distance_map(_backward_enabled);
-        time_t time_3 = getTimeStamp();
-        log(1, "xya_distance_map calculated in ", (time_3 - time_2) / 1000, " ms");
+        log(1, "xya_distance_map calculated in ", (time_2 - time_1) / 1000, " ms");
     }
 
     bool PathPlanner::local_planning_map::is_crashed(int x, int y) const {
@@ -55,11 +54,7 @@ namespace TiEV {
         const int xya_idx_y = y_idx >> XYA_MAP_SHIFT_FACTOR;
         const int xya_idx_a = get_angle_index(state.a);
 
-        double xya = xya_distance_map[xya_idx_x][xya_idx_y][xya_idx_a];
-        double xya_reverse = xya_reverse_distance_map[xya_idx_x][xya_idx_y][xya_idx_a];
-        if (can_reverse) return min(xya, xya_reverse);
-        else if (state.is_backward) return xya_reverse;
-        else return xya;
+        return xya_distance_map[xya_idx_x][xya_idx_y][xya_idx_a];
     }
 
     int PathPlanner::local_planning_map::try_get_target_index(
@@ -83,17 +78,6 @@ namespace TiEV {
     bool PathPlanner::local_planning_map::is_in_map(const astate& state) const {
         return state.x >= 0 && state.y >= 0 &&
             state.x <= (MAX_ROW - 1) && state.y <= (MAX_COL - 1);
-    }
-
-    void PathPlanner::local_planning_map::merge_xy_distance_map(
-        double (*output_map)[MAX_COL]) const {
-        for (int i = 0; i < MAX_ROW; ++i)
-            for (int j = 0; j < MAX_COL; ++j)
-                output_map[i][j] = min(
-                    output_map[i][j],
-                    xy_distance_map
-                        [i >> XY_MAP_SHIFT_FACTOR]
-                        [j >> XY_MAP_SHIFT_FACTOR]);
     }
 
     void PathPlanner::local_planning_map::merge_xya_distance_map(
@@ -122,68 +106,6 @@ namespace TiEV {
         return true;
     }
 
-    void PathPlanner::local_planning_map::
-        calculate_xy_distance_map() {
-        memset(xy_safe_map, 0, sizeof(xy_safe_map));
-        for (int i = 0; i < MAX_ROW; ++i)
-            for (int j = 0; j < MAX_COL; ++j) {
-                int iidx = i >> XY_MAP_SHIFT_FACTOR;
-                int jidx = j >> XY_MAP_SHIFT_FACTOR;
-                if (xy_safe_map[iidx][jidx]) continue;
-                else xy_safe_map[iidx][jidx] |= !is_crashed(i, j);
-            }
-
-        #define vec(a, b) {{a, b}, (1 << XY_MAP_SHIFT_FACTOR) * len(a, b)}
-        constexpr pair<pair<int, int>, double> deltas[] = {
-                         vec(-1,  2),              vec( 1,  2),
-            vec(-2,  1), vec(-1,  1), vec( 0,  1), vec( 1,  1), vec( 2,  1),
-                         vec(-1,  0),              vec( 1,  0),
-            vec(-2,  1), vec(-1, -1), vec( 0, -1), vec( 1, -1), vec( 2, -1),
-                         vec(-1, -2),              vec( 1, -2)
-        };
-        #undef vec
-        constexpr int num_deltas = sizeof(deltas) /
-            sizeof(pair<pair<int, int>, double>);
-
-        ring_buffer_2.clear();
-        memset(is_in_buffer_2, 0, sizeof(is_in_buffer_2));
-        memset(xy_distance_map, 0x7f, sizeof(xy_distance_map));
-        int target_x_idx = (int)round(target.x) >> XY_MAP_SHIFT_FACTOR;
-        int target_y_idx = (int)round(target.y) >> XY_MAP_SHIFT_FACTOR;
-        xy_distance_map[target_x_idx][target_y_idx] = 0.0;
-
-        ring_buffer_2.push(make_pair(target_x_idx, target_y_idx));
-        is_in_buffer_2[target_x_idx][target_y_idx] = true;
-
-        while(!ring_buffer_2.empty()) {
-            const int x = ring_buffer_2.front().first;
-            const int y = ring_buffer_2.front().second;
-            ring_buffer_2.pop();
-            is_in_buffer_2[x][y] = false;
-
-            bool check_boundaries = x <= 1 || y <= 1 ||
-                x >= (XY_MAP_ROWS - 2) || y >= (XY_MAP_COLS - 2);
-            double old_dis = xy_distance_map[x][y];
-            for (int i = 0; i < num_deltas; ++i) {
-                const int tx = x + deltas[i].first.first;
-                const int ty = y + deltas[i].first.second;
-                const double delta = deltas[i].second;
-                if (check_boundaries && (tx < 0 || ty < 0 ||
-                    tx >= XY_MAP_ROWS || ty >= XY_MAP_COLS))
-                    continue;
-                if (!xy_safe_map[tx][ty]) continue;
-                const double new_dis = old_dis + delta;
-                if (xy_distance_map[tx][ty] > new_dis) {
-                    xy_distance_map[tx][ty] = new_dis;
-                    if (!is_in_buffer_2[tx][ty]) {
-                        ring_buffer_2.push(make_pair(tx, ty));
-                        is_in_buffer_2[tx][ty] = true;
-                    }
-                }
-            }
-        }
-    }
-
     int PathPlanner::local_planning_map::get_angle_index(double ang) {
         double norm_ang = M_PI - ang;
         norm_ang -= floor(norm_ang / (2 * PI)) * (2 * PI);
@@ -191,13 +113,13 @@ namespace TiEV {
     }
 
     void PathPlanner::local_planning_map::
-        calculate_xya_distance_map(bool is_backward_enabled) {
+        calculate_xya_distance_map() {
         // calculate xya_safe_map by counting safe and unsafe small grid
         // cells in each xya big grid cell. if safe cells are more then
         // the big grid is considered safe.
-        memset(xya_safe_map, 1, sizeof(xya_safe_map));
-        for (int i = 0; i < XYA_MAP_ROWS; ++i)
-            for (int j = 0; j < XYA_MAP_COLS; ++j) {
+        memset(xya_safe_map, 0, sizeof(xya_safe_map));
+        for (int i = 0; i < XYA_MAP_ROWS - 1; ++i)
+            for (int j = 0; j < XYA_MAP_COLS - 1; ++j) {
                 int idx = (i << XYA_MAP_SHIFT_FACTOR);
                 int jdx = (j << XYA_MAP_SHIFT_FACTOR);
                 int safe_factor = 0;
@@ -208,87 +130,90 @@ namespace TiEV {
                 xya_safe_map[i][j] = safe_factor >= 0;
             }
 
-        #define vec(a, b) {{a, b}, (1 << XYA_MAP_SHIFT_FACTOR) * len(a, b)}
-        constexpr pair<pair<int, int>, double> deltas[] = {
+        #define vec(a, b) { a * (XYA_MAP_COLS * XYA_MAP_DEPTH) + b * XYA_MAP_DEPTH, (1 << XYA_MAP_SHIFT_FACTOR) * len(a, b) }
+        constexpr pair<int, double> deltas[] = {
             vec( 1, 0), vec( 1,-1), vec( 0,-1), vec(-1,-1),
             vec(-1, 0), vec(-1, 1), vec( 0, 1), vec( 1, 1)
         };
-        constexpr pair<pair<int, int>, double> reverse_deltas[] = {
-            vec(-1, 0), vec(-1, 1), vec( 0, 1), vec( 1, 1),
-            vec( 1, 0), vec( 1,-1), vec( 0,-1), vec(-1,-1),
-        };
         #undef vec
-
-        _calculate_xya_distance_map(deltas, xya_distance_map);
-        if (is_backward_enabled) _calculate_xya_distance_map(
-            reverse_deltas, xya_reverse_distance_map);
-    }
-
-    void PathPlanner::local_planning_map::_calculate_xya_distance_map(
-        const pair<pair<int, int>, double> deltas[8],
-        double output_distance_map[XYA_MAP_ROWS][XYA_MAP_COLS][XYA_MAP_DEPTH]) {
-        constexpr int deltas_length = 8;
-        constexpr int depth_per_delta = XYA_MAP_DEPTH / deltas_length;
+        constexpr int DELTAS_LENGTH = sizeof(deltas) / sizeof(pair<int, double>);
+        constexpr int DEPTHS_PER_DELTA = XYA_MAP_DEPTH / DELTAS_LENGTH;
         // https://i.loli.net/2021/03/14/TKVI3kL6mtXcONv.png
-        #define get_delta_idx(a_idx)\
-            (a_idx + (depth_per_delta / 2)) % XYA_MAP_DEPTH / depth_per_delta
+        #define get_delta_idx(a_idx) (a_idx + (DEPTHS_PER_DELTA / 2)) % XYA_MAP_DEPTH / DEPTHS_PER_DELTA
 
-        ring_buffer_3.clear();
-        memset(is_in_buffer_3, 0, sizeof(is_in_buffer_3));
-        memset(output_distance_map, 0x7f, sizeof(double) *
-            XYA_MAP_ROWS * XYA_MAP_COLS * XYA_MAP_DEPTH);
+        // we embedded the x and y value as one integer
+        // and add it with deltas[i].first to do the translation
+        // this is far more faster than using x and y separately
+        double* flatten_map = (double*)xya_distance_map;
+        bool* flatten_safe_map = (bool*)xya_safe_map;
+        ring_buffer_xya.clear();
+        memset(is_in_buffer_xya, 0, sizeof(is_in_buffer_xya));
+        memset(xya_distance_map, 0x7f, sizeof(xya_distance_map));
+
         int target_x_idx = (int)round(target.x) >> XYA_MAP_SHIFT_FACTOR;
         int target_y_idx = (int)round(target.y) >> XYA_MAP_SHIFT_FACTOR;
         int target_a_idx = get_angle_index(target.a);
-        output_distance_map[target_x_idx][target_y_idx][target_a_idx] = 0.0;
-        ring_buffer_3.push(make_tuple(target_x_idx, target_y_idx, target_a_idx));
-        is_in_buffer_3[target_x_idx][target_y_idx][target_a_idx] = true;
+        int target_xya = target_x_idx * (XYA_MAP_COLS * XYA_MAP_DEPTH) +
+            target_y_idx * XYA_MAP_DEPTH + target_a_idx;
 
-        while(!ring_buffer_3.empty()) {
-            const auto& front = ring_buffer_3.front();
-            const int x = get<0>(front);
-            const int y = get<1>(front);
-            const int a = get<2>(front);
-            const int delta_idx = get_delta_idx(a);
-            const int tx = deltas[delta_idx].first.first + x;
-            const int ty = deltas[delta_idx].first.second + y;
-            const double delta = deltas[delta_idx].second;
-            ring_buffer_3.pop();
-            is_in_buffer_3[x][y][a] = false;
+        flatten_map[target_xya] = 0.0;
+        ring_buffer_xya.push_back(target_xya);
+        is_in_buffer_xya[target_xya] = true;
 
-            if (tx < 0 || ty < 0 || tx >= XYA_MAP_ROWS || ty >= XYA_MAP_COLS
-                || !xya_safe_map[tx][ty])
-                continue;
+        while(!ring_buffer_xya.empty()) {
+            int xya = ring_buffer_xya.front();
+            ring_buffer_xya.pop_front();
+            is_in_buffer_xya[xya] = false;
+            int a = xya % XYA_MAP_DEPTH;
+            int xy0 = xya - a;
+            int delta_idx = get_delta_idx(a);
 
-            double old_dis = output_distance_map[x][y][a];
-            for (int da = -1; da <= 1; ++da) {
-                const int ta = (a + da + XYA_MAP_DEPTH) % XYA_MAP_DEPTH;
-                const double new_dis = old_dis + delta;
-                if (output_distance_map[tx][ty][ta] > new_dis) {
-                    output_distance_map[tx][ty][ta] = new_dis;
-                    if (!is_in_buffer_3[tx][ty][ta]) {
-                        ring_buffer_3.push(make_tuple(tx, ty, ta));
-                        is_in_buffer_3[tx][ty][ta] = true;
+            for (int opposite = 0; opposite <= backward_enabled; ++opposite) {
+                int zw0 = xy0;
+                if (opposite) zw0 -= deltas[delta_idx].first;
+                else zw0 += deltas[delta_idx].first;
+
+                if (zw0 < 0 || !flatten_safe_map[zw0 / XYA_MAP_DEPTH]) continue;
+
+                double new_dis = flatten_map[xya] + deltas[delta_idx].second;
+                if (opposite) new_dis += backward_cost_factor * deltas[delta_idx].second;
+
+                for (int da = -1; da <= 1; ++da) {
+                    int s = (a + da + XYA_MAP_DEPTH) % XYA_MAP_DEPTH;
+                    int zws = zw0 + s;
+                    if (flatten_map[zws] > new_dis) {
+                        flatten_map[zws] = new_dis;
+                        if (!is_in_buffer_xya[zws]) {
+                            ring_buffer_xya.push_back(zws);
+                            is_in_buffer_xya[zws] = true;
+                        }
                     }
                 }
             }
         }
-        #undef get_delta_idx
 
-        for (int i = 0; i < XYA_MAP_ROWS; ++i)
-            for (int j = 0; j < XYA_MAP_COLS; ++j)
-                if (!xya_safe_map[i][j]) {
-                    for (int k = 0; k < deltas_length; ++k) {
-                        int x_k = i + deltas[k].first.first;
-                        int y_k = j + deltas[k].first.second;
-                        if (xya_safe_map[x_k][y_k]) {
-                            memcpy(output_distance_map[i][j],
-                                output_distance_map[x_k][y_k],
-                                sizeof(double) * XYA_MAP_DEPTH);
-                            break;
-                        }
+        // if one cell in xya_distance_map is not safe, but
+        // a neighboor of it is safe, we simply copy the neighboor's
+        // distances to it. this ensures the search to get heuristic
+        // even at narrow places. this will not cause unsafe factor,
+        // since we only use xya_distance_map for heuristic, and still
+        // do collision check on the original safe map.
+        for (int i = 0; i < XYA_MAP_ROWS - 1; ++i)
+            for (int j = 0; j < XYA_MAP_COLS - 1; ++j) {
+                int ij = i * (XYA_MAP_COLS) + j;
+                if (flatten_safe_map[ij]) continue;
+                for (int k = 0; k < DELTAS_LENGTH; ++k) {
+                    int ninj = ij + deltas[k].first / XYA_MAP_DEPTH;
+                    if (ninj < 0) continue;
+                    if (flatten_safe_map[ninj]) {
+                        memcpy(flatten_map + ij * XYA_MAP_DEPTH,
+                            flatten_map + ninj * XYA_MAP_DEPTH,
+                            sizeof(double) * XYA_MAP_DEPTH);
+                        break;
                     }
                 }
+            }
+        #undef get_delta_idx
     }
 
     double PathPlanner::local_planning_map::

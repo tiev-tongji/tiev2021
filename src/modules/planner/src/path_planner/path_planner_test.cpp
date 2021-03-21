@@ -148,14 +148,14 @@ void show_curvature_graph(PathPlanner* planner) {
 
 void draw_planner_map(PathPlanner* planner, cv::Mat& view) {
     int costs[MAX_ROW][MAX_COL] = {0};
-    planner->getCostMap(costs);
+    planner->getCostMaps(costs);
     for (int i = 0; i < MAX_ROW; ++i)
         for (int j = 0; j < MAX_COL; ++j) {
             if (costs[i][j] == 0) continue;
             double rel_cost = min(costs[i][j] / 50.0, 1.0);
             view.at<cv::Vec3b>(i, j) = cv::Vec3b(
-                100 * (1 - rel_cost) + 155,
-                100 * (1 - rel_cost) + 155, 255);
+                100 * (1 - rel_cost) + 100,
+                100 * (1 - rel_cost) + 100, 255);
         }
 
     // draw results
@@ -194,30 +194,21 @@ void draw_planner_map(PathPlanner* planner, cv::Mat& view) {
 }
 
 void show_heuristic(PathPlanner* planner) {
-    double xy_distance[MAX_ROW][MAX_COL];
     pair<double, double> xya_distance[MAX_ROW][MAX_COL];
-    planner->getDistanceMaps(xy_distance, xya_distance);
+    planner->getDistanceMaps(xya_distance);
     double max_dis = 1e-5;
     for (int i = 0; i < MAX_ROW; ++i)
         for (int j = 0; j < MAX_COL; ++j) {
-            if (xy_distance[i][j] > 10000.0) xy_distance[i][j] = -1.0;
             if (xya_distance[i][j].first > 10000.0)
                 xya_distance[i][j].first = -1.0;
-            max_dis = max(max_dis, xy_distance[i][j]);
             max_dis = max(max_dis, xya_distance[i][j].first);
         }
-    cv::Mat view_xy = cv::Mat::zeros(MAX_ROW, MAX_COL, CV_8UC3);
     cv::Mat view_xya = cv::Mat::zeros(MAX_ROW, MAX_COL, CV_8UC3);
     for (int i = 0; i < MAX_ROW; ++i)
         for (int j = 0; j < MAX_COL; ++j) {
-            double f_xy = xy_distance[i][j] / max_dis;
             double f_xya = xya_distance[i][j].first / max_dis;
-            if (f_xy >= 0.0) view_xy.at<Vec3b>(i, j) =
-                Vec3b(0, (1 - f_xy) * 200, 255);
             if (f_xya >= 0.0) view_xya.at<Vec3b>(i, j) =
                 Vec3b(0, (1 - f_xya) * 230, 255);
-            if (((int)round(f_xy * 500)) % 10 == 0)
-                view_xy.at<Vec3b>(i, j) = Vec3b(0, 0, 128);
         }
     for (int i = 0; i <= MAX_ROW; i += 12)
         for (int j = 0; j <= MAX_COL; j += 12) {
@@ -232,10 +223,7 @@ void show_heuristic(PathPlanner* planner) {
                 {(int)end_x, (int)end_y},
                 cv::Scalar(0, 0, 128), 1, 8, 0, 0.3);
         }
-    cv::Mat view = Mat(MAX_ROW, 2 * MAX_COL, CV_8UC3);
-    view_xy.copyTo(view(Rect(0, 0, MAX_COL, MAX_ROW)));
-    view_xya.copyTo(view(Rect(MAX_COL, 0, MAX_COL, MAX_ROW)));
-    cv::imshow("Heuristic Values", view);
+    cv::imshow("Heuristic Values", view_xya);
 }
 
 int main(int argc, char** argv){

@@ -17,7 +17,7 @@
 using namespace std;
 
 // #define NO_ANALYTIC_EXPANSION
-// #define NO_TIME_LIMIT
+#define NO_TIME_LIMIT
 
 namespace TiEV {
 
@@ -64,10 +64,9 @@ public:
 
     bool getResults(vector<SpeedPath>& results);
 
-    void getCostMap(int (*output_map)[MAX_COL]) const;
+    void getCostMaps(int (*output_map)[MAX_COL]) const;
 
-    void getDistanceMaps(double (*xy_dis_map)[MAX_COL],
-        pair<double, double> (*xya_dis_map)[MAX_COL]) const;
+    void getDistanceMaps(pair<double, double> (*xya_dis_map)[MAX_COL]) const;
 
 private:
     PathPlanner();
@@ -147,6 +146,8 @@ private:
     public:
         double score;
         double minimum_speed;
+        double cost;
+        double dis_after_reverse;
 
         primitive_ptr ptr;
 
@@ -277,7 +278,8 @@ private:
         public:
             void init(const astate& target,
                 double (*safe_map)[MAX_COL],
-                bool is_backward_enabled);
+                bool is_backward_enabled,
+                double backward_cost_factor);
 
             bool is_crashed(int x, int y) const;
             bool is_crashed(const astate& state) const;
@@ -288,59 +290,58 @@ private:
             int try_get_target_index(primitive& primitive) const;
             bool is_in_map(const astate& state) const;
 
-            void merge_xy_distance_map(double (*output_map)[MAX_COL]) const;
             void merge_xya_distance_map(pair<double, double> (*output_map)[MAX_COL]) const;
 
         private:
             astate target;
             double (*safe_map)[MAX_COL];
             bool backward_enabled;
-
-            static constexpr int XY_MAP_SHIFT_FACTOR = 1;
-            static constexpr int XY_MAP_ROWS = ((MAX_ROW - 1) >> XY_MAP_SHIFT_FACTOR) + 1;
-            static constexpr int XY_MAP_COLS = ((MAX_COL - 1) >> XY_MAP_SHIFT_FACTOR) + 1;
-            double xy_distance_map[XY_MAP_ROWS][XY_MAP_COLS];
-            bool xy_safe_map[XY_MAP_ROWS][XY_MAP_COLS];
+            double backward_cost_factor;
 
             static constexpr int XYA_MAP_SHIFT_FACTOR = 2;
-            static constexpr int XYA_MAP_ROWS = ((MAX_ROW - 1) >> XYA_MAP_SHIFT_FACTOR) + 1;
-            static constexpr int XYA_MAP_COLS = ((MAX_COL - 1) >> XYA_MAP_SHIFT_FACTOR) + 1;
+            // the xya maps are one cell larger than our local map,
+            // so that we can mark the edge of the map unsafe,
+            // then we don't need to worry about cells out of the
+            // boundary, since we only do 1-step expansion when
+            // calculating xya_distance_map.
+            static constexpr int XYA_MAP_ROWS = ((MAX_ROW - 1) >> XYA_MAP_SHIFT_FACTOR) + 2;
+            static constexpr int XYA_MAP_COLS = ((MAX_COL - 1) >> XYA_MAP_SHIFT_FACTOR) + 2;
             static constexpr int XYA_MAP_DEPTH = 32;
             static constexpr double XYA_MAP_DELTA_A = (M_PI * 2) / (XYA_MAP_DEPTH);
             double xya_distance_map[XYA_MAP_ROWS][XYA_MAP_COLS][XYA_MAP_DEPTH];
-            double xya_reverse_distance_map[XYA_MAP_ROWS][XYA_MAP_COLS][XYA_MAP_DEPTH];
             bool xya_safe_map[XYA_MAP_ROWS][XYA_MAP_COLS];
 
             template<class T, int buffer_size>
             class ring_buffer {
                 public:
+                #define add(a) ((a + 1) % buffer_size)
+                #define dec(a) ((a + (buffer_size - 1)) % buffer_size)
                     ring_buffer() : buffer(buffer_size) { }
                     void clear() { begin_idx = end_idx = 0; }
                     bool empty() const { return begin_idx == end_idx; }
                     int length() const { return (end_idx - begin_idx + buffer_size) % buffer_size; }
-                    void push(const T& t) { buffer[end_idx++] = t; end_idx %= buffer_size; }
-                    void pop() { begin_idx = (begin_idx + 1) % buffer_size; }
+                    void push_front(const T& t) { buffer[begin_idx = dec(begin_idx)] = t; }
+                    void push_back(const T& t) { buffer[end_idx] = t; end_idx = add(end_idx); }
+                    void pop_front() { begin_idx = add(begin_idx); }
+                    void pop_back() { end_idx = dec(end_idx); }
                     const T& front() const { return buffer[begin_idx]; }
+                    const T& back() const { return buffer[dec(end_idx)]; }
+                #undef add
+                #undef dec
                 private:
                     vector<T> buffer;
                     int begin_idx;
                     int end_idx;
             };
 
-            static constexpr int XY_BUFFER_SIZE = (int)pow(2, (int)ceil(
-                std::log2(XY_MAP_ROWS * XY_MAP_COLS)));
             static constexpr int XYA_BUFFER_SIZE = (int)pow(2, (int)ceil(
                 std::log2(XYA_MAP_ROWS * XYA_MAP_COLS * XYA_MAP_DEPTH)));
-            ring_buffer<pair<int, int>, XY_BUFFER_SIZE> ring_buffer_2;
-            bool is_in_buffer_2[XY_MAP_ROWS][XY_MAP_COLS];
-            ring_buffer<tuple<int, int, int>, XYA_BUFFER_SIZE> ring_buffer_3;
-            bool is_in_buffer_3[XYA_MAP_ROWS][XYA_MAP_COLS][XYA_MAP_DEPTH];
+
+            ring_buffer<int, XYA_BUFFER_SIZE> ring_buffer_xya;
+            bool is_in_buffer_xya[XYA_MAP_ROWS * XYA_MAP_COLS * XYA_MAP_DEPTH];
 
             static int get_angle_index(double ang);
-            void calculate_xy_distance_map();
-            void calculate_xya_distance_map(bool is_backward_enabled);
-            void _calculate_xya_distance_map(const pair<pair<int, int>, double> deltas[8],
-                double output_distance_map[XYA_MAP_ROWS][XYA_MAP_COLS][XYA_MAP_DEPTH]);
+            void calculate_xya_distance_map();
             double get_maximum_safe_distance(const astate& state) const;
     };
 
@@ -361,7 +362,6 @@ private:
             const vector<astate>& get_result() const;
 
             void merge_history_map(int (*output_map)[MAX_COL]) const;
-            void merge_xy_distance_map(double (*output_map)[MAX_COL]) const;
             void merge_xya_distance_map(pair<double, double> (*output_map)[MAX_COL]) const;
 
         private:
@@ -379,6 +379,8 @@ private:
             bool is_backward_enabled;
 
             static constexpr double SPEED_DESCENT_FACTOR = 1.0;
+            static constexpr double BACKWARD_COST_FACTOR = 2.0;
+            static constexpr double MIN_DISTANCE_BETWEEN_REVERSING = 5.0;
 
             local_planning_map planning_map;
             const base_primitive_set* base_primitives;
