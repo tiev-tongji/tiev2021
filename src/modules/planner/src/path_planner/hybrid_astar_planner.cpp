@@ -125,7 +125,9 @@ namespace TiEV {
                         double minimum_speed = max(0.0, current.minimum_speed -
                             base->get_length() * SPEED_DESCENT_FACTOR);
                         double cost = current.cost + base->get_length();
-                        if (end_state.is_backward) cost += base->get_length() * BACKWARD_COST_FACTOR;
+                        if (end_state.is_backward)
+                            cost += base->get_length() * (BACKWARD_COST_FACTOR - 1);
+                        cost += 5.0 * history(end_state);
                         double dis_after_reverse = base->get_length();
                         if (!reversed_expansion) dis_after_reverse += current.dis_after_reverse;
 
@@ -200,11 +202,10 @@ namespace TiEV {
 
     bool PathPlanner::hybrid_astar_planner::is_time_out() {
 #ifdef NO_TIME_LIMIT
-        return (++iterations) >= 1000000;
+        return (++iterations) >= 10000;
 #endif
         constexpr int mod = (1 << 11) - 1;
         if (!((++iterations) & mod)) {
-            if (iterations > 2000000) return true;
             return getTimeStamp() > dead_line;
         } else return false;
     }
@@ -222,31 +223,23 @@ namespace TiEV {
         if (random_float(gen) > 1.0 / heuristic)
             return false;
 
-        double       q0[] = { state.x, state.y, state.a };
-        double       q1[] = { target_state.x, target_state.y, target_state.a };
-        const double step = base_primitives->get_sampling_step_size();
-        double       q[3], last_q[3] = { state.x, state.y, state.a }, x = step, length;
-        DubinsPath tmpath;
-        dubins_shortest_path(&tmpath, q0, q1, 25);
-        length = dubins_path_length(&tmpath);
-        astate tmp;
-        while(x < length) {
-            dubins_path_sample(&tmpath, x, q);
-            tmp.x = q[0]; tmp.y = q[1]; tmp.a = q[2];
-            if(planning_map.is_in_map(tmp) && !planning_map.is_crashed(tmp)) {
-                tmp.curvature = ((q[2] == last_q[2]) ? 0.0 :
-                    (q[2] > last_q[2] ? 0.04 : -0.04));
-                tmp.s = state.s + x;
-                tmp.is_backward  = (((q[0] - last_q[0]) * cos(q[2]) + (q[1] - last_q[1]) * sin(q[2])) < 0);
-                analytic_expansion_result.push_back(tmp);
-                memcpy(last_q, q, 3 * sizeof(double));
+        analytic_expansion_result.clear();
+        dubins_provider provider(state, target_state, 1.0 / 25,
+            base_primitives->get_sampling_step_size());
+
+        astate tmp_state;
+        while (provider.get_next_state(tmp_state)) {
+            if(planning_map.is_in_map(tmp_state) &&
+                !planning_map.is_crashed(tmp_state)) {
+                analytic_expansion_result.push_back(tmp_state);
             } else {
                 analytic_expansion_result.clear();
                 return false;
             }
-            x += step;
         }
-        return true;
+
+        if (analytic_expansion_result.empty()) return false;
+        else return true;
     }
 
     int PathPlanner::hybrid_astar_planner::get_angle_index(double ang) {

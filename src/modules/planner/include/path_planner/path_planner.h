@@ -4,6 +4,7 @@
 #include "config.h"
 #include "const.h"
 #include "look_up_tables/distance_table.h"
+#include "look_up_tables/dubins_table/dubins.h"
 #include "message_manager.h"
 #include "pose.h"
 #include "speed_optimizer.h"
@@ -274,6 +275,24 @@ private:
         void trans(astate& src) const;
     };
 
+    class analytic_expansion_provider {
+    public:
+        virtual bool get_next_state(astate& output_state) = 0;
+    };
+
+    class dubins_provider {
+    public:
+        dubins_provider(
+            const astate& _start_state, const astate& _end_state,
+            double _curvature, double _step);
+        virtual bool get_next_state(astate& output_state);
+    private:
+        astate start_state, end_state;
+        double curvature, step, target_length;
+        double current_step, last_a;
+        DubinsPath target_path;
+    };
+
     class local_planning_map {
         public:
             void init(const astate& target,
@@ -311,8 +330,7 @@ private:
             double xya_distance_map[XYA_MAP_ROWS][XYA_MAP_COLS][XYA_MAP_DEPTH];
             bool xya_safe_map[XYA_MAP_ROWS][XYA_MAP_COLS];
 
-            template<class T, int buffer_size>
-            class ring_buffer {
+            template<class T, int buffer_size> class ring_buffer {
                 public:
                 #define add(a) ((a + 1) % buffer_size)
                 #define dec(a) ((a + (buffer_size - 1)) % buffer_size)
