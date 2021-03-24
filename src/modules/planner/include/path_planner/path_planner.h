@@ -5,6 +5,7 @@
 #include "const.h"
 #include "look_up_tables/distance_table.h"
 #include "look_up_tables/dubins_table/dubins.h"
+#include "look_up_tables/reeds_shepp_table/reeds_shepp.h"
 #include "message_manager.h"
 #include "pose.h"
 #include "speed_optimizer.h"
@@ -280,8 +281,9 @@ private:
         virtual bool get_next_state(astate& output_state) = 0;
     };
 
-    class dubins_provider {
+    class dubins_provider : public analytic_expansion_provider {
     public:
+        dubins_provider() {}
         dubins_provider(
             const astate& _start_state, const astate& _end_state,
             double _curvature, double _step);
@@ -291,6 +293,21 @@ private:
         double curvature, step, target_length;
         double current_step, last_a;
         DubinsPath target_path;
+    };
+
+    class reeds_shepp_provider : public analytic_expansion_provider {
+    public:
+        reeds_shepp_provider() : rs_space(1.0) {}
+        reeds_shepp_provider(
+            const astate& _start_state, const astate& _end_state,
+            double _curvature, double _step);
+        virtual bool get_next_state(astate& output_state);
+    private:
+        astate start_state, end_state;
+        double curvature, step, target_length;
+        double current_step, last_a;
+        ReedsSheppStateSpace rs_space;
+        ReedsSheppStateSpace::ReedsSheppPath target_path;
     };
 
     class local_planning_map {
@@ -383,10 +400,9 @@ private:
             void merge_xya_distance_map(pair<double, double> (*output_map)[MAX_COL]) const;
 
         private:
-            int& history(const astate& state);
+            int& history(astate& state);
             bool is_time_out();
-            bool try_analytic_expansion(const astate& from_state, double heuristic);
-            static int get_angle_index(double ang);
+            bool try_analytic_expansion(const astate& state, const node& node);
 
             time_t start_time;
             time_t dead_line;
@@ -396,9 +412,11 @@ private:
             double start_speed_m_s;
             bool is_backward_enabled;
 
-            static constexpr double SPEED_DESCENT_FACTOR = 1.0;
+            static constexpr double SPEED_DESCENT_FACTOR = 1.0; // m/s^2
             static constexpr double BACKWARD_COST_FACTOR = 2.0;
-            static constexpr double MIN_DISTANCE_BETWEEN_REVERSING = 5.0;
+            static constexpr double MIN_DISTANCE_BETWEEN_REVERSING = 5.0 / GRID_RESOLUTION;
+            static constexpr double NODE_REVISIT_PUNISHMENT = 10.0;
+            static constexpr double CURVATURE_PUNISHMENT_FACTOR = 5.0;
 
             local_planning_map planning_map;
             const base_primitive_set* base_primitives;
@@ -411,14 +429,16 @@ private:
                 ((MAX_ROW - 1) >> HISTORY_MAP_SHIFT_FACTOR) + 1;
             static constexpr int HISTORY_MAP_COLS =
                 ((MAX_COL - 1) >> HISTORY_MAP_SHIFT_FACTOR) + 1;
-            static constexpr int HISTORY_MAP_DEPTH = 8;
+            static constexpr int HISTORY_MAP_DEPTH = 16;
             static constexpr double HISTORY_MAP_DELTA_A =
                 (M_PI * 2) / HISTORY_MAP_DEPTH;
             int node_history_map[MAX_ROW][MAX_COL][HISTORY_MAP_DEPTH];
 
+            dubins_provider dubins;
+            reeds_shepp_provider rs;
+
             vector<astate> result;
             bool have_result;
-    // TODO
     } hybrid_astar_planners[MAX_TARGET_NUM] = {
         &arc_base_primitives,
         &arc_base_primitives,

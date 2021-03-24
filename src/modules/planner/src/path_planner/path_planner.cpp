@@ -155,6 +155,8 @@ void PathPlanner::plan() {
         log(0, "start point is backward, force enable backward");
     }
 
+    start_point.v = current_speed;
+
     // merge united safe map
     for(int i = 0; i < MAX_ROW; ++i)
         for(int j = 0; j < MAX_COL; ++j)
