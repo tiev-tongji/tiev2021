@@ -165,6 +165,23 @@ private:
             double get_length() const;
             double get_maximum_curvature() const;
 
+        protected:
+            static vector<astate> generate_line(
+                double length,
+                double sampling_step,
+                bool is_backward);
+            static vector<astate> generate_arc(
+                double curvature,
+                bool is_backward,
+                double length,
+                double sampling_step);
+            static vector<astate> generate_clothoid(
+                double begin_curvature,
+                double end_curvature,
+                double length,
+                double sampling_step,
+                bool is_backward);
+
         private:
             vector<astate> sampled_states;
             double max_curvature;
@@ -177,17 +194,13 @@ private:
                 bool is_backward,
                 double length,
                 double sampling_step);
+            double get_curvature() const { return curvature; }
+            bool get_is_backward() const { return is_backward; }
 
         private:
             bool curvature;
             bool is_backward;
             double sampling_step;
-
-            static vector<astate> generate_arc(
-                double curvature,
-                bool is_backward,
-                double length,
-                double sampling_step);
     };
 
     class line_base_primitive : public base_primitive {
@@ -200,11 +213,6 @@ private:
             double length;
             double sampling_step;
             bool is_backward;
-
-            static vector<astate> generate_line(
-                double length,
-                double sampling_step,
-                bool is_backward);
     };
 
     class clothoid_base_primitive : public base_primitive {
@@ -215,18 +223,13 @@ private:
                 double length,
                 double sampling_step,
                 bool is_backward);
+            double get_begin_curvature() const { return begin_curvature; }
+            double get_end_curvature() const { return end_curvature; }
         private:
             double begin_curvature;
             double end_curvature;
             double sampling_step;
             bool is_backward;
-
-            static vector<astate> generate_clothoid(
-                double begin_curvature,
-                double end_curvature,
-                double length,
-                double sampling_step,
-                bool is_backward);
     };
 
     class base_primitive_set {
@@ -243,9 +246,21 @@ private:
             virtual const vector<const base_primitive*>& get_nexts(const primitive& primitive) const;
             virtual double get_sampling_step_size() const;
         private:
-            vector<base_primitive> primitives;
+            vector<arc_base_primitive> primitives;
             vector<vector<const base_primitive*>> nexts;
-    }arc_base_primitives;
+    } arc_base_primitives;
+
+    class clothoid_base_primitive_set : public base_primitive_set {
+        public:
+            clothoid_base_primitive_set();
+            virtual const vector<const base_primitive*>& get_nexts(const astate& state) const;
+            virtual const vector<const base_primitive*>& get_nexts(const primitive& primitive) const;
+            virtual double get_sampling_step_size() const;
+        private:
+            vector<clothoid_base_primitive> primitives;
+            vector<vector<const base_primitive*>> nexts;
+
+    } clothoid_base_primitives;
 
     class primitive {
     public:
@@ -320,6 +335,7 @@ private:
             bool is_crashed(int x, int y) const;
             bool is_crashed(const astate& state) const;
             bool is_crashed(primitive& primitive) const;
+            double get_maximum_safe_distance(const astate& state) const;
 
             double get_heuristic(const astate& state, bool can_reverse) const;
             bool is_target(const astate& state) const;
@@ -377,7 +393,6 @@ private:
 
             static int get_angle_index(double ang);
             void calculate_xya_distance_map();
-            double get_maximum_safe_distance(const astate& state) const;
     };
 
     class hybrid_astar_planner {
@@ -416,7 +431,8 @@ private:
             static constexpr double BACKWARD_COST_FACTOR = 2.0;
             static constexpr double MIN_DISTANCE_BETWEEN_REVERSING = 5.0 / GRID_RESOLUTION;
             static constexpr double NODE_REVISIT_PUNISHMENT = 10.0;
-            static constexpr double CURVATURE_PUNISHMENT_FACTOR = 5.0;
+            static constexpr double CURVATURE_PUNISHMENT_FACTOR = 2.0;
+            static constexpr double MIN_CURVATURE_TO_PUNISH = 0.02 / GRID_RESOLUTION;
 
             local_planning_map planning_map;
             const base_primitive_set* base_primitives;
@@ -440,7 +456,7 @@ private:
             vector<astate> result;
             bool have_result;
     } hybrid_astar_planners[MAX_TARGET_NUM] = {
-        &arc_base_primitives,
+        &clothoid_base_primitives,
         &arc_base_primitives,
         &arc_base_primitives,
         &arc_base_primitives,

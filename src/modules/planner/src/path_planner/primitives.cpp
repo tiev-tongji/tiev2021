@@ -1,4 +1,5 @@
 #include "path_planner.h"
+#include "Clothoid.hh"
 #include "math.h"
 
 namespace TiEV {
@@ -10,6 +11,10 @@ namespace TiEV {
             cerr << "the sampled states used in the constructor of the astar origin primitive must starts with state (0,0,0)!" << endl;
             throw exception();
         }
+
+        max_curvature = 0.0;
+        for (const auto& state : _sampled_states)
+            max_curvature = max(max_curvature, fabs(state.curvature));
     }
 
     const vector<PathPlanner::astate>& PathPlanner::base_primitive::get_states() const {
@@ -20,65 +25,11 @@ namespace TiEV {
         return sampled_states.back().s;
     }
 
-    PathPlanner::arc_base_primitive::arc_base_primitive(
-        double _radius, bool _is_left, bool _is_backward,
-        double _length, double _sampling_step) :
-        radius(_radius), is_left(_is_left), is_backward(_is_backward),
-        sampling_step(_sampling_step),
-        base_primitive(generate_arc(_radius, _is_left,
-            _is_backward, _length, _sampling_step)) { }
-
-    vector<PathPlanner::astate> PathPlanner::arc_base_primitive::
-        generate_arc(double radius, bool is_left, bool is_backward,
-            double length, double sampling_step) {
-        vector<astate> sampled_states;
-        sampled_states.reserve((int)(length / sampling_step) + 1);
-        double center_x = 0, center_y = radius;
-        double vec_x = 0, vec_y = -radius;
-        double delta_alpha = sampling_step / radius;
-        double max_abs_alpha = length / radius;
-
-        astate tmp_state;
-        tmp_state.is_backward = is_backward;
-        tmp_state.curvature = 1.0 / radius;
-        tmp_state.s = 0.0;
-
-        if (!is_left) {
-            center_y = -center_y;
-            vec_y = -vec_y;
-            delta_alpha = -delta_alpha;
-            tmp_state.curvature = -tmp_state.curvature;
-        }
-        if (is_backward) delta_alpha = -delta_alpha;
-
-        for (double alpha = 0.0;
-            fabs(alpha) <= max_abs_alpha;
-            alpha += delta_alpha) {
-            double sin_alpha = sin(alpha);
-            double cos_alpha = cos(alpha);
-            double sampled_x = cos_alpha * vec_x -
-                sin_alpha * vec_y + center_x;
-            double sampled_y = sin_alpha * vec_x +
-                cos_alpha * vec_y + center_y;
-
-            tmp_state.x = sampled_x;
-            tmp_state.y = sampled_y;
-            tmp_state.a = alpha;
-
-            sampled_states.push_back(tmp_state);
-
-            tmp_state.s += sampling_step;
-        }
-
-        return sampled_states;
+    double PathPlanner::base_primitive::get_maximum_curvature() const {
+        return max_curvature;
     }
 
-    PathPlanner::line_base_primitive::line_base_primitive(
-        double _length, double _sampling_step, bool _is_backward) :
-        length(_length), sampling_step(_sampling_step), is_backward(_is_backward),
-        base_primitive(generate_line(_length, _sampling_step, _is_backward)) { }
-
-    vector<PathPlanner::astate> PathPlanner::line_base_primitive::generate_line(
+    vector<PathPlanner::astate> PathPlanner::base_primitive::generate_line(
         double length, double sampling_step, bool is_backward) {
         vector<astate> sampled_states;
         sampled_states.reserve((int)(length / sampling_step) + 1);
@@ -92,25 +43,17 @@ namespace TiEV {
         return sampled_states;
     }
 
-    PathPlanner::clothoid_base_primitive::clothoid_base_primitive(
-        double _begin_curvature, double _end_curvature,
-        double _length, double _sampling_step, bool _is_backward) :
-        begin_curvature(_begin_curvature), end_curvature(_end_curvature),
-        sampling_step(_sampling_step), is_backward(_is_backward),
-        base_primitive(generate_clothoid(_begin_curvature, _end_curvature,
-            _length, _sampling_step, _is_backward)) { }
-
-    vector<PathPlanner::astate> PathPlanner::clothoid_base_primitive::generate_clothoid(
-        double begin_curvature, double end_curvature, double length,
-        double sampling_step, bool is_backward) {
+    vector<PathPlanner::astate> PathPlanner::base_primitive::
+        generate_arc(double curvature, bool is_backward, double length, double sampling_step) {
         vector<astate> sampled_states;
         sampled_states.reserve((int)(length / sampling_step) + 1);
-        double begin_radius = 1.0 / begin_curvature;
-        double end_radius = 1.0 / end_curvature;
-        double center_x = 0, center_y = begin_radius;
-        double k = length / (end_curvature - begin_curvature);
+        if (curvature == 0.0) {
+            cerr << "generate_arc requires a non-zero curvature, or you should use a line_base_primitive." << endl;
+            throw exception();
+        }
 
-        /*
+        double radius = fabs(1.0 / curvature);
+        bool is_left = curvature > 0.0;
         double center_x = 0, center_y = radius;
         double vec_x = 0, vec_y = -radius;
         double delta_alpha = sampling_step / radius;
@@ -147,9 +90,52 @@ namespace TiEV {
 
             tmp_state.s += sampling_step;
         }
-        */
+
         return sampled_states;
     }
+
+    vector<PathPlanner::astate> PathPlanner::base_primitive::generate_clothoid(
+        double begin_curvature, double end_curvature, double length,
+        double sampling_step, bool is_backward) {
+        vector<astate> sampled_states;
+        int npts = (int)(length / sampling_step) + 1;
+        sampled_states.reserve(npts);
+        double dk = (end_curvature - begin_curvature) / length;
+        double theta_0 = is_backward ? M_PI : 0.0;
+        Clothoid::ClothoidCurve clothoid_curve(
+            0.0, 0.0, theta_0, begin_curvature, dk, length);
+        astate tmp_state { 0.0, 0.0, 0.0, 0.0, begin_curvature, is_backward };
+        while (tmp_state.s <= length) {
+            clothoid_curve.eval(tmp_state.s,
+                tmp_state.a, tmp_state.curvature, tmp_state.x, tmp_state.y);
+            sampled_states.push_back(tmp_state);
+            tmp_state.s += sampling_step;
+        }
+        return sampled_states;
+    }
+
+    PathPlanner::arc_base_primitive::arc_base_primitive(
+        double _curvature, bool _is_backward, double _length, double _sampling_step) :
+        curvature(_curvature), is_backward(_is_backward), sampling_step(_sampling_step),
+        base_primitive(_curvature == 0.0 ?
+            generate_line(_length, _sampling_step, _is_backward) :
+            generate_arc(_curvature, _is_backward, _length, _sampling_step)) { }
+
+    PathPlanner::line_base_primitive::line_base_primitive(
+        double _length, double _sampling_step, bool _is_backward) :
+        length(_length), sampling_step(_sampling_step), is_backward(_is_backward),
+        base_primitive(generate_line(_length, _sampling_step, _is_backward)) { }
+
+    PathPlanner::clothoid_base_primitive::clothoid_base_primitive(
+        double _begin_curvature, double _end_curvature,
+        double _length, double _sampling_step, bool _is_backward) :
+        begin_curvature(_begin_curvature), end_curvature(_end_curvature),
+        sampling_step(_sampling_step), is_backward(_is_backward),
+        base_primitive(_begin_curvature == _end_curvature ?
+            (_begin_curvature == 0.0 ?
+                generate_line(_length, _sampling_step, _is_backward) :
+                generate_arc(_begin_curvature, _is_backward, _length, _sampling_step)) :
+            generate_clothoid(_begin_curvature, _end_curvature, _length, _sampling_step, _is_backward)) { }
 
     PathPlanner::primitive::primitive(
         const base_primitive* _base,

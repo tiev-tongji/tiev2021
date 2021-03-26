@@ -23,6 +23,8 @@ TiEV::Pose      targetPose;
 char*           map_file_path = NULL;
 bool            backward_enabled = false;
 double          current_speed = 0;
+#define mtov(a) ((a) * 3 / 2)
+#define vtom(a) ((a) * 2 / 3)
 
 void usage() {
     exit(0);
@@ -33,8 +35,7 @@ void read_args(int argc, char** argv) {
         if (strcmp(argv[i], "-b") == 0 || strcmp(argv[i], "--enable-backward") == 0) {
             cout << "backward enabled" << endl;
             backward_enabled = true;
-        }
-        else if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--speed") == 0) {
+        } else if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--speed") == 0) {
             if (i + 1 < argc) {
                 current_speed = atof(argv[++i]);
                 cout << "current speed set: " << current_speed << " m/s" << endl;
@@ -43,12 +44,10 @@ void read_args(int argc, char** argv) {
                 cout << "error using flag " << argv[i] << " , argument missing." << endl;
                 usage();
             }
-        }
-        else if (map_file_path == NULL) {
+        } else if (map_file_path == NULL) {
             map_file_path = argv[i];
             cout << "map file path: " << map_file_path << endl;
-        }
-        else {
+        } else {
             cout << "unrecognized input " << argv[i] << endl;
             usage();
         }
@@ -60,15 +59,17 @@ void on_mouse(int event, int x, int y, int flags, void *ustc)
 	switch (operationStatus) {
         case WaitingForTargetPoint: {
             if (event == CV_EVENT_LBUTTONDOWN) {
-                targetPose.x = y;
-                targetPose.y = x;
+                targetPose.x = vtom(y);
+                targetPose.y = vtom(x);
                 operationStatus = WaitingForTargetAngle;
             }
             break;
         }
         case WaitingForTargetAngle: {
             if (event == CV_EVENT_LBUTTONUP) {
-                targetPose.ang = atan2(x - targetPose.y, y - targetPose.x);
+                targetPose.ang = atan2(
+                    vtom(x) - targetPose.y,
+                    vtom(y) - targetPose.x);
                 operationStatus = Planning;
             }
             break;
@@ -149,13 +150,14 @@ void show_curvature_graph(PathPlanner* planner) {
 void draw_planner_map(PathPlanner* planner, cv::Mat& view) {
     int costs[MAX_ROW][MAX_COL] = {0};
     planner->getCostMaps(costs);
-    for (int i = 0; i < MAX_ROW; ++i)
-        for (int j = 0; j < MAX_COL; ++j) {
-            if (costs[i][j] == 0) continue;
-            double rel_cost = min(costs[i][j] / 50.0, 1.0);
-            view.at<cv::Vec3b>(i, j) = cv::Vec3b(
-                100 * (1 - rel_cost) + 100,
-                100 * (1 - rel_cost) + 100, 255);
+    for (int i = 0; i < view.rows; ++i)
+        for (int j = 0; j < view.cols; ++j) {
+            int costs_value = costs[vtom(i)][vtom(j)];
+            if (costs_value == 0) continue;
+            double rel_cost = min(costs_value / 100.0, 0.4);
+            cv::Vec3b& v = view.at<cv::Vec3b>(i, j);
+            v[1] *= (1 - rel_cost);
+            v[2] *= (1 - rel_cost);
         }
 
     // draw results
@@ -164,32 +166,38 @@ void draw_planner_map(PathPlanner* planner, cv::Mat& view) {
     int t = 0;
     for(auto& path : res) {
         for(auto& p : path.path) {
-            int i = round(p.x), j = round(p.y);
+            int i = mtov(lround(p.x));
+            int j = mtov(lround(p.y));
             view.at<cv::Vec3b>(i, j) = cv::Vec3b(64, 100, 0);
-            t = (t + 1) % 10;
-            if (t == 0) {
+            t = ++t;
+            if (t % 4 == 0 || t == 0 || t >= path.path.size()) {
                 Point2f vertices[4];
+                double d = (CAR_LENGTH / 2 - CAR_FRONT_AXLE_TO_HEAD) / GRID_RESOLUTION;
+                double new_x = p.x - d * cos(p.ang);
+                double new_y = p.y - d * sin(p.ang);
                 cv::RotatedRect(
-                    Point2f(p.y, p.x),
-                    Size2f(CAR_LENGTH / GRID_RESOLUTION,
-                        CAR_WIDTH / GRID_RESOLUTION),
+                    Point2f(mtov(new_y), mtov(new_x)),
+                    Size2f(mtov(CAR_LENGTH / GRID_RESOLUTION),
+                        mtov(CAR_WIDTH / GRID_RESOLUTION)),
                     (M_PI_2 - p.ang) * 180.0 / M_PI).points(vertices);
-                for (int k = 0; k < 4; ++k)
+                for (int k = 0; k < 4; ++k) {
+                    int l =  t * 240 / path.path.size();
                     line(view, vertices[k], vertices[(k + 1) % 4],
-                        Scalar(128, 200, 0));
+                        Scalar(0, 200, 128));
+                }
             }
         }
     }
     // draw target pose
     cv::arrowedLine(view,
-        cv::Point(targetPose.y, targetPose.x),
-        cv::Point(targetPose.y + 20 * sin(targetPose.ang),
-            targetPose.x + 20 * cos(targetPose.ang)),
+        mtov(cv::Point(targetPose.y, targetPose.x)),
+        mtov(cv::Point(targetPose.y + 20 * sin(targetPose.ang),
+            targetPose.x + 20 * cos(targetPose.ang))),
         cv::Scalar(0, 200, 0), 2, 8, 0, 0.3);
     // draw start pose
     cv::arrowedLine(view,
-        cv::Point(CAR_CEN_COL, CAR_CEN_ROW),
-        cv::Point(CAR_CEN_COL, CAR_CEN_ROW - 20),
+        mtov(cv::Point(CAR_CEN_COL, CAR_CEN_ROW)),
+        mtov(cv::Point(CAR_CEN_COL, CAR_CEN_ROW - 20)),
         cv::Scalar(0, 0, 200), 2, 8, 0, 0.3);
 }
 
@@ -231,6 +239,7 @@ int main(int argc, char** argv){
     PathPlanner* planner = PathPlanner::getInstance();
     cv::namedWindow("PathPlanner Test");
     cv::setMouseCallback("PathPlanner Test", on_mouse);
+    cout << "DPI scale: " << mtov(1.0) << "x" << endl;
     cv::Mat map_image = cv::imread(map_file_path);
     cv::resize(map_image, map_image, cv::Size(MAX_COL, MAX_ROW));
     double safe_map[MAX_ROW][MAX_COL] = {0};
@@ -240,6 +249,7 @@ int main(int argc, char** argv){
                 safe_map[i][j] = 0;
             else safe_map[i][j] = 1e8;
     generate_safe_map(safe_map);
+    cv::resize(map_image, map_image, cv::Size(mtov(MAX_COL), mtov(MAX_ROW)));
     cv::imshow("PathPlanner Test", map_image);
     while (true) {
         while (operationStatus != Planning) cv::waitKey(30);
@@ -252,13 +262,14 @@ int main(int argc, char** argv){
         planner->setTargets(vector<TiEV::Pose>(1, targetPose));
         planner->plan();
 
-        cv::Mat view_image = cv::Mat::zeros(MAX_ROW, MAX_COL, CV_8UC3);
+        cv::Mat view_image = cv::Mat::zeros(mtov(MAX_ROW), mtov(MAX_COL), CV_8UC3);
         view_image = cv::Scalar(255, 255, 255);
-        for(int i = 0; i < MAX_ROW; ++i)
-            for(int j = 0; j < MAX_COL; ++j) {
-                if (safe_map[i][j] == 0.0)
+        for(int i = 0; i < view_image.rows; ++i)
+            for(int j = 0; j < view_image.cols; ++j) {
+                double safe_value = safe_map[vtom(i)][vtom(j)];
+                if (safe_value == 0.0)
                     view_image.at<cv::Vec3b>(i, j) = Vec3b(0, 0, 0);
-                else if (safe_map[i][j] <= COLLISION_CIRCLE_SMALL_R / GRID_RESOLUTION)
+                else if (safe_value <= COLLISION_CIRCLE_SMALL_R / GRID_RESOLUTION)
                     view_image.at<cv::Vec3b>(i, j) = Vec3b(200, 245, 255);
             }
         draw_planner_map(planner, view_image);

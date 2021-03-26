@@ -127,7 +127,8 @@ namespace TiEV {
                         )); // v_t = v_0 + at = \sqrt{{v_0}^2 + 2as}
                         double cost_factor =
                             (end_state.is_backward ? BACKWARD_COST_FACTOR : 1.0) *
-                            (1.0 + base->get_maximum_curvature());
+                            (1.0 + CURVATURE_PUNISHMENT_FACTOR * max(0.0, base->
+                                get_maximum_curvature() - MIN_CURVATURE_TO_PUNISH));
                         double cost = current.cost + base->get_length() * cost_factor;
                         double dis_after_reverse = base->get_length() +
                             reversed_expansion ? 0.0 : current.dis_after_reverse;
@@ -243,18 +244,24 @@ namespace TiEV {
             provider = &dubins;
         }
 
-        astate tmp_state;
-        while (provider->get_next_state(tmp_state)) {
-            if(planning_map.is_in_map(tmp_state) &&
-                !planning_map.is_crashed(tmp_state)) {
-                analytic_expansion_result.push_back(tmp_state);
-            } else {
-                analytic_expansion_result.clear();
-                return false;
+        double safe_distance = state.s - 1.0;
+        while (provider->get_next_state(analytic_expansion_result.emplace_back())) {
+            const astate& back_state = analytic_expansion_result.back();
+
+            if (planning_map.is_in_map(back_state)) {
+                if (back_state.s <= safe_distance) continue;
+                else if (!planning_map.is_crashed(back_state)) {
+                    safe_distance = back_state.s + planning_map.
+                        get_maximum_safe_distance(back_state);
+                    continue;
+                }
             }
+
+            analytic_expansion_result.clear();
+            return false;
         }
 
-        if (analytic_expansion_result.empty()) return false;
-        else return true;
+        analytic_expansion_result.pop_back();
+        return true;
     }
 }

@@ -34,14 +34,12 @@ namespace TiEV {
 
     bool PathPlanner::local_planning_map::is_crashed(primitive& prim) const {
         if (!is_in_map(prim.get_end_state())) return true;
-        double safe_distance = get_maximum_safe_distance(
-            prim.get_start_state());
+        double safe_distance = get_maximum_safe_distance(prim.get_start_state());
         if (prim.get_length() < safe_distance) return false;
         for (const auto& state : prim.get_states()) {
             if (state.s <= safe_distance) continue;
             else if (is_crashed(state)) return true;
-            else safe_distance = state.s +
-                get_maximum_safe_distance(state);
+            else safe_distance = state.s + get_maximum_safe_distance(state);
         }
         return false;
     }
@@ -218,8 +216,7 @@ namespace TiEV {
 
     double PathPlanner::local_planning_map::
         get_maximum_safe_distance(const astate& state) const {
-        int dis_x = lround(state.x), dis_y = lround(state.y);
-        double dis = safe_map[dis_x][dis_y] - sqrt(2);
-        return dis - COLLISION_CIRCLE_BIG_R / GRID_RESOLUTION;
+        return safe_map[lround(state.x)][lround(state.y)] -
+            M_SQRT2 - COLLISION_CIRCLE_BIG_R / GRID_RESOLUTION;
     }
 }
