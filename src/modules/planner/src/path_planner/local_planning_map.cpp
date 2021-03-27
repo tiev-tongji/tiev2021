@@ -216,7 +216,7 @@ namespace TiEV {
 
     double PathPlanner::local_planning_map::
         get_maximum_safe_distance(const astate& state) const {
-        return safe_map[lround(state.x)][lround(state.y)] -
-            M_SQRT2 - COLLISION_CIRCLE_BIG_R / GRID_RESOLUTION;
+        return max(safe_map[lround(state.x)][lround(state.y)] * M_SQRT1_2 -
+            M_SQRT2 - COLLISION_CIRCLE_BIG_R / GRID_RESOLUTION, 0.0);
     }
 }

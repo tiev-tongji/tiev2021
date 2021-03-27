@@ -161,58 +161,52 @@ private:
     class base_primitive {
         public:
             base_primitive(const vector<astate>& sampled_states);
-            const vector<astate>& get_states() const;
-            double get_length() const;
-            double get_maximum_curvature() const;
+            const vector<astate>& get_states() const { return sampled_states; }
+            double get_length() const { return length; }
+            double get_maximum_curvature() const { return max_curvature; }
+            double get_average_curvature() const { return average_curvature; }
+            bool get_is_backward() const { return is_backward; }
+            static constexpr double PRIMITIVE_SAMPLING_STEP = 0.2 / GRID_RESOLUTION;
 
         protected:
             static vector<astate> generate_line(
                 double length,
-                double sampling_step,
                 bool is_backward);
             static vector<astate> generate_arc(
                 double curvature,
-                bool is_backward,
                 double length,
-                double sampling_step);
+                bool is_backward);
             static vector<astate> generate_clothoid(
                 double begin_curvature,
                 double end_curvature,
                 double length,
-                double sampling_step,
                 bool is_backward);
 
         private:
             vector<astate> sampled_states;
+            double length;
             double max_curvature;
+            double average_curvature;
+            bool is_backward;
     };
 
     class arc_base_primitive : public base_primitive {
         public:
             arc_base_primitive(
                 double curvature,
-                bool is_backward,
                 double length,
-                double sampling_step);
+                bool is_backward);
             double get_curvature() const { return curvature; }
-            bool get_is_backward() const { return is_backward; }
 
         private:
-            bool curvature;
-            bool is_backward;
-            double sampling_step;
+            double curvature;
     };
 
     class line_base_primitive : public base_primitive {
         public:
             line_base_primitive(
                 double length,
-                double sampling_step,
                 bool is_backward);
-        private:
-            double length;
-            double sampling_step;
-            bool is_backward;
     };
 
     class clothoid_base_primitive : public base_primitive {
@@ -221,22 +215,18 @@ private:
                 double begin_curvature,
                 double end_curvature,
                 double length,
-                double sampling_step,
                 bool is_backward);
             double get_begin_curvature() const { return begin_curvature; }
             double get_end_curvature() const { return end_curvature; }
         private:
             double begin_curvature;
             double end_curvature;
-            double sampling_step;
-            bool is_backward;
     };
 
     class base_primitive_set {
         public:
             virtual const vector<const base_primitive*>& get_nexts(const astate& state) const = 0;
             virtual const vector<const base_primitive*>& get_nexts(const primitive& primitive) const = 0;
-            virtual double get_sampling_step_size() const = 0;
     };
 
     class arc_base_primitive_set : public base_primitive_set {
@@ -244,7 +234,6 @@ private:
             arc_base_primitive_set();
             virtual const vector<const base_primitive*>& get_nexts(const astate& state) const;
             virtual const vector<const base_primitive*>& get_nexts(const primitive& primitive) const;
-            virtual double get_sampling_step_size() const;
         private:
             vector<arc_base_primitive> primitives;
             vector<vector<const base_primitive*>> nexts;
@@ -255,11 +244,9 @@ private:
             clothoid_base_primitive_set();
             virtual const vector<const base_primitive*>& get_nexts(const astate& state) const;
             virtual const vector<const base_primitive*>& get_nexts(const primitive& primitive) const;
-            virtual double get_sampling_step_size() const;
         private:
             vector<clothoid_base_primitive> primitives;
             vector<vector<const base_primitive*>> nexts;
-
     } clothoid_base_primitives;
 
     class primitive {
@@ -294,33 +281,37 @@ private:
     class analytic_expansion_provider {
     public:
         virtual bool get_next_state(astate& output_state) = 0;
+        static constexpr double ANALYTIC_EXPANSION_SAMPLING_STEP = 0.2 / GRID_RESOLUTION;
     };
 
     class dubins_provider : public analytic_expansion_provider {
     public:
-        dubins_provider() {}
-        dubins_provider(
-            const astate& _start_state, const astate& _end_state,
-            double _curvature, double _step);
+        void prepare(
+            const astate& _start_state,
+            const astate& _end_state,
+            double _max_curvature);
         virtual bool get_next_state(astate& output_state);
     private:
         astate start_state, end_state;
-        double curvature, step, target_length;
-        double current_step, last_a;
+        int current_step, total_steps;
+        double max_curvature, target_length;
+        double last_a;
         DubinsPath target_path;
     };
 
     class reeds_shepp_provider : public analytic_expansion_provider {
     public:
         reeds_shepp_provider() : rs_space(1.0) {}
-        reeds_shepp_provider(
-            const astate& _start_state, const astate& _end_state,
-            double _curvature, double _step);
+        void prepare(
+            const astate& _start_state,
+            const astate& _end_state,
+            double _max_curvature);
         virtual bool get_next_state(astate& output_state);
     private:
         astate start_state, end_state;
-        double curvature, step, target_length;
-        double current_step, last_a;
+        int current_step, total_steps;
+        double max_curvature, target_length;
+        double last_a;
         ReedsSheppStateSpace rs_space;
         ReedsSheppStateSpace::ReedsSheppPath target_path;
     };

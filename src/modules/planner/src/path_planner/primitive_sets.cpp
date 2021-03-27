@@ -10,11 +10,11 @@ constexpr int curvature_num = sizeof(curvatures) / sizeof(curvatures[0]);
 
     PathPlanner::arc_base_primitive_set::arc_base_primitive_set() {
         // generate arcs
-#define def_arc(curvature_m, length_m, backward)\
-        primitives.emplace_back(\
-        (curvature_m * GRID_RESOLUTION),\
-        backward, (length_m / GRID_RESOLUTION),\
-        (0.2 / GRID_RESOLUTION))
+        #define def_arc(curvature_m, length_m, backward)\
+            primitives.emplace_back(\
+            (curvature_m * GRID_RESOLUTION),\
+            (length_m / GRID_RESOLUTION),\
+            backward)
 
         vector<double> arc_curvatures(begin(curvatures), end(curvatures));
         arc_curvatures.emplace_back(0.0);
@@ -38,11 +38,12 @@ constexpr int curvature_num = sizeof(curvatures) / sizeof(curvatures[0]);
                     nexts[i].emplace_back(&primitives[j]);
             }
         }
+
+        #undef def_arc
     }
 
     const vector<const PathPlanner::base_primitive*>&
-        PathPlanner::arc_base_primitive_set::get_nexts(
-            const astate& state) const {
+        PathPlanner::arc_base_primitive_set::get_nexts(const astate& state) const {
         int min_idx = 0;
         double min_diff = abs(state.curvature - primitives[0].get_curvature()) +
             (state.is_backward ^ primitives[0].get_is_backward()) * 10;
@@ -57,18 +58,18 @@ constexpr int curvature_num = sizeof(curvatures) / sizeof(curvatures[0]);
         return nexts[min_idx];
     }
 
-    const vector<const PathPlanner::base_primitive*>& PathPlanner::arc_base_primitive_set::get_nexts(const primitive& primitive) const {
+    const vector<const PathPlanner::base_primitive*>&
+        PathPlanner::arc_base_primitive_set::get_nexts(const primitive& primitive) const {
         return nexts[((const arc_base_primitive*)primitive.get_base()) - &primitives[0]];
-    }
-
-    double PathPlanner::arc_base_primitive_set::get_sampling_step_size() const {
-        return 0.2 / GRID_RESOLUTION;
     }
 
     PathPlanner::clothoid_base_primitive_set::clothoid_base_primitive_set() {
         #define def_clothoid(start_k, end_k, length_m, is_backward)\
-            primitives.emplace_back(start_k * GRID_RESOLUTION, end_k * GRID_RESOLUTION,\
-                length_m / GRID_RESOLUTION, 0.2 / GRID_RESOLUTION, is_backward)
+            primitives.emplace_back(\
+                start_k * GRID_RESOLUTION,\
+                end_k * GRID_RESOLUTION,\
+                length_m / GRID_RESOLUTION,\
+                is_backward)
         vector<double> forward_curvatures(begin(curvatures), end(curvatures));
         forward_curvatures.emplace_back(0.0);
         for (int i = curvature_num - 1; i >= 0; --i)
@@ -77,8 +78,10 @@ constexpr int curvature_num = sizeof(curvatures) / sizeof(curvatures[0]);
             for (int di = 2; di >= -2; --di) {
                 int ti = i + di;
                 if (ti >= 0 || ti < forward_curvatures.size()) {
-                    def_clothoid(forward_curvatures[i],
-                        forward_curvatures[ti], 3.0, false);
+                    def_clothoid(
+                        forward_curvatures[i],
+                        forward_curvatures[ti],
+                        3.0, false);
                 }
             }
         }
@@ -92,6 +95,8 @@ constexpr int curvature_num = sizeof(curvatures) / sizeof(curvatures[0]);
                 }
             }
         }
+
+        #undef def_clothoid
     }
 
     const vector<const PathPlanner::base_primitive*>&
@@ -118,9 +123,4 @@ constexpr int curvature_num = sizeof(curvatures) / sizeof(curvatures[0]);
         clothoid_base_primitive_set::get_nexts(const primitive& primitive) const {
         return nexts[((const clothoid_base_primitive*)primitive.get_base()) - &primitives[0]];
     }
-
-    double PathPlanner::clothoid_base_primitive_set::get_sampling_step_size() const {
-        return 0.2 / GRID_RESOLUTION;
-    }
-
 }

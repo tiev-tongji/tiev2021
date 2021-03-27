@@ -4,6 +4,7 @@
 #include "planner_common/const.h"
 #include "planner_common/pose.h"
 #include "planner_common/collision_check.h"
+#include "log.h"
 #include <iostream>
 #include <termio.h>
 #include <thread>
@@ -78,40 +79,56 @@ void on_mouse(int event, int x, int y, int flags, void *ustc)
 }
 
 void generate_safe_map(double safe_map[MAX_ROW][MAX_COL]) {
+    constexpr double max_obstacle_distance =
+        COLLISION_CIRCLE_BIG_R / GRID_RESOLUTION * 2.0;
+    #define vec(a, b) {{a, b}, sqrt(a * a + b * b)}
+    constexpr pair<pair<int, int>, double> deltas[] = {
+                     vec(-2, -1),              vec(-2,  1),
+        vec(-1, -2), vec(-1, -1), vec(-1,  0), vec(-1,  1), vec(-1,  2),
+                     vec( 0, -1),              vec( 0,  1),
+        vec( 1, -2), vec( 1, -1), vec( 1,  0), vec( 1,  1), vec( 1,  2),
+                     vec( 2, -1),              vec( 2,  1),
+    };
+    constexpr int deltas_length = sizeof(deltas) / sizeof(deltas[0]);
+    #undef vec
+    time_t time_0 = getTimeStamp();
+    log(0, "generating safe map");
+    queue<pair<int, int>> que;
+    bool in_queue[MAX_ROW][MAX_COL] = { 0 };
     for (int row = 0; row < MAX_ROW; ++row)
         for (int column = 0; column < MAX_COL; ++column) {
-            if (safe_map[row][column] == 0.0) continue;
-            int start_r = (row == 0 || column == 0) ?
-                0 : max(max(safe_map[row - 1][column] - 1, 0.0),
-                max(safe_map[row][column - 1] - 1, 0.0)) / sqrt(2);
-            int end_r = min(50, max(max(row + 1, MAX_ROW - row),
-                max(column + 1, MAX_COL - column)));
-            double now_min_dis = end_r;
-            for (int r = start_r; r < end_r; ++r) {
-                int xs[] = { row - r, row - r, row + r, row + r };
-                int ys[] = { column - r, column + r, column + r, column - r };
-                constexpr int dxs[] = { 0, 1, 0, -1 };
-                constexpr int dys[] = { 1, 0, -1, 0 };
-                for (int i = 0; i < 2 * r; ++i) {
-                    for (int d = 0; d < 4; ++d) {
-                        if (xs[d] >= 0 && xs[d] < MAX_ROW &&
-                            ys[d] >= 0 && ys[d] < MAX_COL &&
-                            safe_map[xs[d]][ys[d]] == 0) {
-                            double dis = sqrt(
-                                (xs[d] - row) * (xs[d] - row) +
-                                (ys[d] - column) * (ys[d] - column));
-                            if (dis < now_min_dis) {
-                                now_min_dis = dis;
-                                end_r = ceil(now_min_dis);
-                            }
-                        }
-                        xs[d] += dxs[d];
-                        ys[d] += dys[d];
+            safe_map[row][column] = min(safe_map[row][column],
+                max_obstacle_distance);
+            if (safe_map[row][column] == 0.0) {
+                que.emplace(row, column);
+                in_queue[row][column] = true;
+            }
+        }
+    while (!que.empty()) {
+        auto& front = que.front();
+        int x = front.first, y = front.second;
+        que.pop();
+        in_queue[x][y] = false;
+        double safe_x_y = safe_map[x][y];
+        for (int i = 0; i < deltas_length; ++i) {
+            int tx = x + deltas[i].first.first;
+            int ty = y + deltas[i].first.second;
+            if (tx >= 0 && tx < MAX_ROW &&
+                ty >= 0 && ty < MAX_COL) {
+                double new_dis = safe_x_y + deltas[i].second;
+                if (safe_map[tx][ty] > new_dis) {
+                    safe_map[tx][ty] = new_dis;
+                    if (safe_map[tx][ty] <= max_obstacle_distance
+                        && !in_queue[tx][ty]) {
+                        que.emplace(tx, ty);
+                        in_queue[tx][ty] = true;
                     }
                 }
             }
-            safe_map[row][column] = now_min_dis;
         }
+    }
+
+    log(0, "safe map generated in ", (getTimeStamp() - time_0) / 1000.0, " ms");
 }
 
 void show_curvature_graph(PathPlanner* planner) {

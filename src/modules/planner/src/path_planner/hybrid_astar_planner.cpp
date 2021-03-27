@@ -128,7 +128,7 @@ namespace TiEV {
                         double cost_factor =
                             (end_state.is_backward ? BACKWARD_COST_FACTOR : 1.0) *
                             (1.0 + CURVATURE_PUNISHMENT_FACTOR * max(0.0, base->
-                                get_maximum_curvature() - MIN_CURVATURE_TO_PUNISH));
+                                get_average_curvature() - MIN_CURVATURE_TO_PUNISH));
                         double cost = current.cost + base->get_length() * cost_factor;
                         double dis_after_reverse = base->get_length() +
                             reversed_expansion ? 0.0 : current.dis_after_reverse;
@@ -237,10 +237,10 @@ namespace TiEV {
         analytic_expansion_provider* provider;
 
         if (is_backward_enabled) {
-            rs = reeds_shepp_provider(state, target_state, curvature, 1);
+            rs.prepare(state, target_state, curvature);
             provider = &rs;
         } else {
-            dubins = dubins_provider(state, target_state, curvature, 1);
+            dubins.prepare(state, target_state, curvature);
             provider = &dubins;
         }
 
