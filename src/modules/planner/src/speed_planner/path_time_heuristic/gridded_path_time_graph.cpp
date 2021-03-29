@@ -44,20 +44,10 @@ bool GriddedPathTimeGraph::Search(SpeedData* speed_data) {
         double                  t = 0.0;
         for(int i = 0; i < dp_st_config_.matrix_dimension_t(); i++, t += unit_t_) {
             SpeedPoint speed_point;
-            /*
-            if (i == 0) {
-                speed_point.set_s(0.0);
-            } else {
-                speed_point.set_s(std::max(speed_profile[i - 1].s(), init_point_.v * t + 0.5 * dp_st_config_.max_deceleration() * t * t));
-            }
-            */
-
-            /////
             speed_point.set_s(0.0);
             speed_point.set_v(0.0);
             speed_point.set_t(t);
 
-            // speed_point.set_v(max(0.0, init_point_.v + dp_st_config_.max_deceleration() * t));
             speed_point.set_a(0.0);
             speed_profile.emplace_back(speed_point);
         }
@@ -69,7 +59,6 @@ bool GriddedPathTimeGraph::Search(SpeedData* speed_data) {
         double t  = boundary.bottom_left_point().t();
         double bs = boundary.bottom_left_point().s();
         double us = boundary.upper_left_point().s();
-        // std::cout << "ST boundary starts at " << t << ' ';
 
         if(t > speed_data->TotalTime()) {
             boundary.set_boundary_type(STBoundary::BoundaryType::UNKNOWN);
@@ -77,23 +66,18 @@ bool GriddedPathTimeGraph::Search(SpeedData* speed_data) {
         }
         if(bs > speed_data->TotalLength()) {
             boundary.set_boundary_type(STBoundary::BoundaryType::YIELD);
-
-            // std::cout << "Boundary type: YIELD" << std::endl;
             continue;
         }
         double s_on_speed_data = speed_data->GetSByTime(t);
 
         if(s_on_speed_data > us) {  // st boundary beneath the speed profile
             boundary.set_boundary_type(STBoundary::BoundaryType::OVERTAKE);
-            // std::cout << "Boundary type: OVERTAKE" << std::endl;
         }
         else if(s_on_speed_data < bs) {  // st boundary above the speed profile
             boundary.set_boundary_type(STBoundary::BoundaryType::YIELD);
-            // std::cout << "Boundary type: YIELD" << std::endl;
         }
         else {
             boundary.set_boundary_type(STBoundary::BoundaryType::CAR_COLLISION);
-            // std::cout << "Boundary type: COLLISION" << std::endl;
         }
     }
     return true;
@@ -167,18 +151,12 @@ void GriddedPathTimeGraph::GetRowRange(const StGraphPoint& point, size_t* next_h
 
     const double delta_s_upper_bound = v0 * unit_t_ + 0.5 * dp_st_config_.max_acceleration() * speed_coeff;
 
-    // Debug(Charles Peng):
-    // std::cout << "Next upper bound(m): " << delta_s_upper_bound << ' ';
-
     *next_highest_row = point.index_s() + static_cast<int>(delta_s_upper_bound / unit_s_);
     if(*next_highest_row >= max_s_size) {
         *next_highest_row = max_s_size;
     }
 
     const double delta_s_lower_bound = v0 * unit_t_ + 0.5 * dp_st_config_.max_deceleration() * speed_coeff;
-
-    // Debug(Charles Peng):
-    // std::cout << "Next lower bound(m): " << delta_s_lower_bound << ' ' << std::endl;
 
     int nlr = static_cast<int>(point.index_s()) + static_cast<int>(delta_s_lower_bound / unit_s_);
     if(nlr > static_cast<int>(max_s_size)) {
@@ -238,10 +216,7 @@ void GriddedPathTimeGraph::CalculateCostAt(size_t c, size_t r) {
         return;
     }
 
-    // TODO(all): Set speed limit on the path
     const double speed_limit = speed_limit_.GetSpeedLimit(unit_s_ * r);
-    // const double speed_limit = 16; // Temporarily set
-
     // The cell is at the first column
     if(c == 1) {
         const double acc = (r * unit_s_ / unit_t_ - init_point_.v) / unit_t_;
@@ -270,7 +245,6 @@ void GriddedPathTimeGraph::CalculateCostAt(size_t c, size_t r) {
     double curr_speed_limit = speed_limit;
     if(c == 2) {
         for(size_t r_pre = r_low; r_pre <= r; ++r_pre) {
-            // TODO(all): Set speed limit
             curr_speed_limit = std::fmin(curr_speed_limit, speed_limit_.GetSpeedLimit(unit_s_ * r_pre));
             const double acc = (r * unit_s_ - 2 * r_pre * unit_s_) / (unit_t_ * unit_t_);
             if(acc < dp_st_config_.max_deceleration() || acc > dp_st_config_.max_acceleration()) {
@@ -301,7 +275,6 @@ void GriddedPathTimeGraph::CalculateCostAt(size_t c, size_t r) {
             continue;
         }
 
-        // TODO(all): Set speed limit
         curr_speed_limit    = std::fmin(curr_speed_limit, speed_limit_.GetSpeedLimit(unit_s_ * r_pre));
         const double curr_a = (cost_cr.index_s() * unit_s_ + pre_col[r_pre].pre_point()->index_s() * unit_s_ - 2 * pre_col[r_pre].index_s() * unit_s_) / (unit_t_ * unit_t_);
         if(curr_a > dp_st_config_.max_acceleration() || curr_a < dp_st_config_.max_deceleration()) {
@@ -353,14 +326,6 @@ bool GriddedPathTimeGraph::RetrieveSpeedProfile(SpeedData* speed_data) {
 
     for(const auto& row : cost_table_) {
         const StGraphPoint& cur_point = row.back();
-        /*
-        if (cur_point.total_cost() != std::numeric_limits<double>::infinity()) {
-            std::cout << cur_point.total_cost() << ' ';
-        } else {
-            std::cout << "INF" << ' ';
-        }
-        std::cout << std::endl;
-        */
         if(cur_point.total_cost() != std::numeric_limits<double>::infinity() && cur_point.total_cost() < min_cost) {
             best_end_point = &cur_point;
             min_cost       = cur_point.total_cost();
@@ -368,12 +333,8 @@ bool GriddedPathTimeGraph::RetrieveSpeedProfile(SpeedData* speed_data) {
     }
 
     if(best_end_point == nullptr) {
-        // std::cout << "RetrieveSpeedProfile: No best_end_point found!" << std::endl;
         return false;
     }
-
-    // std::cout << "Best end point: " << std::endl;
-    // std::cout << best_end_point->total_cost() << ' ' << best_end_point->st_point().s() << best_end_point->st_point().t() << std::endl;
 
     std::vector<SpeedPoint> speed_profile;
     const StGraphPoint*     cur_point = best_end_point;
@@ -389,7 +350,6 @@ bool GriddedPathTimeGraph::RetrieveSpeedProfile(SpeedData* speed_data) {
     // The first s-t point is not at the initial coordinate
     const double Eps = std::numeric_limits<double>::epsilon();
     if(speed_profile.front().t() > Eps || speed_profile.front().s() > Eps) {
-        // std::cout << "RetrieveSpeedProfile: The first s-t point is not at the initial coordinate!" << std::endl;
         return false;
     }
 
@@ -397,20 +357,7 @@ bool GriddedPathTimeGraph::RetrieveSpeedProfile(SpeedData* speed_data) {
         const double v = (speed_profile[i + 1].s() - speed_profile[i].s()) / (speed_profile[i + 1].t() - speed_profile[i].t());
         speed_profile[i].set_v(v);
     }
-    /*
-    size_t last_idx = speed_profile.size() - 1;
-    double delta_t = speed_profile[last_idx].t() - speed_profile[last_idx - 1].t();
-    double last_speed = speed_profile[last_idx - 1].v() + dp_st_config_.max_deceleration() * delta_t;
-    speed_profile.back().set_v(last_speed);
-    */
     speed_profile.back().set_v(0);
-    // Debug
-    /*
-    std::cout << "DP retrieved speed profile: " << std::endl;
-    for (const auto& point : speed_profile) {
-       std::cout << "s = " << point.s() << " t = " << point.t() << " v = " << point.v() << std::endl;
-    }
-    */
 
     *speed_data = SpeedData(speed_profile);
     return true;
