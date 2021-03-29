@@ -166,24 +166,19 @@ bool QpSpeedOptimizer::Process(PathTimeGraph& st_graph_data, const SpeedData& re
     spline_kernel->AddSecondOrderDerivativeMatrix(1000.0);
     spline_kernel->AddThirdOrderDerivativeMatrix(1000.0);
 
+    const double& last_v = speed_limit_.back().second; 
     std::vector<double> fx_guide;
-    /*
-    for (auto speedpoint : reference_dp_speed_points) {
-        fx_guide.emplace_back(speedpoint.s());
-    }
-    vector<double> x_guide;
-    for (size_t i = 0; i < fx_guide.size(); ++i) {
-        x_guide.push_back(t_knots_[i]);
-    }
-     */
+    std::cout << "reference speed s: ";
     for(size_t i = 0; i < t_knots_.size(); ++i) {
         if(i >= reference_dp_speed_points.size()) {
-            fx_guide.emplace_back(reference_dp_speed_points.back().s());
+            fx_guide.emplace_back(fx_guide[i - 1] + last_v * t_knots_resolution_);
         }
         else {
             fx_guide.emplace_back(reference_dp_speed_points[i].s());
         }
+        std::cout << fx_guide[i] << " ";
     }
+    std::cout << endl;
 
     if(!spline_kernel->AddReferenceLineKernelMatrix(t_knots_, fx_guide, 1000)) {
         std::cout << "Fail to add reference dp speed kernel!" << std::endl;
@@ -220,15 +215,6 @@ bool QpSpeedOptimizer::RetrieveSpeedData(SpeedData& speed_data) {
         relative_time += T_RESOLUTION;
     }
 
-    // Debug
-    /*
-    std::cout << "Some samples point from splines result: " << std::endl;
-    double t = 0.0;
-    for (int i = 0; i < 20; i ++) {
-        std::cout << "t = " << t << " s = " << splines_(t) <<  " v = " << splines_.Derivative(t) << std::endl;
-        t += 0.25;
-    }
-    */
     return true;
 }
 
