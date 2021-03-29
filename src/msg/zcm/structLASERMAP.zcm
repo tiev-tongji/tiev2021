@@ -10,5 +10,5 @@ struct  structLASERMAP
     int16_t cols;      //251
     int16_t center_col;//grid center coordinate 126
     int16_t center_row;//351
-    byte cells[501][251]; //501*251 = 60551 size; actual map data, 0x01 obstacle, 0x00 not obstacle 
+    byte cells[501][251]; //501*251 = 60551 size; actual map data, 0x02 dynamic obstacle, 0x01 obstacle, 0x00 not obstacle 
 }
