@@ -168,7 +168,6 @@ bool QpSpeedOptimizer::Process(PathTimeGraph& st_graph_data, const SpeedData& re
 
     const double& last_v = speed_limit_.back().second; 
     std::vector<double> fx_guide;
-    std::cout << "reference speed s: ";
     for(size_t i = 0; i < t_knots_.size(); ++i) {
         if(i >= reference_dp_speed_points.size()) {
             fx_guide.emplace_back(fx_guide[i - 1] + last_v * t_knots_resolution_);
@@ -176,9 +175,10 @@ bool QpSpeedOptimizer::Process(PathTimeGraph& st_graph_data, const SpeedData& re
         else {
             fx_guide.emplace_back(reference_dp_speed_points[i].s());
         }
-        std::cout << fx_guide[i] << " ";
+        if (i == 1) {
+            std::cout << "Debug first reference s = " << fx_guide[i] << std::endl;
+        }
     }
-    std::cout << endl;
 
     if(!spline_kernel->AddReferenceLineKernelMatrix(t_knots_, fx_guide, 1000)) {
         std::cout << "Fail to add reference dp speed kernel!" << std::endl;

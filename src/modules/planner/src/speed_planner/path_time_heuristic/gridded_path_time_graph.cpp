@@ -116,8 +116,12 @@ bool GriddedPathTimeGraph::CalculateTotalCost() {
         if(count > 0) {
             for(size_t r = next_lowest_row; r <= next_highest_row; r++) {
                 CalculateCostAt(c, r);
+                if (c == 1) {
+                    std::cout << "Debug: cost = " << cost_table_[c][r].total_cost() << " s = " << r * unit_s_ << std::endl;;
+                }
             }
         }
+
 
         for(size_t r = next_lowest_row; r <= next_highest_row; r++) {
             const auto& cost_cr = cost_table_[c][r];
@@ -128,6 +132,11 @@ bool GriddedPathTimeGraph::CalculateTotalCost() {
                 GetRowRange(cost_cr, &h_r, &l_r);
                 highest_row = std::max(highest_row, h_r);
                 lowest_row  = std::min(lowest_row, l_r);
+
+                if (c == 0) {
+                    std::cout << "highest s = " << highest_row * unit_s_ << std::endl;
+                }
+
             }
         }
         next_highest_row = highest_row;
@@ -262,7 +271,7 @@ void GriddedPathTimeGraph::CalculateCostAt(size_t c, size_t r) {
 
             double cost = cost_cr.obstacle_cost() + pre_col[r_pre].total_cost() + CalculateEdgeCostForThirdCol(r, r_pre, curr_speed_limit);
 
-            if(cost < cost_cr.total_cost()) {
+            if(cost <= cost_cr.total_cost()) {
                 cost_cr.SetTotalCost(cost);
                 cost_cr.SetPrePoint(pre_col[r_pre]);
             }
@@ -306,7 +315,7 @@ void GriddedPathTimeGraph::CalculateCostAt(size_t c, size_t r) {
 
         double cost = cost_cr.obstacle_cost() + pre_col[r_pre].total_cost() + CalculateEdgeCost(triple_pre_point, prepre_point, pre_point, curr_point, curr_speed_limit);
 
-        if(cost < cost_cr.total_cost()) {
+        if(cost <= cost_cr.total_cost()) {
             cost_cr.SetTotalCost(cost);
             cost_cr.SetPrePoint(pre_col[r_pre]);
         }
