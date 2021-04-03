@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package routing_service;
+
+service RoutingService {
+  rpc FindReferenceRoad(TaskPoints) returns (RefRoad) {}
+}
+
+//发送给服务器的任务点序列
+message TaskPoints {
+  bool blocked = 1;
+  message TaskPoint {
+    double lon = 1;
+    double lat = 2;
+  }
+  repeated TaskPoint task_point = 2;
+}
+
+//返回的路点信息
+message RefRoadPoint {
+  string id = 1;
+  string lon = 2;
+  string lat = 3;
+  string utmx = 4;
+  string utmy = 5;
+  string heading = 6;
+  string curv = 7;
+  string mode = 8;
+  string speed_mode = 9;
+  string event_mode = 10;
+  string opposite_side_mode = 11;
+  string lane_num = 12;
+  string lane_seq = 13;
+  string lane_width = 14;
+}
+
+//打包返回
+message RefRoad {
+  int32 time_cost = 1;
+  repeated RefRoadPoint point = 2;
+}

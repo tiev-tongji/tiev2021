@@ -7,6 +7,9 @@
 #include <string>
 #include <vector>
 
+#include <grpcpp/grpcpp.h>
+#include "routing_service.grpc.pb.h"
+
 /***********
  * 一次规划
 ***********/
@@ -57,6 +60,9 @@ private:
     std::string output;
     std::string connect_sql;
     std::string topo_name;
+
+    //gRPC stub for client
+    std::unique_ptr<RoutingService::Stub> stub;
 
     //将输入的task points转为sql array语句
     void Array2Str(const std::vector<Task>& task_points, std::string& array_x_str, std::string& array_y_str);
