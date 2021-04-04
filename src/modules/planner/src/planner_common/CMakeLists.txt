@@ -8,7 +8,7 @@ target_sources(planner_common PRIVATE
     tiev_utils.cpp
 )
 
-target_include_directories(planner_common PRIVATE
+target_include_directories(planner_common PUBLIC 
     ${CMAKE_SOURCE_DIR}/include/planner_common
     ${CMAKE_SOURCE_DIR}/third_party
 )

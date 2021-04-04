@@ -5,11 +5,11 @@ target_sources(visualization PRIVATE
     visualization.cpp
     visualization.h
 )
-target_include_directories(visualization PRIVATE
+target_include_directories(visualization PUBLIC 
     ${CMAKE_SOURCE_DIR}/include/visualization_msg
     ${OpenCV_INCLUDE_DIRS}
 )
-target_link_libraries(visualization PRIVATE 
+target_link_libraries(visualization PUBLIC 
     planner_common 
     speed_planner 
     zcm 
