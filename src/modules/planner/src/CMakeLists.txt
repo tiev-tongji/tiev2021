@@ -19,7 +19,6 @@ target_link_libraries(planner PUBLIC
     message_manager 
     routing 
     planner_common 
-    visualization
     coordinate_converter 
     zcm 
 )
