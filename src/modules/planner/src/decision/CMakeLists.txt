@@ -10,4 +10,5 @@ target_include_directories(decision PUBLIC
 )
 target_link_libraries(decision PUBLIC 
     map_manager
+    path_planner
 )
