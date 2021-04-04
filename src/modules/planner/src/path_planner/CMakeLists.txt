@@ -9,5 +9,6 @@ target_include_directories(path_planner PUBLIC
 )
 
 target_link_libraries(path_planner PUBLIC
+    message_manager
     planner_common
 )
