@@ -12,3 +12,7 @@ target_include_directories(map_manager PRIVATE
     ${CMAKE_SOURCE_DIR}/include/speed_planner
     ${CMAKE_SOURCE_DIR}/../../msg
 )
+
+target_link_libraries(map_manager PUBLIC 
+    message_manager
+)
