@@ -10,4 +10,5 @@ target_include_directories(map_manager PUBLIC
 
 target_link_libraries(map_manager PUBLIC 
     message_manager
+    routing
 )
