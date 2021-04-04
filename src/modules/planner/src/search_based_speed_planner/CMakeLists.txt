@@ -4,5 +4,5 @@ target_sources(search_based_speed_planner PRIVATE
    speed_planner.h
 )
 target_include_directories(search_based_speed_planner PRIVATE
-    ${CMAKE_SRC_DIR}/include/planner_common
+    ${CMAKE_SOURCE_DIR}/include/planner_common
 )
