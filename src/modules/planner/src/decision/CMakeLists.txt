@@ -8,6 +8,6 @@ target_sources(decision PRIVATE
 target_include_directories(decision PUBLIC 
     ${CMAKE_SOURCE_DIR}/include/decision
 )
-target_link_directories(decision PUBLIC 
+target_link_libraries(decision PUBLIC 
     map_manager
 )
