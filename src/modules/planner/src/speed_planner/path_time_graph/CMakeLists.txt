@@ -8,3 +8,6 @@ target_sources(path_time_graph PRIVATE
 target_include_directories(path_time_graph PUBLIC 
     ${CMAKE_SOURCE_DIR}/include/speed_planner
 )
+target_link_libraries(path_time_graph PUBLIC
+    planner_common
+)
