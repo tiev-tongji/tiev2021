@@ -1,5 +1,9 @@
-set(path_time_heuristic ${path_time_heuristic} dp_st_cost.cpp)
-set(path_time_heuristic ${path_time_heuristic} gridded_path_time_graph.cpp)
-set(path_time_heuristic ${path_time_heuristic} st_graph_point.cpp)
-
-add_library(path_time_heuristic ${path_time_heuristic})
+add_library(path_time_heuristic SHARED "")
+target_sources(path_time_heuristic PRIVATE
+    dp_st_cost.cpp
+    gridded_path_time_graph.cpp
+    st_graph_point.cpp
+)
+target_include_directories(path_time_heuristic PRIVATE
+    ${CMAKE_SRC_DIR}/include/speed_planner
+)

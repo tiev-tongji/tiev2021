@@ -1,4 +1,9 @@
-set(speed_src ${speed_src} speed_data.cpp)
-set(speed_src ${speed_src} speed_limit.cpp)
+add_library(speed SHARED "")
+target_sources(speed PRIVATE
+    speed_data.cpp
+    speed_limit.cpp
+)
+target_include_directories(speed PRIVATE
+    ${CMAKE_SRC_DIR}/include/speed_planner
+)
 
-add_library(speed ${speed_src})

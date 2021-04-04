@@ -1,4 +1,17 @@
 add_subdirectory(look_up_tables)
-aux_source_directory(. SRC_DIR)
-add_library(planner_common ${SRC_DIR})
-target_link_libraries(planner_common distance_table)
+
+add_library(planner_common SHARED "")
+
+target_sources(planner_common PRIVATE
+    collision_check.cpp
+    config.cpp
+    tiev_utils.cpp
+)
+
+target_include_directories(planner_common PRIVATE
+    ${CMAKE_SOURCE_DIR}/include/planner_common
+)
+
+target_link_libraries(planner_common PUBLIC
+    distance_table
+)

@@ -1,3 +1,9 @@
-aux_source_directory(. SRC_DIR)
+add_library(map_manager SHARED "")
 
-add_library(map_manager ${SRC_DIR})
+target_sources(map_manager PRIVATE 
+    map_manager.cpp
+)
+
+target_include_directories(map_manager PRIVATE 
+    ${CMAKE_SOURCE_DIR}/include/map_manager
+)
