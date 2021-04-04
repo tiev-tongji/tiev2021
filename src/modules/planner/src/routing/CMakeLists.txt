@@ -1,4 +1,4 @@
-add_library(routing SHARED "")
+add_library(routing STATIC "")
 target_sources(routing PRIVATE
     Routing.cpp
 )
