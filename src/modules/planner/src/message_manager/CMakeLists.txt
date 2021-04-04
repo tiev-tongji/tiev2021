@@ -9,5 +9,5 @@ target_include_directories(message_manager PRIVATE
     ${CMAKE_SOURCE_DIR}/include/planner_common
     ${CMAKE_SOURCE_DIR}/include/visualization_msg
     ${CMAKE_SOURCE_DIR}/include/speed_planner
-    ../../${CMAKE_SOURCE_DIR}/msg
+    ${CMAKE_SOURCE_DIR}/../../msg
 )
