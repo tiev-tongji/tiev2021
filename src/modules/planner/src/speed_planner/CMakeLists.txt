@@ -11,7 +11,7 @@ add_library(speed_planner SHARED "")
 target_sources(speed_planner PRIVATE
     speed_optimizer.cpp
 )
-target_include_directories(speed_planner PRIVATE
+target_include_directories(speed_planner PUBLIC 
     ${CMAKE_SOURCE_DIR}/include/speed_planner
 )
 target_link_libraries(speed_planner PRIVATE 
