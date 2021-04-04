@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/obstacle.h"
+#include "obstacle.h"
 #include "math/box.h"
 #include "math/sl_boundary.h"
 #include "st_boundary.h"

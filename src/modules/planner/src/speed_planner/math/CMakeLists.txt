@@ -4,6 +4,9 @@ target_sources(math PRIVATE
     path_matcher.cpp
     box.cpp
 )
-target_include_directories(math PRIVATE
-    ${CMAKE_SRC_DIR}/include/speed_planner
+target_include_directories(math PUBLIC 
+    ${CMAKE_SOURCE_DIR}/include/speed_planner
+)
+target_link_libraries(math PUBLIC
+    planner_common
 )

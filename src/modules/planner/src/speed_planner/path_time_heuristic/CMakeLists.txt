@@ -4,6 +4,9 @@ target_sources(path_time_heuristic PRIVATE
     gridded_path_time_graph.cpp
     st_graph_point.cpp
 )
-target_include_directories(path_time_heuristic PRIVATE
-    ${CMAKE_SRC_DIR}/include/speed_planner
+target_include_directories(path_time_heuristic PUBLIC 
+    ${CMAKE_SOURCE_DIR}/include/speed_planner
+)
+target_link_libraries(path_time_heuristic PUBLIC
+    planner_common
 )
