@@ -1,4 +1,17 @@
 find_package(OpenCV REQUIRED)
-include_directories( ${OpenCV_INCLUDE_DIRS} )
-add_executable(visualization main.cpp visualization.cpp)
-target_link_libraries(visualization planner_common speed_planner zcm ${OpenCV_LIBS})
+add_executable(visualization "")
+target_sources(visualization PRIVATE
+    main.cpp 
+    visualization.cpp
+    visualization.h
+)
+target_include_directories(visualization PRIVATE
+    ${CMAKE_SRC_DIR}/include/visualization_msg
+    ${OpenCV_INCLUDE_DIRS}
+}
+target_link_libraries(visualization PRIVATE 
+    planner_common 
+    speed_planner 
+    zcm 
+    ${OpenCV_LIBS}
+)
