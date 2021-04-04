@@ -15,7 +15,8 @@ target_include_directories(qp_spline_speed_optimizer PUBLIC
     ${osqp_INCLUDE_DIRS}
     ${Eigen3_INCLUDE_DIRS}
 )
-target_link_libraries(qp_spline_speed_optimizer PRIVATE 
+target_link_libraries(qp_spline_speed_optimizer PUBLIC 
+    planner_common
     osqp::osqp 
     Eigen3::Eigen
 )
