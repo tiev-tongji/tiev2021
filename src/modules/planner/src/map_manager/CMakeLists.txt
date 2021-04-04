@@ -1,4 +1,4 @@
-add_library(map_manager SHARED "")
+add_library(map_manager STATIC "")
 
 target_sources(map_manager PRIVATE 
     map_manager.cpp
