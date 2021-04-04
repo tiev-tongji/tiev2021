@@ -2,7 +2,6 @@ add_library(message_manager SHARED "")
 
 target_sources(message_manager PRIVATE 
     message_manager.cpp 
-    message_manager.h
 )
 
 target_include_directories(message_manager PRIVATE 
