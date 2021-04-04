@@ -10,7 +10,7 @@ target_sources(planner_common PRIVATE
 
 target_include_directories(planner_common PRIVATE
     ${CMAKE_SOURCE_DIR}/include/planner_common
-    ${CMAKE_SOURCE_DIR}/src/third_party
+    ${CMAKE_SOURCE_DIR}/third_party
 )
 
 target_link_libraries(planner_common PUBLIC
