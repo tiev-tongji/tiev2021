@@ -1,6 +1,3 @@
-set(path_planner_src "path_planner.cpp")
-add_library(path_planner ${path_planner_src})
-
 add_library(path_planner SHARED "")
 
 target_sources(path_planner PRIVATE

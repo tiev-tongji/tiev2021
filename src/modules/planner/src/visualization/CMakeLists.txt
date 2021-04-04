@@ -8,7 +8,7 @@ target_sources(visualization PRIVATE
 target_include_directories(visualization PRIVATE
     ${CMAKE_SRC_DIR}/include/visualization_msg
     ${OpenCV_INCLUDE_DIRS}
-}
+)
 target_link_libraries(visualization PRIVATE 
     planner_common 
     speed_planner 
