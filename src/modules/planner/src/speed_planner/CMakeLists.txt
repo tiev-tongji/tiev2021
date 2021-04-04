@@ -13,6 +13,7 @@ target_sources(speed_planner PRIVATE
 )
 target_include_directories(speed_planner PUBLIC 
     ${CMAKE_SOURCE_DIR}/include/speed_planner
+    ${CMAKE_SOURCE_DIR}/include/planner_common
 )
 target_link_libraries(speed_planner PUBLIC 
     path_time_heuristic 
