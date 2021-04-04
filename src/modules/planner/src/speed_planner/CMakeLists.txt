@@ -21,4 +21,5 @@ target_link_libraries(speed_planner PUBLIC
     speed 
     math 
     splines
+    planner_common
 )
