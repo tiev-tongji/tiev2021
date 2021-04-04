@@ -13,7 +13,7 @@ target_link_libraries(distance_table PRIVATE
     dubins
 )
 
-add_executable(generate_tables PRIVATE 
+add_executable(generate_tables
     generate_tables.cpp
 )
 target_include_directories(generate_tables PRIVATE
