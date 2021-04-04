@@ -10,4 +10,5 @@ target_include_directories(map_manager PRIVATE
     ${CMAKE_SOURCE_DIR}/include/planner_common
     ${CMAKE_SOURCE_DIR}/include/message_manager
     ${CMAKE_SOURCE_DIR}/include/speed_planner
+    ${CMAKE_SOURCE_DIR}/../../msg
 )
