@@ -12,6 +12,7 @@ target_include_directories(visualization PUBLIC
 target_link_libraries(visualization PUBLIC 
     planner_common 
     speed_planner 
+    message_manager
     zcm 
     ${OpenCV_LIBS}
 )
