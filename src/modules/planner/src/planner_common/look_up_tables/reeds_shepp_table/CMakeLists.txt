@@ -4,5 +4,5 @@ target_sources(reeds_shepp PRIVATE
     reeds_shepp.cpp
 )
 target_include_directories(reeds_shepp PRIVATE
-    ${CMAKE_SRC_DIR}/include/planner_common
+    ${CMAKE_SOURCE_DIR}/include/planner_common
 )

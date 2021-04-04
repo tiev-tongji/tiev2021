@@ -6,5 +6,5 @@ target_sources(path_time_graph PRIVATE
     st_point.cpp
 )
 target_include_directories(path_time_graph PRIVATE
-    ${CMAKE_SRC_DIR}/include/speed_planner
+    ${CMAKE_SOURCE_DIR}/include/speed_planner
 )

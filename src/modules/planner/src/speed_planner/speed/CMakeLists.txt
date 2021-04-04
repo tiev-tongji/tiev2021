@@ -4,6 +4,6 @@ target_sources(speed PRIVATE
     speed_limit.cpp
 )
 target_include_directories(speed PRIVATE
-    ${CMAKE_SRC_DIR}/include/speed_planner
+    ${CMAKE_SOURCE_DIR}/include/speed_planner
 )
 

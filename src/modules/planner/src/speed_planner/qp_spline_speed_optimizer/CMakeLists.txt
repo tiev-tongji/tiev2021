@@ -11,7 +11,7 @@ target_sources(qp_spline_speed_optimizer PRIVATE
     spline_1d_constraint.cpp
 )
 target_include_directories(qp_spline_speed_optimizer PRIVATE
-    ${CMAKE_SRC_DIR}/include/speed_planner
+    ${CMAKE_SOURCE_DIR}/include/speed_planner
     ${osqp_INCLUDE_DIRS}
     ${Eigen3_INCLUDE_DIRS}
 )

@@ -12,7 +12,7 @@ target_sources(speed_planner PRIVATE
     speed_optimizer.cpp
 )
 target_include_directories(speed_planner PRIVATE
-    ${CMAKE_SRC_DIR}/include/speed_planner
+    ${CMAKE_SOURCE_DIR}/include/speed_planner
 )
 target_link_libraries(speed_planner PRIVATE 
     path_time_heuristic 

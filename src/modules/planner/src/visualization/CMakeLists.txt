@@ -6,7 +6,7 @@ target_sources(visualization PRIVATE
     visualization.h
 )
 target_include_directories(visualization PRIVATE
-    ${CMAKE_SRC_DIR}/include/visualization_msg
+    ${CMAKE_SOURCE_DIR}/include/visualization_msg
     ${OpenCV_INCLUDE_DIRS}
 )
 target_link_libraries(visualization PRIVATE 

@@ -3,7 +3,7 @@ target_sources(routing PRIVATE
     Routing.cpp
 )
 target_include_directories(routing PRIVATE
-    ${CMAKE_SRC_DIR}/include/routing
+    ${CMAKE_SOURCE_DIR}/include/routing
 )
 target_link_libraries(routing PRIVATE
     pqxx 

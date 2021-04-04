@@ -4,7 +4,7 @@ target_sources(dubins PRIVATE
     dubins_table_helper.cpp
 )
 target_include_directories(dubins PRIVATE
-    ${CMAKE_SRC_DIR}/include/planner_common
+    ${CMAKE_SOURCE_DIR}/include/planner_common
 )
 
 

@@ -5,5 +5,5 @@ target_sources(math PRIVATE
     box.cpp
 )
 target_include_directories(math PRIVATE
-    ${CMAKE_SRC_DIR}/include/speed_planner
+    ${CMAKE_SOURCE_DIR}/include/speed_planner
 )
