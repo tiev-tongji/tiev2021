@@ -72,9 +72,6 @@ Pose InterpolateUsingLinearApproximationWithS(const Pose& p0, const Pose& p1, co
     path_point.k   = kappa;
     path_point.s   = s;
 
-    // Debug
-    // std::cout << "Projecetd point(x, y, theta, s): " << x << ' ' << y << ' ' << theta << ' ' << s << std::endl;
-
     return path_point;
 }
 }
