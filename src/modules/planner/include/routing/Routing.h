@@ -62,7 +62,7 @@ private:
     std::string topo_name;
 
     //gRPC stub for client
-    std::unique_ptr<RoutingService::Stub> stub;
+    std::unique_ptr<routing_service::RoutingService::Stub> stub;
 
     //将输入的task points转为sql array语句
     void Array2Str(const std::vector<Task>& task_points, std::string& array_x_str, std::string& array_y_str);

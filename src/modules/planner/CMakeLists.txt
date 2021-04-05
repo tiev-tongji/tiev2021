@@ -3,7 +3,7 @@ project(planner)
 
 # set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_BUILD_TYPE "Release")
-set(CMAKE_CXX_COMPILER g++)
+set(CMAKE_CXX_COMPILER /usr/bin/g++)
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
 if(COMPILER_SUPPORTS_CXX17)
@@ -25,6 +25,7 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/include/visualization_msg
     ${PROJECT_SOURCE_DIR}/include/routing
     ${PROJECT_SOURCE_DIR}/third_party
+    ${PROJECT_SOURCE_DIR}/src/protos
 )
 
 add_subdirectory(third_party/coordinate_converter)

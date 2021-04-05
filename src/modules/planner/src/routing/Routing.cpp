@@ -33,7 +33,7 @@ Routing::Routing() {
     output      = Config::getInstance()->output;
     topo_name   = Config::getInstance()->topo_name;
     stub        = unique_ptr<RoutingService::Stub>(RoutingService::NewStub(
-      grpc::CreateChannel(host+":"+port, grpc::InsecureChannelCredentials()));
+      grpc::CreateChannel(host+":"+port, grpc::InsecureChannelCredentials())));
 }
 
 Routing::~Routing() {}
@@ -49,8 +49,8 @@ int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path, const std::
     request.set_blocked(blocked);
     for(const auto& p : task_points) {
         auto point = request.add_task_point();
-        point->set_lon(p.first);
-        point->set_lat(p.second);
+        point->set_lon(p.lon_lat_position.lon);
+        point->set_lat(p.lon_lat_position.lat);
     }
     ClientContext context;
     RefRoad       response;
@@ -60,13 +60,13 @@ int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path, const std::
         int    sum_costs      = response.time_cost();
         size_t sum_points_num = response.point_size();
         for(size_t i = 0; i < sum_points_num; i++) {
-            auto       res_point = res_pointponse.point(i);
+            auto       res_point = response.point(i);
             HDMapPoint p;
-            p.utm_position = UtmPosition(res_point.utmx(), res_point.utmy(), res_point.heading());
-            p.mode         = HDMapMode(res_point.mode());
-            p.speed_mode   = HDMapSpeed(res_point.speed_mode());
-            p.event        = HDMapEvent(res_point.event_mode());
-            p.block_type   = BlockType(res_point.opposite_side_mode());
+            p.utm_position = UtmPosition(stod(res_point.utmx()), stod(res_point.utmy()), stod(res_point.heading()));
+            p.mode         = HDMapMode(stoi(res_point.mode()));
+            p.speed_mode   = HDMapSpeed(stoi(res_point.speed_mode()));
+            p.event        = HDMapEvent(stoi(res_point.event_mode()));
+            p.block_type   = BlockType(stoi(res_point.opposite_side_mode()));
             p.lane_num     = stoi(res_point.lane_num());
             p.lane_seq     = stoi(res_point.lane_seq());
             p.lane_width   = stod(res_point.lane_width());
