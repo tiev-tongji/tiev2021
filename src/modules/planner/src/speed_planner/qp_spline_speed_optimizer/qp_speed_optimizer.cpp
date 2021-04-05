@@ -33,21 +33,6 @@ void QpSpeedOptimizer::Init() {
 bool QpSpeedOptimizer::Process(PathTimeGraph& st_graph_data, const SpeedData& reference_dp_speed_points) {
     std::pair<double, double> accel_bound = std::make_pair(qp_st_config_.max_acceleration(), qp_st_config_.max_deceleration());
 
-    // Debug
-    /*
-    std::cout << "t_knots: " << std::endl;
-    for (size_t i = 0; i < t_knots_.size(); ++i) {
-        std::cout << t_knots_[i] << ' ';
-    }
-    std::cout << std::endl;
-
-    std::cout << "t_evaluated: " << std::endl;
-    for (size_t i = 0; i < t_evaluated_.size(); ++i) {
-        std::cout << t_evaluated_[i] << ' ';
-    }
-    std::cout << std::endl;
-    */
-
     // Initial osqp spline solver
     OsqpSplineSolver pg(t_knots_, 5);
 
@@ -55,9 +40,6 @@ bool QpSpeedOptimizer::Process(PathTimeGraph& st_graph_data, const SpeedData& re
     auto* spline_kernel     = pg.mutable_spline_kernel();
 
     /*************ADD CONSTRAINT*************/
-
-    // Debug
-    // std::cout << "**********QP CONSTRAINT START**********" << std::endl;
 
     /**
      * Add S(distance) constraint
@@ -99,13 +81,7 @@ bool QpSpeedOptimizer::Process(PathTimeGraph& st_graph_data, const SpeedData& re
     */
     std::vector<double> accel_lower_bound(t_evaluated_.size(), accel_bound.second);
     std::vector<double> accel_upper_bound(t_evaluated_.size(), accel_bound.first);
-#if 0
-    std::cout << "QP acceleration constarint: " << std::endl;
-    for(size_t i = 0; i < t_evaluated_.size(); ++i) {
-        std::cout << "time = " << t_evaluated_[i] << " accel_bound = " << accel_lower_bound[i] << " " << accel_upper_bound[i] << std::endl;
-    }
-    std::cout << std::endl;
-#endif
+
     if(!spline_constraint->AddSecondDerivativeBoundary(t_evaluated_, accel_lower_bound, accel_upper_bound)) {
         std::cout << "QpSpeedOptimizer: Fail to apply acceleration constraint!" << std::endl;
         return false;
@@ -157,11 +133,6 @@ bool QpSpeedOptimizer::Process(PathTimeGraph& st_graph_data, const SpeedData& re
         return false;
     }
 
-    // Debug
-    // std::cout << "QP The speed of the first point: " << init_point_.v << std::endl << std::endl;
-
-    // spline_constraint->AddPointSecondDerivativeConstraint(0.0, init_point_.a);
-
     /*************ADD GOAL FUNCTION*************/
     spline_kernel->AddSecondOrderDerivativeMatrix(1000.0);
     spline_kernel->AddThirdOrderDerivativeMatrix(1000.0);
@@ -175,9 +146,6 @@ bool QpSpeedOptimizer::Process(PathTimeGraph& st_graph_data, const SpeedData& re
         else {
             fx_guide.emplace_back(reference_dp_speed_points[i].s());
         }
-        if (i == 1) {
-            std::cout << "Debug first reference s = " << fx_guide[i] << std::endl;
-        }
     }
 
     if(!spline_kernel->AddReferenceLineKernelMatrix(t_knots_, fx_guide, 1000)) {
@@ -185,8 +153,6 @@ bool QpSpeedOptimizer::Process(PathTimeGraph& st_graph_data, const SpeedData& re
         return false;
     }
     spline_kernel->AddRegularization(1.0);
-
-    // std::cout << "**********QP CONSTRAINT END**********" << std::endl;
 
     /*************SOLVE QP PROBLEM*************/
     if(pg.Solve()) {

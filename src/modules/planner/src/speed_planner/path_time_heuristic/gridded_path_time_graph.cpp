@@ -116,9 +116,6 @@ bool GriddedPathTimeGraph::CalculateTotalCost() {
         if(count > 0) {
             for(size_t r = next_lowest_row; r <= next_highest_row; r++) {
                 CalculateCostAt(c, r);
-                if (c == 1) {
-                    std::cout << "Debug: cost = " << cost_table_[c][r].total_cost() << " s = " << r * unit_s_ << std::endl;;
-                }
             }
         }
 
@@ -132,11 +129,6 @@ bool GriddedPathTimeGraph::CalculateTotalCost() {
                 GetRowRange(cost_cr, &h_r, &l_r);
                 highest_row = std::max(highest_row, h_r);
                 lowest_row  = std::min(lowest_row, l_r);
-
-                if (c == 0) {
-                    std::cout << "highest s = " << highest_row * unit_s_ << std::endl;
-                }
-
             }
         }
         next_highest_row = highest_row;
