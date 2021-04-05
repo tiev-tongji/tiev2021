@@ -141,7 +141,7 @@ bool QpSpeedOptimizer::Process(PathTimeGraph& st_graph_data, const SpeedData& re
     std::vector<double> fx_guide;
     for(size_t i = 0; i < t_knots_.size(); ++i) {
         if(i >= reference_dp_speed_points.size()) {
-            fx_guide.emplace_back(fx_guide[i - 1] + last_v * t_knots_resolution_);
+            fx_guide.emplace_back(reference_dp_speed_points.back().s());
         }
         else {
             fx_guide.emplace_back(reference_dp_speed_points[i].s());
