@@ -32,6 +32,7 @@ Routing::Routing() {
     connect_sql = "dbname=" + dbname + " user=" + user + " password=" + password + " hostaddr=" + host + " port=" + port;
     output      = Config::getInstance()->output;
     topo_name   = Config::getInstance()->topo_name;
+    std::cout<<"target url: "<<host+":"+port<<std::endl;
     stub        = unique_ptr<RoutingService::Stub>(RoutingService::NewStub(
       grpc::CreateChannel(host+":"+port, grpc::InsecureChannelCredentials())));
 }
@@ -79,6 +80,9 @@ int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path, const std::
     }
     else {
         std::cerr << "RPC failed" << std::endl;
+        std::cerr<< "error code: "<<status.error_code()<<std::endl;
+        std::cerr<<"error message: "<<status.error_message()<<std::endl;
+        std::cerr<<"error detail: "<<status.error_details()<<std::endl;
         return -1;
     }
 }

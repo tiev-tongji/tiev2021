@@ -264,7 +264,7 @@ void sendPath() {
       tp.v = p.v;
       if (road_mode == HDMapMode::IN_PARK)
         tp.v = min(tp.v, mapm->getCurrentMapSpeed());
-      if (tp.v < 0.5 && tp.v > 0.0000001) tp.v = 0.5;
+      if (tp.v < 0.5 && tp.v > 0.1) tp.v = 0.5;
       control_path.points.push_back(tp);
     }
     if (control_path.points.empty()) {
