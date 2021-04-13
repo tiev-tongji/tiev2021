@@ -19,7 +19,7 @@ constexpr int curvature_num = sizeof(curvatures) / sizeof(curvatures[0]);
         vector<double> arc_curvatures(begin(curvatures), end(curvatures));
         arc_curvatures.emplace_back(0.0);
         for (int i = curvature_num - 1; i >= 0; --i)
-            arc_curvatures.emplace_back(curvatures[i]);
+            arc_curvatures.emplace_back(-curvatures[i]);
         for (int i = 0; i < arc_curvatures.size(); ++i)
             def_arc(arc_curvatures[i], 3.0, false);
         int line_idx = arc_curvatures.size() / 2;
@@ -31,11 +31,16 @@ constexpr int curvature_num = sizeof(curvatures) / sizeof(curvatures[0]);
 
         nexts.resize(primitives.size());
         for (int i = 0; i < primitives.size(); ++i) {
-            double curvature_i = primitives[i].get_curvature();
             for (int j = 0; j < primitives.size(); ++j) {
-                double curvature_j = primitives[j].get_curvature();
-                if (fabs(curvature_i - curvature_j) < 0.1)
-                    nexts[i].emplace_back(&primitives[j]);
+                if (primitives[i].get_is_backward() ==
+                    primitives[j].get_is_backward()) {
+                    if (abs(i - j) <= 2)
+                        nexts[i].emplace_back(&primitives[j]);
+                } else {
+                    if (fabs(primitives[i].get_curvature()) ==
+                        fabs(primitives[j].get_curvature()))
+                        nexts[i].emplace_back(&primitives[j]);
+                }
             }
         }
 
