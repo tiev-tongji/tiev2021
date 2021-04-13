@@ -121,9 +121,14 @@ namespace TiEV {
                 int idx = (i << XYA_MAP_SHIFT_FACTOR);
                 int jdx = (j << XYA_MAP_SHIFT_FACTOR);
                 int safe_factor = 0;
-                for (int di = 0; di < (1 << XYA_MAP_SHIFT_FACTOR); ++di)
-                    for (int dj = 0; dj < (1 << XYA_MAP_SHIFT_FACTOR); ++dj)
-                        if (is_crashed(idx + di, jdx + dj)) --safe_factor;
+                constexpr int xya_cell = (1 << XYA_MAP_SHIFT_FACTOR);
+                int max_idx = idx + xya_cell;
+                int max_jdx = jdx + xya_cell;
+                // if the current cell exceed the map
+                if (max_idx >= MAX_ROW || max_jdx >= MAX_COL) continue;
+                for (; idx < max_idx; ++idx)
+                    for (; jdx < max_jdx; ++jdx)
+                        if (is_crashed(idx, jdx)) --safe_factor;
                         else ++safe_factor;
                 xya_safe_map[i][j] = safe_factor >= 0;
             }
