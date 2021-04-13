@@ -21,6 +21,7 @@ namespace TiEV {
         start_time = getTimeStamp();
         dead_line = start_time + max_duration;
         iterations = 0;
+        iters_after_analytic = (1 << 30);
 
         start_state = _start_state;
         target_state = _target_state;
@@ -70,14 +71,21 @@ namespace TiEV {
                 ++history(current_state);
             }
 
-            if (try_analytic_expansion(current_state, current)) {
-                last_primitive_ptr = current.ptr;
-                if (!last_primitive_ptr.is_null())
-                    target_offset = last_primitive_ptr->
-                        get_states().size() - 1;
-                target_reached = true;
-                break;
+            double x = current.score - current.cost;
+            long iters_to_analytic = lround(
+                (0.0005 * x - 0.0633) * x + 3.8889);
+            if (iters_after_analytic >= iters_to_analytic) {
+                if (try_analytic_expansion(current_state, current)) {
+                    last_primitive_ptr = current.ptr;
+                    if (!last_primitive_ptr.is_null())
+                        target_offset = last_primitive_ptr->
+                            get_states().size() - 1;
+                    target_reached = true;
+                    break;
+                }
+                iters_after_analytic = 0;
             }
+            ++iters_after_analytic;
 
             // get base primitives to expand current state
             const vector<const base_primitive*>* bases;
@@ -133,7 +141,9 @@ namespace TiEV {
                         double dis_after_reverse = base->get_length() +
                             reversed_expansion ? 0.0 : current.dis_after_reverse;
                         node_pool.push({
-                            heuristic + cost, minimum_speed, cost,
+                            heuristic + cost,
+                            minimum_speed,
+                            cost,
                             dis_after_reverse,
                             primitive_ptr(&primitive_pool, primitive_pool.size() - 1)
                         });
@@ -215,34 +225,30 @@ namespace TiEV {
     }
 
     bool PathPlanner::hybrid_astar_planner::
-        try_analytic_expansion(
-            const astate& state,
-            const node& node) {
+        try_analytic_expansion(const astate& state, const node& node) {
 #ifdef NO_ANALYTIC_EXPANSION
         return false;
 #endif
-        // https://en.cppreference.com/w/cpp/numeric/random/uniform_real_distribution
-        static random_device rd;
-        static mt19937 gen(rd());
-        static uniform_real_distribution<> random_float;
-        double heuristic = node.score - node.cost;
-
-        if (random_float(gen) > 1.0 / heuristic)
-            return false;
-
-        double curvature = 1.0 / (5.0 / GRID_RESOLUTION);
-        curvature = min(curvature, 1.0 / (5.0 / GRID_RESOLUTION));
-
         analytic_expansion_result.clear();
-        analytic_expansion_provider* provider;
+        unique_ptr<analytic_expansion_provider> provider;
 
-        if (is_backward_enabled) {
-            rs.prepare(state, target_state, curvature);
-            provider = &rs;
-        } else {
-            dubins.prepare(state, target_state, curvature);
-            provider = &dubins;
-        }
+#if defined(USE_CC_PATH)
+        if (is_backward_enabled)
+            provider = std::move(make_unique<hc_reeds_shepp_path_provider>(
+                state, target_state, 1.0 / 25.0, 0.003));
+        else
+            provider = std::move(make_unique<cc_dubins_path_provider>(
+                state, target_state, 1.0 / 25.0, 0.003));
+#elif defined(USE_DUBINS_N_RS)
+        if (is_backward_enabled)
+            provider = std::move(make_unique<reeds_shepp_provider>(
+                state, target_state, 1.0 / 25.0));
+        else
+            provider = std::move(make_unique<dubins_provider>(
+                state, target_state, 1.0 / 25.0));
+#else
+        static_assert(false, "Analytic expansion method not defined, try define USE_CC_PATH or USE_DUBINS_N_RS");
+#endif
 
         double safe_distance = state.s - 1.0;
         while (provider->get_next_state(analytic_expansion_result.emplace_back())) {
@@ -262,6 +268,7 @@ namespace TiEV {
         }
 
         analytic_expansion_result.pop_back();
+        log(0, "analytic expansion succ, start with curvature " , state.curvature);
         return true;
     }
 }

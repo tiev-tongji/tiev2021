@@ -3,9 +3,10 @@
 
 #include "config.h"
 #include "const.h"
-#include "look_up_tables/distance_table.h"
-#include "look_up_tables/dubins_table/dubins.h"
-#include "look_up_tables/reeds_shepp_table/reeds_shepp.h"
+#include "steering_functions/hc_cc_state_space/cc_dubins_state_space.hpp"
+#include "steering_functions/hc_cc_state_space/hc_reeds_shepp_state_space.hpp"
+#include "steering_functions/reeds_shepp_state_space/reeds_shepp_state_space.hpp"
+#include "steering_functions/dubins_state_space/dubins_state_space.hpp"
 #include "message_manager.h"
 #include "pose.h"
 #include "speed_optimizer.h"
@@ -20,6 +21,8 @@ using namespace std;
 
 // #define NO_ANALYTIC_EXPANSION
 #define NO_TIME_LIMIT
+#define USE_CC_PATH
+// #define USE_DUBINS_N_RS
 
 namespace TiEV {
 
@@ -286,34 +289,60 @@ private:
 
     class dubins_provider : public analytic_expansion_provider {
     public:
-        void prepare(
+        dubins_provider(
             const astate& _start_state,
             const astate& _end_state,
             double _max_curvature);
         virtual bool get_next_state(astate& output_state);
     private:
-        astate start_state, end_state;
-        int current_step, total_steps;
-        double max_curvature, target_length;
-        double last_a;
-        DubinsPath target_path;
+        steer::State start_state;
+        double start_cost, current_s, target_length;
+        vector<Control> controls;
+        Dubins_State_Space dubins_space;
     };
 
     class reeds_shepp_provider : public analytic_expansion_provider {
     public:
-        reeds_shepp_provider() : rs_space(1.0) {}
-        void prepare(
+        reeds_shepp_provider(
             const astate& _start_state,
             const astate& _end_state,
             double _max_curvature);
         virtual bool get_next_state(astate& output_state);
     private:
-        astate start_state, end_state;
-        int current_step, total_steps;
-        double max_curvature, target_length;
-        double last_a;
-        ReedsSheppStateSpace rs_space;
-        ReedsSheppStateSpace::ReedsSheppPath target_path;
+        steer::State start_state;
+        double start_cost, current_s, target_length;
+        vector<Control> controls;
+        Reeds_Shepp_State_Space rs_space;
+    };
+
+    class cc_dubins_path_provider : public analytic_expansion_provider {
+    public:
+        cc_dubins_path_provider(
+            const astate& _start_state,
+            const astate& _end_state,
+            double _max_curvature,
+            double _max_sigma);
+        virtual bool get_next_state(astate& output_state);
+    private:
+        steer::State start_state;
+        double start_cost, current_s, target_length;
+        vector<Control> controls;
+        CC_Dubins_State_Space cc_dubins_space;
+    };
+
+    class hc_reeds_shepp_path_provider : public analytic_expansion_provider {
+    public:
+        hc_reeds_shepp_path_provider(
+            const astate& _start_state,
+            const astate& _end_state,
+            double _max_curvature,
+            double _max_sigma);
+        virtual bool get_next_state(astate& output_state);
+    private:
+        steer::State start_state;
+        double start_cost, current_s, target_length;
+        vector<Control> controls;
+        HC_Reeds_Shepp_State_Space hc_rs_space;
     };
 
     class local_planning_map {
@@ -413,6 +442,7 @@ private:
             time_t start_time;
             time_t dead_line;
             long iterations;
+            long iters_after_analytic;
 
             astate start_state, target_state;
             double start_speed_m_s;
@@ -440,9 +470,6 @@ private:
             static constexpr double HISTORY_MAP_DELTA_A =
                 (M_PI * 2) / HISTORY_MAP_DEPTH;
             int node_history_map[MAX_ROW][MAX_COL][HISTORY_MAP_DEPTH];
-
-            dubins_provider dubins;
-            reeds_shepp_provider rs;
 
             vector<astate> result;
             bool have_result;

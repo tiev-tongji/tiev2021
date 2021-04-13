@@ -4,6 +4,8 @@
 #include "planner_common/const.h"
 #include "planner_common/pose.h"
 #include "planner_common/collision_check.h"
+#include "steering_functions/hc_cc_state_space/cc00_dubins_state_space.hpp"
+#include "steering_functions/hc_cc_state_space/cc00_reeds_shepp_state_space.hpp"
 #include "log.h"
 #include <iostream>
 #include <termio.h>
@@ -132,9 +134,11 @@ void generate_safe_map(double safe_map[MAX_ROW][MAX_COL]) {
 }
 
 void show_curvature_graph(PathPlanner* planner) {
-    int graph_cols = 600, graph_rows = 160, border = 20;
-    int rows = graph_rows + 2 * border,
-        cols = graph_cols + 2 * border;
+    constexpr int graph_cols = 1000, graph_rows = 160, border = 20;
+    constexpr int rows = graph_rows + 2 * border, cols = graph_cols + 2 * border;
+    constexpr int num_print = 10;
+    constexpr int text_voffset = 15;
+
     cv::Mat view = cv::Mat::zeros(rows, cols, CV_8UC3);
     view = cv::Scalar(255, 255, 255);
 
@@ -149,6 +153,7 @@ void show_curvature_graph(PathPlanner* planner) {
     auto res = vector<SpeedPath>();
     planner->getResults(res);
     for(auto& path : res) {
+        int idx = 0;
         double total_s = path.path.back().s;
         for(auto& p : path.path) {
             double rel_s = p.s / total_s;
@@ -158,6 +163,18 @@ void show_curvature_graph(PathPlanner* planner) {
             rel_k /= 0.3;
             int r = rows - border - graph_rows / 2 - (int)round(rel_k * graph_rows / 2);
             view.at<cv::Vec3b>(r, c) = cv::Vec3b(0, 0, 255);
+            int idx_mod = ((++idx) % (num_print * 2));
+            if (idx_mod == 0 || idx_mod == num_print) {
+                cv::Scalar color = {idx_mod ? 200.0 : 0.0, idx_mod ? 0.0 : 200.0, 0};
+                cv::circle(view, Point(c, r), 2, color);
+                string text = to_string(p.k).substr(0, 5);
+                constexpr int font_face = FONT_HERSHEY_PLAIN;
+                auto size = cv::getTextSize(text, font_face, 1.0, 1.0, NULL);
+                cv::putText(view, text,
+                    Point(c - size.width / 2, r + (idx_mod == 0 ?
+                        -text_voffset : text_voffset + size.height)),
+                    font_face, 0.8, color);
+            }
         }
     }
 
@@ -251,6 +268,29 @@ void show_heuristic(PathPlanner* planner) {
     cv::imshow("Heuristic Values", view_xya);
 }
 
+void test_steering_functions(double x, double y, double a) {
+    State start = State { CAR_CEN_ROW, CAR_CEN_COL, M_PI, 0.0, 1.0 };
+    State end = State { x, y, a, 0.0, 1.0 };
+    static cv::Mat view = cv::Mat::zeros(MAX_ROW, MAX_COL, CV_8UC3);
+    view *= 0.8;
+
+    CC00_Dubins_State_Space dubins_space(1.0 / 25.0, 0.001, 1.0);
+    auto controls = dubins_space.get_controls(start, end);
+    for (double i = 0.0; i <= 1.0; i += 0.01) {
+        State stat = dubins_space.interpolate(start, controls, i);
+        view.at<cv::Vec3b>(lround(stat.x), lround(stat.y)) = {255, 255, 255};
+    }
+
+    CC00_Reeds_Shepp_State_Space rs_space(1.0 / 25.0, 0.001, 1.0);
+    controls = rs_space.get_controls(start, end);
+    for (double i = 0.0; i <= 1.0; i += 0.01) {
+        State stat = rs_space.interpolate(start, controls, i);
+        view.at<cv::Vec3b>(lround(stat.x), lround(stat.y)) = {255, 0, 255};
+    }
+
+    cv::imshow("CC Path Test", view);
+}
+
 int main(int argc, char** argv){
     read_args(argc, argv);
     PathPlanner* planner = PathPlanner::getInstance();
@@ -270,6 +310,8 @@ int main(int argc, char** argv){
     cv::imshow("PathPlanner Test", map_image);
     while (true) {
         while (operationStatus != Planning) cv::waitKey(30);
+
+        test_steering_functions(targetPose.x, targetPose.y, targetPose.ang);
 
         planner->setBackwardEnabled(backward_enabled);
         planner->setCurrentSpeed(current_speed);

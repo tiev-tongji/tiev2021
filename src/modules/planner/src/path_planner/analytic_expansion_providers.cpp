@@ -2,87 +2,176 @@
 #include "look_up_tables/dubins_table/dubins.h"
 
 namespace TiEV {
-    void PathPlanner::dubins_provider::prepare(const astate& _start_state,
-        const astate& _end_state, double _max_curvature) {
-        start_state = _start_state;
-        end_state = _end_state;
-        max_curvature = _max_curvature;
-        if (start_state.is_backward)
-            dubins_shortest_path(&target_path, &end_state.x,
-                &start_state.x, 1.0 / max_curvature);
-        else
-            dubins_shortest_path(&target_path, &start_state.x,
-                &end_state.x, 1.0 / max_curvature);
-        target_length = dubins_path_length(&target_path);
-        current_step = 0;
-        total_steps = (int)floor(1.0 + target_length /
-            ANALYTIC_EXPANSION_SAMPLING_STEP);
+    PathPlanner::dubins_provider::dubins_provider(
+        const astate& _start_state, const astate& _end_state, double _max_curvature)
+        : dubins_space(_max_curvature, ANALYTIC_EXPANSION_SAMPLING_STEP) {
+        start_state = State {
+            _start_state.x,
+            _start_state.y,
+            _start_state.a,
+            _start_state.curvature,
+            _start_state.is_backward ? -1.0 : 1.0 };
+        start_cost = _start_state.s;
+
+        State end_state = State {
+            _end_state.x,
+            _end_state.y,
+            _end_state.a,
+            _end_state.curvature,
+            _end_state.is_backward ? -1.0 : 1.0 };
+
+        controls = dubins_space.get_controls(start_state, end_state);
+
+        target_length = 0.0;
+        for (const auto& control : controls)
+            target_length += fabs(control.delta_s);
+        current_s = -ANALYTIC_EXPANSION_SAMPLING_STEP;
     }
 
     bool PathPlanner::dubins_provider::get_next_state(astate& output_state) {
-        if (current_step < total_steps) {
-            double current_s = min(target_length, current_step *
-                ANALYTIC_EXPANSION_SAMPLING_STEP);
-            if (start_state.is_backward)
-                dubins_path_sample(&target_path,
-                    target_length - current_s,
-                    &output_state.x);
-            else
-                dubins_path_sample(&target_path,
-                    current_s, &output_state.x);
-            output_state.s = start_state.s + current_s;
-            output_state.is_backward = start_state.is_backward;
-            output_state.curvature = ((last_a == output_state.a) ? 0.0 :
-                    (last_a > output_state.a ? 0.04 : -0.04));
-            last_a = output_state.a;
-            ++current_step;
-            return true;
-        } else return false;
+        current_s = min(target_length, current_s +
+            ANALYTIC_EXPANSION_SAMPLING_STEP);
+
+        double rel_s = current_s / target_length;
+        State state = dubins_space.interpolate(start_state, controls, rel_s);
+        output_state.x = state.x;
+        output_state.y = state.y;
+        output_state.a = state.theta;
+        output_state.curvature = state.kappa;
+        output_state.is_backward = state.d < 0.0;
+
+        output_state.s = start_cost + current_s;
+        return current_s != target_length;
     }
 
-    void PathPlanner::reeds_shepp_provider::prepare(const astate& _start_state,
-        const astate& _end_state, double _max_curvature) {
-        start_state = _start_state;
-        end_state = _end_state;
-        max_curvature = _max_curvature;
-        rs_space = ReedsSheppStateSpace(1.0 / _max_curvature);
+    PathPlanner::reeds_shepp_provider::reeds_shepp_provider(
+        const astate& _start_state, const astate& _end_state, double _max_curvature) :
+        rs_space(_max_curvature, ANALYTIC_EXPANSION_SAMPLING_STEP) {
+        start_state = State {
+            _start_state.x,
+            _start_state.y,
+            _start_state.a,
+            _start_state.curvature,
+            _start_state.is_backward ? -1.0 : 1.0 };
+        start_cost = _start_state.s;
 
-        if (start_state.is_backward) {
-            target_path = rs_space.reedsShepp(&end_state.x, &start_state.x);
-        } else {
-            target_path = rs_space.reedsShepp(&start_state.x, &end_state.x);
-        }
+        State end_state = State {
+            _end_state.x,
+            _end_state.y,
+            _end_state.a,
+            _end_state.curvature,
+            _end_state.is_backward ? -1.0 : 1.0 };
 
-        target_length = target_path.length() * rs_space.rho_;
-        current_step = 0;
-        total_steps = (int)floor(1.0 + target_length /
-            ANALYTIC_EXPANSION_SAMPLING_STEP);
+        controls = rs_space.get_controls(start_state, end_state);
+
+        target_length = 0.0;
+        for (const auto& control : controls)
+            target_length += fabs(control.delta_s);
+        current_s = -ANALYTIC_EXPANSION_SAMPLING_STEP;
     }
 
     bool PathPlanner::reeds_shepp_provider::get_next_state(astate& output_state) {
-        if (current_step < total_steps) {
-            double current_s = min(target_length, current_step *
-                ANALYTIC_EXPANSION_SAMPLING_STEP);
-            if (start_state.is_backward)
-                rs_space.interpolate(
-                    &end_state.x,
-                    target_path,
-                    (target_length - current_s) / rs_space.rho_,
-                    &output_state.x);
-            else
-                rs_space.interpolate(
-                    &start_state.x,
-                    target_path,
-                    current_s / rs_space.rho_,
-                    &output_state.x);
-            output_state.s = start_state.s + current_s;
-            output_state.is_backward = start_state.is_backward;
-            output_state.curvature = ((last_a == output_state.a) ? 0.0 :
-                    (last_a > output_state.a ? 0.04 : -0.04));
-            last_a = output_state.a;
+        current_s = min(target_length, current_s +
+            ANALYTIC_EXPANSION_SAMPLING_STEP);
 
-            ++current_step;
-            return true;
-        } else return false;
+        double rel_s = current_s / target_length;
+        State state = rs_space.interpolate(start_state, controls, rel_s);
+        output_state.x = state.x;
+        output_state.y = state.y;
+        output_state.a = state.theta;
+        output_state.curvature = state.kappa;
+        output_state.is_backward = state.d < 0.0;
+
+        output_state.s = start_cost + current_s;
+        return current_s != target_length;
+    }
+
+    PathPlanner::cc_dubins_path_provider::cc_dubins_path_provider(
+        const astate& _start_state, const astate& _end_state,
+        double _max_curvature, double _max_sigma) :
+        cc_dubins_space(_max_curvature, _max_sigma,
+            ANALYTIC_EXPANSION_SAMPLING_STEP) {
+
+        start_state = State {
+            _start_state.x,
+            _start_state.y,
+            _start_state.a,
+            _start_state.curvature,
+            _start_state.is_backward ? -1.0 : 1.0 };
+        start_cost = _start_state.s;
+
+        State end_state = State {
+            _end_state.x,
+            _end_state.y,
+            _end_state.a,
+            _end_state.curvature,
+            _end_state.is_backward ? -1.0 : 1.0 };
+
+        controls = cc_dubins_space.get_controls(start_state, end_state);
+
+        target_length = 0.0;
+        for (const auto& control : controls)
+            target_length += fabs(control.delta_s);
+        current_s = -ANALYTIC_EXPANSION_SAMPLING_STEP;
+    }
+
+    bool PathPlanner::cc_dubins_path_provider::get_next_state(astate& output_state) {
+        current_s = min(target_length, current_s +
+            ANALYTIC_EXPANSION_SAMPLING_STEP);
+
+        double rel_s = current_s / target_length;
+        State state = cc_dubins_space.interpolate(start_state, controls, rel_s);
+        output_state.x = state.x;
+        output_state.y = state.y;
+        output_state.a = state.theta;
+        output_state.curvature = state.kappa;
+        output_state.is_backward = state.d < 0.0;
+
+        output_state.s = start_cost + current_s;
+        return current_s != target_length;
+    }
+
+    PathPlanner::hc_reeds_shepp_path_provider::hc_reeds_shepp_path_provider(
+        const astate& _start_state, const astate& _end_state,
+        double _max_curvature, double _max_sigma) :
+        hc_rs_space(_max_curvature, _max_sigma,
+            ANALYTIC_EXPANSION_SAMPLING_STEP) {
+        start_state = State {
+            _start_state.x,
+            _start_state.y,
+            _start_state.a,
+            _start_state.curvature,
+            _start_state.is_backward ? -1.0 : 1.0 };
+        start_cost = _start_state.s;
+
+        State end_state = State {
+            _end_state.x,
+            _end_state.y,
+            _end_state.a,
+            _end_state.curvature,
+            _end_state.is_backward ? -1.0 : 1.0 };
+
+        controls = hc_rs_space.get_controls(start_state, end_state);
+
+        target_length = 0.0;
+        for (const auto& control : controls)
+            target_length += fabs(control.delta_s);
+        current_s = -ANALYTIC_EXPANSION_SAMPLING_STEP;
+    }
+
+    bool PathPlanner::hc_reeds_shepp_path_provider::get_next_state(astate& output_state) {
+        current_s = min(target_length, current_s +
+            ANALYTIC_EXPANSION_SAMPLING_STEP);
+
+        double rel_s = current_s / target_length;
+        State state = hc_rs_space.interpolate(start_state, controls, rel_s);
+        output_state.x = state.x;
+        output_state.y = state.y;
+        output_state.a = state.theta;
+        output_state.curvature = state.kappa;
+        output_state.is_backward = state.d < 0.0;
+
+        output_state.s = start_cost + current_s;
+        return current_s != target_length;
     }
 }
