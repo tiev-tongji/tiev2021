@@ -107,6 +107,7 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_routing_5fservice_2eproto::off
   ~0u,  // no _weak_field_map_
   PROTOBUF_FIELD_OFFSET(::routing_service::TaskPoints, blocked_),
   PROTOBUF_FIELD_OFFSET(::routing_service::TaskPoints, task_point_),
+  PROTOBUF_FIELD_OFFSET(::routing_service::TaskPoints, dbname_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::routing_service::RefRoadPoint, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -137,8 +138,8 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_routing_5fservice_2eproto::off
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::routing_service::TaskPoints_TaskPoint)},
   { 7, -1, sizeof(::routing_service::TaskPoints)},
-  { 14, -1, sizeof(::routing_service::RefRoadPoint)},
-  { 33, -1, sizeof(::routing_service::RefRoad)},
+  { 15, -1, sizeof(::routing_service::RefRoadPoint)},
+  { 34, -1, sizeof(::routing_service::RefRoad)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
@@ -150,21 +151,21 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 
 const char descriptor_table_protodef_routing_5fservice_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\025routing_service.proto\022\017routing_service"
-  "\"\177\n\nTaskPoints\022\017\n\007blocked\030\001 \001(\010\0229\n\ntask_"
-  "point\030\002 \003(\0132%.routing_service.TaskPoints"
-  ".TaskPoint\032%\n\tTaskPoint\022\013\n\003lon\030\001 \001(\001\022\013\n\003"
-  "lat\030\002 \001(\001\"\371\001\n\014RefRoadPoint\022\n\n\002id\030\001 \001(\t\022\013"
-  "\n\003lon\030\002 \001(\t\022\013\n\003lat\030\003 \001(\t\022\014\n\004utmx\030\004 \001(\t\022\014"
-  "\n\004utmy\030\005 \001(\t\022\017\n\007heading\030\006 \001(\t\022\014\n\004curv\030\007 "
-  "\001(\t\022\014\n\004mode\030\010 \001(\t\022\022\n\nspeed_mode\030\t \001(\t\022\022\n"
-  "\nevent_mode\030\n \001(\t\022\032\n\022opposite_side_mode\030"
-  "\013 \001(\t\022\020\n\010lane_num\030\014 \001(\t\022\020\n\010lane_seq\030\r \001("
-  "\t\022\022\n\nlane_width\030\016 \001(\t\"J\n\007RefRoad\022\021\n\ttime"
-  "_cost\030\001 \001(\005\022,\n\005point\030\002 \003(\0132\035.routing_ser"
-  "vice.RefRoadPoint2^\n\016RoutingService\022L\n\021F"
-  "indReferenceRoad\022\033.routing_service.TaskP"
-  "oints\032\030.routing_service.RefRoad\"\000b\006proto"
-  "3"
+  "\"\217\001\n\nTaskPoints\022\017\n\007blocked\030\001 \001(\010\0229\n\ntask"
+  "_point\030\002 \003(\0132%.routing_service.TaskPoint"
+  "s.TaskPoint\022\016\n\006dbname\030\003 \001(\t\032%\n\tTaskPoint"
+  "\022\013\n\003lon\030\001 \001(\001\022\013\n\003lat\030\002 \001(\001\"\371\001\n\014RefRoadPo"
+  "int\022\n\n\002id\030\001 \001(\t\022\013\n\003lon\030\002 \001(\t\022\013\n\003lat\030\003 \001("
+  "\t\022\014\n\004utmx\030\004 \001(\t\022\014\n\004utmy\030\005 \001(\t\022\017\n\007heading"
+  "\030\006 \001(\t\022\014\n\004curv\030\007 \001(\t\022\014\n\004mode\030\010 \001(\t\022\022\n\nsp"
+  "eed_mode\030\t \001(\t\022\022\n\nevent_mode\030\n \001(\t\022\032\n\022op"
+  "posite_side_mode\030\013 \001(\t\022\020\n\010lane_num\030\014 \001(\t"
+  "\022\020\n\010lane_seq\030\r \001(\t\022\022\n\nlane_width\030\016 \001(\t\"J"
+  "\n\007RefRoad\022\021\n\ttime_cost\030\001 \001(\005\022,\n\005point\030\002 "
+  "\003(\0132\035.routing_service.RefRoadPoint2^\n\016Ro"
+  "utingService\022L\n\021FindReferenceRoad\022\033.rout"
+  "ing_service.TaskPoints\032\030.routing_service"
+  ".RefRoad\"\000b\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_routing_5fservice_2eproto_deps[1] = {
 };
@@ -176,7 +177,7 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_rou
 };
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_routing_5fservice_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_routing_5fservice_2eproto = {
-  false, false, descriptor_table_protodef_routing_5fservice_2eproto, "routing_service.proto", 601,
+  false, false, descriptor_table_protodef_routing_5fservice_2eproto, "routing_service.proto", 618,
   &descriptor_table_routing_5fservice_2eproto_once, descriptor_table_routing_5fservice_2eproto_sccs, descriptor_table_routing_5fservice_2eproto_deps, 4, 0,
   schemas, file_default_instances, TableStruct_routing_5fservice_2eproto::offsets,
   file_level_metadata_routing_5fservice_2eproto, 4, file_level_enum_descriptors_routing_5fservice_2eproto, file_level_service_descriptors_routing_5fservice_2eproto,
@@ -428,12 +429,18 @@ TaskPoints::TaskPoints(const TaskPoints& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       task_point_(from.task_point_) {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  dbname_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  if (!from._internal_dbname().empty()) {
+    dbname_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_dbname(), 
+      GetArena());
+  }
   blocked_ = from.blocked_;
   // @@protoc_insertion_point(copy_constructor:routing_service.TaskPoints)
 }
 
 void TaskPoints::SharedCtor() {
   ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_TaskPoints_routing_5fservice_2eproto.base);
+  dbname_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   blocked_ = false;
 }
 
@@ -445,6 +452,7 @@ TaskPoints::~TaskPoints() {
 
 void TaskPoints::SharedDtor() {
   GOOGLE_DCHECK(GetArena() == nullptr);
+  dbname_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 
 void TaskPoints::ArenaDtor(void* object) {
@@ -469,6 +477,7 @@ void TaskPoints::Clear() {
   (void) cached_has_bits;
 
   task_point_.Clear();
+  dbname_.ClearToEmpty();
   blocked_ = false;
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
@@ -497,6 +506,15 @@ const char* TaskPoints::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID:
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
           } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<18>(ptr));
+        } else goto handle_unusual;
+        continue;
+      // string dbname = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
+          auto str = _internal_mutable_dbname();
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.TaskPoints.dbname"));
+          CHK_(ptr);
         } else goto handle_unusual;
         continue;
       default: {
@@ -541,6 +559,16 @@ failure:
       InternalWriteMessage(2, this->_internal_task_point(i), target, stream);
   }
 
+  // string dbname = 3;
+  if (this->dbname().size() > 0) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_dbname().data(), static_cast<int>(this->_internal_dbname().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "routing_service.TaskPoints.dbname");
+    target = stream->WriteStringMaybeAliased(
+        3, this->_internal_dbname(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -562,6 +590,13 @@ size_t TaskPoints::ByteSizeLong() const {
   for (const auto& msg : this->task_point_) {
     total_size +=
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  // string dbname = 3;
+  if (this->dbname().size() > 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_dbname());
   }
 
   // bool blocked = 1;
@@ -601,6 +636,9 @@ void TaskPoints::MergeFrom(const TaskPoints& from) {
   (void) cached_has_bits;
 
   task_point_.MergeFrom(from.task_point_);
+  if (from.dbname().size() > 0) {
+    _internal_set_dbname(from._internal_dbname());
+  }
   if (from.blocked() != 0) {
     _internal_set_blocked(from._internal_blocked());
   }
@@ -628,6 +666,7 @@ void TaskPoints::InternalSwap(TaskPoints* other) {
   using std::swap;
   _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
   task_point_.InternalSwap(&other->task_point_);
+  dbname_.Swap(&other->dbname_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
   swap(blocked_, other->blocked_);
 }
 

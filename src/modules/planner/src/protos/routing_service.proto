@@ -14,6 +14,8 @@ message TaskPoints {
     double lat = 2;
   }
   repeated TaskPoint task_point = 2;
+  //指定使用的地图
+  string dbname =3;
 }
 
 //返回的路点信息

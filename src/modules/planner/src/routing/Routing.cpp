@@ -53,6 +53,8 @@ int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path, const std::
         point->set_lon(p.lon_lat_position.lon);
         point->set_lat(p.lon_lat_position.lat);
     }
+    //指定使用的地图
+    request.set_dbname(dbname);
     ClientContext context;
     RefRoad       response;
     Status        status = stub->FindReferenceRoad(&context, request, &response);

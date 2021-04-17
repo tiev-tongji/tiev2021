@@ -339,6 +339,7 @@ class TaskPoints PROTOBUF_FINAL :
 
   enum : int {
     kTaskPointFieldNumber = 2,
+    kDbnameFieldNumber = 3,
     kBlockedFieldNumber = 1,
   };
   // repeated .routing_service.TaskPoints.TaskPoint task_point = 2;
@@ -359,6 +360,22 @@ class TaskPoints PROTOBUF_FINAL :
   const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::routing_service::TaskPoints_TaskPoint >&
       task_point() const;
 
+  // string dbname = 3;
+  void clear_dbname();
+  const std::string& dbname() const;
+  void set_dbname(const std::string& value);
+  void set_dbname(std::string&& value);
+  void set_dbname(const char* value);
+  void set_dbname(const char* value, size_t size);
+  std::string* mutable_dbname();
+  std::string* release_dbname();
+  void set_allocated_dbname(std::string* dbname);
+  private:
+  const std::string& _internal_dbname() const;
+  void _internal_set_dbname(const std::string& value);
+  std::string* _internal_mutable_dbname();
+  public:
+
   // bool blocked = 1;
   void clear_blocked();
   bool blocked() const;
@@ -376,6 +393,7 @@ class TaskPoints PROTOBUF_FINAL :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::routing_service::TaskPoints_TaskPoint > task_point_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr dbname_;
   bool blocked_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_routing_5fservice_2eproto;
@@ -1025,6 +1043,67 @@ inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::routing_service::TaskP
 TaskPoints::task_point() const {
   // @@protoc_insertion_point(field_list:routing_service.TaskPoints.task_point)
   return task_point_;
+}
+
+// string dbname = 3;
+inline void TaskPoints::clear_dbname() {
+  dbname_.ClearToEmpty();
+}
+inline const std::string& TaskPoints::dbname() const {
+  // @@protoc_insertion_point(field_get:routing_service.TaskPoints.dbname)
+  return _internal_dbname();
+}
+inline void TaskPoints::set_dbname(const std::string& value) {
+  _internal_set_dbname(value);
+  // @@protoc_insertion_point(field_set:routing_service.TaskPoints.dbname)
+}
+inline std::string* TaskPoints::mutable_dbname() {
+  // @@protoc_insertion_point(field_mutable:routing_service.TaskPoints.dbname)
+  return _internal_mutable_dbname();
+}
+inline const std::string& TaskPoints::_internal_dbname() const {
+  return dbname_.Get();
+}
+inline void TaskPoints::_internal_set_dbname(const std::string& value) {
+  
+  dbname_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
+}
+inline void TaskPoints::set_dbname(std::string&& value) {
+  
+  dbname_.Set(
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
+  // @@protoc_insertion_point(field_set_rvalue:routing_service.TaskPoints.dbname)
+}
+inline void TaskPoints::set_dbname(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  
+  dbname_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
+  // @@protoc_insertion_point(field_set_char:routing_service.TaskPoints.dbname)
+}
+inline void TaskPoints::set_dbname(const char* value,
+    size_t size) {
+  
+  dbname_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
+      reinterpret_cast<const char*>(value), size), GetArena());
+  // @@protoc_insertion_point(field_set_pointer:routing_service.TaskPoints.dbname)
+}
+inline std::string* TaskPoints::_internal_mutable_dbname() {
+  
+  return dbname_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
+}
+inline std::string* TaskPoints::release_dbname() {
+  // @@protoc_insertion_point(field_release:routing_service.TaskPoints.dbname)
+  return dbname_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline void TaskPoints::set_allocated_dbname(std::string* dbname) {
+  if (dbname != nullptr) {
+    
+  } else {
+    
+  }
+  dbname_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), dbname,
+      GetArena());
+  // @@protoc_insertion_point(field_set_allocated:routing_service.TaskPoints.dbname)
 }
 
 // -------------------------------------------------------------------
