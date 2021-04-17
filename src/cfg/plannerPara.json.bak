@@ -1,5 +1,4 @@
 {
-	"comment": "plannerPara_town03",
 	"roadmap_file": "/home/simulation/ref-road-tiev2020/ramp_on_02_0305.txt",
 	"rs_distance_table_path": "/home/simulation/tiev2020-code/src/cfg/reeds_shepp_distance_table",
 	"dubins_distance_table_path": "/home/simulation/tiev2020-code/src/cfg/dubins_distance_table",
@@ -41,47 +40,47 @@
 	"a_star_analytic_expansion_max_N": 30,
 	"a_star_curvature_changed_punishment": 1,
 	"routing": {
-		"host": "106.75.246.176",
-		"port": "50051",
-		"dbname": "simu_add1",
+		"host": "127.0.0.1",
+		"port": "5432",
+		"dbname": "simu",
 		"user": "postgres",
 		"password": "routing2020",
 		"topo_name": "topo_map",
 		"output": "/tmp/shortest_road.csv"
 	},
 	"parking_task":{
-        "utm_x": 329805.8844177,
-        "utm_y": 3462121.3446745,
-        "heading": -1.5668250,
-        "lat": 31.2809801,
-        "lon": 121.2120996,
+        "utm_x": 329724.4606859,
+        "utm_y": 3462201.4965829,
+        "heading": 3.1336009,
+        "lat": 31.2816911,
+        "lon": 121.2112309,
         "task_points": [
             {
-				"utm_x": 329805.8844177,
-				"utm_y": 3462121.3446745,
-				"heading": -1.5668250,
-				"lat": 31.2809801,
-				"lon": 121.2120996
+				"utm_x": 329724.4606859,
+				"utm_y": 3462201.4965829,
+				"heading": 3.1336009,
+				"lat": 31.2816911,
+				"lon": 121.2112309
             }
         ]
     },
     "tasks": [
         {
             "task": {
-                "utm_x": 329936.2966386,
-                "utm_y": 3462405.4894347,
-                "heading": 3.1295449,
-                "lat": 31.2835617,
-                "lon": 121.2134207,
+                "utm_x": 329850.6003515,
+                "utm_y": 3462150.2857489,
+                "heading": 1.5812615,
+                "lat": 31.2812477,
+                "lon": 121.2125642,
                 "on": 1
             },
             "task_points": [
                 {
-					"utm_x": 329936.2966386,
-					"utm_y": 3462405.4894347,
-					"heading": 3.1295449,
-					"lat": 31.2835617,
-					"lon": 121.2134207
+					"utm_x": 329850.6003515,
+					"utm_y": 3462150.2857489,
+					"heading": 1.5812615,
+					"lat": 31.2812477,
+					"lon": 121.2125642
                 }
             ]
         }
