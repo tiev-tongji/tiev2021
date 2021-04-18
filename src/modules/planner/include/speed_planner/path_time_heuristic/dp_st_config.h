@@ -44,14 +44,14 @@ public:
         safe_distance_   = 3.0;
         obstacle_weight_ = 0.1;
         //  exceed_speed_penalty_ = 0.5;
-        exceed_speed_penalty_ = 100;
-        low_speed_penalty_    = 100;
-        max_acceleration_     = 5;
+        exceed_speed_penalty_ = 0;
+        low_speed_penalty_    = 1000;
+        max_acceleration_     = 20;
         max_deceleration_     = -1.0;
         accel_penalty_        = 0;
-        decel_penalty_        = 2;
-        positive_jerk_weight_ = 1.0;
-        negative_jerk_weight_ = 1.0;
+        decel_penalty_        = 0;
+        positive_jerk_weight_ = 0;
+        negative_jerk_weight_ = 0;
     }
 
     DpStConfig(const DpStConfig& dp_st_config) = default;

@@ -1,9 +1,16 @@
 find_package(gRPC CONFIG REQUIRED)
-set(SRC Routing.cpp)
-add_library(routing ${SRC})
-#target_link_libraries(routing pqxx -L/usr/lib/x86_64-linux-gnu)
-target_link_libraries(routing pqxx pq protos gRPC::grpc++ gRPC::grpc++_reflection)
-
-# 增加可执行文件
-# add_executable(${PROJECT_NAME} main.cpp)
-# target_link_libraries(${PROJECT_NAME} librouting.so)
+add_library(routing STATIC "")
+target_sources(routing PRIVATE
+    Routing.cpp
+)
+target_include_directories(routing PUBLIC 
+    ${CMAKE_SOURCE_DIR}/include/routing
+)
+target_link_libraries(routing PUBLIC 
+    pqxx 
+    pq
+    protos 
+    gRPC::grpc++ 
+    gRPC::grpc++_reflection
+    planner_common
+)

@@ -38,14 +38,11 @@ SpeedPath SpeedOptimizer::RunSpeedOptimizer(const std::vector<DynamicObj>& obsta
         obj_list.emplace_back(obj);
     }
     const double TOTAL_TIME = 5.0;
-    // SpeedOptimizer speed_optimizer(obj_list, trajectory, speed_limit, 0, total_path_length, 0, TOTAL_TIME);
     SpeedOptimizer speed_optimizer(obj_list, trajectory, modified_speed_limit, 0, total_path_length, 0, TOTAL_TIME);
     if(speed_optimizer.Process(speed_path)) {
-        // std::cout << "Speed Optimizer succeeds!" << std::endl;
         speed_path.success = true;
     }
     else {
-        // std::cout << "Speed Optimizer fails!" << std::endl;
         speed_path.success = false;
     }
     speed_path.st_boundaries = speed_optimizer.st_data_.st_boundaries();
@@ -71,15 +68,10 @@ bool SpeedOptimizer::QP_Process() {
 
 bool SpeedOptimizer::Process(SpeedPath& speed_path) {
     if(!DP_Process()) {
-        // std::cout << "DP speed optimizer fails!" << std::endl;
-
         return false;
     }
-    else {
-        // std::cout << "DP speed optimizer succeeds!" << std::endl;
-    }
+    
     if(trajectory_.back().s > 5.0 && QP_Process() && qp_speed_optimizer_.RetrieveSpeedData(spline_speed_data_)) {
-        // std::cout << "QP speed optimizer succeeds!" << std::endl;
         speed_path.qp_success = true;
         speed_path.splines    = splines();
     }
@@ -87,7 +79,6 @@ bool SpeedOptimizer::Process(SpeedPath& speed_path) {
         // If failing to solve qp problem,
         // we adopt an alternative method
         // to generate cubic splines
-        // std::cout << "QP speed optimizer fails, trying alternative method" << std::endl;
         const int           NUM_POINT = dp_speed_data_.size();
         SplineLib::Vec2f    points[NUM_POINT];
         SplineLib::Vec2f    velocity[NUM_POINT];
@@ -122,13 +113,6 @@ bool SpeedOptimizer::Process(SpeedPath& speed_path) {
         point.t = spline_speed_data_.GetTimeByS(point.s);
     }
 
-    // Debug
-    /*
-    std::cout << "finally retrieved result: " << std::endl;
-    for (const auto& point : trajectory_) {
-        std::cout << "s = " << point.s << ' ' <<  "v = " << point.v << std::endl;
-    }
-    */
     return true;
 }
 }

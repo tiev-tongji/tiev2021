@@ -1,8 +1,13 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.10)
 project(planner)
 
-#set(CMAKE_BUILD_TYPE "Debug")
-set(CMAKE_BUILD_TYPE "Release")
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message("Building planner in Debug mode")
+else()
+    set(CMAKE_BUILD_TYPE "Release")
+    message("Building planner in Release mode")
+endif()
+
 set(CMAKE_CXX_COMPILER /usr/bin/g++)
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
