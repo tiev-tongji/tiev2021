@@ -4,24 +4,30 @@
 #include "log.h"
 
 namespace TiEV {
+
+#define MULTILINE(SEGMENT) do { SEGMENT } while (false)
+#define BINARY_BRANCH(FLAG, SEGMENT) MULTILINE(\
+    if (FLAG) { constexpr bool _is_flag_true_ = true; SEGMENT }\
+    else { constexpr bool _is_flag_true_ = false; SEGMENT })
+#define FLAG _is_flag_true_
+#define IF_FLAG_THEN(SEGMENT) MULTILINE(if constexpr (FLAG) { SEGMENT })
+
     constexpr double len(int a, int b) {
         return sqrt(a * a + b * b);
     }
 
-    void PathPlanner::local_planning_map::init(
+    void PathPlanner::local_planning_map::prepare(
         const astate& _target,
         double (*_safe_map)[MAX_COL],
-        bool _backward_enabled,
-        double _backward_cost_factor) {
+        bool _backward_enabled) {
         target = _target;
         safe_map = _safe_map;
         backward_enabled = _backward_enabled;
-        backward_cost_factor = _backward_cost_factor;
 
         time_t time_1 = getTimeStamp();
         calculate_xya_distance_map();
         time_t time_2 = getTimeStamp();
-        log(1, "xya_distance_map calculated in ", (time_2 - time_1) / 1000, " ms");
+        log_1("xya_distance_map calculated in ", (time_2 - time_1) / 1000, " ms");
     }
 
     bool PathPlanner::local_planning_map::is_crashed(int x, int y) const {
@@ -51,23 +57,24 @@ namespace TiEV {
         const int xya_idx_x = x_idx >> XYA_MAP_SHIFT_FACTOR;
         const int xya_idx_y = y_idx >> XYA_MAP_SHIFT_FACTOR;
         const int xya_idx_a = get_angle_index(state.a);
-
-        return xya_distance_map[xya_idx_x][xya_idx_y][xya_idx_a];
+        double xya_distance = xya_distance_map[xya_idx_x][xya_idx_y][xya_idx_a];
+        double euclidean_distance = euclideanDistance(
+            state.x, state.y, target.x, target.y);
+        return max(xya_distance, euclidean_distance);
     }
 
-    int PathPlanner::local_planning_map::try_get_target_index(
-        primitive& primitive) const {
+    int PathPlanner::local_planning_map::try_get_target_index(primitive& primitive) const {
         const auto& start_state = primitive.get_start_state();
         double dis = max(
-            abs(start_state.x - target.x),
-            abs(start_state.y - target.y)
+            fabs(start_state.x - target.x),
+            fabs(start_state.y - target.y)
         );
 
         if (dis <= primitive.get_length()) {
-            int index = 0;
-            for (const auto& state : primitive.get_states())
-                if (is_target(state)) return index;
-                else ++ index;
+            const auto& states = primitive.get_states();
+            for (int i = 0, size = states.size(); i < size; ++i)
+                if (is_target(states[i]))
+                    return i;
         }
 
         return -1;
@@ -97,11 +104,13 @@ namespace TiEV {
     bool PathPlanner::local_planning_map::is_target(const astate& state) const {
         constexpr double dx = 1;
         constexpr double dy = 1;
-        constexpr double da = 3 / 180.0 * M_PI;
+        constexpr double da = 5 / 180.0 * M_PI;
         if (fabs(state.x - target.x) > dx) return false;
         if (fabs(state.y - target.y) > dy) return false;
-        if (fabs(state.a - target.a) > da) return false;
-        return true;
+        double a1 = fmod(state.a, M_PI * 2.0);
+        double a2 = fmod(target.a, M_PI * 2.0);
+        double dangle = min(fabs(a1 - a2), fabs(a2 - a1));
+        return dangle <= da;
     }
 
     int PathPlanner::local_planning_map::get_angle_index(double ang) {
@@ -128,9 +137,7 @@ namespace TiEV {
                 if (max_idx >= MAX_ROW || max_jdx >= MAX_COL) continue;
                 for (; idx < max_idx; ++idx)
                     for (; jdx < max_jdx; ++jdx)
-                        if (is_crashed(idx, jdx)) --safe_factor;
-                        else ++safe_factor;
-                xya_safe_map[i][j] = safe_factor >= 0;
+                        xya_safe_map[i][j] |= (!is_crashed(idx, jdx));
             }
 
         #define vec(a, b) { a * (XYA_MAP_COLS * XYA_MAP_DEPTH) + b * XYA_MAP_DEPTH, (1 << XYA_MAP_SHIFT_FACTOR) * len(a, b) }
@@ -163,37 +170,41 @@ namespace TiEV {
         ring_buffer_xya.push_back(target_xya);
         is_in_buffer_xya[target_xya] = true;
 
-        while(!ring_buffer_xya.empty()) {
-            int xya = ring_buffer_xya.front();
-            ring_buffer_xya.pop_front();
-            is_in_buffer_xya[xya] = false;
-            int a = xya % XYA_MAP_DEPTH;
-            int xy0 = xya - a;
-            int delta_idx = get_delta_idx(a);
-
-            for (int opposite = 0; opposite <= backward_enabled; ++opposite) {
-                int zw0 = xy0;
-                if (opposite) zw0 -= deltas[delta_idx].first;
-                else zw0 += deltas[delta_idx].first;
-
-                if (zw0 < 0 || !flatten_safe_map[zw0 / XYA_MAP_DEPTH]) continue;
-
+        BINARY_BRANCH(backward_enabled, {
+            while(!ring_buffer_xya.empty()) {
+                int xya = ring_buffer_xya.front();
+                ring_buffer_xya.pop_front();
+                is_in_buffer_xya[xya] = false;
+                int a = xya % XYA_MAP_DEPTH;
+                int xy0 = xya - a;
+                int delta_idx = get_delta_idx(a);
+                int zw0_forward = xy0 + deltas[delta_idx].first;
                 double new_dis = flatten_map[xya] + deltas[delta_idx].second;
-                if (opposite) new_dis += backward_cost_factor * deltas[delta_idx].second;
-
-                for (int da = -1; da <= 1; ++da) {
-                    int s = (a + da + XYA_MAP_DEPTH) % XYA_MAP_DEPTH;
-                    int zws = zw0 + s;
-                    if (flatten_map[zws] > new_dis) {
-                        flatten_map[zws] = new_dis;
-                        if (!is_in_buffer_xya[zws]) {
-                            ring_buffer_xya.push_back(zws);
-                            is_in_buffer_xya[zws] = true;
-                        }
-                    }
-                }
+                #define UPDATE(_zw0_) MULTILINE(\
+                    if (_zw0_ >= 0 && flatten_safe_map[_zw0_ / XYA_MAP_DEPTH]) {\
+                        for (int da = -1; da <= 1; ++da) {\
+                            double turning_punishment = deltas[delta_idx].second *\
+                                fabs(da) * TURNING_PUNISHMENT_FACTOR;\
+                            int s = (a + da + XYA_MAP_DEPTH) % XYA_MAP_DEPTH;\
+                            int zws = _zw0_ + s;\
+                            if (flatten_map[zws] > new_dis + turning_punishment) {\
+                                flatten_map[zws] = new_dis + turning_punishment;\
+                                if (!is_in_buffer_xya[zws]) {\
+                                    ring_buffer_xya.push_back(zws);\
+                                    is_in_buffer_xya[zws] = true;\
+                                }\
+                            }\
+                        }\
+                    })
+                UPDATE(zw0_forward);
+                IF_FLAG_THEN({
+                    int zw0_backward = xy0 - deltas[delta_idx].first;
+                    new_dis = flatten_map[xya] + deltas[delta_idx].second *
+                        BACKWARD_PUNISHMENT_FACTOR;
+                    UPDATE(zw0_backward);
+                });
             }
-        }
+        });
 
         // if one cell in xya_distance_map is not safe, but
         // a neighboor of it is safe, we simply copy the neighboor's

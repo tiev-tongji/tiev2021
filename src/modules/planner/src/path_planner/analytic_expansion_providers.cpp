@@ -89,8 +89,7 @@ namespace TiEV {
     PathPlanner::cc_dubins_path_provider::cc_dubins_path_provider(
         const astate& _start_state, const astate& _end_state,
         double _max_curvature, double _max_sigma) :
-        cc_dubins_space(_max_curvature, _max_sigma,
-            ANALYTIC_EXPANSION_SAMPLING_STEP) {
+        cc_dubins_space(_max_curvature, _max_sigma) {
 
         start_state = State {
             _start_state.x,
@@ -134,8 +133,7 @@ namespace TiEV {
     PathPlanner::hc_reeds_shepp_path_provider::hc_reeds_shepp_path_provider(
         const astate& _start_state, const astate& _end_state,
         double _max_curvature, double _max_sigma) :
-        hc_rs_space(_max_curvature, _max_sigma,
-            ANALYTIC_EXPANSION_SAMPLING_STEP) {
+        hc_rs_space(_max_curvature, _max_sigma) {
         start_state = State {
             _start_state.x,
             _start_state.y,

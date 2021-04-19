@@ -9,9 +9,9 @@ namespace TiEV {
 
         // ensures that sammped states is continuous from (0, 0, 0)
         assert(!_sampled_states.empty());
-        assert(_sampled_states.front().x == 0.0);
-        assert(_sampled_states.front().y == 0.0);
-        assert(_sampled_states.front().a == 0.0);
+        assert(_sampled_states.front().x < 1e-5);
+        assert(_sampled_states.front().y < 1e-5);
+        assert(_sampled_states.front().a < 1e-5);
 
         max_curvature = 0.0;
         average_curvature = 0.0;
@@ -102,8 +102,8 @@ namespace TiEV {
             0.0, 0.0, theta_0, begin_curvature, dk, length);
         astate tmp_state { 0.0, 0.0, 0.0, 0.0, begin_curvature, is_backward };
         while (tmp_state.s <= length) {
-            clothoid_curve.eval(tmp_state.s,
-                tmp_state.a, tmp_state.curvature, tmp_state.x, tmp_state.y);
+            clothoid_curve.eval(tmp_state.s, tmp_state.a, tmp_state.curvature, tmp_state.x, tmp_state.y);
+            if (is_backward) tmp_state.a = fmod(tmp_state.a + M_PI, 2 * M_PI);
             sampled_states.push_back(tmp_state);
             tmp_state.s += PRIMITIVE_SAMPLING_STEP;
         }

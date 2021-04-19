@@ -21,11 +21,22 @@ enum OperationStatus {
     Planning,
 };
 
+namespace TiEV {
+#ifdef DEBUG_EXPANSION_CALLBACK
+    extern PathPlanner::node_expansion_callback node_expanded;
+#endif
+#ifdef DEBUG_ANALYTIC_EXPANSION_CALLBACK
+    extern PathPlanner::analytic_expansion_callback analytic_expanded;
+#endif
+}
+
+
 OperationStatus operationStatus = WaitingForTargetPoint;
 TiEV::Pose      targetPose;
 char*           map_file_path = NULL;
 bool            backward_enabled = false;
 double          current_speed = 0;
+cv::Mat map_view, expansion_layer, analytic_expansion_layer;
 #define mtov(a) ((a) * 3 / 2)
 #define vtom(a) ((a) * 2 / 3)
 
@@ -57,6 +68,27 @@ void read_args(int argc, char** argv) {
     }
 }
 
+void merge_layer(cv::Mat& dest, const cv::Mat& layer, double alpha) {
+    if (layer.size != dest.size) return;
+    for (int i = 0; i < layer.rows; ++i)
+        for (int j = 0; j < layer.cols; ++j) {
+            const auto& v = layer.at<Vec3b>(i, j);
+            if (v[0] > 0 || v[1] > 0 || v[2] > 0) {
+                dest.at<Vec3b>(i, j) *= (1 - alpha);
+                dest.at<Vec3b>(i, j) += v * alpha;
+            }
+        }
+}
+
+void refresh_main_view() {
+    cv::Mat main_view = map_view.clone();
+    merge_layer(main_view, expansion_layer, 0.8);
+    merge_layer(main_view, analytic_expansion_layer, 0.5);
+    cv::imshow("PathPlanner Test", main_view);
+    // while (cv::waitKey(0) != 32) ;
+    cv::waitKey(1);
+}
+
 void on_mouse(int event, int x, int y, int flags, void *ustc)
 {
 	switch (operationStatus) {
@@ -78,11 +110,35 @@ void on_mouse(int event, int x, int y, int flags, void *ustc)
             break;
         }
     }
+
+    cerr << "\33[2K\rmouse moving map_x = " << vtom(y) << ", y = " << vtom(x);
+}
+
+void on_node_expanded(double x, double y, double a, double k,
+    bool is_backward, double heuristic, double cost) {
+    log_0("expansion: (x, y, a) = (", x, ", ", y, ", ", a, "), ",
+        "curvature = ", k, ", ", (is_backward ? "backwarding" : "forwarding"),
+        ", h = ", heuristic, ", g = ", cost);
+    cv::arrowedLine(expansion_layer, mtov(cv::Point(y, x)),
+        mtov(cv::Point(y + 8 * sin(a), x + 8 * cos(a))),
+        cv::Scalar(255, 204, 153), 2, 8, 0, 0.5);
+    refresh_main_view();
+}
+
+void on_analytic_expanded(const vector<pair<double, double>>& xys) {
+    log_0("analytic expansion failed, states = ", xys.size());
+    analytic_expansion_layer = 0.0;
+    for (const auto& xy_pair : xys)
+        analytic_expansion_layer.at<cv::Vec3b>(
+            mtov(lround(xy_pair.first)),
+            mtov(lround(xy_pair.second))) = {200, 0, 200};
+    refresh_main_view();
 }
 
 void generate_safe_map(double safe_map[MAX_ROW][MAX_COL]) {
     constexpr double max_obstacle_distance =
-        COLLISION_CIRCLE_BIG_R / GRID_RESOLUTION * 2.0;
+        COLLISION_CIRCLE_BIG_R / GRID_RESOLUTION +
+        5.0 / GRID_RESOLUTION;
     #define vec(a, b) {{a, b}, sqrt(a * a + b * b)}
     constexpr pair<pair<int, int>, double> deltas[] = {
                      vec(-2, -1),              vec(-2,  1),
@@ -94,7 +150,7 @@ void generate_safe_map(double safe_map[MAX_ROW][MAX_COL]) {
     constexpr int deltas_length = sizeof(deltas) / sizeof(deltas[0]);
     #undef vec
     time_t time_0 = getTimeStamp();
-    log(0, "generating safe map");
+    log_0("generating safe map");
     queue<pair<int, int>> que;
     bool in_queue[MAX_ROW][MAX_COL] = { 0 };
     for (int row = 0; row < MAX_ROW; ++row)
@@ -130,11 +186,11 @@ void generate_safe_map(double safe_map[MAX_ROW][MAX_COL]) {
         }
     }
 
-    log(0, "safe map generated in ", (getTimeStamp() - time_0) / 1000.0, " ms");
+    log_0("safe map generated in ", (getTimeStamp() - time_0) / 1000.0, " ms");
 }
 
 void show_curvature_graph(PathPlanner* planner) {
-    constexpr int graph_cols = 1000, graph_rows = 160, border = 20;
+    constexpr int graph_cols = 1000, graph_rows = 160, border = 5;
     constexpr int rows = graph_rows + 2 * border, cols = graph_cols + 2 * border;
     constexpr int num_print = 10;
     constexpr int text_voffset = 15;
@@ -147,7 +203,7 @@ void show_curvature_graph(PathPlanner* planner) {
     cv::line(view, {border, rows - border}, {cols - border, rows - border}, cv::Scalar(0, 0, 0));
     cv::line(view, {border, rows - border - graph_rows / 2},
         {cols - border, rows - border - graph_rows / 2},
-        cv::Scalar(50, 50, 50), 1, cv::LineTypes::LINE_4);
+        cv::Scalar(200, 200, 200), 1, cv::LineTypes::LINE_4);
 
     // draw curvatures
     auto res = vector<SpeedPath>();
@@ -162,7 +218,7 @@ void show_curvature_graph(PathPlanner* planner) {
             rel_k = max(p.k, -0.3);
             rel_k /= 0.3;
             int r = rows - border - graph_rows / 2 - (int)round(rel_k * graph_rows / 2);
-            view.at<cv::Vec3b>(r, c) = cv::Vec3b(0, 0, 255);
+            view.at<cv::Vec3b>(r, c) = {255 * p.backward, 0, 255 * !p.backward};
             int idx_mod = ((++idx) % (num_print * 2));
             if (idx_mod == 0 || idx_mod == num_print) {
                 cv::Scalar color = {idx_mod ? 200.0 : 0.0, idx_mod ? 0.0 : 200.0, 0};
@@ -182,18 +238,6 @@ void show_curvature_graph(PathPlanner* planner) {
 }
 
 void draw_planner_map(PathPlanner* planner, cv::Mat& view) {
-    int costs[MAX_ROW][MAX_COL] = {0};
-    planner->getCostMaps(costs);
-    for (int i = 0; i < view.rows; ++i)
-        for (int j = 0; j < view.cols; ++j) {
-            int costs_value = costs[vtom(i)][vtom(j)];
-            if (costs_value == 0) continue;
-            double rel_cost = min(costs_value / 100.0, 0.4);
-            cv::Vec3b& v = view.at<cv::Vec3b>(i, j);
-            v[1] *= (1 - rel_cost);
-            v[2] *= (1 - rel_cost);
-        }
-
     // draw results
     auto res = vector<SpeedPath>();
     planner->getResults(res);
@@ -202,22 +246,24 @@ void draw_planner_map(PathPlanner* planner, cv::Mat& view) {
         for(auto& p : path.path) {
             int i = mtov(lround(p.x));
             int j = mtov(lround(p.y));
-            view.at<cv::Vec3b>(i, j) = cv::Vec3b(64, 100, 0);
-            t = ++t;
-            if (t % 4 == 0 || t == 0 || t >= path.path.size()) {
-                Point2f vertices[4];
-                double d = (CAR_LENGTH / 2 - CAR_FRONT_AXLE_TO_HEAD) / GRID_RESOLUTION;
-                double new_x = p.x - d * cos(p.ang);
-                double new_y = p.y - d * sin(p.ang);
-                cv::RotatedRect(
-                    Point2f(mtov(new_y), mtov(new_x)),
-                    Size2f(mtov(CAR_LENGTH / GRID_RESOLUTION),
-                        mtov(CAR_WIDTH / GRID_RESOLUTION)),
-                    (M_PI_2 - p.ang) * 180.0 / M_PI).points(vertices);
-                for (int k = 0; k < 4; ++k) {
-                    int l =  t * 240 / path.path.size();
-                    line(view, vertices[k], vertices[(k + 1) % 4],
-                        Scalar(0, 200, 128));
+            if (i >= 0 && i < view.rows && j >= 0 && j < view.cols) {
+                view.at<cv::Vec3b>(i, j) = cv::Vec3b(64, 100, 0);
+                t = ++t;
+                if (t % 4 == 0 || t == 0 || t >= path.path.size()) {
+                    Point2f vertices[4];
+                    double d = (CAR_LENGTH / 2 - CAR_FRONT_AXLE_TO_HEAD) / GRID_RESOLUTION;
+                    double new_x = p.x - d * cos(p.ang);
+                    double new_y = p.y - d * sin(p.ang);
+                    cv::RotatedRect(
+                        Point2f(mtov(new_y), mtov(new_x)),
+                        Size2f(mtov(CAR_LENGTH / GRID_RESOLUTION),
+                            mtov(CAR_WIDTH / GRID_RESOLUTION)),
+                        (M_PI_2 - p.ang) * 180.0 / M_PI).points(vertices);
+                    for (int k = 0; k < 4; ++k) {
+                        int l =  t * 240 / path.path.size();
+                        line(view, vertices[k], vertices[(k + 1) % 4],
+                            Scalar(0, 200, 128));
+                    }
                 }
             }
         }
@@ -292,6 +338,12 @@ void test_steering_functions(double x, double y, double a) {
 }
 
 int main(int argc, char** argv){
+#ifdef DEBUG_EXPANSION_CALLBACK
+    node_expanded = on_node_expanded;
+#endif
+#ifdef DEBUG_ANALYTIC_EXPANSION_CALLBACK
+    analytic_expanded = on_analytic_expanded;
+#endif
     read_args(argc, argv);
     PathPlanner* planner = PathPlanner::getInstance();
     cv::namedWindow("PathPlanner Test");
@@ -306,12 +358,23 @@ int main(int argc, char** argv){
                 safe_map[i][j] = 0;
             else safe_map[i][j] = 1e8;
     generate_safe_map(safe_map);
-    cv::resize(map_image, map_image, cv::Size(mtov(MAX_COL), mtov(MAX_ROW)));
-    cv::imshow("PathPlanner Test", map_image);
+    map_view = cv::Mat(mtov(MAX_ROW), mtov(MAX_COL), CV_8UC3, {255, 255, 255});
+    for(int i = 0; i < map_view.rows; ++i)
+        for(int j = 0; j < map_view.cols; ++j) {
+            double safe_value = safe_map[vtom(i)][vtom(j)];
+            if (safe_value == 0.0)
+                map_view.at<cv::Vec3b>(i, j) = Vec3b(0, 0, 0);
+            else if (safe_value <= COLLISION_CIRCLE_SMALL_R / GRID_RESOLUTION)
+                map_view.at<cv::Vec3b>(i, j) = Vec3b(200, 245, 255);
+        }
+
+    cv::imshow("PathPlanner Test", map_view);
     while (true) {
         while (operationStatus != Planning) cv::waitKey(30);
 
         test_steering_functions(targetPose.x, targetPose.y, targetPose.ang);
+        analytic_expansion_layer = (map_view.clone() = 0.0);
+        expansion_layer = (map_view.clone() = 0.0);
 
         planner->setBackwardEnabled(backward_enabled);
         planner->setCurrentSpeed(current_speed);
@@ -321,18 +384,10 @@ int main(int argc, char** argv){
         planner->setTargets(vector<TiEV::Pose>(1, targetPose));
         planner->plan();
 
-        cv::Mat view_image = cv::Mat::zeros(mtov(MAX_ROW), mtov(MAX_COL), CV_8UC3);
-        view_image = cv::Scalar(255, 255, 255);
-        for(int i = 0; i < view_image.rows; ++i)
-            for(int j = 0; j < view_image.cols; ++j) {
-                double safe_value = safe_map[vtom(i)][vtom(j)];
-                if (safe_value == 0.0)
-                    view_image.at<cv::Vec3b>(i, j) = Vec3b(0, 0, 0);
-                else if (safe_value <= COLLISION_CIRCLE_SMALL_R / GRID_RESOLUTION)
-                    view_image.at<cv::Vec3b>(i, j) = Vec3b(200, 245, 255);
-            }
-        draw_planner_map(planner, view_image);
-        cv::imshow("PathPlanner Test", view_image);
+        cv::Mat main_view = map_view.clone();
+        merge_layer(main_view, expansion_layer, 0.8);
+        draw_planner_map(planner, main_view);
+        cv::imshow("PathPlanner Test", main_view);
         show_curvature_graph(planner);
         show_heuristic(planner);
         operationStatus = WaitingForTargetPoint;

@@ -19,18 +19,21 @@
 
 using namespace std;
 
-// #define NO_ANALYTIC_EXPANSION
 #define NO_TIME_LIMIT
-#define USE_CC_PATH
-// #define USE_DUBINS_N_RS
+// #define DEBUG_EXPANSION_CALLBACK
+// #define DEBUG_ANALYTIC_EXPANSION_CALLBACK
+#define USE_HC_PATH_ANALYTIC_EXPANSION
+// #define USE_DUBINS_ANALYTIC_EXPANSION
+#define USE_CLOTHOID_PRIMITIVES
+// #define USE_ARC_PRIMITIVES
 
 namespace TiEV {
 
 constexpr int MAX_TARGET_NUM = 5;
+
 static mutex path_planner_mtx;
 
 class PathPlanner {
-
 public:
     static PathPlanner* getInstance() {
         path_planner_mtx.lock();
@@ -69,9 +72,17 @@ public:
 
     bool getResults(vector<SpeedPath>& results);
 
-    void getCostMaps(int (*output_map)[MAX_COL]) const;
-
     void getDistanceMaps(pair<double, double> (*xya_dis_map)[MAX_COL]) const;
+
+#ifdef DEBUG_EXPANSION_CALLBACK
+    typedef void(*node_expansion_callback)(
+        double x, double y, double a, double k,
+        bool is_backward, double heuristic, double cost);
+#endif
+#ifdef DEBUG_ANALYTIC_EXPANSION_CALLBACK
+    typedef void(*analytic_expansion_callback)(
+        const vector<pair<double, double>>& xys);
+#endif
 
 private:
     PathPlanner();
@@ -156,7 +167,7 @@ private:
 
         primitive_ptr ptr;
 
-        bool operator < (const node& n) const {
+        inline bool operator < (const node& n) const {
             return score > n.score;
         }
     };
@@ -240,17 +251,39 @@ private:
         private:
             vector<arc_base_primitive> primitives;
             vector<vector<const base_primitive*>> nexts;
-    } arc_base_primitives;
+    };
 
     class clothoid_base_primitive_set : public base_primitive_set {
         public:
             clothoid_base_primitive_set();
+            void prepare(double current_speed_m_s, bool backward_enabled);
             virtual const vector<const base_primitive*>& get_nexts(const astate& state) const;
             virtual const vector<const base_primitive*>& get_nexts(const primitive& primitive) const;
         private:
-            vector<clothoid_base_primitive> primitives;
-            vector<vector<const base_primitive*>> nexts;
-    } clothoid_base_primitives;
+            struct subset_for_speed {
+                double current_speed_m_s;
+                bool backward_enabled;
+                vector<clothoid_base_primitive> primitives;
+                vector<vector<const base_primitive*>> nexts;
+            };
+
+            vector<subset_for_speed> subsets;
+            const subset_for_speed* current_subset = NULL;
+
+            static void generate_clothoid_base_primitive_set(
+                double max_curvature, double max_sigma,
+                double clothoid_length, bool backward_enabled,
+                vector<clothoid_base_primitive>& out_primitives,
+                vector<vector<const base_primitive*>>& out_nexts);
+    };
+
+#if defined(USE_ARC_PRIMITIVES)
+    arc_base_primitive_set arc_base_primitives;
+#elif defined(USE_CLOTHOID_PRIMITIVES)
+    clothoid_base_primitive_set clothoid_base_primitives;
+#else
+    #error define at least one flag to set which type of primitives to use
+#endif
 
     class primitive {
     public:
@@ -347,10 +380,9 @@ private:
 
     class local_planning_map {
         public:
-            void init(const astate& target,
+            void prepare(const astate& target,
                 double (*safe_map)[MAX_COL],
-                bool is_backward_enabled,
-                double backward_cost_factor);
+                bool is_backward_enabled);
 
             bool is_crashed(int x, int y) const;
             bool is_crashed(const astate& state) const;
@@ -368,7 +400,6 @@ private:
             astate target;
             double (*safe_map)[MAX_COL];
             bool backward_enabled;
-            double backward_cost_factor;
 
             static constexpr int XYA_MAP_SHIFT_FACTOR = 2;
             // the xya maps are one cell larger than our local map,
@@ -380,6 +411,8 @@ private:
             static constexpr int XYA_MAP_COLS = ((MAX_COL - 1) >> XYA_MAP_SHIFT_FACTOR) + 2;
             static constexpr int XYA_MAP_DEPTH = 32;
             static constexpr double XYA_MAP_DELTA_A = (M_PI * 2) / (XYA_MAP_DEPTH);
+            static constexpr double BACKWARD_PUNISHMENT_FACTOR = 2.0;
+            static constexpr double TURNING_PUNISHMENT_FACTOR = 1.0;
             double xya_distance_map[XYA_MAP_ROWS][XYA_MAP_COLS][XYA_MAP_DEPTH];
             bool xya_safe_map[XYA_MAP_ROWS][XYA_MAP_COLS];
 
@@ -417,43 +450,41 @@ private:
 
     class hybrid_astar_planner {
         public:
-            hybrid_astar_planner(
-                const base_primitive_set*
-                base_primitives
-            );
-            void plan(
-                const astate& start_state,
-                const astate& target_state,
-                double start_speed_m_s,
-                bool is_backward_enabled,
-                double (*safe_map)[MAX_COL],
-                time_t max_duration);
+            void plan(const astate& start_state, const astate& target_state,
+                double start_speed_m_s, bool is_backward_enabled,
+                double (*safe_map)[MAX_COL], time_t max_duration,
+                const base_primitive_set* base_primitives);
             bool get_have_result() const;
             const vector<astate>& get_result() const;
 
-            void merge_history_map(int (*output_map)[MAX_COL]) const;
             void merge_xya_distance_map(pair<double, double> (*output_map)[MAX_COL]) const;
 
         private:
-            int& history(astate& state);
+            int& history(const astate& state);
             bool is_time_out();
-            bool try_analytic_expansion(const astate& state, const node& node);
+            bool try_analytic_expansion(
+                const astate& state,
+                bool backward_allowed,
+                double max_curvature,
+                double max_sigma);
+            double get_cost_factor(
+                const astate& prev_state,
+                const astate& now_state,
+                int history_visits) const;
 
             time_t start_time;
             time_t dead_line;
             long iterations;
-            long iters_after_analytic;
 
             astate start_state, target_state;
             double start_speed_m_s;
             bool is_backward_enabled;
 
-            static constexpr double SPEED_DESCENT_FACTOR = 1.0; // m/s^2
-            static constexpr double BACKWARD_COST_FACTOR = 2.0;
-            static constexpr double MIN_DISTANCE_BETWEEN_REVERSING = 5.0 / GRID_RESOLUTION;
-            static constexpr double NODE_REVISIT_PUNISHMENT = 10.0;
-            static constexpr double CURVATURE_PUNISHMENT_FACTOR = 2.0;
-            static constexpr double MIN_CURVATURE_TO_PUNISH = 0.02 / GRID_RESOLUTION;
+            static constexpr double BACKWARD_COST_FACTOR = 3.0;
+            static constexpr double MIN_DISTANCE_BETWEEN_REVERSING = 3.0 / GRID_RESOLUTION;
+            static constexpr double NODE_REVISIT_PUNISHMENT = 0.2;
+            static constexpr double CURVATURE_PUNISHMENT_FACTOR = 25.0;
+            static constexpr double CURVATURE_CHANGE_PUNISHMENT_FACTOR = 12.5;
 
             local_planning_map planning_map;
             const base_primitive_set* base_primitives;
@@ -473,13 +504,35 @@ private:
 
             vector<astate> result;
             bool have_result;
-    } hybrid_astar_planners[MAX_TARGET_NUM] = {
-        &clothoid_base_primitives,
-        &arc_base_primitives,
-        &arc_base_primitives,
-        &arc_base_primitives,
-        &arc_base_primitives
-    };
+    } hybrid_astar_planners[MAX_TARGET_NUM];
+
+    // (k * curvature + b) * (v ^ 2) == 1
+    // https://sm.ms/image/YUv7qXxGQKi9aH3
+    static constexpr double KV_LINE_K = 0.9808;
+    static constexpr double KV_LINE_B = -0.0031;
+    static constexpr double CAR_MAX_CURVATURE = 0.181818182; // 1/m
+    static constexpr double SPEED_DESCENT_FACTOR = 1.0; // m/s^2
+
+    static inline double max_curvature_under_velocity(double velocity_m_s) {
+        double curvature = (1.0 / (velocity_m_s * velocity_m_s) -
+            KV_LINE_B) / KV_LINE_K;
+        return max(min(curvature, CAR_MAX_CURVATURE), 0.0);
+    }
+
+    static inline double max_velocity_for_curvature(double curvature_1_m) {
+        return sqrt(1.0 / max(1e-8, KV_LINE_K *
+            max(curvature_1_m, 0.0) + KV_LINE_B));
+    }
+
+    // we assume the steering wheel can rotate PI every three seconds
+    // at its maximum angular speed.
+    static constexpr double MAX_STEERING_WHEEL_ROTATE_SPEED = M_PI / 3.0; // ang/s
+    static constexpr double MAX_STEERING_WHEEL_ANGLE = M_PI + M_PI_2; // ang
+
+    static inline double max_sigma_under_velocity(double velocity_m_s) {
+        return CAR_MAX_CURVATURE / (max(fabs(velocity_m_s), 5.0 / 3.6) *
+            (MAX_STEERING_WHEEL_ANGLE / MAX_STEERING_WHEEL_ROTATE_SPEED));
+    }
 
 public:
     /* Safe map is an integer map

@@ -85,13 +85,6 @@ bool PathPlanner::getResults(vector<SpeedPath>& results) {
     return any_result;
 }
 
-void PathPlanner::getCostMaps(int (*output_map)[MAX_COL]) const {
-    if(is_planning) return;
-    memset(output_map, 0, sizeof(output_map));
-    for (int i = 0; i < targets.size(); ++i)
-        hybrid_astar_planners[i].merge_history_map(output_map);
-}
-
 void PathPlanner::getDistanceMaps(
     pair<double, double> (*xya_dis_map)[MAX_COL]) const {
     if(is_planning) return;
@@ -141,21 +134,25 @@ void PathPlanner::plan() {
     if(is_planning) return;
     is_planning = true;
 
-    log(0, "planning started");
+    log_0("planning started");
 
     for(int i = 0; i < MAX_TARGET_NUM; i++) {
         speed_paths[i].path.clear();
         have_result[i] = false;
     }
 
-    log(0, "planning result cleared");
+    log_0("planning result cleared");
 
     if(start_point.backward) {
         backward_enabled = true;
-        log(0, "start point is backward, force enable backward");
+        log_0("start point is backward, force enable backward");
     }
 
     start_point.v = current_speed;
+#if defined(USE_CLOTHOID_PRIMITIVES)
+    clothoid_base_primitives.prepare(
+        current_speed, backward_enabled);
+#endif
 
     // merge united safe map
     for(int i = 0; i < MAX_ROW; ++i)
@@ -163,7 +160,7 @@ void PathPlanner::plan() {
             safe_map[i][j] = min(
                 abs_safe_map[i][j],
                 lane_safe_map[i][j]);
-    log(0, "safe map merged");
+    log_0("safe map merged");
 
     vector<thread> tasks(targets.size());
     // start planner_thread
@@ -171,12 +168,12 @@ void PathPlanner::plan() {
         thread t(&PathPlanner::planner_thread, this, i);
         tasks[i] = std::move(t);
     }
-    log(0, targets.size(), " thread(s) created");
+    log_0(targets.size(), " thread(s) created");
 
     // wait for plans
     for(int i = 0; i < tasks.size(); ++i) tasks[i].join();
 
-    log(0, "sending data to visualization\n");
+    log_0("sending data to visualization\n");
     view_controller->setTargets(targets);
     view_controller->setStartPoint(start_point);
     view_controller->setSafeMap(safe_map);
@@ -186,38 +183,41 @@ void PathPlanner::plan() {
             view_controller->setPath(speed_paths[i].path);
 
     is_planning = false;
-    log(0, "path planner done");
+    log_0("path planner done");
 }
 
 void PathPlanner::planner_thread(int target_index) {
-    log(0, "thread ", target_index, " started");
+    log_0("thread ", target_index, " started");
     astate start_state = {
-        start_point.x,
-        start_point.y,
-        start_point.ang,
-        0.0,    // s
-        start_point.k,
-        start_point.v < 0.0
+        start_point.x, start_point.y, start_point.ang,
+        0.0, start_point.k, start_point.v < 0.0
     }, target_state = {
-        targets[target_index].x,
-        targets[target_index].y,
-        targets[target_index].ang,
-        0.0,    // s
-        targets[target_index].k,
-        targets[target_index].v < 0.0
+        targets[target_index].x, targets[target_index].y, targets[target_index].ang,
+        0.0, targets[target_index].k, targets[target_index].v < 0.0
     };
 
     hybrid_astar_planner* planner =
         hybrid_astar_planners + target_index;
 
-    log(0, "thread ", target_index, " planner ready");
+    const base_primitive_set* primitive_set = NULL;
+
+#if defined(USE_ARC_PRIMITIVES)
+    primitive_set = &arc_base_primitives;
+#elif defined(USE_CLOTHOID_PRIMITIVES)
+    primitive_set = &clothoid_base_primitives;
+#else
+    #error define at least one flag to set which type of primitives to use
+#endif
+
+    log_0("thread ", target_index, " planner ready");
     planner->plan(start_state, target_state,
         current_speed, backward_enabled,
-        safe_map, config->plan_time_limit_ms * 1000);
-    log(0, "thread ", target_index, " planned");
+        safe_map, config->plan_time_limit_ms * 1000,
+        primitive_set);
+    log_0("thread ", target_index, " planned");
 
     if (planner->get_have_result()) {
-        log(0, "thread ", target_index, " have result = true");
+        log_0("thread ", target_index, " have result = true");
         const auto& result = planner->get_result();
         speed_paths[target_index].path.clear();
         speed_paths[target_index].path.reserve(result.size());
@@ -232,12 +232,12 @@ void PathPlanner::planner_thread(int target_index) {
             p.backward = bstate.is_backward;
             speed_paths[target_index].path.push_back(p);
         }
-        log(0, "thread ", target_index, " speed path generated, length = ",
+        log_0("thread ", target_index, " speed path generated, length = ",
             speed_paths[target_index].path.size());
         have_result[target_index] = true;
         planSpeed(target_index);
     }
-    else log(0, "thread ", target_index, " no result, abort");
+    else log_0("thread ", target_index, " no result, abort");
 }
 
 void PathPlanner::planSpeed(int target_index) {
