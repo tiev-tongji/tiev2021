@@ -1,8 +1,8 @@
 {
 	"comment": "town05_reverse",
-	"roadmap_file": "/home/simulation/ref-road-tiev2020/ramp_on_02_0305.txt",
-	"rs_distance_table_path": "/home/simulation/tiev2020-code/src/cfg/reeds_shepp_distance_table",
-	"dubins_distance_table_path": "/home/simulation/tiev2020-code/src/cfg/dubins_distance_table",
+	"roadmap_file": "/home/autolab/ref-road-tiev2020/ramp_on_02_0305.txt",
+	"rs_distance_table_path": "/home/autolab/tiev2020-code/src/cfg/reeds_shepp_distance_table",
+	"dubins_distance_table_path": "/home/autolab/tiev2020-code/src/cfg/dubins_distance_table",
 	"enable_routing_by_file": 0,
 	"#enable_routing_by_file": {
 		"0": "disable routing by roadmap_file, and routing will request routing-server on internet",
@@ -49,41 +49,41 @@
 		"topo_name": "topo_map",
 		"output": "/tmp/shortest_road.csv"
 	},
-	"parking_task":{
-        "utm_x": 329684.1082765,
-        "utm_y": 3462152.7643637,
-        "heading": -1.5446923,
-        "lat": 31.2812457,
-        "lon": 121.2108155,
-        "task_points": [
-            {
+	"parking_task": {
+		"utm_x": 329684.1082765,
+		"utm_y": 3462152.7643637,
+		"heading": -1.5446923,
+		"lat": 31.2812457,
+		"lon": 121.2108155,
+		"task_points": [
+			{
 				"utm_x": 329684.1082765,
 				"utm_y": 3462152.7643637,
 				"heading": -1.5446923,
 				"lat": 31.2812457,
 				"lon": 121.2108155
-            }
-        ]
-    },
-    "tasks": [
-        {
-            "task": {
-                "utm_x": 329854.1061021,
-                "utm_y": 3462161.9401755,
-                "heading": 1.5591039,
-                "lat": 31.2813533,
-                "lon": 121.2125990,
-                "on": 1
-            },
-            "task_points": [
-                {
+			}
+		]
+	},
+	"tasks": [
+		{
+			"task": {
+				"utm_x": 329854.1061021,
+				"utm_y": 3462161.9401755,
+				"heading": 1.5591039,
+				"lat": 31.2813533,
+				"lon": 121.2125990,
+				"on": 1
+			},
+			"task_points": [
+				{
 					"utm_x": 329854.1061021,
 					"utm_y": 3462161.9401755,
 					"heading": 1.5591039,
 					"lat": 31.2813533,
 					"lon": 121.2125990
 				}
-            ]
-        }
-    ]
+			]
+		}
+	]
 }
