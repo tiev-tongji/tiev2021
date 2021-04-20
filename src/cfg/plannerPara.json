@@ -8,7 +8,7 @@
 		"0": "disable routing by roadmap_file, and routing will request routing-server on internet",
 		"1": "enable routing by roadmap_file in car"
 	},
-	"control_mode": 0,
+	"control_mode": 1,
 	"#control_mode_annotation": {
 		"PlanningWithMapMode": 0,
 		"TrackingWithMapMode": 1,
