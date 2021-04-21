@@ -19,7 +19,7 @@
 
 using namespace std;
 
-#define NO_TIME_LIMIT
+// #define NO_TIME_LIMIT
 // #define DEBUG_EXPANSION_CALLBACK
 // #define DEBUG_ANALYTIC_EXPANSION_CALLBACK
 #define USE_HC_PATH_ANALYTIC_EXPANSION
