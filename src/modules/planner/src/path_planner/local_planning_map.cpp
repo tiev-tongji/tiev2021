@@ -115,7 +115,7 @@ namespace TiEV {
 
     int PathPlanner::local_planning_map::get_angle_index(double ang) {
         double norm_ang = M_PI - ang;
-        norm_ang -= floor(norm_ang / (2 * PI)) * (2 * PI);
+        norm_ang = PathPlanner::wrap_angle_0_2_PI(norm_ang);
         return (int)(norm_ang / XYA_MAP_DELTA_A) % XYA_MAP_DEPTH;
     }
 

@@ -132,9 +132,8 @@ private:
     //-----------------------------------------------------------
     // AStar
     //-----------------------------------------------------------
-
     class primitive;
-
+    /*
     class primitive_ptr {
         public:
             primitive_ptr() : vec(NULL), index(-1) {}
@@ -149,6 +148,8 @@ private:
             vector<primitive>* vec;
             int index;
     };
+    */
+    typedef primitive* primitive_ptr;
 
     class astate {
     public:
@@ -488,9 +489,38 @@ private:
             static constexpr double CURVATURE_PUNISHMENT_FACTOR = 25.0;
             static constexpr double CURVATURE_CHANGE_PUNISHMENT_FACTOR = 12.5;
 
+            template<class T, int block_size> class block_mem_pool {
+                public:
+                    template<class... arg_types> T* make(const arg_types& ...args) {
+                        if (tail_offset >= block_size) {
+                            void* alloced = ::operator new(sizeof(T) * block_size);
+                            mems.emplace_back(static_cast<T*>(alloced));
+                            tail_offset = 0;
+                        }
+                        return new (mems.back() + (tail_offset ++)) T(args...);
+                    }
+                    void clear() {
+                        while (!mems.empty()) {
+                            for (int i = 0; i < tail_offset; ++i)
+                                (mems.back() + i)->~T();
+                            ::operator delete(static_cast<void*>(mems.back()));
+                            mems.pop_back();
+                            tail_offset = block_size;
+                        }
+                    }
+                    int size() {
+                        return (mems.size() * block_size) -
+                            (block_size - tail_offset);
+                    }
+                    ~block_mem_pool() { clear(); }
+                private:
+                    vector<T*> mems;
+                    int tail_offset = block_size;
+            };
+
             local_planning_map planning_map;
             const base_primitive_set* base_primitives;
-            vector<primitive> primitive_pool;
+            block_mem_pool<primitive, 32768> primitive_pool;
             priority_queue<node, vector<node>> node_pool;
             vector<astate> analytic_expansion_result;
 
@@ -534,6 +564,11 @@ private:
     static inline double max_sigma_under_velocity(double velocity_m_s) {
         return CAR_MAX_CURVATURE / (max(fabs(velocity_m_s), 5.0 / 3.6) *
             (MAX_STEERING_WHEEL_ANGLE / MAX_STEERING_WHEEL_ROTATE_SPEED));
+    }
+
+    static inline double wrap_angle_0_2_PI(double a) {
+        if (a > 0) return fmod(a + M_PI, 2.0 * M_PI) - M_PI;
+        else return fmod(a - M_PI, 2.0 * M_PI) + M_PI;
     }
 
 public:

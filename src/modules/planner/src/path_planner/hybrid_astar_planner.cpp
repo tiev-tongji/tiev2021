@@ -73,18 +73,14 @@ namespace TiEV {
 
             // get current state
             astate current_state;
-            if (current.ptr.is_null()) {
+            const vector<const base_primitive*>* bases;
+            if (current.ptr == NULL) {
                 current_state = _start_state;
+                bases = &base_primitives->get_nexts(current_state);
             } else {
                 current_state = current.ptr->get_end_state();
-            }
-
-            // get base primitives to expand current state
-            const vector<const base_primitive*>* bases;
-            if (current.ptr.is_null())
-                bases = &base_primitives->get_nexts(current_state);
-            else
                 bases = &base_primitives->get_nexts(*current.ptr);
+            }
 
             bool reverse_allowed = is_backward_enabled &&
                 (current.minimum_speed == 0.0) &&
@@ -94,16 +90,17 @@ namespace TiEV {
 
             double x = current.score - current.cost;
             double analytic_expansion_probability = 0.2402 * exp(-0.006 * x);
-            if (random_urd(gen) <= analytic_expansion_probability &&
-                try_analytic_expansion(current_state,
-                reverse_allowed, maximum_curvature_allowed,
-                max_sigma_under_velocity(current.minimum_speed))) {
-                last_primitive_ptr = current.ptr;
-                if (!last_primitive_ptr.is_null())
-                    target_offset = last_primitive_ptr->
-                        get_states().size() - 1;
-                target_reached = true;
-                break;
+            if (random_urd(gen) <= analytic_expansion_probability) {
+                if (try_analytic_expansion(current_state,
+                    reverse_allowed, maximum_curvature_allowed,
+                    max_sigma_under_velocity(current.minimum_speed))) {
+                    last_primitive_ptr = current.ptr;
+                    if (last_primitive_ptr != NULL)
+                        target_offset = last_primitive_ptr->
+                            get_states().size() - 1;
+                    target_reached = true;
+                    break;
+                } else analytic_expansion_result.clear();
             }
 
             for (const auto* base : *bases) {
@@ -115,11 +112,9 @@ namespace TiEV {
                     (fabs(base->get_maximum_curvature()) > maximum_curvature_allowed))
                     continue;
 
-                if (reversed_expansion)
-                    reversed_expansion = true;
-
                 // create primitive from base
-                primitive expansion(base, current.ptr, current_state);
+                primitive& expansion = *(primitive_pool.make(
+                    base, current.ptr, current_state));
                 // check if primitive crashed
                 if (!planning_map.is_crashed(expansion)) {
                     // primitive is not crashed
@@ -128,12 +123,9 @@ namespace TiEV {
                     int end_state_visits = history(end_state)++;
                     // check if primitive is near target
                     target_offset = planning_map.try_get_target_index(expansion);
-                    // add primitive into pool
-                    primitive_pool.emplace_back(move(expansion));
                     // if target has been reached
                     if (target_offset >= 0) {
-                        last_primitive_ptr = primitive_ptr(&primitive_pool,
-                            primitive_pool.size() - 1);
+                        last_primitive_ptr = &expansion;
                         target_reached = true;
                         break;
                     }
@@ -158,7 +150,7 @@ namespace TiEV {
                             heuristic * 1.1 + cost,
                             minimum_speed, cost,
                             dis_after_reverse,
-                            primitive_ptr(&primitive_pool, primitive_pool.size() - 1)
+                            &expansion
                         });
                     }
                 }
@@ -173,12 +165,12 @@ namespace TiEV {
             // path stores the reversed states list
             vector<astate> path;
 
-            if (!last_primitive_ptr.is_null()) {
+            if (last_primitive_ptr != NULL) {
                 vector<astate> states(last_primitive_ptr->get_states());
                 path.insert(path.end(), states.rend() - target_offset - 1, states.rend());
 
                 last_primitive_ptr = last_primitive_ptr->get_parent();
-                while (!last_primitive_ptr.is_null()) {
+                while (last_primitive_ptr != NULL) {
                     vector<astate> states = last_primitive_ptr->get_states();
                     path.insert(path.end(), states.rbegin() + 1, states.rend());
                     last_primitive_ptr = last_primitive_ptr->get_parent();
@@ -211,7 +203,7 @@ namespace TiEV {
     }
 
     int& PathPlanner::hybrid_astar_planner::history(const astate& state) {
-        double a = state.a - floor(state.a / (2 * PI)) * (2 * PI);
+        double a = PathPlanner::wrap_angle_0_2_PI(state.a);
         int ang_idx = a / HISTORY_MAP_DELTA_A;
         return node_history_map[lround(state.x) >> HISTORY_MAP_SHIFT_FACTOR]
             [lround(state.y) >> HISTORY_MAP_SHIFT_FACTOR][ang_idx];
@@ -257,36 +249,33 @@ namespace TiEV {
         return false;
 #endif
 
-        analytic_expansion_result.clear();
         double total_length = provider->get_length();
         if (total_length <= 0.0) return false;
-        double ds = 0.0, t = 0.0;
-        double safe_s = state.s - 1.0;
-        while (ds < total_length) {
-            ds += base_primitive::PRIMITIVE_SAMPLING_STEP;
-            if (ds > total_length) ds = total_length;
-            t = ds / total_length;
-            analytic_expansion_result.emplace_back();
-            astate& back_state = analytic_expansion_result.back();
-            back_state.s = state.s + ds;
-            provider->sample(t, back_state);
-            if (back_state.s <= safe_s) continue;
-            else if (!planning_map.is_crashed(back_state)) {
-                safe_s = back_state.s + min(
-                    planning_map.get_maximum_safe_distance(back_state),
-                    planning_map.get_minimum_distance_from_map_boundaries(back_state));
-            } else {
-                #ifdef DEBUG_ANALYTIC_EXPANSION_CALLBACK
-                if (analytic_expanded != NULL) {
-                    vector<pair<double, double>> xys;
-                    xys.reserve(analytic_expansion_result.size());
-                    for (const auto& state : analytic_expansion_result)
-                        xys.emplace_back(state.x, state.y);
-                    analytic_expanded(xys);
-                }
-                #endif
+        double dt = base_primitive::PRIMITIVE_SAMPLING_STEP / total_length;
+        int ts = ceil(total_length / base_primitive::PRIMITIVE_SAMPLING_STEP);
+        constexpr int big_jump = (1 << 5);
+        analytic_expansion_result.resize(ts);
+        int big_jumps = ts / big_jump;
+        for (int bi = 0; bi < big_jumps; ++bi) {
+            int offset = bi * big_jump;
+            double t = min(1.0, offset * dt);
+            astate& sampled_state = analytic_expansion_result[offset];
+            provider->sample(t, sampled_state);
+            sampled_state.s = state.s + t * total_length;
+            if (planning_map.is_in_map(sampled_state) == false ||
+                planning_map.is_crashed(sampled_state))
                 return false;
-            }
+        }
+
+        for (int si = 0; si < ts; ++si) {
+            if ((si % big_jump) == 0) continue;
+            double t = min(1.0, si * dt);
+            astate& sampled_state = analytic_expansion_result[si];
+            provider->sample(t, sampled_state);
+            sampled_state.s = state.s + t * total_length;
+            if (planning_map.is_in_map(sampled_state) == false ||
+                planning_map.is_crashed(sampled_state))
+                return false;
         }
 
         analytic_expansion_result.pop_back();
