@@ -66,7 +66,7 @@ namespace TiEV {
         // target_offset is the offset of the most close state to
         // the target in sampled_states of the last primitive.
         int target_offset = -1;
-        while (!(is_time_out() || target_reached)) {
+        while (!(is_time_out() || target_reached || node_pool.empty())) {
             // get current node
             node current = node_pool.top();
             node_pool.pop();
