@@ -190,8 +190,8 @@ constexpr double max_curvature_sharpness = 0.01;
 
     const vector<const PathPlanner::base_primitive*>&
         PathPlanner::clothoid_base_primitive_set::get_nexts(const astate& state) const {
-        int min_idx;
-        double min_diff;
+        int min_idx = -1;
+        double min_diff = numeric_limits<double>::max();
         for (const auto& prim : current_subset->primitives) {
             if (prim.get_states().back().is_backward != state.is_backward) continue;
             double diff = fabs(state.curvature - prim.get_end_curvature());

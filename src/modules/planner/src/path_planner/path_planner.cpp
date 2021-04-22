@@ -221,15 +221,16 @@ void PathPlanner::planner_thread(int target_index) {
         const auto& result = planner->get_result();
         speed_paths[target_index].path.clear();
         speed_paths[target_index].path.reserve(result.size());
-        for (const auto& bstate : result) {
+        for (const auto& state : result) {
             Pose    p;
-            p.x   = bstate.x;
-            p.y   = bstate.y;
-            p.ang = bstate.a;
+            p.x   = state.x;
+            p.y   = state.y;
+            p.ang = state.a;
             p.updateGlobalCoordinate(start_point);
-            p.s = bstate.s * GRID_RESOLUTION;
-            p.k = bstate.curvature / GRID_RESOLUTION;
-            p.backward = bstate.is_backward;
+            p.s = state.s * GRID_RESOLUTION;
+            p.k = state.curvature / GRID_RESOLUTION;
+            p.backward = state.is_backward;
+            p.v = velocity_limit;
             speed_paths[target_index].path.push_back(p);
         }
         log_0("thread ", target_index, " speed path generated, length = ",
