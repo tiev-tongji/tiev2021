@@ -235,4 +235,11 @@ namespace TiEV {
         return max(safe_map[lround(state.x)][lround(state.y)] * M_SQRT1_2 -
             M_SQRT2 - COLLISION_CIRCLE_BIG_R / GRID_RESOLUTION, 0.0);
     }
+
+    double PathPlanner::local_planning_map::
+        get_minimum_distance_from_map_boundaries(const astate& state) const {
+        constexpr double row_2 = (MAX_ROW / 2.0);
+        constexpr double col_2 = (MAX_COL / 2.0);
+        return min(row_2 - fabs(state.x - row_2), col_2 - fabs(state.y - col_2));
+    }
 }

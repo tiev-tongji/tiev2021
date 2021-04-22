@@ -230,56 +230,63 @@ namespace TiEV {
     bool PathPlanner::hybrid_astar_planner::try_analytic_expansion(
         const astate& state, bool backward_allowed,
         double max_curvature, double max_sigma) {
-        unique_ptr<analytic_expansion_provider> provider;
+
+        const analytic_expansion_provider* provider = NULL;
 
 #if defined(USE_HC_PATH_ANALYTIC_EXPANSION)
+        hc_reeds_shepp_path_provider hc_rs_provider(
+            state, target_state,
+            max(max_curvature * GRID_RESOLUTION, fabs(state.curvature)),
+            max_sigma * pow(GRID_RESOLUTION, 2));
+        cc_dubins_path_provider cc_dubins_provider(
+            state, target_state,
+            max(max_curvature * GRID_RESOLUTION, fabs(state.curvature)),
+            max_sigma * pow(GRID_RESOLUTION, 2));
         if (is_backward_enabled && backward_allowed)
-            provider = std::move(make_unique<hc_reeds_shepp_path_provider>(
-                state, target_state,
-                max(max_curvature * GRID_RESOLUTION, fabs(state.curvature)),
-                max_sigma * pow(GRID_RESOLUTION, 2)
-            ));
-        else
-            provider = std::move(make_unique<cc_dubins_path_provider>(
-                state, target_state,
-                max(max_curvature * GRID_RESOLUTION, fabs(state.curvature)),
-                max_sigma * pow(GRID_RESOLUTION, 2)
-            ));
+            provider = &hc_rs_provider;
+        else provider = &cc_dubins_provider;
 #elif defined(USE_DUBINS_ANALYTIC_EXPANSION)
+        reeds_shepp_provider rs_provider(
+            state, target_state, max_curvature * GRID_RESOLUTION);
+        dubins_provider dbs_provider(
+            state, target_state, max_curvature * GRID_RESOLUTION);
         if (is_backward_enabled && backward_allowed)
-            provider = std::move(make_unique<reeds_shepp_provider>(
-                state, target_state, max_curvature * GRID_RESOLUTION));
-        else
-            provider = std::move(make_unique<dubins_provider>(
-                state, target_state, max_curvature * GRID_RESOLUTION));
+            provider = &rs_provider;
+        else provider = &dbs_provider;
 #else
         return false;
 #endif
 
         analytic_expansion_result.clear();
-        double safe_distance = state.s - 1.0;
-        while (provider->get_next_state(analytic_expansion_result.emplace_back())) {
-            const astate& back_state = analytic_expansion_result.back();
-            if (planning_map.is_in_map(back_state)) {
-                if (back_state.s <= safe_distance) continue;
-                else if (!planning_map.is_crashed(back_state)) {
-                    safe_distance = back_state.s + planning_map.
-                        get_maximum_safe_distance(back_state);
-                    continue;
+        double total_length = provider->get_length();
+        if (total_length <= 0.0) return false;
+        double ds = 0.0, t = 0.0;
+        double safe_s = state.s - 1.0;
+        while (ds < total_length) {
+            ds += base_primitive::PRIMITIVE_SAMPLING_STEP;
+            if (ds > total_length) ds = total_length;
+            t = ds / total_length;
+            analytic_expansion_result.emplace_back();
+            astate& back_state = analytic_expansion_result.back();
+            back_state.s = state.s + ds;
+            provider->sample(t, back_state);
+            if (back_state.s <= safe_s) continue;
+            else if (!planning_map.is_crashed(back_state)) {
+                safe_s = back_state.s + min(
+                    planning_map.get_maximum_safe_distance(back_state),
+                    planning_map.get_minimum_distance_from_map_boundaries(back_state));
+            } else {
+                #ifdef DEBUG_ANALYTIC_EXPANSION_CALLBACK
+                if (analytic_expanded != NULL) {
+                    vector<pair<double, double>> xys;
+                    xys.reserve(analytic_expansion_result.size());
+                    for (const auto& state : analytic_expansion_result)
+                        xys.emplace_back(state.x, state.y);
+                    analytic_expanded(xys);
                 }
+                #endif
+                return false;
             }
-
-        #ifdef DEBUG_ANALYTIC_EXPANSION_CALLBACK
-            if (analytic_expanded != NULL) {
-                vector<pair<double, double>> xys;
-                xys.reserve(analytic_expansion_result.size());
-                for (const auto& state : analytic_expansion_result)
-                    xys.emplace_back(state.x, state.y);
-                analytic_expanded(xys);
-            }
-        #endif
-            analytic_expansion_result.clear();
-            return false;
         }
 
         analytic_expansion_result.pop_back();

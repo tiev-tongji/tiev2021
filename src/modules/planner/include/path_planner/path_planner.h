@@ -316,7 +316,8 @@ private:
 
     class analytic_expansion_provider {
     public:
-        virtual bool get_next_state(astate& output_state) = 0;
+        virtual void sample(double t, astate& output_state) const = 0;
+        virtual double get_length() const = 0;
         static constexpr double ANALYTIC_EXPANSION_SAMPLING_STEP = 0.2 / GRID_RESOLUTION;
     };
 
@@ -326,10 +327,10 @@ private:
             const astate& _start_state,
             const astate& _end_state,
             double _max_curvature);
-        virtual bool get_next_state(astate& output_state);
+        virtual void sample(double t, astate& output_state) const;
+        virtual double get_length() const;
     private:
         steer::State start_state;
-        double start_cost, current_s, target_length;
         vector<Control> controls;
         Dubins_State_Space dubins_space;
     };
@@ -340,10 +341,10 @@ private:
             const astate& _start_state,
             const astate& _end_state,
             double _max_curvature);
-        virtual bool get_next_state(astate& output_state);
+        virtual void sample(double t, astate& output_state) const;
+        virtual double get_length() const;
     private:
         steer::State start_state;
-        double start_cost, current_s, target_length;
         vector<Control> controls;
         Reeds_Shepp_State_Space rs_space;
     };
@@ -355,10 +356,10 @@ private:
             const astate& _end_state,
             double _max_curvature,
             double _max_sigma);
-        virtual bool get_next_state(astate& output_state);
+        virtual void sample(double t, astate& output_state) const;
+        virtual double get_length() const;
     private:
         steer::State start_state;
-        double start_cost, current_s, target_length;
         vector<Control> controls;
         CC_Dubins_State_Space cc_dubins_space;
     };
@@ -370,10 +371,10 @@ private:
             const astate& _end_state,
             double _max_curvature,
             double _max_sigma);
-        virtual bool get_next_state(astate& output_state);
+        virtual void sample(double t, astate& output_state) const;
+        virtual double get_length() const;
     private:
         steer::State start_state;
-        double start_cost, current_s, target_length;
         vector<Control> controls;
         HC_Reeds_Shepp_State_Space hc_rs_space;
     };
@@ -388,6 +389,7 @@ private:
             bool is_crashed(const astate& state) const;
             bool is_crashed(primitive& primitive) const;
             double get_maximum_safe_distance(const astate& state) const;
+            double get_minimum_distance_from_map_boundaries(const astate& state) const;
 
             double get_heuristic(const astate& state, bool can_reverse) const;
             bool is_target(const astate& state) const;
