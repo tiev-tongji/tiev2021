@@ -1,4 +1,4 @@
-add_library(path_planner SHARED "")
+add_library(path_planner STATIC "")
 
 target_sources(path_planner PRIVATE
     hybrid_astar_planner.cpp
@@ -35,6 +35,7 @@ target_link_libraries(path_planner
         message_manager
         planner_common
         ${STEERING_LIBRARY}
+        zcm
 )
 
 find_package(OpenCV REQUIRED)
@@ -45,11 +46,7 @@ target_sources(path_planner_test PRIVATE
     "path_planner_test.cpp"
 )
 
-target_include_directories(path_planner_test PRIVATE
-    ${OpenCV_INCLUDE_DIRS}
-)
-
-target_link_libraries(path_planner_test PRIVATE
+target_link_libraries(path_planner_test PUBLIC
     ${OpenCV_LIBS}
     path_planner
 )
