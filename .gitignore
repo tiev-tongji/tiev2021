@@ -1,6 +1,7 @@
 *.pt
 *.pkl
 build/
+libpqxx-7.3.1/
 *.so
 *.o
 log/

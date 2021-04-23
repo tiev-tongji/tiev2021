@@ -76,39 +76,16 @@ void PathTimeGraph::SetupObstacles(std::vector<Obstacle>& obstacles, const std::
             SetDynamicObstacle(obstacle, path);
         }
     }
-    /*
-    for(auto st_boundary: st_boundaries_){
-        std::cout << "st_boundary info: " << std::endl;
-        std::cout << st_boundary.bottom_left_point().s() << " " << st_boundary.bottom_left_point().t() << endl;
-        std::cout << st_boundary.bottom_right_point().s() << " " << st_boundary.bottom_right_point().t() << endl;
-        std::cout << st_boundary.upper_left_point().s() << " " << st_boundary.upper_left_point().t() << endl;
-        std::cout << st_boundary.upper_right_point().s() << " " << st_boundary.upper_right_point().t() << endl;
-    }
-    */
 }
 
 void PathTimeGraph::SetStaticObstacle(Obstacle& obstacle, const std::vector<Pose>& path) {
     const Box box = GetStaticBoundingBox(obstacle);
 
-    // Debug
-    /*
-    std::cout << "obstacle box: " << std::endl;
-    for (const auto &corner : box.corners()) {
-        std::cout << corner.x() << ' ' << corner.y() << std::endl;
-    }
-    */
-
     SLBoundary sl_boundary = ComputeObstacleSLBoundary(box.corners(), path);
 
     double left_width  = Default_Path_Width_ * 0.5;
     double right_width = Default_Path_Width_ * 0.5;
-
-    /*
-    cout << "s:" << sl_boundary.start_s() << " " << sl_boundary.end_s() << endl;
-    cout << "l:" << sl_boundary.start_l() << " " << sl_boundary.end_l() << endl;
-    cout << "path range:" << path_range_.second << " " << path_range_.first << endl;
-    cout << "width:" << left_width << " " << -right_width << endl;
-    */
+    
     // Out of path range
     if(sl_boundary.start_s() > path_range_.second || sl_boundary.end_s() < path_range_.first || sl_boundary.start_l() > left_width || sl_boundary.end_l() < -right_width) {
 
@@ -147,13 +124,6 @@ void PathTimeGraph::SetDynamicObstacle(Obstacle& obstacle, const std::vector<Pos
             relative_time += Trajectory_Time_Resolution;
             continue;
         }
-
-        /*
-        cout << "s:" << sl_boundary.start_s() << " " << sl_boundary.end_s() << endl;
-        cout << "l:" << sl_boundary.start_l() << " " << sl_boundary.end_l() << endl;
-        cout << "path range:" << path_range_.second << " " << path_range_.first << endl;
-        cout << "width:" << left_width << " " << -right_width << endl;
-        */
 
         if(!left_edge_set) {
             bottom_left.set_s(sl_boundary.start_s());

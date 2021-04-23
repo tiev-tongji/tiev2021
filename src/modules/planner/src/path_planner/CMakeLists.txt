@@ -1,5 +1,13 @@
-set(PATH_PLANNER_SRC hybrid_astar_planner.cpp analytic_expansion_providers.cpp local_planning_map.cpp primitive_sets.cpp primitives.cpp path_planner.cpp)
-add_library(path_planner ${PATH_PLANNER_SRC})
+add_library(path_planner SHARED "")
+
+target_sources(path_planner PRIVATE
+    hybrid_astar_planner.cpp
+    analytic_expansion_providers.cpp
+    local_planning_map.cpp
+    primitive_sets.cpp
+    primitives.cpp
+    path_planner.cpp
+)
 
 find_library(G1FITTING_LIBRARY Clothoid)
 if(NOT G1FITTING_LIBRARY)
@@ -15,9 +23,33 @@ else()
     message(STATUS "Found steering_functions: " ${STEERING_LIBRARY})
 endif()
 
-target_link_libraries(path_planner ${G1FITTING_LIBRARY} ${STEERING_LIBRARY})
+target_include_directories(path_planner PUBLIC
+    ${CMAKE_SOURCE_DIR}/include/path_planner
+)
 
-add_executable(path_planner_test "path_planner_test.cpp")
+target_link_libraries(path_planner
+    PRIVATE
+        ${G1FITTING_LIBRARY}
+    PUBLIC
+        speed_planner
+        message_manager
+        planner_common
+        ${STEERING_LIBRARY}
+)
+
 find_package(OpenCV REQUIRED)
-include_directories(${OpenCV_INCLUDE_DIRS})
-target_link_libraries(path_planner_test ${OpenCV_LIBS} path_planner speed_planner message_manager planner_common coordinate_converter zcm)
+
+add_executable(path_planner_test "")
+
+target_sources(path_planner_test PRIVATE
+    "path_planner_test.cpp"
+)
+
+target_include_directories(path_planner_test PRIVATE
+    ${OpenCV_INCLUDE_DIRS}
+)
+
+target_link_libraries(path_planner_test PRIVATE
+    ${OpenCV_LIBS}
+    path_planner
+)

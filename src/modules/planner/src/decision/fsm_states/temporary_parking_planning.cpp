@@ -18,6 +18,7 @@ void TemporaryParkingPlanning::update(FullControl& control) {
     vector<Pose> targets    = map_manager->getTemporaryParkingTarget();
     if(targets.empty()){
         control.changeTo<NormalDriving>();
+        return;
     }
     vector<SpeedPath> speed_path_list;
     PathPlanner::getInstance()->runPlanner(map.dynamic_obj_list, map_manager->getCurrentMapSpeed(), true, map.lidar_dis_map, map.planning_dis_map, start_path, targets, map.nav_info.current_speed,

@@ -7,6 +7,7 @@ namespace TiEV {
 using namespace std;
 
 void Visualization::init() {
+  cout << "initialize visualization" << endl;
   string TiEV_cfg_pics_path =
       Config::getInstance()->TiEV_CONFIG_DIRECT + "pics/";
   string TiEV_logo_path =
@@ -156,6 +157,7 @@ void Visualization::init() {
     cv::threshold(mask, mask, 100, 255, cv::THRESH_BINARY);
     TiEV_logo.copyTo(TiEV_logo_main_window, mask);
   }
+  cout << "finish initialize visualization" << endl;
 }
 
 void Visualization::visualize() {
@@ -600,6 +602,7 @@ bool Visualization::drawDynamicObjs(cv::Mat& left_map, cv::Mat& right_map,
     }
   }
   inner_handler.objects_mtx.unlock_shared();
+  return true;
 }
 
 // 绘制停车库位
@@ -990,10 +993,19 @@ void Visualization::msgReceiveUdp() {
   zcm_udp.subscribe("PARKINGSLOTS", &Handler::handlePARKINGSLOTS,
                     &inner_handler);
   zcm_udp.subscribe("SLAMLOC", &Handler::handleSLAMLOC, &inner_handler);
-  zcm_udp.subscribe("VISUALIZATION", &Handler::handleVISUALIZATION,
+  zcm_ipc.subscribe("VISUALIZATION", &Handler::handleVISUALIZATION,
                     &inner_handler);
 
   zcm_udp.run();
+}
+
+void Visualization::msgReceiveIpc() {
+  if (!zcm_ipc.good()) return;
+
+  zcm_ipc.subscribe("VISUALIZATION", &Handler::handleVISUALIZATION,
+                    &inner_handler);
+
+  zcm_ipc.run();
 }
 
 void Visualization::publishRemoteControl(

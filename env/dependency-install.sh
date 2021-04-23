@@ -10,7 +10,7 @@ sudo apt-get update
 
 # Install the latest version of PostgreSQL.
 # If you want a specific version, use 'postgresql-12' or similar instead of 'postgresql':
-sudo apt-get -y install postgresql
+sudo apt install postgresql-server-dev-all -y
 
 #install libpqxx
 wget -O libpqxx-7.3.1.zip https://github.com/jtv/libpqxx/archive/7.3.1.zip

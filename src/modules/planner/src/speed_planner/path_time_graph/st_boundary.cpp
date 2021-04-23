@@ -85,8 +85,6 @@ bool STBoundary::GetUnblockSRange(const double curr_time, const double total_pat
         return false;
     }
 
-    // Debug
-    // std::cout << "s_upper: " << *s_upper << " s_lower: " << *s_lower << std::endl;
     return true;
 }
 }
