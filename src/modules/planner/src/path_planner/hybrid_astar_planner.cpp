@@ -259,10 +259,10 @@ namespace TiEV {
         constexpr int big_jump = (1 << 5);
         analytic_expansion_result.resize(ts);
         int big_jumps = ts / big_jump;
-        for (int bi = 0; bi < big_jumps; ++bi) {
+        for (int bi = 1; bi <= big_jumps; ++bi) {
             int offset = bi * big_jump;
             double t = min(1.0, offset * dt);
-            astate& sampled_state = analytic_expansion_result[offset];
+            astate& sampled_state = analytic_expansion_result[offset - 1];
             provider->sample(t, sampled_state);
             sampled_state.s = state.s + t * total_length;
             if (planning_map.is_in_map(sampled_state) == false ||
@@ -270,10 +270,10 @@ namespace TiEV {
                 return false;
         }
 
-        for (int si = 0; si < ts; ++si) {
+        for (int si = 1; si <= ts; ++si) {
             if ((si % big_jump) == 0) continue;
             double t = min(1.0, si * dt);
-            astate& sampled_state = analytic_expansion_result[si];
+            astate& sampled_state = analytic_expansion_result[si - 1];
             provider->sample(t, sampled_state);
             sampled_state.s = state.s + t * total_length;
             if (planning_map.is_in_map(sampled_state) == false ||
@@ -281,7 +281,6 @@ namespace TiEV {
                 return false;
         }
 
-        analytic_expansion_result.pop_back();
         log_1("analytic expansion succ");
         return true;
     }
