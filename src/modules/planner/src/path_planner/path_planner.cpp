@@ -228,7 +228,7 @@ void PathPlanner::planner_thread(int target_index) {
             p.ang = state.a;
             p.updateGlobalCoordinate(start_point);
             p.s = state.s * GRID_RESOLUTION;
-            p.k = state.curvature / GRID_RESOLUTION;
+            p.k = fabs(state.curvature / GRID_RESOLUTION);
             p.backward = state.is_backward;
             p.v = velocity_limit;
             speed_paths[target_index].path.push_back(p);
@@ -272,7 +272,8 @@ void PathPlanner::planSpeed(int target_index) {
             max_speed = 2;
             point.ang = PI + point.ang;
         }
-        speed_limits[target_index].emplace_back(point.s, min(sqrt(MIU * GRAVITY / (point.k + 0.0001)) * 5.5, max_speed));
+        speed_limits[target_index].emplace_back(point.s, min(
+            max_velocity_for_curvature(point.k), max_speed));
     }
 
     // speed_limits[target_index][0].second = current_speed;
