@@ -103,6 +103,9 @@ namespace TiEV {
                 } else analytic_expansion_result.clear();
             }
 
+            double trans_sin, trans_cos;
+            sincos(current_state.a, &trans_sin, &trans_cos);
+
             for (const auto* base : *bases) {
                 // if this expansion changes the driving direction (backward/forward)
                 bool reversed_expansion = (base->get_states().front().
@@ -113,8 +116,8 @@ namespace TiEV {
                     continue;
 
                 // create primitive from base
-                primitive& expansion = *(primitive_pool.make(
-                    base, current.ptr, current_state));
+                primitive& expansion = *(primitive_pool.make(base,
+                    current.ptr, current_state, trans_sin, trans_cos));
                 // check if primitive crashed
                 if (!planning_map.is_crashed(expansion)) {
                     // primitive is not crashed
@@ -213,7 +216,7 @@ namespace TiEV {
 #ifdef NO_TIME_LIMIT
         return (++iterations) >= 100000;
 #endif
-        constexpr int mod = (1 << 11) - 1;
+        constexpr int mod = (1 << 10) - 1;
         if (!((++iterations) & mod)) {
             return getTimeStamp() > dead_line;
         } else return false;

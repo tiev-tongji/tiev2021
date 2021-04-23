@@ -133,26 +133,19 @@ namespace TiEV {
     PathPlanner::primitive::primitive(
         const base_primitive* _base,
         const primitive_ptr _parent,
-        const astate& _start_state) :
+        const astate& _start_state,
+        double sin_start_state_a,
+        double cos_start_state_a) :
         base(_base),
         parent(_parent),
         sampled(false),
         start_state(_start_state),
-        end_state(_base->get_states().back()) {
-        // set trans data
-        trans_sin = sin(start_state.a);
-        trans_cos = cos(start_state.a);
+        end_state(_base->get_states().back()),
+        trans_sin(sin_start_state_a),
+        trans_cos(cos_start_state_a) {
         // compute end_state
         trans(end_state);
     }
-
-    PathPlanner::primitive::primitive(primitive&& _p) :
-        base(_p.base), parent(_p.parent),
-        start_state(_p.start_state), end_state(_p.end_state),
-        sampled_states(move(_p.sampled_states)),
-        sampled(_p.sampled),
-        trans_sin(_p.trans_sin),
-        trans_cos(_p.trans_cos) { }
 
     const vector<PathPlanner::astate>& PathPlanner::primitive::get_states() {
         if (!sampled) {

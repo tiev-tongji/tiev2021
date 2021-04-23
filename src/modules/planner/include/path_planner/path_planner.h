@@ -290,8 +290,9 @@ private:
     public:
         primitive(const base_primitive* base,
             const primitive_ptr parent,
-            const astate& start_state);
-        primitive(primitive&& primitive);
+            const astate& start_state,
+            double sin_start_state_a,
+            double cos_start_state_a);
         const vector<astate>& get_states();
         astate                get_start_state() const;
         astate                get_end_state() const;

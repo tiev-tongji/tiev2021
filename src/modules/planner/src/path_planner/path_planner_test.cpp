@@ -212,6 +212,7 @@ void show_curvature_graph(PathPlanner* planner) {
         int idx = 0;
         double total_s = path.path.back().s;
         for(auto& p : path.path) {
+            cerr << p.x << " " << p.y << " " << p.a << " " << p.s << endl;
             double rel_s = p.s / total_s;
             int c = border + (int)round(rel_s * graph_cols);
             double rel_k = min(p.k, 0.3);

@@ -5,7 +5,8 @@ namespace TiEV {
 using namespace std;
 
 bool collision(double x, double y, double ang, const double dis_map[MAX_ROW][MAX_COL], double expansion_r) {
-    double sin_ang = sin(ang), cos_ang = cos(ang);
+    double sin_ang, cos_ang;
+    sincos(ang, &sin_ang, &cos_ang);
     int circle_center_2_x = round(x + cos_ang * (circle_dis2 / GRID_RESOLUTION));
     int circle_center_2_y = round(y + sin_ang * (circle_dis2 / GRID_RESOLUTION));
     double big_r = (expansion_r + COLLISION_CIRCLE_BIG_R) / GRID_RESOLUTION;
