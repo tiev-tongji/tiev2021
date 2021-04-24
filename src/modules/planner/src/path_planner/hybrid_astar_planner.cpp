@@ -122,8 +122,6 @@ namespace TiEV {
                 if (!planning_map.is_crashed(expansion)) {
                     // primitive is not crashed
                     astate end_state = expansion.get_end_state();
-                    // update end_state to history
-                    int end_state_visits = history(end_state)++;
                     // check if primitive is near target
                     target_offset = planning_map.try_get_target_index(expansion);
                     // if target has been reached
@@ -133,7 +131,9 @@ namespace TiEV {
                         break;
                     }
                     // else create node and push it to queue
-                    else {
+                    else if (planning_map.is_in_map(end_state)) {
+                        // update end_state to history
+                        int end_state_visits = history(end_state)++;
                         double heuristic = planning_map.get_heuristic(end_state, reverse_allowed);
                         double minimum_speed = sqrt(max(0.0,
                             (current.minimum_speed * current.minimum_speed - 2 *

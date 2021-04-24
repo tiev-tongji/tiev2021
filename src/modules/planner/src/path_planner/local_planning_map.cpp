@@ -39,13 +39,20 @@ namespace TiEV {
     }
 
     bool PathPlanner::local_planning_map::is_crashed(primitive& prim) const {
-        if (!is_in_map(prim.get_end_state())) return true;
-        double safe_distance = get_maximum_safe_distance(prim.get_start_state());
-        if (prim.get_length() < safe_distance) return false;
-        for (const auto& state : prim.get_states()) {
-            if (state.s <= safe_distance) continue;
-            else if (is_crashed(state)) return true;
-            else safe_distance = state.s + get_maximum_safe_distance(state);
+        const astate& start_state = prim.get_start_state();
+        int ssr = round(start_state.x);
+        int ssc = round(start_state.y);
+        double sssafe = get_maximum_safe_distance(ssr, ssc);
+        if (is_in_map(ssr, ssc) == false || prim.get_length() < sssafe) {
+            double safe_s = start_state.s + sssafe;
+            for (const auto& state : prim.get_states()) {
+                if (state.s <= safe_s) continue;
+                int r = round(state.x), c = round(state.y);
+                if (is_in_map(r, c)) {
+                    if (is_crashed(state)) return true;
+                    else safe_s = state.s + get_maximum_safe_distance(r, c);
+                }
+            }
         }
         return false;
     }
@@ -81,8 +88,11 @@ namespace TiEV {
     }
 
     bool PathPlanner::local_planning_map::is_in_map(const astate& state) const {
-        return state.x >= 0 && state.y >= 0 &&
-            state.x <= (MAX_ROW - 1) && state.y <= (MAX_COL - 1);
+        return is_in_map((int)round(state.x), (int)round(state.y));
+    }
+
+    bool PathPlanner::local_planning_map::is_in_map(int row_idx, int col_idx) const {
+        return row_idx >= 0 && row_idx < MAX_ROW && col_idx >= 0 && col_idx < MAX_COL;
     }
 
     void PathPlanner::local_planning_map::merge_xya_distance_map(
@@ -107,8 +117,8 @@ namespace TiEV {
         constexpr double da = 5 / 180.0 * M_PI;
         if (fabs(state.x - target.x) > dx) return false;
         if (fabs(state.y - target.y) > dy) return false;
-        double a1 = fmod(state.a, M_PI * 2.0);
-        double a2 = fmod(target.a, M_PI * 2.0);
+        double a1 = wrap_angle_0_2_PI(state.a);
+        double a2 = wrap_angle_0_2_PI(target.a);
         double dangle = min(fabs(a1 - a2), fabs(a2 - a1));
         return dangle <= da;
     }
@@ -231,8 +241,8 @@ namespace TiEV {
     }
 
     double PathPlanner::local_planning_map::
-        get_maximum_safe_distance(const astate& state) const {
-        return max(safe_map[lround(state.x)][lround(state.y)] * M_SQRT1_2 -
+        get_maximum_safe_distance(int row_idx, int col_idx) const {
+        return max(safe_map[row_idx][col_idx] * M_SQRT1_2 -
             M_SQRT2 - COLLISION_CIRCLE_BIG_R / GRID_RESOLUTION, 0.0);
     }
 

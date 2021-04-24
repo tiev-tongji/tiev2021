@@ -390,13 +390,14 @@ private:
             bool is_crashed(int x, int y) const;
             bool is_crashed(const astate& state) const;
             bool is_crashed(primitive& primitive) const;
-            double get_maximum_safe_distance(const astate& state) const;
+            double get_maximum_safe_distance(int row_idx, int col_idx) const;
             double get_minimum_distance_from_map_boundaries(const astate& state) const;
 
             double get_heuristic(const astate& state, bool can_reverse) const;
             bool is_target(const astate& state) const;
             int try_get_target_index(primitive& primitive) const;
             bool is_in_map(const astate& state) const;
+            bool is_in_map(int row_idx, int col_idx) const;
 
             void merge_xya_distance_map(pair<double, double> (*output_map)[MAX_COL]) const;
 
