@@ -117,16 +117,13 @@ namespace TiEV {
         constexpr double da = 5 / 180.0 * M_PI;
         if (fabs(state.x - target.x) > dx) return false;
         if (fabs(state.y - target.y) > dy) return false;
-        double a1 = wrap_angle_0_2_PI(state.a);
-        double a2 = wrap_angle_0_2_PI(target.a);
-        double dangle = min(fabs(a1 - a2), fabs(a2 - a1));
+        double dangle = wrap_angle_0_2_PI(state.a - target.a);
+        dangle = min(dangle, 2 * M_PI - dangle);
         return dangle <= da;
     }
 
     int PathPlanner::local_planning_map::get_angle_index(double ang) {
-        double norm_ang = M_PI - ang;
-        norm_ang = PathPlanner::wrap_angle_0_2_PI(norm_ang);
-        return (int)(norm_ang / XYA_MAP_DELTA_A) % XYA_MAP_DEPTH;
+        return (int)(wrap_angle_0_2_PI(M_PI - ang) / XYA_MAP_DELTA_A) % XYA_MAP_DEPTH;
     }
 
     void PathPlanner::local_planning_map::

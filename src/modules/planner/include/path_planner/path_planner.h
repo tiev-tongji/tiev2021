@@ -580,8 +580,8 @@ private:
     }
 
     static inline double wrap_angle_0_2_PI(double a) {
-        if (a > 0) return fmod(a + M_PI, 2.0 * M_PI) - M_PI;
-        else return fmod(a - M_PI, 2.0 * M_PI) + M_PI;
+        a = fmod(a, 2 * M_PI);
+        return a < 0 ? a + 2 * M_PI : a;
     }
 
 public:
