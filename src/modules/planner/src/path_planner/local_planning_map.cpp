@@ -43,7 +43,7 @@ namespace TiEV {
         int ssr = round(start_state.x);
         int ssc = round(start_state.y);
         double sssafe = get_maximum_safe_distance(ssr, ssc);
-        if (is_in_map(ssr, ssc) == false || prim.get_length() < sssafe) {
+        if (is_in_map(ssr, ssc) == false || prim.get_length() >= sssafe) {
             double safe_s = start_state.s + sssafe;
             for (const auto& state : prim.get_states()) {
                 if (state.s <= safe_s) continue;

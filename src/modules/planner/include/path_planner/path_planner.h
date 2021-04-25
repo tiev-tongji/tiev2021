@@ -16,10 +16,11 @@
 #include <thread>
 #include <vector>
 #include <tuple>
+#include <functional>
 
 using namespace std;
 
-// #define NO_TIME_LIMIT
+#define NO_TIME_LIMIT
 // #define DEBUG_EXPANSION_CALLBACK
 // #define DEBUG_ANALYTIC_EXPANSION_CALLBACK
 #define USE_HC_PATH_ANALYTIC_EXPANSION
@@ -318,8 +319,10 @@ private:
 
     class analytic_expansion_provider {
     public:
-        virtual void sample(double t, astate& output_state) const = 0;
         virtual double get_length() const = 0;
+        virtual bool get_is_map_exceeded() const = 0;
+        virtual bool traverse(const function<bool (const astate&)>& callback) const = 0;
+        virtual ~analytic_expansion_provider() = default;
         static constexpr double ANALYTIC_EXPANSION_SAMPLING_STEP = 0.2 / GRID_RESOLUTION;
     };
 
@@ -329,8 +332,10 @@ private:
             const astate& _start_state,
             const astate& _end_state,
             double _max_curvature);
-        virtual void sample(double t, astate& output_state) const;
         virtual double get_length() const;
+        virtual bool get_is_map_exceeded() const;
+        virtual bool traverse(const function<bool (const astate&)>& callback) const;
+        virtual ~dubins_provider() override = default;
     private:
         steer::State start_state;
         vector<Control> controls;
@@ -343,8 +348,10 @@ private:
             const astate& _start_state,
             const astate& _end_state,
             double _max_curvature);
-        virtual void sample(double t, astate& output_state) const;
         virtual double get_length() const;
+        virtual bool get_is_map_exceeded() const;
+        virtual bool traverse(const function<bool (const astate&)>& callback) const;
+        virtual ~reeds_shepp_provider() override = default;
     private:
         steer::State start_state;
         vector<Control> controls;
@@ -358,8 +365,10 @@ private:
             const astate& _end_state,
             double _max_curvature,
             double _max_sigma);
-        virtual void sample(double t, astate& output_state) const;
         virtual double get_length() const;
+        virtual bool get_is_map_exceeded() const;
+        virtual bool traverse(const function<bool (const astate&)>& callback) const;
+        virtual ~cc_dubins_path_provider() override = default;
     private:
         steer::State start_state;
         vector<Control> controls;
@@ -373,8 +382,10 @@ private:
             const astate& _end_state,
             double _max_curvature,
             double _max_sigma);
-        virtual void sample(double t, astate& output_state) const;
         virtual double get_length() const;
+        virtual bool get_is_map_exceeded() const;
+        virtual bool traverse(const function<bool (const astate&)>& callback) const;
+        virtual ~hc_reeds_shepp_path_provider() override = default;
     private:
         steer::State start_state;
         vector<Control> controls;

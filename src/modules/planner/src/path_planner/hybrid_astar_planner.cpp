@@ -74,6 +74,8 @@ namespace TiEV {
             // get current state
             astate current_state;
             const vector<const base_primitive*>* bases;
+            // only the first node in the open list has
+            // a null current.ptr
             if (current.ptr == NULL) {
                 current_state = _start_state;
                 bases = &base_primitives->get_nexts(current_state);
@@ -88,9 +90,13 @@ namespace TiEV {
             double maximum_curvature_allowed = GRID_RESOLUTION *
                 max_curvature_under_velocity(current.minimum_speed);
 
+            // for each node we caculate the probability to
+            // perform analytic expansion from it.
+            // the probability depends on its heuristic x.
             double x = current.score - current.cost;
             double analytic_expansion_probability = 0.2402 * exp(-0.006 * x);
-            if (random_urd(gen) <= analytic_expansion_probability) {
+            if (iterations == 1 || random_urd(gen) <=
+                analytic_expansion_probability) {
                 if (try_analytic_expansion(current_state,
                     reverse_allowed, maximum_curvature_allowed,
                     max_sigma_under_velocity(current.minimum_speed))) {
@@ -100,9 +106,10 @@ namespace TiEV {
                             get_states().size() - 1;
                     target_reached = true;
                     break;
-                } else analytic_expansion_result.clear();
+                }
             }
 
+            // sin and cos values prepared for expansion
             double trans_sin, trans_cos;
             sincos(current_state.a, &trans_sin, &trans_cos);
 
@@ -114,23 +121,28 @@ namespace TiEV {
                 if ((reverse_allowed == false && reversed_expansion) ||
                     (fabs(base->get_maximum_curvature()) > maximum_curvature_allowed))
                     continue;
-
-                // create primitive from base
+                // create a new primitive from primitive pool expanded from
+                // current_state, based on primitive base, and linked to
+                // its parent primitive 'current.ptr'
                 primitive& expansion = *(primitive_pool.make(base,
                     current.ptr, current_state, trans_sin, trans_cos));
                 // check if primitive crashed
+                // is_crashed does not check if the primitive is completely
+                // or partly outside the local map. if the primitive is
+                // not crashed but partly outside the local map, we still
+                // assume that a sampled state on it might reach the target
                 if (!planning_map.is_crashed(expansion)) {
                     // primitive is not crashed
                     astate end_state = expansion.get_end_state();
                     // check if primitive is near target
                     target_offset = planning_map.try_get_target_index(expansion);
-                    // if target has been reached
+                    // if target has been reached, end the searching
                     if (target_offset >= 0) {
                         last_primitive_ptr = &expansion;
                         target_reached = true;
                         break;
                     }
-                    // else create node and push it to queue
+                    // if end_state is in the local map, add it to open list
                     else if (planning_map.is_in_map(end_state)) {
                         // update end_state to history
                         int end_state_visits = history(end_state)++;
@@ -150,7 +162,7 @@ namespace TiEV {
                                 heuristic, cost);
                     #endif
                         node_pool.push({
-                            heuristic * 1.1 + cost,
+                            heuristic + cost,
                             minimum_speed, cost,
                             dis_after_reverse,
                             &expansion
@@ -228,61 +240,67 @@ namespace TiEV {
 
         const analytic_expansion_provider* provider = NULL;
 
+        // since we must check whether we are approved to drive backward
+        // to decide which analytic expansion provider to be used here,
+        // the provider can be constructed only in the if-segment.
+        // so we define an unsigned char array to pre-alloc the space
+        // of candidate providers, manually call "placement new"
+        // and the destructor (which is virtual) of the provider.
 #if defined(USE_HC_PATH_ANALYTIC_EXPANSION)
-        hc_reeds_shepp_path_provider hc_rs_provider(
-            state, target_state,
-            max(max_curvature * GRID_RESOLUTION, fabs(state.curvature)),
-            max_sigma * pow(GRID_RESOLUTION, 2));
-        cc_dubins_path_provider cc_dubins_provider(
-            state, target_state,
-            max(max_curvature * GRID_RESOLUTION, fabs(state.curvature)),
-            max_sigma * pow(GRID_RESOLUTION, 2));
+        unsigned char _provider[
+            max(sizeof(hc_reeds_shepp_path_provider),
+                sizeof(cc_dubins_path_provider))];
         if (is_backward_enabled && backward_allowed)
-            provider = &hc_rs_provider;
-        else provider = &cc_dubins_provider;
+            provider = new (_provider)
+                hc_reeds_shepp_path_provider(state, target_state,
+                max(max_curvature * GRID_RESOLUTION, fabs(state.curvature)),
+                max_sigma * pow(GRID_RESOLUTION, 2));
+        else
+            provider = new (_provider)
+                cc_dubins_path_provider(state, target_state,
+                max(max_curvature * GRID_RESOLUTION, fabs(state.curvature)),
+                max_sigma * pow(GRID_RESOLUTION, 2));
 #elif defined(USE_DUBINS_ANALYTIC_EXPANSION)
+        unsigned char _provider[
+            max(sizeof(reeds_shepp_provider),
+                sizeof(dubins_provider))];
         reeds_shepp_provider rs_provider(
             state, target_state, max_curvature * GRID_RESOLUTION);
         dubins_provider dbs_provider(
             state, target_state, max_curvature * GRID_RESOLUTION);
         if (is_backward_enabled && backward_allowed)
-            provider = &rs_provider;
-        else provider = &dbs_provider;
+            provider = new (_provider) reeds_shepp_provider(
+                state, target_state, max_curvature * GRID_RESOLUTION);
+        else
+            provider = new (_provider) dubins_provider(
+                state, target_state, max_curvature * GRID_RESOLUTION);
 #else
         return false;
 #endif
 
-        double total_length = provider->get_length();
-        if (total_length <= 0.0) return false;
-        double dt = base_primitive::PRIMITIVE_SAMPLING_STEP / total_length;
-        int ts = ceil(total_length / base_primitive::PRIMITIVE_SAMPLING_STEP);
-        constexpr int big_jump = (1 << 5);
-        analytic_expansion_result.resize(ts);
-        int big_jumps = ts / big_jump;
-        for (int bi = 1; bi <= big_jumps; ++bi) {
-            int offset = bi * big_jump;
-            double t = min(1.0, offset * dt);
-            astate& sampled_state = analytic_expansion_result[offset - 1];
-            provider->sample(t, sampled_state);
-            sampled_state.s = state.s + t * total_length;
-            if (planning_map.is_in_map(sampled_state) == false ||
-                planning_map.is_crashed(sampled_state))
-                return false;
+        auto& aer = analytic_expansion_result;
+        auto& map = planning_map;
+        analytic_expansion_result.clear();
+        if (provider->get_is_map_exceeded() == false &&
+            provider->traverse(
+                [&aer, &map, &state](const astate& sampled_state) {
+                    aer.emplace_back(sampled_state);
+                    astate& end_state = aer.back();
+                    end_state.s += state.s;
+                    if (map.is_in_map(end_state) == false ||
+                        map.is_crashed(end_state))
+                        return false;
+                    else return true;
+                }
+            )) {
+            provider->~analytic_expansion_provider();
+            log_1("analytic expansion succ");
+            return true;
+        } else {
+            provider->~analytic_expansion_provider();
+            analytic_expansion_result.clear();
+            return false;
         }
-
-        for (int si = 1; si <= ts; ++si) {
-            if ((si % big_jump) == 0) continue;
-            double t = min(1.0, si * dt);
-            astate& sampled_state = analytic_expansion_result[si - 1];
-            provider->sample(t, sampled_state);
-            sampled_state.s = state.s + t * total_length;
-            if (planning_map.is_in_map(sampled_state) == false ||
-                planning_map.is_crashed(sampled_state))
-                return false;
-        }
-
-        log_1("analytic expansion succ");
-        return true;
     }
 
     double PathPlanner::hybrid_astar_planner::get_cost_factor(
