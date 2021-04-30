@@ -220,14 +220,23 @@ void PathPlanner::planner_thread(int target_index) {
         log_0("thread ", target_index, " have result = true");
         const auto& result = planner->get_result();
         speed_paths[target_index].path.clear();
-        speed_paths[target_index].path.reserve(result.size());
+        speed_paths[target_index].path.reserve(
+            result.size() + start_maintained_path.size());
+        speed_paths[target_index].path.assign(
+            start_maintained_path.begin(),
+            start_maintained_path.end());
+        double offset_s = 0.0;
+        if (!start_maintained_path.empty()) {
+            speed_paths[target_index].path.pop_back();
+            offset_s = start_maintained_path.back().s;
+        }
         for (const auto& state : result) {
             Pose    p;
             p.x   = state.x;
             p.y   = state.y;
             p.ang = state.a;
             p.updateGlobalCoordinate(start_point);
-            p.s = state.s * GRID_RESOLUTION;
+            p.s = state.s * GRID_RESOLUTION + offset_s;
             p.k = fabs(state.curvature / GRID_RESOLUTION);
             p.backward = state.is_backward;
             p.v = velocity_limit;
