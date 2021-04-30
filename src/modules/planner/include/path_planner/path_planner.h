@@ -152,6 +152,7 @@ private:
     */
     typedef primitive* primitive_ptr;
 
+    // astate is the inner state used by hybrid astar planner
     class astate {
     public:
         double x, y, a;
@@ -160,13 +161,20 @@ private:
         bool is_backward;
     };
 
+    // node of the hybrid astar search contains properties of a node like
+    // heuristic and cost, and a pointer to the primitive generated
+    // in the last expansion
     class node {
     public:
+        // score = heuristic + cost
         double score;
+        // the minimum possible speed at this position
         double minimum_speed;
         double cost;
+        // the distance covered since last reversing
+        // (backward -> forward or forward -> backward)
         double dis_after_reverse;
-
+        // points to the last expanded primitive
         primitive_ptr ptr;
 
         inline bool operator < (const node& n) const {
@@ -174,6 +182,11 @@ private:
         }
     };
 
+    // base_primitive contains pre-computed properties and
+    // pre-sampled states of hybrid astar primitive.
+    // base_primitive always starts from state (0.0, 0.0, 0.0)
+    // and will be transformed to perform an expansion at
+    // searching time.
     class base_primitive {
         public:
             base_primitive(const vector<astate>& sampled_states);
@@ -239,6 +252,10 @@ private:
             double end_curvature;
     };
 
+    // base_primitive_set is a set of primitives which initializes all
+    // appropriate base primitives and the linkage relationship among them
+    // (linkage relationship means base_primitive_set calculates all
+    //  possible base primitive successors for each base primitive)
     class base_primitive_set {
         public:
             virtual const vector<const base_primitive*>& get_nexts(const astate& state) const = 0;
@@ -287,8 +304,18 @@ private:
     #error define at least one flag to set which type of primitives to use
 #endif
 
+    // primitive contains properties of a transformed base primitive
+    // each expansion generates a primitive object at search time.
     class primitive {
     public:
+        // construct a primitive transformed from base, started from start_state
+        // and pointed to its parent.
+        // for saving computation and memory consumption, not all of the sampled
+        // states of the base primitive is transformed at constructure time,
+        // only start and end states are transformed at the beginning.
+        // other states are automatically transformed at the first time
+        // get_states() is called. only call get_states() when u need
+        // exactly each internal state sampled and transformed.
         primitive(const base_primitive* base,
             const primitive_ptr parent,
             const astate& start_state,
@@ -317,10 +344,19 @@ private:
         void trans(astate& src) const;
     };
 
+    // analytic_expansion_provider provides analytic_expansion
     class analytic_expansion_provider {
     public:
         virtual double get_length() const = 0;
+        // get_is_map_exceeded() should be a fast verification
+        // of whether the generated curve exceeds the local map.
+        // it is not necessary for this to exactly detect each
+        // exceeding curves, but it has to be as quick as possible.
         virtual bool get_is_map_exceeded() const = 0;
+        // traverse() samples the generated curve and calls callback
+        // for each sampled state, the callback should return whether
+        // the traversing is supposed to continue.
+        // this method returns whether the traversing is completed.
         virtual bool traverse(const function<bool (const astate&)>& callback) const = 0;
         virtual ~analytic_expansion_provider() = default;
         static constexpr double ANALYTIC_EXPANSION_SAMPLING_STEP = 0.2 / GRID_RESOLUTION;
