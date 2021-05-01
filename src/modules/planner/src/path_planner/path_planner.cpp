@@ -190,10 +190,10 @@ void PathPlanner::planner_thread(int target_index) {
     log_0("thread ", target_index, " started");
     astate start_state = {
         start_point.x, start_point.y, start_point.ang,
-        0.0, start_point.k, start_point.v < 0.0
+        0.0, start_point.k * GRID_RESOLUTION, start_point.v < 0.0
     }, target_state = {
         targets[target_index].x, targets[target_index].y, targets[target_index].ang,
-        0.0, targets[target_index].k, targets[target_index].v < 0.0
+        0.0, targets[target_index].k * GRID_RESOLUTION, targets[target_index].v < 0.0
     };
 
     hybrid_astar_planner* planner =
