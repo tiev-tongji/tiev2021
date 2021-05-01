@@ -225,9 +225,8 @@ void sendPath() {
         max_speed = min(2.0, max_speed);
         point.ang = PI + point.ang;
       }
-      speed_limits.emplace_back(
-          point.s,
-          min(sqrt(GRAVITY * MIU / (point.k + 0.0001)) * 0.6, max_speed));
+      speed_limits.emplace_back(point.s,
+        min(max_speed, max_velocity_for_curvature(point.k)));
     }
     if (!maintained_path.empty())
       maintained_path.front().v = fabs(nav_info.current_speed);

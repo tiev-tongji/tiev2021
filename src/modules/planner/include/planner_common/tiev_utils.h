@@ -101,6 +101,33 @@ void lineInterpolation(std::vector<T>& line, double min_step = 2) {
 //从nature中移来的，时间函数
 std::tm* gettm(int64_t timestamp);
 std::time_t getTimeStamp();
+
+// (k * curvature + b) * (v ^ 2) == 1
+// https://sm.ms/image/YUv7qXxGQKi9aH3
+constexpr double KV_LINE_K = 0.9808;
+constexpr double KV_LINE_B = -0.0031;
+constexpr double CAR_MAX_CURVATURE = 0.181818182; // 1/m
+
+inline double max_curvature_under_velocity(double velocity_m_s) {
+    double curvature = (1.0 / (velocity_m_s * velocity_m_s) -
+        KV_LINE_B) / KV_LINE_K;
+    return std::max(std::min(curvature, CAR_MAX_CURVATURE), 0.0);
+}
+
+inline double max_velocity_for_curvature(double curvature_1_m) {
+    return std::sqrt(1.0 / std::max(1e-8, KV_LINE_K *
+        std::max(curvature_1_m, 0.0) + KV_LINE_B));
+}
+
+// we assume the steering wheel can rotate PI every three seconds
+// at its maximum angular speed.
+constexpr double MAX_STEERING_WHEEL_ROTATE_SPEED = M_PI / 3.0; // ang/s
+constexpr double MAX_STEERING_WHEEL_ANGLE = M_PI + M_PI_2; // ang
+
+inline double max_sigma_under_velocity(double velocity_m_s) {
+    return CAR_MAX_CURVATURE / (std::max(fabs(velocity_m_s), 5.0 / 3.6) *
+        (MAX_STEERING_WHEEL_ANGLE / MAX_STEERING_WHEEL_ROTATE_SPEED));
+}
 }  // namespace TiEV
 
 #endif  //!__TIEV_UTILS__H__

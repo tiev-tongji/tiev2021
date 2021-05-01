@@ -237,7 +237,7 @@ void PathPlanner::planner_thread(int target_index) {
             p.ang = state.a;
             p.updateGlobalCoordinate(start_point);
             p.s = state.s * GRID_RESOLUTION + offset_s;
-            p.k = fabs(state.curvature / GRID_RESOLUTION);
+            p.k = state.curvature / GRID_RESOLUTION;
             p.backward = state.is_backward;
             p.v = velocity_limit;
             speed_paths[target_index].path.push_back(p);

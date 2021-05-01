@@ -1305,9 +1305,8 @@ void MapManager::getSpeedMaintainedPath(NavInfo& nav_info) {
       max_speed = 2;
       point.ang = PI + point.ang;
     }
-    speed_limits.emplace_back(
-        point.s,
-        min(sqrt(GRAVITY * MIU / (point.k + 0.0001)) * 0.7, max_speed));
+    speed_limits.emplace_back(point.s, min(max_speed,
+      max_velocity_for_curvature(point.k)));
   }
 
   maintained_path.front().v = fabs(nav_info.current_speed);
@@ -1323,8 +1322,8 @@ void MapManager::getSpeedMaintainedPath(NavInfo& nav_info) {
     }
     double max_speed = getCurrentMapSpeed();
     if (p.backward) max_speed = 2;
-    speed_limits.emplace_back(
-        p.s, min(sqrt(GRAVITY * MIU / (fabs(p.k) + 0.0001)) * 0.7, max_speed));
+    speed_limits.emplace_back(p.s, min(max_speed,
+      max_velocity_for_curvature(p.k)));
   }
   map.speed_maintained_path = SpeedOptimizer::RunSpeedOptimizer(
       map.dynamic_obj_list.dynamic_obj_list, maintained_path, speed_limits,

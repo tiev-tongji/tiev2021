@@ -92,7 +92,7 @@ constexpr double max_curvature_sharpness = 0.01;
         double max_curvature_change = (clothoid_length * max_sigma);
 
         // forward_sampling
-        constexpr int forward_sampling_num = 6;
+        constexpr int forward_sampling_num = 5;
         constexpr double forward_sampling_param = 1.0 / pow(forward_sampling_num - 1, 2);
         vector<double> forward_curvatures;
         for (int i = -(forward_sampling_num - 1); i < forward_sampling_num; ++i)

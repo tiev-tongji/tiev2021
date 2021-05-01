@@ -20,7 +20,7 @@
 
 using namespace std;
 
-#define NO_TIME_LIMIT
+// #define NO_TIME_LIMIT
 // #define DEBUG_EXPANSION_CALLBACK
 // #define DEBUG_ANALYTIC_EXPANSION_CALLBACK
 #define USE_HC_PATH_ANALYTIC_EXPANSION
@@ -587,33 +587,7 @@ private:
             bool have_result;
     } hybrid_astar_planners[MAX_TARGET_NUM];
 
-    // (k * curvature + b) * (v ^ 2) == 1
-    // https://sm.ms/image/YUv7qXxGQKi9aH3
-    static constexpr double KV_LINE_K = 0.9808;
-    static constexpr double KV_LINE_B = -0.0031;
-    static constexpr double CAR_MAX_CURVATURE = 0.181818182; // 1/m
     static constexpr double SPEED_DESCENT_FACTOR = 1.0; // m/s^2
-
-    static inline double max_curvature_under_velocity(double velocity_m_s) {
-        double curvature = (1.0 / (velocity_m_s * velocity_m_s) -
-            KV_LINE_B) / KV_LINE_K;
-        return max(min(curvature, CAR_MAX_CURVATURE), 0.0);
-    }
-
-    static inline double max_velocity_for_curvature(double curvature_1_m) {
-        return sqrt(1.0 / max(1e-8, KV_LINE_K *
-            max(curvature_1_m, 0.0) + KV_LINE_B));
-    }
-
-    // we assume the steering wheel can rotate PI every three seconds
-    // at its maximum angular speed.
-    static constexpr double MAX_STEERING_WHEEL_ROTATE_SPEED = M_PI / 3.0; // ang/s
-    static constexpr double MAX_STEERING_WHEEL_ANGLE = M_PI + M_PI_2; // ang
-
-    static inline double max_sigma_under_velocity(double velocity_m_s) {
-        return CAR_MAX_CURVATURE / (max(fabs(velocity_m_s), 5.0 / 3.6) *
-            (MAX_STEERING_WHEEL_ANGLE / MAX_STEERING_WHEEL_ROTATE_SPEED));
-    }
 
     static inline double wrap_angle_0_2_PI(double a) {
         a = fmod(a, 2 * M_PI);
@@ -661,10 +635,6 @@ public:
         const double dx = x_0 - x_1;
         const double dy = y_0 - y_1;
         return sqrt(dx * dx + dy * dy);
-    }
-
-    static inline double curvatureConstraint(const double& speed_2_ms, const double& steering_ability) {
-        return steering_ability * GRAVITY / speed_2_ms;
     }
 };
 }

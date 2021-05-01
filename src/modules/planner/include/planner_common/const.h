@@ -8,8 +8,6 @@ constexpr int    CAR_CEN_ROW     = 350;
 constexpr float  GRID_RESOLUTION = 0.2;
 constexpr double PI              = 3.1415926535898;
 constexpr double inf             = 1e8;
-constexpr double GRAVITY         = 9.8;
-constexpr double MIU             = 0.5;
 }  // TiEV
 
 #endif  //!__CONST__H__
