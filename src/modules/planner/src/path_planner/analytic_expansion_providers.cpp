@@ -32,21 +32,25 @@ namespace TiEV {
         const function<bool (const state_type&)>& callback,
         const double step) {
         double s = 0.0;
-        State last_state = start_state;
+        State control_start_state = start_state;
         for (const auto& control : controls) {
+            control_start_state.kappa = control.kappa;
+            control_start_state.d = sgn(control.delta_s);
+
             double clength = fabs(control.delta_s);
             double offset = 0.0;
+            State sampled;
             while (offset < clength) {
-                double _step = min(clength - offset, step);
-                offset += _step;
-                s += _step;
-                last_state = space.integrate_ODE(
-                    last_state, control, _step);
+                offset = min(clength, offset + step);
+                sampled = space.integrate_ODE(
+                    control_start_state, control, offset);
                 if (!callback({
-                    last_state.x, last_state.y, last_state.theta,
-                    s, last_state.kappa, last_state.d < 0.0 })
+                    sampled.x, sampled.y, sampled.theta,
+                    s + offset, sampled.kappa, sampled.d < 0.0 })
                 ) return false;
             }
+            s += clength;
+            control_start_state = sampled;
         }
         return true;
     }
