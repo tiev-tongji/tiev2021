@@ -60,7 +60,8 @@ class Config {
   bool enable_routing_by_file;
   // NOTICE: READ-ONLY
   HDMapSpeed debug_speed_mode;
-
+  // NOTICE: READ-ONLY
+  bool taxi_mode;
   // NOTICE: READ-ONLY
   int targets_num_limit;
   // NOTICE: READ-ONLY

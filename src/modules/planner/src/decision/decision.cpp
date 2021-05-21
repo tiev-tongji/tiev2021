@@ -321,6 +321,7 @@ void requestGlobalPathFromMapServer() {
       usleep(2e6 + start_time - getTimeStamp());
     }
     start_time = getTimeStamp();
+    routing->updateInfoToServer();
     vector<HDMapPoint> tmp_global_path;
     HDMapMode road_mode = map_m->getCurrentMapMode();
     // mode

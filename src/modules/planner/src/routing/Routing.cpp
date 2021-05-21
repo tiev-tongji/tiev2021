@@ -1,4 +1,7 @@
 #include "Routing.h"
+#include "message_manager.h"
+#include "tiev_class.h"
+#include "decision.h"
 
 #include "config.h"
 #include <cstring>
@@ -22,6 +25,11 @@ using routing_service::RefRoad;
 using routing_service::RefRoadPoint;
 using routing_service::RoutingService;
 using routing_service::TaskPoints;
+using routing_service::MapService;
+using grpc::ClientWriter;
+using google::protobuf::Empty;
+using routing_service::CarInfo;
+using routing_service::TaskPoint;
 Routing::Routing() {
 
     host        = Config::getInstance()->host;
@@ -33,8 +41,10 @@ Routing::Routing() {
     output      = Config::getInstance()->output;
     topo_name   = Config::getInstance()->topo_name;
     std::cout<<"target url: "<<host+":"+port<<std::endl;
-    stub        = unique_ptr<RoutingService::Stub>(RoutingService::NewStub(
-      grpc::CreateChannel(host+":"+port, grpc::InsecureChannelCredentials())));
+    shared_ptr<Channel> channel = grpc::CreateChannel(host+":"+port, grpc::InsecureChannelCredentials());
+    stub        = unique_ptr<RoutingService::Stub>(RoutingService::NewStub(channel));
+    map_stub    = unique_ptr<MapService::Stub>(MapService::NewStub(channel));
+    writer      = unique_ptr<ClientWriter<CarInfo>>(map_stub->UpdateCarInfo(&writer_context, &writer_empty));
 }
 
 Routing::~Routing() {}
@@ -65,14 +75,14 @@ int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path, const std::
         for(size_t i = 0; i < sum_points_num; i++) {
             auto       res_point = response.point(i);
             HDMapPoint p;
-            p.utm_position = UtmPosition(stod(res_point.utmx()), stod(res_point.utmy()), stod(res_point.heading()));
-            p.mode         = HDMapMode(stoi(res_point.mode()));
-            p.speed_mode   = HDMapSpeed(stoi(res_point.speed_mode()));
-            p.event        = HDMapEvent(stoi(res_point.event_mode()));
-            p.block_type   = BlockType(stoi(res_point.opposite_side_mode()));
-            p.lane_num     = stoi(res_point.lane_num());
-            p.lane_seq     = stoi(res_point.lane_seq());
-            p.lane_width   = stod(res_point.lane_width());
+            p.utm_position = UtmPosition(res_point.utmx(), res_point.utmy(), res_point.heading());
+            p.mode         = HDMapMode(res_point.mode());
+            p.speed_mode   = HDMapSpeed(res_point.speed_mode());
+            p.event        = HDMapEvent(res_point.event_mode());
+            p.block_type   = BlockType(res_point.opposite_side_mode());
+            p.lane_num     = res_point.lane_num();
+            p.lane_seq     = res_point.lane_seq();
+            p.lane_width   = res_point.lane_width();
             global_path.push_back(p);
         }
         std::cout << "Build reference line file sucessfully which is " << output << std::endl;
@@ -106,4 +116,44 @@ void Routing::Array2Str(const std::vector<Task>& task_points, std::string& array
     array_y_str.append("]");
     // std::cout << array_x_str << std::endl << array_y_str << std::endl;
 }
+
+void Routing::updateInfoToServer(){
+    CarInfo info;
+    info.set_map(dbname);
+    auto pos = info.mutable_pos();
+    MessageManager* msg_m = MessageManager::getInstance();
+    NavInfo nav_info;
+    msg_m->getNavInfo(nav_info);
+    pos.set_lon(nav_info.lon);
+    pos.set_lat(nav_info.lat);
+    MachineManager* mm = MachineManager::getInstance();
+    if(mm->machine.isActive<GlobalPlanning>()||mm->machine.isActive<TemporaryStop>()){
+        info.set_running(false);
+    }else{
+        info.set_running(true);
+    }
+    if(!writer->Write(info)){
+        std::cerr<<"can't update car info to server!"<<std::endl;
+    }
+} 
+
+Task Routing::waitForNextTask(){
+    Empty empty;
+    ClientContext context;
+    TaskPoint res;
+    Task result;
+    Status status = map_stub->WaitForTaskPoint(&context, empty, &res);
+    if(status.ok()){
+        result.lon_lat_position.lon = res.lon();
+        result.lon_lat_position.lat = res.lat();
+        result.utm_position.utm_x = res.utmx();
+        result.utm_position.utm_y = res.utmy();
+        result.on_or_off = res.on_or_off();
+        result.task_points.clear();
+        result.task_points.push_back(UtmPosition(res.utmx(), res.utmy(), res.heading()));
+    }else{
+        std::cerr<<"can't get task from server"<<std::endl;
+    }
+    return result;
+}  
 }

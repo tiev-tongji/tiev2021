@@ -129,6 +129,12 @@ void MapManager::popCurrentTask() {
   task_points_mutex.unlock();
 }
 
+void MapManager::pushCurrentTask(const Task& next_task){
+  task_points_mutex.lock_shared();
+  this->map.current_task_points.push_back(next_task);
+  task_points_mutex.unlock_shared();
+}
+
 void MapManager::clearTask() {
   task_points_mutex.lock();
   this->map.current_task_points.clear();

@@ -83,6 +83,7 @@ class MapManager {
   vector<Task> getCurrentTasks();
   Task getParkingTask();
   void popCurrentTask();
+  void pushCurrentTask(const Task&); //添加新任务
   void clearTask();
   bool carInRoad();
   void setGlobalPath(const vector<HDMapPoint>& new_global_path);
@@ -110,7 +111,11 @@ class MapManager {
  protected:
   MapManager() {
     Config* config = Config::getInstance();
-    this->map.current_task_points = config->tasks;
+    //如果使用taxi模式，则在停车时从服务器获取任务
+    if(!config->taxi_mode){
+      this->map.current_task_points = config->tasks;
+    }
+    //最终停车位置不变
     this->map.parking_task = config->parking_task;
   };
 

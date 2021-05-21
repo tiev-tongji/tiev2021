@@ -31,6 +31,8 @@
 #include <google/protobuf/repeated_field.h>  // IWYU pragma: export
 #include <google/protobuf/extension_set.h>  // IWYU pragma: export
 #include <google/protobuf/unknown_field_set.h>
+#include <google/protobuf/empty.pb.h>
+#include <google/protobuf/wrappers.pb.h>
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
 #define PROTOBUF_INTERNAL_EXPORT_routing_5fservice_2eproto
@@ -46,7 +48,7 @@ struct TableStruct_routing_5fservice_2eproto {
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::AuxiliaryParseTableField aux[]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
-  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[4]
+  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[8]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::FieldMetadata field_metadata[];
   static const ::PROTOBUF_NAMESPACE_ID::internal::SerializationTable serialization_table[];
@@ -54,46 +56,62 @@ struct TableStruct_routing_5fservice_2eproto {
 };
 extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_routing_5fservice_2eproto;
 namespace routing_service {
+class CarInfo;
+class CarInfoDefaultTypeInternal;
+extern CarInfoDefaultTypeInternal _CarInfo_default_instance_;
+class Point;
+class PointDefaultTypeInternal;
+extern PointDefaultTypeInternal _Point_default_instance_;
 class RefRoad;
 class RefRoadDefaultTypeInternal;
 extern RefRoadDefaultTypeInternal _RefRoad_default_instance_;
 class RefRoadPoint;
 class RefRoadPointDefaultTypeInternal;
 extern RefRoadPointDefaultTypeInternal _RefRoadPoint_default_instance_;
+class RoadPoints;
+class RoadPointsDefaultTypeInternal;
+extern RoadPointsDefaultTypeInternal _RoadPoints_default_instance_;
+class TaskPoint;
+class TaskPointDefaultTypeInternal;
+extern TaskPointDefaultTypeInternal _TaskPoint_default_instance_;
 class TaskPoints;
 class TaskPointsDefaultTypeInternal;
 extern TaskPointsDefaultTypeInternal _TaskPoints_default_instance_;
-class TaskPoints_TaskPoint;
-class TaskPoints_TaskPointDefaultTypeInternal;
-extern TaskPoints_TaskPointDefaultTypeInternal _TaskPoints_TaskPoint_default_instance_;
+class TaskRequest;
+class TaskRequestDefaultTypeInternal;
+extern TaskRequestDefaultTypeInternal _TaskRequest_default_instance_;
 }  // namespace routing_service
 PROTOBUF_NAMESPACE_OPEN
+template<> ::routing_service::CarInfo* Arena::CreateMaybeMessage<::routing_service::CarInfo>(Arena*);
+template<> ::routing_service::Point* Arena::CreateMaybeMessage<::routing_service::Point>(Arena*);
 template<> ::routing_service::RefRoad* Arena::CreateMaybeMessage<::routing_service::RefRoad>(Arena*);
 template<> ::routing_service::RefRoadPoint* Arena::CreateMaybeMessage<::routing_service::RefRoadPoint>(Arena*);
+template<> ::routing_service::RoadPoints* Arena::CreateMaybeMessage<::routing_service::RoadPoints>(Arena*);
+template<> ::routing_service::TaskPoint* Arena::CreateMaybeMessage<::routing_service::TaskPoint>(Arena*);
 template<> ::routing_service::TaskPoints* Arena::CreateMaybeMessage<::routing_service::TaskPoints>(Arena*);
-template<> ::routing_service::TaskPoints_TaskPoint* Arena::CreateMaybeMessage<::routing_service::TaskPoints_TaskPoint>(Arena*);
+template<> ::routing_service::TaskRequest* Arena::CreateMaybeMessage<::routing_service::TaskRequest>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace routing_service {
 
 // ===================================================================
 
-class TaskPoints_TaskPoint PROTOBUF_FINAL :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:routing_service.TaskPoints.TaskPoint) */ {
+class Point PROTOBUF_FINAL :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:routing_service.Point) */ {
  public:
-  inline TaskPoints_TaskPoint() : TaskPoints_TaskPoint(nullptr) {}
-  virtual ~TaskPoints_TaskPoint();
+  inline Point() : Point(nullptr) {}
+  virtual ~Point();
 
-  TaskPoints_TaskPoint(const TaskPoints_TaskPoint& from);
-  TaskPoints_TaskPoint(TaskPoints_TaskPoint&& from) noexcept
-    : TaskPoints_TaskPoint() {
+  Point(const Point& from);
+  Point(Point&& from) noexcept
+    : Point() {
     *this = ::std::move(from);
   }
 
-  inline TaskPoints_TaskPoint& operator=(const TaskPoints_TaskPoint& from) {
+  inline Point& operator=(const Point& from) {
     CopyFrom(from);
     return *this;
   }
-  inline TaskPoints_TaskPoint& operator=(TaskPoints_TaskPoint&& from) noexcept {
+  inline Point& operator=(Point&& from) noexcept {
     if (GetArena() == from.GetArena()) {
       if (this != &from) InternalSwap(&from);
     } else {
@@ -111,19 +129,19 @@ class TaskPoints_TaskPoint PROTOBUF_FINAL :
   static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
     return GetMetadataStatic().reflection;
   }
-  static const TaskPoints_TaskPoint& default_instance();
+  static const Point& default_instance();
 
-  static inline const TaskPoints_TaskPoint* internal_default_instance() {
-    return reinterpret_cast<const TaskPoints_TaskPoint*>(
-               &_TaskPoints_TaskPoint_default_instance_);
+  static inline const Point* internal_default_instance() {
+    return reinterpret_cast<const Point*>(
+               &_Point_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
     0;
 
-  friend void swap(TaskPoints_TaskPoint& a, TaskPoints_TaskPoint& b) {
+  friend void swap(Point& a, Point& b) {
     a.Swap(&b);
   }
-  inline void Swap(TaskPoints_TaskPoint* other) {
+  inline void Swap(Point* other) {
     if (other == this) return;
     if (GetArena() == other->GetArena()) {
       InternalSwap(other);
@@ -131,7 +149,7 @@ class TaskPoints_TaskPoint PROTOBUF_FINAL :
       ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(TaskPoints_TaskPoint* other) {
+  void UnsafeArenaSwap(Point* other) {
     if (other == this) return;
     GOOGLE_DCHECK(GetArena() == other->GetArena());
     InternalSwap(other);
@@ -139,17 +157,17 @@ class TaskPoints_TaskPoint PROTOBUF_FINAL :
 
   // implements Message ----------------------------------------------
 
-  inline TaskPoints_TaskPoint* New() const final {
-    return CreateMaybeMessage<TaskPoints_TaskPoint>(nullptr);
+  inline Point* New() const final {
+    return CreateMaybeMessage<Point>(nullptr);
   }
 
-  TaskPoints_TaskPoint* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
-    return CreateMaybeMessage<TaskPoints_TaskPoint>(arena);
+  Point* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<Point>(arena);
   }
   void CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
   void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
-  void CopyFrom(const TaskPoints_TaskPoint& from);
-  void MergeFrom(const TaskPoints_TaskPoint& from);
+  void CopyFrom(const Point& from);
+  void MergeFrom(const Point& from);
   PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
   bool IsInitialized() const final;
 
@@ -163,13 +181,13 @@ class TaskPoints_TaskPoint PROTOBUF_FINAL :
   inline void SharedCtor();
   inline void SharedDtor();
   void SetCachedSize(int size) const final;
-  void InternalSwap(TaskPoints_TaskPoint* other);
+  void InternalSwap(Point* other);
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "routing_service.TaskPoints.TaskPoint";
+    return "routing_service.Point";
   }
   protected:
-  explicit TaskPoints_TaskPoint(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  explicit Point(::PROTOBUF_NAMESPACE_ID::Arena* arena);
   private:
   static void ArenaDtor(void* object);
   inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
@@ -210,7 +228,7 @@ class TaskPoints_TaskPoint PROTOBUF_FINAL :
   void _internal_set_lat(double value);
   public:
 
-  // @@protoc_insertion_point(class_scope:routing_service.TaskPoints.TaskPoint)
+  // @@protoc_insertion_point(class_scope:routing_service.Point)
  private:
   class _Internal;
 
@@ -333,47 +351,45 @@ class TaskPoints PROTOBUF_FINAL :
 
   // nested types ----------------------------------------------------
 
-  typedef TaskPoints_TaskPoint TaskPoint;
-
   // accessors -------------------------------------------------------
 
   enum : int {
     kTaskPointFieldNumber = 2,
-    kDbnameFieldNumber = 3,
+    kMapFieldNumber = 3,
     kBlockedFieldNumber = 1,
   };
-  // repeated .routing_service.TaskPoints.TaskPoint task_point = 2;
+  // repeated .routing_service.Point task_point = 2;
   int task_point_size() const;
   private:
   int _internal_task_point_size() const;
   public:
   void clear_task_point();
-  ::routing_service::TaskPoints_TaskPoint* mutable_task_point(int index);
-  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::routing_service::TaskPoints_TaskPoint >*
+  ::routing_service::Point* mutable_task_point(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::routing_service::Point >*
       mutable_task_point();
   private:
-  const ::routing_service::TaskPoints_TaskPoint& _internal_task_point(int index) const;
-  ::routing_service::TaskPoints_TaskPoint* _internal_add_task_point();
+  const ::routing_service::Point& _internal_task_point(int index) const;
+  ::routing_service::Point* _internal_add_task_point();
   public:
-  const ::routing_service::TaskPoints_TaskPoint& task_point(int index) const;
-  ::routing_service::TaskPoints_TaskPoint* add_task_point();
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::routing_service::TaskPoints_TaskPoint >&
+  const ::routing_service::Point& task_point(int index) const;
+  ::routing_service::Point* add_task_point();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::routing_service::Point >&
       task_point() const;
 
-  // string dbname = 3;
-  void clear_dbname();
-  const std::string& dbname() const;
-  void set_dbname(const std::string& value);
-  void set_dbname(std::string&& value);
-  void set_dbname(const char* value);
-  void set_dbname(const char* value, size_t size);
-  std::string* mutable_dbname();
-  std::string* release_dbname();
-  void set_allocated_dbname(std::string* dbname);
+  // string map = 3;
+  void clear_map();
+  const std::string& map() const;
+  void set_map(const std::string& value);
+  void set_map(std::string&& value);
+  void set_map(const char* value);
+  void set_map(const char* value, size_t size);
+  std::string* mutable_map();
+  std::string* release_map();
+  void set_allocated_map(std::string* map);
   private:
-  const std::string& _internal_dbname() const;
-  void _internal_set_dbname(const std::string& value);
-  std::string* _internal_mutable_dbname();
+  const std::string& _internal_map() const;
+  void _internal_set_map(const std::string& value);
+  std::string* _internal_mutable_map();
   public:
 
   // bool blocked = 1;
@@ -392,8 +408,8 @@ class TaskPoints PROTOBUF_FINAL :
   template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
-  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::routing_service::TaskPoints_TaskPoint > task_point_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr dbname_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::routing_service::Point > task_point_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr map_;
   bool blocked_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_routing_5fservice_2eproto;
@@ -512,243 +528,145 @@ class RefRoadPoint PROTOBUF_FINAL :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kIdFieldNumber = 1,
     kLonFieldNumber = 2,
     kLatFieldNumber = 3,
     kUtmxFieldNumber = 4,
+    kIdFieldNumber = 1,
+    kModeFieldNumber = 8,
     kUtmyFieldNumber = 5,
     kHeadingFieldNumber = 6,
     kCurvFieldNumber = 7,
-    kModeFieldNumber = 8,
     kSpeedModeFieldNumber = 9,
     kEventModeFieldNumber = 10,
     kOppositeSideModeFieldNumber = 11,
     kLaneNumFieldNumber = 12,
-    kLaneSeqFieldNumber = 13,
     kLaneWidthFieldNumber = 14,
+    kLaneSeqFieldNumber = 13,
   };
-  // string id = 1;
-  void clear_id();
-  const std::string& id() const;
-  void set_id(const std::string& value);
-  void set_id(std::string&& value);
-  void set_id(const char* value);
-  void set_id(const char* value, size_t size);
-  std::string* mutable_id();
-  std::string* release_id();
-  void set_allocated_id(std::string* id);
-  private:
-  const std::string& _internal_id() const;
-  void _internal_set_id(const std::string& value);
-  std::string* _internal_mutable_id();
-  public:
-
-  // string lon = 2;
+  // double lon = 2;
   void clear_lon();
-  const std::string& lon() const;
-  void set_lon(const std::string& value);
-  void set_lon(std::string&& value);
-  void set_lon(const char* value);
-  void set_lon(const char* value, size_t size);
-  std::string* mutable_lon();
-  std::string* release_lon();
-  void set_allocated_lon(std::string* lon);
+  double lon() const;
+  void set_lon(double value);
   private:
-  const std::string& _internal_lon() const;
-  void _internal_set_lon(const std::string& value);
-  std::string* _internal_mutable_lon();
+  double _internal_lon() const;
+  void _internal_set_lon(double value);
   public:
 
-  // string lat = 3;
+  // double lat = 3;
   void clear_lat();
-  const std::string& lat() const;
-  void set_lat(const std::string& value);
-  void set_lat(std::string&& value);
-  void set_lat(const char* value);
-  void set_lat(const char* value, size_t size);
-  std::string* mutable_lat();
-  std::string* release_lat();
-  void set_allocated_lat(std::string* lat);
+  double lat() const;
+  void set_lat(double value);
   private:
-  const std::string& _internal_lat() const;
-  void _internal_set_lat(const std::string& value);
-  std::string* _internal_mutable_lat();
+  double _internal_lat() const;
+  void _internal_set_lat(double value);
   public:
 
-  // string utmx = 4;
+  // double utmx = 4;
   void clear_utmx();
-  const std::string& utmx() const;
-  void set_utmx(const std::string& value);
-  void set_utmx(std::string&& value);
-  void set_utmx(const char* value);
-  void set_utmx(const char* value, size_t size);
-  std::string* mutable_utmx();
-  std::string* release_utmx();
-  void set_allocated_utmx(std::string* utmx);
+  double utmx() const;
+  void set_utmx(double value);
   private:
-  const std::string& _internal_utmx() const;
-  void _internal_set_utmx(const std::string& value);
-  std::string* _internal_mutable_utmx();
+  double _internal_utmx() const;
+  void _internal_set_utmx(double value);
   public:
 
-  // string utmy = 5;
-  void clear_utmy();
-  const std::string& utmy() const;
-  void set_utmy(const std::string& value);
-  void set_utmy(std::string&& value);
-  void set_utmy(const char* value);
-  void set_utmy(const char* value, size_t size);
-  std::string* mutable_utmy();
-  std::string* release_utmy();
-  void set_allocated_utmy(std::string* utmy);
+  // int32 id = 1;
+  void clear_id();
+  ::PROTOBUF_NAMESPACE_ID::int32 id() const;
+  void set_id(::PROTOBUF_NAMESPACE_ID::int32 value);
   private:
-  const std::string& _internal_utmy() const;
-  void _internal_set_utmy(const std::string& value);
-  std::string* _internal_mutable_utmy();
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_id() const;
+  void _internal_set_id(::PROTOBUF_NAMESPACE_ID::int32 value);
   public:
 
-  // string heading = 6;
-  void clear_heading();
-  const std::string& heading() const;
-  void set_heading(const std::string& value);
-  void set_heading(std::string&& value);
-  void set_heading(const char* value);
-  void set_heading(const char* value, size_t size);
-  std::string* mutable_heading();
-  std::string* release_heading();
-  void set_allocated_heading(std::string* heading);
-  private:
-  const std::string& _internal_heading() const;
-  void _internal_set_heading(const std::string& value);
-  std::string* _internal_mutable_heading();
-  public:
-
-  // string curv = 7;
-  void clear_curv();
-  const std::string& curv() const;
-  void set_curv(const std::string& value);
-  void set_curv(std::string&& value);
-  void set_curv(const char* value);
-  void set_curv(const char* value, size_t size);
-  std::string* mutable_curv();
-  std::string* release_curv();
-  void set_allocated_curv(std::string* curv);
-  private:
-  const std::string& _internal_curv() const;
-  void _internal_set_curv(const std::string& value);
-  std::string* _internal_mutable_curv();
-  public:
-
-  // string mode = 8;
+  // int32 mode = 8;
   void clear_mode();
-  const std::string& mode() const;
-  void set_mode(const std::string& value);
-  void set_mode(std::string&& value);
-  void set_mode(const char* value);
-  void set_mode(const char* value, size_t size);
-  std::string* mutable_mode();
-  std::string* release_mode();
-  void set_allocated_mode(std::string* mode);
+  ::PROTOBUF_NAMESPACE_ID::int32 mode() const;
+  void set_mode(::PROTOBUF_NAMESPACE_ID::int32 value);
   private:
-  const std::string& _internal_mode() const;
-  void _internal_set_mode(const std::string& value);
-  std::string* _internal_mutable_mode();
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_mode() const;
+  void _internal_set_mode(::PROTOBUF_NAMESPACE_ID::int32 value);
   public:
 
-  // string speed_mode = 9;
+  // double utmy = 5;
+  void clear_utmy();
+  double utmy() const;
+  void set_utmy(double value);
+  private:
+  double _internal_utmy() const;
+  void _internal_set_utmy(double value);
+  public:
+
+  // double heading = 6;
+  void clear_heading();
+  double heading() const;
+  void set_heading(double value);
+  private:
+  double _internal_heading() const;
+  void _internal_set_heading(double value);
+  public:
+
+  // double curv = 7;
+  void clear_curv();
+  double curv() const;
+  void set_curv(double value);
+  private:
+  double _internal_curv() const;
+  void _internal_set_curv(double value);
+  public:
+
+  // int32 speed_mode = 9;
   void clear_speed_mode();
-  const std::string& speed_mode() const;
-  void set_speed_mode(const std::string& value);
-  void set_speed_mode(std::string&& value);
-  void set_speed_mode(const char* value);
-  void set_speed_mode(const char* value, size_t size);
-  std::string* mutable_speed_mode();
-  std::string* release_speed_mode();
-  void set_allocated_speed_mode(std::string* speed_mode);
+  ::PROTOBUF_NAMESPACE_ID::int32 speed_mode() const;
+  void set_speed_mode(::PROTOBUF_NAMESPACE_ID::int32 value);
   private:
-  const std::string& _internal_speed_mode() const;
-  void _internal_set_speed_mode(const std::string& value);
-  std::string* _internal_mutable_speed_mode();
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_speed_mode() const;
+  void _internal_set_speed_mode(::PROTOBUF_NAMESPACE_ID::int32 value);
   public:
 
-  // string event_mode = 10;
+  // int32 event_mode = 10;
   void clear_event_mode();
-  const std::string& event_mode() const;
-  void set_event_mode(const std::string& value);
-  void set_event_mode(std::string&& value);
-  void set_event_mode(const char* value);
-  void set_event_mode(const char* value, size_t size);
-  std::string* mutable_event_mode();
-  std::string* release_event_mode();
-  void set_allocated_event_mode(std::string* event_mode);
+  ::PROTOBUF_NAMESPACE_ID::int32 event_mode() const;
+  void set_event_mode(::PROTOBUF_NAMESPACE_ID::int32 value);
   private:
-  const std::string& _internal_event_mode() const;
-  void _internal_set_event_mode(const std::string& value);
-  std::string* _internal_mutable_event_mode();
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_event_mode() const;
+  void _internal_set_event_mode(::PROTOBUF_NAMESPACE_ID::int32 value);
   public:
 
-  // string opposite_side_mode = 11;
+  // int32 opposite_side_mode = 11;
   void clear_opposite_side_mode();
-  const std::string& opposite_side_mode() const;
-  void set_opposite_side_mode(const std::string& value);
-  void set_opposite_side_mode(std::string&& value);
-  void set_opposite_side_mode(const char* value);
-  void set_opposite_side_mode(const char* value, size_t size);
-  std::string* mutable_opposite_side_mode();
-  std::string* release_opposite_side_mode();
-  void set_allocated_opposite_side_mode(std::string* opposite_side_mode);
+  ::PROTOBUF_NAMESPACE_ID::int32 opposite_side_mode() const;
+  void set_opposite_side_mode(::PROTOBUF_NAMESPACE_ID::int32 value);
   private:
-  const std::string& _internal_opposite_side_mode() const;
-  void _internal_set_opposite_side_mode(const std::string& value);
-  std::string* _internal_mutable_opposite_side_mode();
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_opposite_side_mode() const;
+  void _internal_set_opposite_side_mode(::PROTOBUF_NAMESPACE_ID::int32 value);
   public:
 
-  // string lane_num = 12;
+  // int32 lane_num = 12;
   void clear_lane_num();
-  const std::string& lane_num() const;
-  void set_lane_num(const std::string& value);
-  void set_lane_num(std::string&& value);
-  void set_lane_num(const char* value);
-  void set_lane_num(const char* value, size_t size);
-  std::string* mutable_lane_num();
-  std::string* release_lane_num();
-  void set_allocated_lane_num(std::string* lane_num);
+  ::PROTOBUF_NAMESPACE_ID::int32 lane_num() const;
+  void set_lane_num(::PROTOBUF_NAMESPACE_ID::int32 value);
   private:
-  const std::string& _internal_lane_num() const;
-  void _internal_set_lane_num(const std::string& value);
-  std::string* _internal_mutable_lane_num();
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_lane_num() const;
+  void _internal_set_lane_num(::PROTOBUF_NAMESPACE_ID::int32 value);
   public:
 
-  // string lane_seq = 13;
-  void clear_lane_seq();
-  const std::string& lane_seq() const;
-  void set_lane_seq(const std::string& value);
-  void set_lane_seq(std::string&& value);
-  void set_lane_seq(const char* value);
-  void set_lane_seq(const char* value, size_t size);
-  std::string* mutable_lane_seq();
-  std::string* release_lane_seq();
-  void set_allocated_lane_seq(std::string* lane_seq);
-  private:
-  const std::string& _internal_lane_seq() const;
-  void _internal_set_lane_seq(const std::string& value);
-  std::string* _internal_mutable_lane_seq();
-  public:
-
-  // string lane_width = 14;
+  // double lane_width = 14;
   void clear_lane_width();
-  const std::string& lane_width() const;
-  void set_lane_width(const std::string& value);
-  void set_lane_width(std::string&& value);
-  void set_lane_width(const char* value);
-  void set_lane_width(const char* value, size_t size);
-  std::string* mutable_lane_width();
-  std::string* release_lane_width();
-  void set_allocated_lane_width(std::string* lane_width);
+  double lane_width() const;
+  void set_lane_width(double value);
   private:
-  const std::string& _internal_lane_width() const;
-  void _internal_set_lane_width(const std::string& value);
-  std::string* _internal_mutable_lane_width();
+  double _internal_lane_width() const;
+  void _internal_set_lane_width(double value);
+  public:
+
+  // int32 lane_seq = 13;
+  void clear_lane_seq();
+  ::PROTOBUF_NAMESPACE_ID::int32 lane_seq() const;
+  void set_lane_seq(::PROTOBUF_NAMESPACE_ID::int32 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_lane_seq() const;
+  void _internal_set_lane_seq(::PROTOBUF_NAMESPACE_ID::int32 value);
   public:
 
   // @@protoc_insertion_point(class_scope:routing_service.RefRoadPoint)
@@ -758,20 +676,20 @@ class RefRoadPoint PROTOBUF_FINAL :
   template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr id_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr lon_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr lat_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr utmx_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr utmy_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr heading_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr curv_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr mode_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr speed_mode_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr event_mode_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr opposite_side_mode_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr lane_num_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr lane_seq_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr lane_width_;
+  double lon_;
+  double lat_;
+  double utmx_;
+  ::PROTOBUF_NAMESPACE_ID::int32 id_;
+  ::PROTOBUF_NAMESPACE_ID::int32 mode_;
+  double utmy_;
+  double heading_;
+  double curv_;
+  ::PROTOBUF_NAMESPACE_ID::int32 speed_mode_;
+  ::PROTOBUF_NAMESPACE_ID::int32 event_mode_;
+  ::PROTOBUF_NAMESPACE_ID::int32 opposite_side_mode_;
+  ::PROTOBUF_NAMESPACE_ID::int32 lane_num_;
+  double lane_width_;
+  ::PROTOBUF_NAMESPACE_ID::int32 lane_seq_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_routing_5fservice_2eproto;
 };
@@ -931,6 +849,726 @@ class RefRoad PROTOBUF_FINAL :
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_routing_5fservice_2eproto;
 };
+// -------------------------------------------------------------------
+
+class RoadPoints PROTOBUF_FINAL :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:routing_service.RoadPoints) */ {
+ public:
+  inline RoadPoints() : RoadPoints(nullptr) {}
+  virtual ~RoadPoints();
+
+  RoadPoints(const RoadPoints& from);
+  RoadPoints(RoadPoints&& from) noexcept
+    : RoadPoints() {
+    *this = ::std::move(from);
+  }
+
+  inline RoadPoints& operator=(const RoadPoints& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline RoadPoints& operator=(RoadPoints&& from) noexcept {
+    if (GetArena() == from.GetArena()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return GetMetadataStatic().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return GetMetadataStatic().reflection;
+  }
+  static const RoadPoints& default_instance();
+
+  static inline const RoadPoints* internal_default_instance() {
+    return reinterpret_cast<const RoadPoints*>(
+               &_RoadPoints_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    4;
+
+  friend void swap(RoadPoints& a, RoadPoints& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(RoadPoints* other) {
+    if (other == this) return;
+    if (GetArena() == other->GetArena()) {
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(RoadPoints* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline RoadPoints* New() const final {
+    return CreateMaybeMessage<RoadPoints>(nullptr);
+  }
+
+  RoadPoints* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<RoadPoints>(arena);
+  }
+  void CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void CopyFrom(const RoadPoints& from);
+  void MergeFrom(const RoadPoints& from);
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  inline void SharedCtor();
+  inline void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(RoadPoints* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "routing_service.RoadPoints";
+  }
+  protected:
+  explicit RoadPoints(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  private:
+  static void ArenaDtor(void* object);
+  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  private:
+  static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
+    ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_routing_5fservice_2eproto);
+    return ::descriptor_table_routing_5fservice_2eproto.file_level_metadata[kIndexInFileMessages];
+  }
+
+  public:
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kPointFieldNumber = 1,
+  };
+  // repeated .routing_service.Point point = 1;
+  int point_size() const;
+  private:
+  int _internal_point_size() const;
+  public:
+  void clear_point();
+  ::routing_service::Point* mutable_point(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::routing_service::Point >*
+      mutable_point();
+  private:
+  const ::routing_service::Point& _internal_point(int index) const;
+  ::routing_service::Point* _internal_add_point();
+  public:
+  const ::routing_service::Point& point(int index) const;
+  ::routing_service::Point* add_point();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::routing_service::Point >&
+      point() const;
+
+  // @@protoc_insertion_point(class_scope:routing_service.RoadPoints)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::routing_service::Point > point_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  friend struct ::TableStruct_routing_5fservice_2eproto;
+};
+// -------------------------------------------------------------------
+
+class CarInfo PROTOBUF_FINAL :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:routing_service.CarInfo) */ {
+ public:
+  inline CarInfo() : CarInfo(nullptr) {}
+  virtual ~CarInfo();
+
+  CarInfo(const CarInfo& from);
+  CarInfo(CarInfo&& from) noexcept
+    : CarInfo() {
+    *this = ::std::move(from);
+  }
+
+  inline CarInfo& operator=(const CarInfo& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline CarInfo& operator=(CarInfo&& from) noexcept {
+    if (GetArena() == from.GetArena()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return GetMetadataStatic().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return GetMetadataStatic().reflection;
+  }
+  static const CarInfo& default_instance();
+
+  static inline const CarInfo* internal_default_instance() {
+    return reinterpret_cast<const CarInfo*>(
+               &_CarInfo_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    5;
+
+  friend void swap(CarInfo& a, CarInfo& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(CarInfo* other) {
+    if (other == this) return;
+    if (GetArena() == other->GetArena()) {
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(CarInfo* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline CarInfo* New() const final {
+    return CreateMaybeMessage<CarInfo>(nullptr);
+  }
+
+  CarInfo* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<CarInfo>(arena);
+  }
+  void CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void CopyFrom(const CarInfo& from);
+  void MergeFrom(const CarInfo& from);
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  inline void SharedCtor();
+  inline void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(CarInfo* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "routing_service.CarInfo";
+  }
+  protected:
+  explicit CarInfo(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  private:
+  static void ArenaDtor(void* object);
+  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  private:
+  static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
+    ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_routing_5fservice_2eproto);
+    return ::descriptor_table_routing_5fservice_2eproto.file_level_metadata[kIndexInFileMessages];
+  }
+
+  public:
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kIdFieldNumber = 1,
+    kMapFieldNumber = 2,
+    kPosFieldNumber = 3,
+    kRunningFieldNumber = 4,
+  };
+  // string id = 1;
+  void clear_id();
+  const std::string& id() const;
+  void set_id(const std::string& value);
+  void set_id(std::string&& value);
+  void set_id(const char* value);
+  void set_id(const char* value, size_t size);
+  std::string* mutable_id();
+  std::string* release_id();
+  void set_allocated_id(std::string* id);
+  private:
+  const std::string& _internal_id() const;
+  void _internal_set_id(const std::string& value);
+  std::string* _internal_mutable_id();
+  public:
+
+  // string map = 2;
+  void clear_map();
+  const std::string& map() const;
+  void set_map(const std::string& value);
+  void set_map(std::string&& value);
+  void set_map(const char* value);
+  void set_map(const char* value, size_t size);
+  std::string* mutable_map();
+  std::string* release_map();
+  void set_allocated_map(std::string* map);
+  private:
+  const std::string& _internal_map() const;
+  void _internal_set_map(const std::string& value);
+  std::string* _internal_mutable_map();
+  public:
+
+  // .routing_service.Point pos = 3;
+  bool has_pos() const;
+  private:
+  bool _internal_has_pos() const;
+  public:
+  void clear_pos();
+  const ::routing_service::Point& pos() const;
+  ::routing_service::Point* release_pos();
+  ::routing_service::Point* mutable_pos();
+  void set_allocated_pos(::routing_service::Point* pos);
+  private:
+  const ::routing_service::Point& _internal_pos() const;
+  ::routing_service::Point* _internal_mutable_pos();
+  public:
+  void unsafe_arena_set_allocated_pos(
+      ::routing_service::Point* pos);
+  ::routing_service::Point* unsafe_arena_release_pos();
+
+  // bool running = 4;
+  void clear_running();
+  bool running() const;
+  void set_running(bool value);
+  private:
+  bool _internal_running() const;
+  void _internal_set_running(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:routing_service.CarInfo)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr id_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr map_;
+  ::routing_service::Point* pos_;
+  bool running_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  friend struct ::TableStruct_routing_5fservice_2eproto;
+};
+// -------------------------------------------------------------------
+
+class TaskRequest PROTOBUF_FINAL :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:routing_service.TaskRequest) */ {
+ public:
+  inline TaskRequest() : TaskRequest(nullptr) {}
+  virtual ~TaskRequest();
+
+  TaskRequest(const TaskRequest& from);
+  TaskRequest(TaskRequest&& from) noexcept
+    : TaskRequest() {
+    *this = ::std::move(from);
+  }
+
+  inline TaskRequest& operator=(const TaskRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline TaskRequest& operator=(TaskRequest&& from) noexcept {
+    if (GetArena() == from.GetArena()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return GetMetadataStatic().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return GetMetadataStatic().reflection;
+  }
+  static const TaskRequest& default_instance();
+
+  static inline const TaskRequest* internal_default_instance() {
+    return reinterpret_cast<const TaskRequest*>(
+               &_TaskRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    6;
+
+  friend void swap(TaskRequest& a, TaskRequest& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(TaskRequest* other) {
+    if (other == this) return;
+    if (GetArena() == other->GetArena()) {
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(TaskRequest* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline TaskRequest* New() const final {
+    return CreateMaybeMessage<TaskRequest>(nullptr);
+  }
+
+  TaskRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<TaskRequest>(arena);
+  }
+  void CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void CopyFrom(const TaskRequest& from);
+  void MergeFrom(const TaskRequest& from);
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  inline void SharedCtor();
+  inline void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(TaskRequest* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "routing_service.TaskRequest";
+  }
+  protected:
+  explicit TaskRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  private:
+  static void ArenaDtor(void* object);
+  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  private:
+  static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
+    ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_routing_5fservice_2eproto);
+    return ::descriptor_table_routing_5fservice_2eproto.file_level_metadata[kIndexInFileMessages];
+  }
+
+  public:
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kIdFieldNumber = 2,
+    kMapFieldNumber = 3,
+    kPointFieldNumber = 1,
+    kOnOrOffFieldNumber = 4,
+  };
+  // string id = 2;
+  void clear_id();
+  const std::string& id() const;
+  void set_id(const std::string& value);
+  void set_id(std::string&& value);
+  void set_id(const char* value);
+  void set_id(const char* value, size_t size);
+  std::string* mutable_id();
+  std::string* release_id();
+  void set_allocated_id(std::string* id);
+  private:
+  const std::string& _internal_id() const;
+  void _internal_set_id(const std::string& value);
+  std::string* _internal_mutable_id();
+  public:
+
+  // string map = 3;
+  void clear_map();
+  const std::string& map() const;
+  void set_map(const std::string& value);
+  void set_map(std::string&& value);
+  void set_map(const char* value);
+  void set_map(const char* value, size_t size);
+  std::string* mutable_map();
+  std::string* release_map();
+  void set_allocated_map(std::string* map);
+  private:
+  const std::string& _internal_map() const;
+  void _internal_set_map(const std::string& value);
+  std::string* _internal_mutable_map();
+  public:
+
+  // .routing_service.Point point = 1;
+  bool has_point() const;
+  private:
+  bool _internal_has_point() const;
+  public:
+  void clear_point();
+  const ::routing_service::Point& point() const;
+  ::routing_service::Point* release_point();
+  ::routing_service::Point* mutable_point();
+  void set_allocated_point(::routing_service::Point* point);
+  private:
+  const ::routing_service::Point& _internal_point() const;
+  ::routing_service::Point* _internal_mutable_point();
+  public:
+  void unsafe_arena_set_allocated_point(
+      ::routing_service::Point* point);
+  ::routing_service::Point* unsafe_arena_release_point();
+
+  // bool on_or_off = 4;
+  void clear_on_or_off();
+  bool on_or_off() const;
+  void set_on_or_off(bool value);
+  private:
+  bool _internal_on_or_off() const;
+  void _internal_set_on_or_off(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:routing_service.TaskRequest)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr id_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr map_;
+  ::routing_service::Point* point_;
+  bool on_or_off_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  friend struct ::TableStruct_routing_5fservice_2eproto;
+};
+// -------------------------------------------------------------------
+
+class TaskPoint PROTOBUF_FINAL :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:routing_service.TaskPoint) */ {
+ public:
+  inline TaskPoint() : TaskPoint(nullptr) {}
+  virtual ~TaskPoint();
+
+  TaskPoint(const TaskPoint& from);
+  TaskPoint(TaskPoint&& from) noexcept
+    : TaskPoint() {
+    *this = ::std::move(from);
+  }
+
+  inline TaskPoint& operator=(const TaskPoint& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline TaskPoint& operator=(TaskPoint&& from) noexcept {
+    if (GetArena() == from.GetArena()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return GetMetadataStatic().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return GetMetadataStatic().reflection;
+  }
+  static const TaskPoint& default_instance();
+
+  static inline const TaskPoint* internal_default_instance() {
+    return reinterpret_cast<const TaskPoint*>(
+               &_TaskPoint_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    7;
+
+  friend void swap(TaskPoint& a, TaskPoint& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(TaskPoint* other) {
+    if (other == this) return;
+    if (GetArena() == other->GetArena()) {
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(TaskPoint* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline TaskPoint* New() const final {
+    return CreateMaybeMessage<TaskPoint>(nullptr);
+  }
+
+  TaskPoint* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<TaskPoint>(arena);
+  }
+  void CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void CopyFrom(const TaskPoint& from);
+  void MergeFrom(const TaskPoint& from);
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  inline void SharedCtor();
+  inline void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(TaskPoint* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "routing_service.TaskPoint";
+  }
+  protected:
+  explicit TaskPoint(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  private:
+  static void ArenaDtor(void* object);
+  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  private:
+  static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
+    ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_routing_5fservice_2eproto);
+    return ::descriptor_table_routing_5fservice_2eproto.file_level_metadata[kIndexInFileMessages];
+  }
+
+  public:
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kLonFieldNumber = 1,
+    kLatFieldNumber = 2,
+    kUtmxFieldNumber = 3,
+    kUtmyFieldNumber = 4,
+    kHeadingFieldNumber = 5,
+    kOnOrOffFieldNumber = 6,
+  };
+  // double lon = 1;
+  void clear_lon();
+  double lon() const;
+  void set_lon(double value);
+  private:
+  double _internal_lon() const;
+  void _internal_set_lon(double value);
+  public:
+
+  // double lat = 2;
+  void clear_lat();
+  double lat() const;
+  void set_lat(double value);
+  private:
+  double _internal_lat() const;
+  void _internal_set_lat(double value);
+  public:
+
+  // double utmx = 3;
+  void clear_utmx();
+  double utmx() const;
+  void set_utmx(double value);
+  private:
+  double _internal_utmx() const;
+  void _internal_set_utmx(double value);
+  public:
+
+  // double utmy = 4;
+  void clear_utmy();
+  double utmy() const;
+  void set_utmy(double value);
+  private:
+  double _internal_utmy() const;
+  void _internal_set_utmy(double value);
+  public:
+
+  // double heading = 5;
+  void clear_heading();
+  double heading() const;
+  void set_heading(double value);
+  private:
+  double _internal_heading() const;
+  void _internal_set_heading(double value);
+  public:
+
+  // bool on_or_off = 6;
+  void clear_on_or_off();
+  bool on_or_off() const;
+  void set_on_or_off(bool value);
+  private:
+  bool _internal_on_or_off() const;
+  void _internal_set_on_or_off(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:routing_service.TaskPoint)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  double lon_;
+  double lat_;
+  double utmx_;
+  double utmy_;
+  double heading_;
+  bool on_or_off_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  friend struct ::TableStruct_routing_5fservice_2eproto;
+};
 // ===================================================================
 
 
@@ -940,46 +1578,46 @@ class RefRoad PROTOBUF_FINAL :
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
-// TaskPoints_TaskPoint
+// Point
 
 // double lon = 1;
-inline void TaskPoints_TaskPoint::clear_lon() {
+inline void Point::clear_lon() {
   lon_ = 0;
 }
-inline double TaskPoints_TaskPoint::_internal_lon() const {
+inline double Point::_internal_lon() const {
   return lon_;
 }
-inline double TaskPoints_TaskPoint::lon() const {
-  // @@protoc_insertion_point(field_get:routing_service.TaskPoints.TaskPoint.lon)
+inline double Point::lon() const {
+  // @@protoc_insertion_point(field_get:routing_service.Point.lon)
   return _internal_lon();
 }
-inline void TaskPoints_TaskPoint::_internal_set_lon(double value) {
+inline void Point::_internal_set_lon(double value) {
   
   lon_ = value;
 }
-inline void TaskPoints_TaskPoint::set_lon(double value) {
+inline void Point::set_lon(double value) {
   _internal_set_lon(value);
-  // @@protoc_insertion_point(field_set:routing_service.TaskPoints.TaskPoint.lon)
+  // @@protoc_insertion_point(field_set:routing_service.Point.lon)
 }
 
 // double lat = 2;
-inline void TaskPoints_TaskPoint::clear_lat() {
+inline void Point::clear_lat() {
   lat_ = 0;
 }
-inline double TaskPoints_TaskPoint::_internal_lat() const {
+inline double Point::_internal_lat() const {
   return lat_;
 }
-inline double TaskPoints_TaskPoint::lat() const {
-  // @@protoc_insertion_point(field_get:routing_service.TaskPoints.TaskPoint.lat)
+inline double Point::lat() const {
+  // @@protoc_insertion_point(field_get:routing_service.Point.lat)
   return _internal_lat();
 }
-inline void TaskPoints_TaskPoint::_internal_set_lat(double value) {
+inline void Point::_internal_set_lat(double value) {
   
   lat_ = value;
 }
-inline void TaskPoints_TaskPoint::set_lat(double value) {
+inline void Point::set_lat(double value) {
   _internal_set_lat(value);
-  // @@protoc_insertion_point(field_set:routing_service.TaskPoints.TaskPoint.lat)
+  // @@protoc_insertion_point(field_set:routing_service.Point.lat)
 }
 
 // -------------------------------------------------------------------
@@ -1006,7 +1644,7 @@ inline void TaskPoints::set_blocked(bool value) {
   // @@protoc_insertion_point(field_set:routing_service.TaskPoints.blocked)
 }
 
-// repeated .routing_service.TaskPoints.TaskPoint task_point = 2;
+// repeated .routing_service.Point task_point = 2;
 inline int TaskPoints::_internal_task_point_size() const {
   return task_point_.size();
 }
@@ -1016,952 +1654,378 @@ inline int TaskPoints::task_point_size() const {
 inline void TaskPoints::clear_task_point() {
   task_point_.Clear();
 }
-inline ::routing_service::TaskPoints_TaskPoint* TaskPoints::mutable_task_point(int index) {
+inline ::routing_service::Point* TaskPoints::mutable_task_point(int index) {
   // @@protoc_insertion_point(field_mutable:routing_service.TaskPoints.task_point)
   return task_point_.Mutable(index);
 }
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::routing_service::TaskPoints_TaskPoint >*
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::routing_service::Point >*
 TaskPoints::mutable_task_point() {
   // @@protoc_insertion_point(field_mutable_list:routing_service.TaskPoints.task_point)
   return &task_point_;
 }
-inline const ::routing_service::TaskPoints_TaskPoint& TaskPoints::_internal_task_point(int index) const {
+inline const ::routing_service::Point& TaskPoints::_internal_task_point(int index) const {
   return task_point_.Get(index);
 }
-inline const ::routing_service::TaskPoints_TaskPoint& TaskPoints::task_point(int index) const {
+inline const ::routing_service::Point& TaskPoints::task_point(int index) const {
   // @@protoc_insertion_point(field_get:routing_service.TaskPoints.task_point)
   return _internal_task_point(index);
 }
-inline ::routing_service::TaskPoints_TaskPoint* TaskPoints::_internal_add_task_point() {
+inline ::routing_service::Point* TaskPoints::_internal_add_task_point() {
   return task_point_.Add();
 }
-inline ::routing_service::TaskPoints_TaskPoint* TaskPoints::add_task_point() {
+inline ::routing_service::Point* TaskPoints::add_task_point() {
   // @@protoc_insertion_point(field_add:routing_service.TaskPoints.task_point)
   return _internal_add_task_point();
 }
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::routing_service::TaskPoints_TaskPoint >&
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::routing_service::Point >&
 TaskPoints::task_point() const {
   // @@protoc_insertion_point(field_list:routing_service.TaskPoints.task_point)
   return task_point_;
 }
 
-// string dbname = 3;
-inline void TaskPoints::clear_dbname() {
-  dbname_.ClearToEmpty();
+// string map = 3;
+inline void TaskPoints::clear_map() {
+  map_.ClearToEmpty();
 }
-inline const std::string& TaskPoints::dbname() const {
-  // @@protoc_insertion_point(field_get:routing_service.TaskPoints.dbname)
-  return _internal_dbname();
+inline const std::string& TaskPoints::map() const {
+  // @@protoc_insertion_point(field_get:routing_service.TaskPoints.map)
+  return _internal_map();
 }
-inline void TaskPoints::set_dbname(const std::string& value) {
-  _internal_set_dbname(value);
-  // @@protoc_insertion_point(field_set:routing_service.TaskPoints.dbname)
+inline void TaskPoints::set_map(const std::string& value) {
+  _internal_set_map(value);
+  // @@protoc_insertion_point(field_set:routing_service.TaskPoints.map)
 }
-inline std::string* TaskPoints::mutable_dbname() {
-  // @@protoc_insertion_point(field_mutable:routing_service.TaskPoints.dbname)
-  return _internal_mutable_dbname();
+inline std::string* TaskPoints::mutable_map() {
+  // @@protoc_insertion_point(field_mutable:routing_service.TaskPoints.map)
+  return _internal_mutable_map();
 }
-inline const std::string& TaskPoints::_internal_dbname() const {
-  return dbname_.Get();
+inline const std::string& TaskPoints::_internal_map() const {
+  return map_.Get();
 }
-inline void TaskPoints::_internal_set_dbname(const std::string& value) {
+inline void TaskPoints::_internal_set_map(const std::string& value) {
   
-  dbname_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
+  map_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
 }
-inline void TaskPoints::set_dbname(std::string&& value) {
+inline void TaskPoints::set_map(std::string&& value) {
   
-  dbname_.Set(
+  map_.Set(
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
-  // @@protoc_insertion_point(field_set_rvalue:routing_service.TaskPoints.dbname)
+  // @@protoc_insertion_point(field_set_rvalue:routing_service.TaskPoints.map)
 }
-inline void TaskPoints::set_dbname(const char* value) {
+inline void TaskPoints::set_map(const char* value) {
   GOOGLE_DCHECK(value != nullptr);
   
-  dbname_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
-  // @@protoc_insertion_point(field_set_char:routing_service.TaskPoints.dbname)
+  map_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
+  // @@protoc_insertion_point(field_set_char:routing_service.TaskPoints.map)
 }
-inline void TaskPoints::set_dbname(const char* value,
+inline void TaskPoints::set_map(const char* value,
     size_t size) {
   
-  dbname_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
+  map_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
       reinterpret_cast<const char*>(value), size), GetArena());
-  // @@protoc_insertion_point(field_set_pointer:routing_service.TaskPoints.dbname)
+  // @@protoc_insertion_point(field_set_pointer:routing_service.TaskPoints.map)
 }
-inline std::string* TaskPoints::_internal_mutable_dbname() {
+inline std::string* TaskPoints::_internal_mutable_map() {
   
-  return dbname_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
+  return map_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
 }
-inline std::string* TaskPoints::release_dbname() {
-  // @@protoc_insertion_point(field_release:routing_service.TaskPoints.dbname)
-  return dbname_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+inline std::string* TaskPoints::release_map() {
+  // @@protoc_insertion_point(field_release:routing_service.TaskPoints.map)
+  return map_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
 }
-inline void TaskPoints::set_allocated_dbname(std::string* dbname) {
-  if (dbname != nullptr) {
+inline void TaskPoints::set_allocated_map(std::string* map) {
+  if (map != nullptr) {
     
   } else {
     
   }
-  dbname_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), dbname,
+  map_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), map,
       GetArena());
-  // @@protoc_insertion_point(field_set_allocated:routing_service.TaskPoints.dbname)
+  // @@protoc_insertion_point(field_set_allocated:routing_service.TaskPoints.map)
 }
 
 // -------------------------------------------------------------------
 
 // RefRoadPoint
 
-// string id = 1;
+// int32 id = 1;
 inline void RefRoadPoint::clear_id() {
-  id_.ClearToEmpty();
+  id_ = 0;
 }
-inline const std::string& RefRoadPoint::id() const {
+inline ::PROTOBUF_NAMESPACE_ID::int32 RefRoadPoint::_internal_id() const {
+  return id_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 RefRoadPoint::id() const {
   // @@protoc_insertion_point(field_get:routing_service.RefRoadPoint.id)
   return _internal_id();
 }
-inline void RefRoadPoint::set_id(const std::string& value) {
+inline void RefRoadPoint::_internal_set_id(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  
+  id_ = value;
+}
+inline void RefRoadPoint::set_id(::PROTOBUF_NAMESPACE_ID::int32 value) {
   _internal_set_id(value);
   // @@protoc_insertion_point(field_set:routing_service.RefRoadPoint.id)
 }
-inline std::string* RefRoadPoint::mutable_id() {
-  // @@protoc_insertion_point(field_mutable:routing_service.RefRoadPoint.id)
-  return _internal_mutable_id();
-}
-inline const std::string& RefRoadPoint::_internal_id() const {
-  return id_.Get();
-}
-inline void RefRoadPoint::_internal_set_id(const std::string& value) {
-  
-  id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
-}
-inline void RefRoadPoint::set_id(std::string&& value) {
-  
-  id_.Set(
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
-  // @@protoc_insertion_point(field_set_rvalue:routing_service.RefRoadPoint.id)
-}
-inline void RefRoadPoint::set_id(const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  
-  id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
-  // @@protoc_insertion_point(field_set_char:routing_service.RefRoadPoint.id)
-}
-inline void RefRoadPoint::set_id(const char* value,
-    size_t size) {
-  
-  id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
-      reinterpret_cast<const char*>(value), size), GetArena());
-  // @@protoc_insertion_point(field_set_pointer:routing_service.RefRoadPoint.id)
-}
-inline std::string* RefRoadPoint::_internal_mutable_id() {
-  
-  return id_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
-}
-inline std::string* RefRoadPoint::release_id() {
-  // @@protoc_insertion_point(field_release:routing_service.RefRoadPoint.id)
-  return id_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-}
-inline void RefRoadPoint::set_allocated_id(std::string* id) {
-  if (id != nullptr) {
-    
-  } else {
-    
-  }
-  id_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), id,
-      GetArena());
-  // @@protoc_insertion_point(field_set_allocated:routing_service.RefRoadPoint.id)
-}
 
-// string lon = 2;
+// double lon = 2;
 inline void RefRoadPoint::clear_lon() {
-  lon_.ClearToEmpty();
+  lon_ = 0;
 }
-inline const std::string& RefRoadPoint::lon() const {
+inline double RefRoadPoint::_internal_lon() const {
+  return lon_;
+}
+inline double RefRoadPoint::lon() const {
   // @@protoc_insertion_point(field_get:routing_service.RefRoadPoint.lon)
   return _internal_lon();
 }
-inline void RefRoadPoint::set_lon(const std::string& value) {
+inline void RefRoadPoint::_internal_set_lon(double value) {
+  
+  lon_ = value;
+}
+inline void RefRoadPoint::set_lon(double value) {
   _internal_set_lon(value);
   // @@protoc_insertion_point(field_set:routing_service.RefRoadPoint.lon)
 }
-inline std::string* RefRoadPoint::mutable_lon() {
-  // @@protoc_insertion_point(field_mutable:routing_service.RefRoadPoint.lon)
-  return _internal_mutable_lon();
-}
-inline const std::string& RefRoadPoint::_internal_lon() const {
-  return lon_.Get();
-}
-inline void RefRoadPoint::_internal_set_lon(const std::string& value) {
-  
-  lon_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
-}
-inline void RefRoadPoint::set_lon(std::string&& value) {
-  
-  lon_.Set(
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
-  // @@protoc_insertion_point(field_set_rvalue:routing_service.RefRoadPoint.lon)
-}
-inline void RefRoadPoint::set_lon(const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  
-  lon_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
-  // @@protoc_insertion_point(field_set_char:routing_service.RefRoadPoint.lon)
-}
-inline void RefRoadPoint::set_lon(const char* value,
-    size_t size) {
-  
-  lon_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
-      reinterpret_cast<const char*>(value), size), GetArena());
-  // @@protoc_insertion_point(field_set_pointer:routing_service.RefRoadPoint.lon)
-}
-inline std::string* RefRoadPoint::_internal_mutable_lon() {
-  
-  return lon_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
-}
-inline std::string* RefRoadPoint::release_lon() {
-  // @@protoc_insertion_point(field_release:routing_service.RefRoadPoint.lon)
-  return lon_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-}
-inline void RefRoadPoint::set_allocated_lon(std::string* lon) {
-  if (lon != nullptr) {
-    
-  } else {
-    
-  }
-  lon_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), lon,
-      GetArena());
-  // @@protoc_insertion_point(field_set_allocated:routing_service.RefRoadPoint.lon)
-}
 
-// string lat = 3;
+// double lat = 3;
 inline void RefRoadPoint::clear_lat() {
-  lat_.ClearToEmpty();
+  lat_ = 0;
 }
-inline const std::string& RefRoadPoint::lat() const {
+inline double RefRoadPoint::_internal_lat() const {
+  return lat_;
+}
+inline double RefRoadPoint::lat() const {
   // @@protoc_insertion_point(field_get:routing_service.RefRoadPoint.lat)
   return _internal_lat();
 }
-inline void RefRoadPoint::set_lat(const std::string& value) {
+inline void RefRoadPoint::_internal_set_lat(double value) {
+  
+  lat_ = value;
+}
+inline void RefRoadPoint::set_lat(double value) {
   _internal_set_lat(value);
   // @@protoc_insertion_point(field_set:routing_service.RefRoadPoint.lat)
 }
-inline std::string* RefRoadPoint::mutable_lat() {
-  // @@protoc_insertion_point(field_mutable:routing_service.RefRoadPoint.lat)
-  return _internal_mutable_lat();
-}
-inline const std::string& RefRoadPoint::_internal_lat() const {
-  return lat_.Get();
-}
-inline void RefRoadPoint::_internal_set_lat(const std::string& value) {
-  
-  lat_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
-}
-inline void RefRoadPoint::set_lat(std::string&& value) {
-  
-  lat_.Set(
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
-  // @@protoc_insertion_point(field_set_rvalue:routing_service.RefRoadPoint.lat)
-}
-inline void RefRoadPoint::set_lat(const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  
-  lat_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
-  // @@protoc_insertion_point(field_set_char:routing_service.RefRoadPoint.lat)
-}
-inline void RefRoadPoint::set_lat(const char* value,
-    size_t size) {
-  
-  lat_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
-      reinterpret_cast<const char*>(value), size), GetArena());
-  // @@protoc_insertion_point(field_set_pointer:routing_service.RefRoadPoint.lat)
-}
-inline std::string* RefRoadPoint::_internal_mutable_lat() {
-  
-  return lat_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
-}
-inline std::string* RefRoadPoint::release_lat() {
-  // @@protoc_insertion_point(field_release:routing_service.RefRoadPoint.lat)
-  return lat_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-}
-inline void RefRoadPoint::set_allocated_lat(std::string* lat) {
-  if (lat != nullptr) {
-    
-  } else {
-    
-  }
-  lat_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), lat,
-      GetArena());
-  // @@protoc_insertion_point(field_set_allocated:routing_service.RefRoadPoint.lat)
-}
 
-// string utmx = 4;
+// double utmx = 4;
 inline void RefRoadPoint::clear_utmx() {
-  utmx_.ClearToEmpty();
+  utmx_ = 0;
 }
-inline const std::string& RefRoadPoint::utmx() const {
+inline double RefRoadPoint::_internal_utmx() const {
+  return utmx_;
+}
+inline double RefRoadPoint::utmx() const {
   // @@protoc_insertion_point(field_get:routing_service.RefRoadPoint.utmx)
   return _internal_utmx();
 }
-inline void RefRoadPoint::set_utmx(const std::string& value) {
+inline void RefRoadPoint::_internal_set_utmx(double value) {
+  
+  utmx_ = value;
+}
+inline void RefRoadPoint::set_utmx(double value) {
   _internal_set_utmx(value);
   // @@protoc_insertion_point(field_set:routing_service.RefRoadPoint.utmx)
 }
-inline std::string* RefRoadPoint::mutable_utmx() {
-  // @@protoc_insertion_point(field_mutable:routing_service.RefRoadPoint.utmx)
-  return _internal_mutable_utmx();
-}
-inline const std::string& RefRoadPoint::_internal_utmx() const {
-  return utmx_.Get();
-}
-inline void RefRoadPoint::_internal_set_utmx(const std::string& value) {
-  
-  utmx_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
-}
-inline void RefRoadPoint::set_utmx(std::string&& value) {
-  
-  utmx_.Set(
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
-  // @@protoc_insertion_point(field_set_rvalue:routing_service.RefRoadPoint.utmx)
-}
-inline void RefRoadPoint::set_utmx(const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  
-  utmx_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
-  // @@protoc_insertion_point(field_set_char:routing_service.RefRoadPoint.utmx)
-}
-inline void RefRoadPoint::set_utmx(const char* value,
-    size_t size) {
-  
-  utmx_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
-      reinterpret_cast<const char*>(value), size), GetArena());
-  // @@protoc_insertion_point(field_set_pointer:routing_service.RefRoadPoint.utmx)
-}
-inline std::string* RefRoadPoint::_internal_mutable_utmx() {
-  
-  return utmx_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
-}
-inline std::string* RefRoadPoint::release_utmx() {
-  // @@protoc_insertion_point(field_release:routing_service.RefRoadPoint.utmx)
-  return utmx_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-}
-inline void RefRoadPoint::set_allocated_utmx(std::string* utmx) {
-  if (utmx != nullptr) {
-    
-  } else {
-    
-  }
-  utmx_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), utmx,
-      GetArena());
-  // @@protoc_insertion_point(field_set_allocated:routing_service.RefRoadPoint.utmx)
-}
 
-// string utmy = 5;
+// double utmy = 5;
 inline void RefRoadPoint::clear_utmy() {
-  utmy_.ClearToEmpty();
+  utmy_ = 0;
 }
-inline const std::string& RefRoadPoint::utmy() const {
+inline double RefRoadPoint::_internal_utmy() const {
+  return utmy_;
+}
+inline double RefRoadPoint::utmy() const {
   // @@protoc_insertion_point(field_get:routing_service.RefRoadPoint.utmy)
   return _internal_utmy();
 }
-inline void RefRoadPoint::set_utmy(const std::string& value) {
+inline void RefRoadPoint::_internal_set_utmy(double value) {
+  
+  utmy_ = value;
+}
+inline void RefRoadPoint::set_utmy(double value) {
   _internal_set_utmy(value);
   // @@protoc_insertion_point(field_set:routing_service.RefRoadPoint.utmy)
 }
-inline std::string* RefRoadPoint::mutable_utmy() {
-  // @@protoc_insertion_point(field_mutable:routing_service.RefRoadPoint.utmy)
-  return _internal_mutable_utmy();
-}
-inline const std::string& RefRoadPoint::_internal_utmy() const {
-  return utmy_.Get();
-}
-inline void RefRoadPoint::_internal_set_utmy(const std::string& value) {
-  
-  utmy_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
-}
-inline void RefRoadPoint::set_utmy(std::string&& value) {
-  
-  utmy_.Set(
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
-  // @@protoc_insertion_point(field_set_rvalue:routing_service.RefRoadPoint.utmy)
-}
-inline void RefRoadPoint::set_utmy(const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  
-  utmy_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
-  // @@protoc_insertion_point(field_set_char:routing_service.RefRoadPoint.utmy)
-}
-inline void RefRoadPoint::set_utmy(const char* value,
-    size_t size) {
-  
-  utmy_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
-      reinterpret_cast<const char*>(value), size), GetArena());
-  // @@protoc_insertion_point(field_set_pointer:routing_service.RefRoadPoint.utmy)
-}
-inline std::string* RefRoadPoint::_internal_mutable_utmy() {
-  
-  return utmy_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
-}
-inline std::string* RefRoadPoint::release_utmy() {
-  // @@protoc_insertion_point(field_release:routing_service.RefRoadPoint.utmy)
-  return utmy_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-}
-inline void RefRoadPoint::set_allocated_utmy(std::string* utmy) {
-  if (utmy != nullptr) {
-    
-  } else {
-    
-  }
-  utmy_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), utmy,
-      GetArena());
-  // @@protoc_insertion_point(field_set_allocated:routing_service.RefRoadPoint.utmy)
-}
 
-// string heading = 6;
+// double heading = 6;
 inline void RefRoadPoint::clear_heading() {
-  heading_.ClearToEmpty();
+  heading_ = 0;
 }
-inline const std::string& RefRoadPoint::heading() const {
+inline double RefRoadPoint::_internal_heading() const {
+  return heading_;
+}
+inline double RefRoadPoint::heading() const {
   // @@protoc_insertion_point(field_get:routing_service.RefRoadPoint.heading)
   return _internal_heading();
 }
-inline void RefRoadPoint::set_heading(const std::string& value) {
+inline void RefRoadPoint::_internal_set_heading(double value) {
+  
+  heading_ = value;
+}
+inline void RefRoadPoint::set_heading(double value) {
   _internal_set_heading(value);
   // @@protoc_insertion_point(field_set:routing_service.RefRoadPoint.heading)
 }
-inline std::string* RefRoadPoint::mutable_heading() {
-  // @@protoc_insertion_point(field_mutable:routing_service.RefRoadPoint.heading)
-  return _internal_mutable_heading();
-}
-inline const std::string& RefRoadPoint::_internal_heading() const {
-  return heading_.Get();
-}
-inline void RefRoadPoint::_internal_set_heading(const std::string& value) {
-  
-  heading_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
-}
-inline void RefRoadPoint::set_heading(std::string&& value) {
-  
-  heading_.Set(
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
-  // @@protoc_insertion_point(field_set_rvalue:routing_service.RefRoadPoint.heading)
-}
-inline void RefRoadPoint::set_heading(const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  
-  heading_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
-  // @@protoc_insertion_point(field_set_char:routing_service.RefRoadPoint.heading)
-}
-inline void RefRoadPoint::set_heading(const char* value,
-    size_t size) {
-  
-  heading_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
-      reinterpret_cast<const char*>(value), size), GetArena());
-  // @@protoc_insertion_point(field_set_pointer:routing_service.RefRoadPoint.heading)
-}
-inline std::string* RefRoadPoint::_internal_mutable_heading() {
-  
-  return heading_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
-}
-inline std::string* RefRoadPoint::release_heading() {
-  // @@protoc_insertion_point(field_release:routing_service.RefRoadPoint.heading)
-  return heading_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-}
-inline void RefRoadPoint::set_allocated_heading(std::string* heading) {
-  if (heading != nullptr) {
-    
-  } else {
-    
-  }
-  heading_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), heading,
-      GetArena());
-  // @@protoc_insertion_point(field_set_allocated:routing_service.RefRoadPoint.heading)
-}
 
-// string curv = 7;
+// double curv = 7;
 inline void RefRoadPoint::clear_curv() {
-  curv_.ClearToEmpty();
+  curv_ = 0;
 }
-inline const std::string& RefRoadPoint::curv() const {
+inline double RefRoadPoint::_internal_curv() const {
+  return curv_;
+}
+inline double RefRoadPoint::curv() const {
   // @@protoc_insertion_point(field_get:routing_service.RefRoadPoint.curv)
   return _internal_curv();
 }
-inline void RefRoadPoint::set_curv(const std::string& value) {
+inline void RefRoadPoint::_internal_set_curv(double value) {
+  
+  curv_ = value;
+}
+inline void RefRoadPoint::set_curv(double value) {
   _internal_set_curv(value);
   // @@protoc_insertion_point(field_set:routing_service.RefRoadPoint.curv)
 }
-inline std::string* RefRoadPoint::mutable_curv() {
-  // @@protoc_insertion_point(field_mutable:routing_service.RefRoadPoint.curv)
-  return _internal_mutable_curv();
-}
-inline const std::string& RefRoadPoint::_internal_curv() const {
-  return curv_.Get();
-}
-inline void RefRoadPoint::_internal_set_curv(const std::string& value) {
-  
-  curv_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
-}
-inline void RefRoadPoint::set_curv(std::string&& value) {
-  
-  curv_.Set(
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
-  // @@protoc_insertion_point(field_set_rvalue:routing_service.RefRoadPoint.curv)
-}
-inline void RefRoadPoint::set_curv(const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  
-  curv_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
-  // @@protoc_insertion_point(field_set_char:routing_service.RefRoadPoint.curv)
-}
-inline void RefRoadPoint::set_curv(const char* value,
-    size_t size) {
-  
-  curv_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
-      reinterpret_cast<const char*>(value), size), GetArena());
-  // @@protoc_insertion_point(field_set_pointer:routing_service.RefRoadPoint.curv)
-}
-inline std::string* RefRoadPoint::_internal_mutable_curv() {
-  
-  return curv_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
-}
-inline std::string* RefRoadPoint::release_curv() {
-  // @@protoc_insertion_point(field_release:routing_service.RefRoadPoint.curv)
-  return curv_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-}
-inline void RefRoadPoint::set_allocated_curv(std::string* curv) {
-  if (curv != nullptr) {
-    
-  } else {
-    
-  }
-  curv_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), curv,
-      GetArena());
-  // @@protoc_insertion_point(field_set_allocated:routing_service.RefRoadPoint.curv)
-}
 
-// string mode = 8;
+// int32 mode = 8;
 inline void RefRoadPoint::clear_mode() {
-  mode_.ClearToEmpty();
+  mode_ = 0;
 }
-inline const std::string& RefRoadPoint::mode() const {
+inline ::PROTOBUF_NAMESPACE_ID::int32 RefRoadPoint::_internal_mode() const {
+  return mode_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 RefRoadPoint::mode() const {
   // @@protoc_insertion_point(field_get:routing_service.RefRoadPoint.mode)
   return _internal_mode();
 }
-inline void RefRoadPoint::set_mode(const std::string& value) {
+inline void RefRoadPoint::_internal_set_mode(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  
+  mode_ = value;
+}
+inline void RefRoadPoint::set_mode(::PROTOBUF_NAMESPACE_ID::int32 value) {
   _internal_set_mode(value);
   // @@protoc_insertion_point(field_set:routing_service.RefRoadPoint.mode)
 }
-inline std::string* RefRoadPoint::mutable_mode() {
-  // @@protoc_insertion_point(field_mutable:routing_service.RefRoadPoint.mode)
-  return _internal_mutable_mode();
-}
-inline const std::string& RefRoadPoint::_internal_mode() const {
-  return mode_.Get();
-}
-inline void RefRoadPoint::_internal_set_mode(const std::string& value) {
-  
-  mode_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
-}
-inline void RefRoadPoint::set_mode(std::string&& value) {
-  
-  mode_.Set(
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
-  // @@protoc_insertion_point(field_set_rvalue:routing_service.RefRoadPoint.mode)
-}
-inline void RefRoadPoint::set_mode(const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  
-  mode_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
-  // @@protoc_insertion_point(field_set_char:routing_service.RefRoadPoint.mode)
-}
-inline void RefRoadPoint::set_mode(const char* value,
-    size_t size) {
-  
-  mode_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
-      reinterpret_cast<const char*>(value), size), GetArena());
-  // @@protoc_insertion_point(field_set_pointer:routing_service.RefRoadPoint.mode)
-}
-inline std::string* RefRoadPoint::_internal_mutable_mode() {
-  
-  return mode_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
-}
-inline std::string* RefRoadPoint::release_mode() {
-  // @@protoc_insertion_point(field_release:routing_service.RefRoadPoint.mode)
-  return mode_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-}
-inline void RefRoadPoint::set_allocated_mode(std::string* mode) {
-  if (mode != nullptr) {
-    
-  } else {
-    
-  }
-  mode_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), mode,
-      GetArena());
-  // @@protoc_insertion_point(field_set_allocated:routing_service.RefRoadPoint.mode)
-}
 
-// string speed_mode = 9;
+// int32 speed_mode = 9;
 inline void RefRoadPoint::clear_speed_mode() {
-  speed_mode_.ClearToEmpty();
+  speed_mode_ = 0;
 }
-inline const std::string& RefRoadPoint::speed_mode() const {
+inline ::PROTOBUF_NAMESPACE_ID::int32 RefRoadPoint::_internal_speed_mode() const {
+  return speed_mode_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 RefRoadPoint::speed_mode() const {
   // @@protoc_insertion_point(field_get:routing_service.RefRoadPoint.speed_mode)
   return _internal_speed_mode();
 }
-inline void RefRoadPoint::set_speed_mode(const std::string& value) {
+inline void RefRoadPoint::_internal_set_speed_mode(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  
+  speed_mode_ = value;
+}
+inline void RefRoadPoint::set_speed_mode(::PROTOBUF_NAMESPACE_ID::int32 value) {
   _internal_set_speed_mode(value);
   // @@protoc_insertion_point(field_set:routing_service.RefRoadPoint.speed_mode)
 }
-inline std::string* RefRoadPoint::mutable_speed_mode() {
-  // @@protoc_insertion_point(field_mutable:routing_service.RefRoadPoint.speed_mode)
-  return _internal_mutable_speed_mode();
-}
-inline const std::string& RefRoadPoint::_internal_speed_mode() const {
-  return speed_mode_.Get();
-}
-inline void RefRoadPoint::_internal_set_speed_mode(const std::string& value) {
-  
-  speed_mode_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
-}
-inline void RefRoadPoint::set_speed_mode(std::string&& value) {
-  
-  speed_mode_.Set(
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
-  // @@protoc_insertion_point(field_set_rvalue:routing_service.RefRoadPoint.speed_mode)
-}
-inline void RefRoadPoint::set_speed_mode(const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  
-  speed_mode_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
-  // @@protoc_insertion_point(field_set_char:routing_service.RefRoadPoint.speed_mode)
-}
-inline void RefRoadPoint::set_speed_mode(const char* value,
-    size_t size) {
-  
-  speed_mode_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
-      reinterpret_cast<const char*>(value), size), GetArena());
-  // @@protoc_insertion_point(field_set_pointer:routing_service.RefRoadPoint.speed_mode)
-}
-inline std::string* RefRoadPoint::_internal_mutable_speed_mode() {
-  
-  return speed_mode_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
-}
-inline std::string* RefRoadPoint::release_speed_mode() {
-  // @@protoc_insertion_point(field_release:routing_service.RefRoadPoint.speed_mode)
-  return speed_mode_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-}
-inline void RefRoadPoint::set_allocated_speed_mode(std::string* speed_mode) {
-  if (speed_mode != nullptr) {
-    
-  } else {
-    
-  }
-  speed_mode_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), speed_mode,
-      GetArena());
-  // @@protoc_insertion_point(field_set_allocated:routing_service.RefRoadPoint.speed_mode)
-}
 
-// string event_mode = 10;
+// int32 event_mode = 10;
 inline void RefRoadPoint::clear_event_mode() {
-  event_mode_.ClearToEmpty();
+  event_mode_ = 0;
 }
-inline const std::string& RefRoadPoint::event_mode() const {
+inline ::PROTOBUF_NAMESPACE_ID::int32 RefRoadPoint::_internal_event_mode() const {
+  return event_mode_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 RefRoadPoint::event_mode() const {
   // @@protoc_insertion_point(field_get:routing_service.RefRoadPoint.event_mode)
   return _internal_event_mode();
 }
-inline void RefRoadPoint::set_event_mode(const std::string& value) {
+inline void RefRoadPoint::_internal_set_event_mode(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  
+  event_mode_ = value;
+}
+inline void RefRoadPoint::set_event_mode(::PROTOBUF_NAMESPACE_ID::int32 value) {
   _internal_set_event_mode(value);
   // @@protoc_insertion_point(field_set:routing_service.RefRoadPoint.event_mode)
 }
-inline std::string* RefRoadPoint::mutable_event_mode() {
-  // @@protoc_insertion_point(field_mutable:routing_service.RefRoadPoint.event_mode)
-  return _internal_mutable_event_mode();
-}
-inline const std::string& RefRoadPoint::_internal_event_mode() const {
-  return event_mode_.Get();
-}
-inline void RefRoadPoint::_internal_set_event_mode(const std::string& value) {
-  
-  event_mode_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
-}
-inline void RefRoadPoint::set_event_mode(std::string&& value) {
-  
-  event_mode_.Set(
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
-  // @@protoc_insertion_point(field_set_rvalue:routing_service.RefRoadPoint.event_mode)
-}
-inline void RefRoadPoint::set_event_mode(const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  
-  event_mode_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
-  // @@protoc_insertion_point(field_set_char:routing_service.RefRoadPoint.event_mode)
-}
-inline void RefRoadPoint::set_event_mode(const char* value,
-    size_t size) {
-  
-  event_mode_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
-      reinterpret_cast<const char*>(value), size), GetArena());
-  // @@protoc_insertion_point(field_set_pointer:routing_service.RefRoadPoint.event_mode)
-}
-inline std::string* RefRoadPoint::_internal_mutable_event_mode() {
-  
-  return event_mode_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
-}
-inline std::string* RefRoadPoint::release_event_mode() {
-  // @@protoc_insertion_point(field_release:routing_service.RefRoadPoint.event_mode)
-  return event_mode_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-}
-inline void RefRoadPoint::set_allocated_event_mode(std::string* event_mode) {
-  if (event_mode != nullptr) {
-    
-  } else {
-    
-  }
-  event_mode_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), event_mode,
-      GetArena());
-  // @@protoc_insertion_point(field_set_allocated:routing_service.RefRoadPoint.event_mode)
-}
 
-// string opposite_side_mode = 11;
+// int32 opposite_side_mode = 11;
 inline void RefRoadPoint::clear_opposite_side_mode() {
-  opposite_side_mode_.ClearToEmpty();
+  opposite_side_mode_ = 0;
 }
-inline const std::string& RefRoadPoint::opposite_side_mode() const {
+inline ::PROTOBUF_NAMESPACE_ID::int32 RefRoadPoint::_internal_opposite_side_mode() const {
+  return opposite_side_mode_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 RefRoadPoint::opposite_side_mode() const {
   // @@protoc_insertion_point(field_get:routing_service.RefRoadPoint.opposite_side_mode)
   return _internal_opposite_side_mode();
 }
-inline void RefRoadPoint::set_opposite_side_mode(const std::string& value) {
+inline void RefRoadPoint::_internal_set_opposite_side_mode(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  
+  opposite_side_mode_ = value;
+}
+inline void RefRoadPoint::set_opposite_side_mode(::PROTOBUF_NAMESPACE_ID::int32 value) {
   _internal_set_opposite_side_mode(value);
   // @@protoc_insertion_point(field_set:routing_service.RefRoadPoint.opposite_side_mode)
 }
-inline std::string* RefRoadPoint::mutable_opposite_side_mode() {
-  // @@protoc_insertion_point(field_mutable:routing_service.RefRoadPoint.opposite_side_mode)
-  return _internal_mutable_opposite_side_mode();
-}
-inline const std::string& RefRoadPoint::_internal_opposite_side_mode() const {
-  return opposite_side_mode_.Get();
-}
-inline void RefRoadPoint::_internal_set_opposite_side_mode(const std::string& value) {
-  
-  opposite_side_mode_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
-}
-inline void RefRoadPoint::set_opposite_side_mode(std::string&& value) {
-  
-  opposite_side_mode_.Set(
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
-  // @@protoc_insertion_point(field_set_rvalue:routing_service.RefRoadPoint.opposite_side_mode)
-}
-inline void RefRoadPoint::set_opposite_side_mode(const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  
-  opposite_side_mode_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
-  // @@protoc_insertion_point(field_set_char:routing_service.RefRoadPoint.opposite_side_mode)
-}
-inline void RefRoadPoint::set_opposite_side_mode(const char* value,
-    size_t size) {
-  
-  opposite_side_mode_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
-      reinterpret_cast<const char*>(value), size), GetArena());
-  // @@protoc_insertion_point(field_set_pointer:routing_service.RefRoadPoint.opposite_side_mode)
-}
-inline std::string* RefRoadPoint::_internal_mutable_opposite_side_mode() {
-  
-  return opposite_side_mode_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
-}
-inline std::string* RefRoadPoint::release_opposite_side_mode() {
-  // @@protoc_insertion_point(field_release:routing_service.RefRoadPoint.opposite_side_mode)
-  return opposite_side_mode_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-}
-inline void RefRoadPoint::set_allocated_opposite_side_mode(std::string* opposite_side_mode) {
-  if (opposite_side_mode != nullptr) {
-    
-  } else {
-    
-  }
-  opposite_side_mode_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), opposite_side_mode,
-      GetArena());
-  // @@protoc_insertion_point(field_set_allocated:routing_service.RefRoadPoint.opposite_side_mode)
-}
 
-// string lane_num = 12;
+// int32 lane_num = 12;
 inline void RefRoadPoint::clear_lane_num() {
-  lane_num_.ClearToEmpty();
+  lane_num_ = 0;
 }
-inline const std::string& RefRoadPoint::lane_num() const {
+inline ::PROTOBUF_NAMESPACE_ID::int32 RefRoadPoint::_internal_lane_num() const {
+  return lane_num_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 RefRoadPoint::lane_num() const {
   // @@protoc_insertion_point(field_get:routing_service.RefRoadPoint.lane_num)
   return _internal_lane_num();
 }
-inline void RefRoadPoint::set_lane_num(const std::string& value) {
+inline void RefRoadPoint::_internal_set_lane_num(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  
+  lane_num_ = value;
+}
+inline void RefRoadPoint::set_lane_num(::PROTOBUF_NAMESPACE_ID::int32 value) {
   _internal_set_lane_num(value);
   // @@protoc_insertion_point(field_set:routing_service.RefRoadPoint.lane_num)
 }
-inline std::string* RefRoadPoint::mutable_lane_num() {
-  // @@protoc_insertion_point(field_mutable:routing_service.RefRoadPoint.lane_num)
-  return _internal_mutable_lane_num();
-}
-inline const std::string& RefRoadPoint::_internal_lane_num() const {
-  return lane_num_.Get();
-}
-inline void RefRoadPoint::_internal_set_lane_num(const std::string& value) {
-  
-  lane_num_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
-}
-inline void RefRoadPoint::set_lane_num(std::string&& value) {
-  
-  lane_num_.Set(
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
-  // @@protoc_insertion_point(field_set_rvalue:routing_service.RefRoadPoint.lane_num)
-}
-inline void RefRoadPoint::set_lane_num(const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  
-  lane_num_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
-  // @@protoc_insertion_point(field_set_char:routing_service.RefRoadPoint.lane_num)
-}
-inline void RefRoadPoint::set_lane_num(const char* value,
-    size_t size) {
-  
-  lane_num_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
-      reinterpret_cast<const char*>(value), size), GetArena());
-  // @@protoc_insertion_point(field_set_pointer:routing_service.RefRoadPoint.lane_num)
-}
-inline std::string* RefRoadPoint::_internal_mutable_lane_num() {
-  
-  return lane_num_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
-}
-inline std::string* RefRoadPoint::release_lane_num() {
-  // @@protoc_insertion_point(field_release:routing_service.RefRoadPoint.lane_num)
-  return lane_num_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-}
-inline void RefRoadPoint::set_allocated_lane_num(std::string* lane_num) {
-  if (lane_num != nullptr) {
-    
-  } else {
-    
-  }
-  lane_num_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), lane_num,
-      GetArena());
-  // @@protoc_insertion_point(field_set_allocated:routing_service.RefRoadPoint.lane_num)
-}
 
-// string lane_seq = 13;
+// int32 lane_seq = 13;
 inline void RefRoadPoint::clear_lane_seq() {
-  lane_seq_.ClearToEmpty();
+  lane_seq_ = 0;
 }
-inline const std::string& RefRoadPoint::lane_seq() const {
+inline ::PROTOBUF_NAMESPACE_ID::int32 RefRoadPoint::_internal_lane_seq() const {
+  return lane_seq_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 RefRoadPoint::lane_seq() const {
   // @@protoc_insertion_point(field_get:routing_service.RefRoadPoint.lane_seq)
   return _internal_lane_seq();
 }
-inline void RefRoadPoint::set_lane_seq(const std::string& value) {
+inline void RefRoadPoint::_internal_set_lane_seq(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  
+  lane_seq_ = value;
+}
+inline void RefRoadPoint::set_lane_seq(::PROTOBUF_NAMESPACE_ID::int32 value) {
   _internal_set_lane_seq(value);
   // @@protoc_insertion_point(field_set:routing_service.RefRoadPoint.lane_seq)
 }
-inline std::string* RefRoadPoint::mutable_lane_seq() {
-  // @@protoc_insertion_point(field_mutable:routing_service.RefRoadPoint.lane_seq)
-  return _internal_mutable_lane_seq();
-}
-inline const std::string& RefRoadPoint::_internal_lane_seq() const {
-  return lane_seq_.Get();
-}
-inline void RefRoadPoint::_internal_set_lane_seq(const std::string& value) {
-  
-  lane_seq_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
-}
-inline void RefRoadPoint::set_lane_seq(std::string&& value) {
-  
-  lane_seq_.Set(
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
-  // @@protoc_insertion_point(field_set_rvalue:routing_service.RefRoadPoint.lane_seq)
-}
-inline void RefRoadPoint::set_lane_seq(const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  
-  lane_seq_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
-  // @@protoc_insertion_point(field_set_char:routing_service.RefRoadPoint.lane_seq)
-}
-inline void RefRoadPoint::set_lane_seq(const char* value,
-    size_t size) {
-  
-  lane_seq_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
-      reinterpret_cast<const char*>(value), size), GetArena());
-  // @@protoc_insertion_point(field_set_pointer:routing_service.RefRoadPoint.lane_seq)
-}
-inline std::string* RefRoadPoint::_internal_mutable_lane_seq() {
-  
-  return lane_seq_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
-}
-inline std::string* RefRoadPoint::release_lane_seq() {
-  // @@protoc_insertion_point(field_release:routing_service.RefRoadPoint.lane_seq)
-  return lane_seq_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-}
-inline void RefRoadPoint::set_allocated_lane_seq(std::string* lane_seq) {
-  if (lane_seq != nullptr) {
-    
-  } else {
-    
-  }
-  lane_seq_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), lane_seq,
-      GetArena());
-  // @@protoc_insertion_point(field_set_allocated:routing_service.RefRoadPoint.lane_seq)
-}
 
-// string lane_width = 14;
+// double lane_width = 14;
 inline void RefRoadPoint::clear_lane_width() {
-  lane_width_.ClearToEmpty();
+  lane_width_ = 0;
 }
-inline const std::string& RefRoadPoint::lane_width() const {
+inline double RefRoadPoint::_internal_lane_width() const {
+  return lane_width_;
+}
+inline double RefRoadPoint::lane_width() const {
   // @@protoc_insertion_point(field_get:routing_service.RefRoadPoint.lane_width)
   return _internal_lane_width();
 }
-inline void RefRoadPoint::set_lane_width(const std::string& value) {
+inline void RefRoadPoint::_internal_set_lane_width(double value) {
+  
+  lane_width_ = value;
+}
+inline void RefRoadPoint::set_lane_width(double value) {
   _internal_set_lane_width(value);
   // @@protoc_insertion_point(field_set:routing_service.RefRoadPoint.lane_width)
-}
-inline std::string* RefRoadPoint::mutable_lane_width() {
-  // @@protoc_insertion_point(field_mutable:routing_service.RefRoadPoint.lane_width)
-  return _internal_mutable_lane_width();
-}
-inline const std::string& RefRoadPoint::_internal_lane_width() const {
-  return lane_width_.Get();
-}
-inline void RefRoadPoint::_internal_set_lane_width(const std::string& value) {
-  
-  lane_width_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
-}
-inline void RefRoadPoint::set_lane_width(std::string&& value) {
-  
-  lane_width_.Set(
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
-  // @@protoc_insertion_point(field_set_rvalue:routing_service.RefRoadPoint.lane_width)
-}
-inline void RefRoadPoint::set_lane_width(const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  
-  lane_width_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
-  // @@protoc_insertion_point(field_set_char:routing_service.RefRoadPoint.lane_width)
-}
-inline void RefRoadPoint::set_lane_width(const char* value,
-    size_t size) {
-  
-  lane_width_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
-      reinterpret_cast<const char*>(value), size), GetArena());
-  // @@protoc_insertion_point(field_set_pointer:routing_service.RefRoadPoint.lane_width)
-}
-inline std::string* RefRoadPoint::_internal_mutable_lane_width() {
-  
-  return lane_width_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
-}
-inline std::string* RefRoadPoint::release_lane_width() {
-  // @@protoc_insertion_point(field_release:routing_service.RefRoadPoint.lane_width)
-  return lane_width_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-}
-inline void RefRoadPoint::set_allocated_lane_width(std::string* lane_width) {
-  if (lane_width != nullptr) {
-    
-  } else {
-    
-  }
-  lane_width_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), lane_width,
-      GetArena());
-  // @@protoc_insertion_point(field_set_allocated:routing_service.RefRoadPoint.lane_width)
 }
 
 // -------------------------------------------------------------------
@@ -2027,9 +2091,642 @@ RefRoad::point() const {
   return point_;
 }
 
+// -------------------------------------------------------------------
+
+// RoadPoints
+
+// repeated .routing_service.Point point = 1;
+inline int RoadPoints::_internal_point_size() const {
+  return point_.size();
+}
+inline int RoadPoints::point_size() const {
+  return _internal_point_size();
+}
+inline void RoadPoints::clear_point() {
+  point_.Clear();
+}
+inline ::routing_service::Point* RoadPoints::mutable_point(int index) {
+  // @@protoc_insertion_point(field_mutable:routing_service.RoadPoints.point)
+  return point_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::routing_service::Point >*
+RoadPoints::mutable_point() {
+  // @@protoc_insertion_point(field_mutable_list:routing_service.RoadPoints.point)
+  return &point_;
+}
+inline const ::routing_service::Point& RoadPoints::_internal_point(int index) const {
+  return point_.Get(index);
+}
+inline const ::routing_service::Point& RoadPoints::point(int index) const {
+  // @@protoc_insertion_point(field_get:routing_service.RoadPoints.point)
+  return _internal_point(index);
+}
+inline ::routing_service::Point* RoadPoints::_internal_add_point() {
+  return point_.Add();
+}
+inline ::routing_service::Point* RoadPoints::add_point() {
+  // @@protoc_insertion_point(field_add:routing_service.RoadPoints.point)
+  return _internal_add_point();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::routing_service::Point >&
+RoadPoints::point() const {
+  // @@protoc_insertion_point(field_list:routing_service.RoadPoints.point)
+  return point_;
+}
+
+// -------------------------------------------------------------------
+
+// CarInfo
+
+// string id = 1;
+inline void CarInfo::clear_id() {
+  id_.ClearToEmpty();
+}
+inline const std::string& CarInfo::id() const {
+  // @@protoc_insertion_point(field_get:routing_service.CarInfo.id)
+  return _internal_id();
+}
+inline void CarInfo::set_id(const std::string& value) {
+  _internal_set_id(value);
+  // @@protoc_insertion_point(field_set:routing_service.CarInfo.id)
+}
+inline std::string* CarInfo::mutable_id() {
+  // @@protoc_insertion_point(field_mutable:routing_service.CarInfo.id)
+  return _internal_mutable_id();
+}
+inline const std::string& CarInfo::_internal_id() const {
+  return id_.Get();
+}
+inline void CarInfo::_internal_set_id(const std::string& value) {
+  
+  id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
+}
+inline void CarInfo::set_id(std::string&& value) {
+  
+  id_.Set(
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
+  // @@protoc_insertion_point(field_set_rvalue:routing_service.CarInfo.id)
+}
+inline void CarInfo::set_id(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  
+  id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
+  // @@protoc_insertion_point(field_set_char:routing_service.CarInfo.id)
+}
+inline void CarInfo::set_id(const char* value,
+    size_t size) {
+  
+  id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
+      reinterpret_cast<const char*>(value), size), GetArena());
+  // @@protoc_insertion_point(field_set_pointer:routing_service.CarInfo.id)
+}
+inline std::string* CarInfo::_internal_mutable_id() {
+  
+  return id_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
+}
+inline std::string* CarInfo::release_id() {
+  // @@protoc_insertion_point(field_release:routing_service.CarInfo.id)
+  return id_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline void CarInfo::set_allocated_id(std::string* id) {
+  if (id != nullptr) {
+    
+  } else {
+    
+  }
+  id_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), id,
+      GetArena());
+  // @@protoc_insertion_point(field_set_allocated:routing_service.CarInfo.id)
+}
+
+// string map = 2;
+inline void CarInfo::clear_map() {
+  map_.ClearToEmpty();
+}
+inline const std::string& CarInfo::map() const {
+  // @@protoc_insertion_point(field_get:routing_service.CarInfo.map)
+  return _internal_map();
+}
+inline void CarInfo::set_map(const std::string& value) {
+  _internal_set_map(value);
+  // @@protoc_insertion_point(field_set:routing_service.CarInfo.map)
+}
+inline std::string* CarInfo::mutable_map() {
+  // @@protoc_insertion_point(field_mutable:routing_service.CarInfo.map)
+  return _internal_mutable_map();
+}
+inline const std::string& CarInfo::_internal_map() const {
+  return map_.Get();
+}
+inline void CarInfo::_internal_set_map(const std::string& value) {
+  
+  map_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
+}
+inline void CarInfo::set_map(std::string&& value) {
+  
+  map_.Set(
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
+  // @@protoc_insertion_point(field_set_rvalue:routing_service.CarInfo.map)
+}
+inline void CarInfo::set_map(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  
+  map_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
+  // @@protoc_insertion_point(field_set_char:routing_service.CarInfo.map)
+}
+inline void CarInfo::set_map(const char* value,
+    size_t size) {
+  
+  map_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
+      reinterpret_cast<const char*>(value), size), GetArena());
+  // @@protoc_insertion_point(field_set_pointer:routing_service.CarInfo.map)
+}
+inline std::string* CarInfo::_internal_mutable_map() {
+  
+  return map_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
+}
+inline std::string* CarInfo::release_map() {
+  // @@protoc_insertion_point(field_release:routing_service.CarInfo.map)
+  return map_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline void CarInfo::set_allocated_map(std::string* map) {
+  if (map != nullptr) {
+    
+  } else {
+    
+  }
+  map_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), map,
+      GetArena());
+  // @@protoc_insertion_point(field_set_allocated:routing_service.CarInfo.map)
+}
+
+// .routing_service.Point pos = 3;
+inline bool CarInfo::_internal_has_pos() const {
+  return this != internal_default_instance() && pos_ != nullptr;
+}
+inline bool CarInfo::has_pos() const {
+  return _internal_has_pos();
+}
+inline void CarInfo::clear_pos() {
+  if (GetArena() == nullptr && pos_ != nullptr) {
+    delete pos_;
+  }
+  pos_ = nullptr;
+}
+inline const ::routing_service::Point& CarInfo::_internal_pos() const {
+  const ::routing_service::Point* p = pos_;
+  return p != nullptr ? *p : reinterpret_cast<const ::routing_service::Point&>(
+      ::routing_service::_Point_default_instance_);
+}
+inline const ::routing_service::Point& CarInfo::pos() const {
+  // @@protoc_insertion_point(field_get:routing_service.CarInfo.pos)
+  return _internal_pos();
+}
+inline void CarInfo::unsafe_arena_set_allocated_pos(
+    ::routing_service::Point* pos) {
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(pos_);
+  }
+  pos_ = pos;
+  if (pos) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:routing_service.CarInfo.pos)
+}
+inline ::routing_service::Point* CarInfo::release_pos() {
+  
+  ::routing_service::Point* temp = pos_;
+  pos_ = nullptr;
+  if (GetArena() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+  return temp;
+}
+inline ::routing_service::Point* CarInfo::unsafe_arena_release_pos() {
+  // @@protoc_insertion_point(field_release:routing_service.CarInfo.pos)
+  
+  ::routing_service::Point* temp = pos_;
+  pos_ = nullptr;
+  return temp;
+}
+inline ::routing_service::Point* CarInfo::_internal_mutable_pos() {
+  
+  if (pos_ == nullptr) {
+    auto* p = CreateMaybeMessage<::routing_service::Point>(GetArena());
+    pos_ = p;
+  }
+  return pos_;
+}
+inline ::routing_service::Point* CarInfo::mutable_pos() {
+  // @@protoc_insertion_point(field_mutable:routing_service.CarInfo.pos)
+  return _internal_mutable_pos();
+}
+inline void CarInfo::set_allocated_pos(::routing_service::Point* pos) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArena();
+  if (message_arena == nullptr) {
+    delete pos_;
+  }
+  if (pos) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+      ::PROTOBUF_NAMESPACE_ID::Arena::GetArena(pos);
+    if (message_arena != submessage_arena) {
+      pos = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, pos, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  pos_ = pos;
+  // @@protoc_insertion_point(field_set_allocated:routing_service.CarInfo.pos)
+}
+
+// bool running = 4;
+inline void CarInfo::clear_running() {
+  running_ = false;
+}
+inline bool CarInfo::_internal_running() const {
+  return running_;
+}
+inline bool CarInfo::running() const {
+  // @@protoc_insertion_point(field_get:routing_service.CarInfo.running)
+  return _internal_running();
+}
+inline void CarInfo::_internal_set_running(bool value) {
+  
+  running_ = value;
+}
+inline void CarInfo::set_running(bool value) {
+  _internal_set_running(value);
+  // @@protoc_insertion_point(field_set:routing_service.CarInfo.running)
+}
+
+// -------------------------------------------------------------------
+
+// TaskRequest
+
+// .routing_service.Point point = 1;
+inline bool TaskRequest::_internal_has_point() const {
+  return this != internal_default_instance() && point_ != nullptr;
+}
+inline bool TaskRequest::has_point() const {
+  return _internal_has_point();
+}
+inline void TaskRequest::clear_point() {
+  if (GetArena() == nullptr && point_ != nullptr) {
+    delete point_;
+  }
+  point_ = nullptr;
+}
+inline const ::routing_service::Point& TaskRequest::_internal_point() const {
+  const ::routing_service::Point* p = point_;
+  return p != nullptr ? *p : reinterpret_cast<const ::routing_service::Point&>(
+      ::routing_service::_Point_default_instance_);
+}
+inline const ::routing_service::Point& TaskRequest::point() const {
+  // @@protoc_insertion_point(field_get:routing_service.TaskRequest.point)
+  return _internal_point();
+}
+inline void TaskRequest::unsafe_arena_set_allocated_point(
+    ::routing_service::Point* point) {
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(point_);
+  }
+  point_ = point;
+  if (point) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:routing_service.TaskRequest.point)
+}
+inline ::routing_service::Point* TaskRequest::release_point() {
+  
+  ::routing_service::Point* temp = point_;
+  point_ = nullptr;
+  if (GetArena() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+  return temp;
+}
+inline ::routing_service::Point* TaskRequest::unsafe_arena_release_point() {
+  // @@protoc_insertion_point(field_release:routing_service.TaskRequest.point)
+  
+  ::routing_service::Point* temp = point_;
+  point_ = nullptr;
+  return temp;
+}
+inline ::routing_service::Point* TaskRequest::_internal_mutable_point() {
+  
+  if (point_ == nullptr) {
+    auto* p = CreateMaybeMessage<::routing_service::Point>(GetArena());
+    point_ = p;
+  }
+  return point_;
+}
+inline ::routing_service::Point* TaskRequest::mutable_point() {
+  // @@protoc_insertion_point(field_mutable:routing_service.TaskRequest.point)
+  return _internal_mutable_point();
+}
+inline void TaskRequest::set_allocated_point(::routing_service::Point* point) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArena();
+  if (message_arena == nullptr) {
+    delete point_;
+  }
+  if (point) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+      ::PROTOBUF_NAMESPACE_ID::Arena::GetArena(point);
+    if (message_arena != submessage_arena) {
+      point = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, point, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  point_ = point;
+  // @@protoc_insertion_point(field_set_allocated:routing_service.TaskRequest.point)
+}
+
+// string id = 2;
+inline void TaskRequest::clear_id() {
+  id_.ClearToEmpty();
+}
+inline const std::string& TaskRequest::id() const {
+  // @@protoc_insertion_point(field_get:routing_service.TaskRequest.id)
+  return _internal_id();
+}
+inline void TaskRequest::set_id(const std::string& value) {
+  _internal_set_id(value);
+  // @@protoc_insertion_point(field_set:routing_service.TaskRequest.id)
+}
+inline std::string* TaskRequest::mutable_id() {
+  // @@protoc_insertion_point(field_mutable:routing_service.TaskRequest.id)
+  return _internal_mutable_id();
+}
+inline const std::string& TaskRequest::_internal_id() const {
+  return id_.Get();
+}
+inline void TaskRequest::_internal_set_id(const std::string& value) {
+  
+  id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
+}
+inline void TaskRequest::set_id(std::string&& value) {
+  
+  id_.Set(
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
+  // @@protoc_insertion_point(field_set_rvalue:routing_service.TaskRequest.id)
+}
+inline void TaskRequest::set_id(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  
+  id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
+  // @@protoc_insertion_point(field_set_char:routing_service.TaskRequest.id)
+}
+inline void TaskRequest::set_id(const char* value,
+    size_t size) {
+  
+  id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
+      reinterpret_cast<const char*>(value), size), GetArena());
+  // @@protoc_insertion_point(field_set_pointer:routing_service.TaskRequest.id)
+}
+inline std::string* TaskRequest::_internal_mutable_id() {
+  
+  return id_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
+}
+inline std::string* TaskRequest::release_id() {
+  // @@protoc_insertion_point(field_release:routing_service.TaskRequest.id)
+  return id_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline void TaskRequest::set_allocated_id(std::string* id) {
+  if (id != nullptr) {
+    
+  } else {
+    
+  }
+  id_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), id,
+      GetArena());
+  // @@protoc_insertion_point(field_set_allocated:routing_service.TaskRequest.id)
+}
+
+// string map = 3;
+inline void TaskRequest::clear_map() {
+  map_.ClearToEmpty();
+}
+inline const std::string& TaskRequest::map() const {
+  // @@protoc_insertion_point(field_get:routing_service.TaskRequest.map)
+  return _internal_map();
+}
+inline void TaskRequest::set_map(const std::string& value) {
+  _internal_set_map(value);
+  // @@protoc_insertion_point(field_set:routing_service.TaskRequest.map)
+}
+inline std::string* TaskRequest::mutable_map() {
+  // @@protoc_insertion_point(field_mutable:routing_service.TaskRequest.map)
+  return _internal_mutable_map();
+}
+inline const std::string& TaskRequest::_internal_map() const {
+  return map_.Get();
+}
+inline void TaskRequest::_internal_set_map(const std::string& value) {
+  
+  map_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
+}
+inline void TaskRequest::set_map(std::string&& value) {
+  
+  map_.Set(
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
+  // @@protoc_insertion_point(field_set_rvalue:routing_service.TaskRequest.map)
+}
+inline void TaskRequest::set_map(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  
+  map_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
+  // @@protoc_insertion_point(field_set_char:routing_service.TaskRequest.map)
+}
+inline void TaskRequest::set_map(const char* value,
+    size_t size) {
+  
+  map_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
+      reinterpret_cast<const char*>(value), size), GetArena());
+  // @@protoc_insertion_point(field_set_pointer:routing_service.TaskRequest.map)
+}
+inline std::string* TaskRequest::_internal_mutable_map() {
+  
+  return map_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
+}
+inline std::string* TaskRequest::release_map() {
+  // @@protoc_insertion_point(field_release:routing_service.TaskRequest.map)
+  return map_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline void TaskRequest::set_allocated_map(std::string* map) {
+  if (map != nullptr) {
+    
+  } else {
+    
+  }
+  map_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), map,
+      GetArena());
+  // @@protoc_insertion_point(field_set_allocated:routing_service.TaskRequest.map)
+}
+
+// bool on_or_off = 4;
+inline void TaskRequest::clear_on_or_off() {
+  on_or_off_ = false;
+}
+inline bool TaskRequest::_internal_on_or_off() const {
+  return on_or_off_;
+}
+inline bool TaskRequest::on_or_off() const {
+  // @@protoc_insertion_point(field_get:routing_service.TaskRequest.on_or_off)
+  return _internal_on_or_off();
+}
+inline void TaskRequest::_internal_set_on_or_off(bool value) {
+  
+  on_or_off_ = value;
+}
+inline void TaskRequest::set_on_or_off(bool value) {
+  _internal_set_on_or_off(value);
+  // @@protoc_insertion_point(field_set:routing_service.TaskRequest.on_or_off)
+}
+
+// -------------------------------------------------------------------
+
+// TaskPoint
+
+// double lon = 1;
+inline void TaskPoint::clear_lon() {
+  lon_ = 0;
+}
+inline double TaskPoint::_internal_lon() const {
+  return lon_;
+}
+inline double TaskPoint::lon() const {
+  // @@protoc_insertion_point(field_get:routing_service.TaskPoint.lon)
+  return _internal_lon();
+}
+inline void TaskPoint::_internal_set_lon(double value) {
+  
+  lon_ = value;
+}
+inline void TaskPoint::set_lon(double value) {
+  _internal_set_lon(value);
+  // @@protoc_insertion_point(field_set:routing_service.TaskPoint.lon)
+}
+
+// double lat = 2;
+inline void TaskPoint::clear_lat() {
+  lat_ = 0;
+}
+inline double TaskPoint::_internal_lat() const {
+  return lat_;
+}
+inline double TaskPoint::lat() const {
+  // @@protoc_insertion_point(field_get:routing_service.TaskPoint.lat)
+  return _internal_lat();
+}
+inline void TaskPoint::_internal_set_lat(double value) {
+  
+  lat_ = value;
+}
+inline void TaskPoint::set_lat(double value) {
+  _internal_set_lat(value);
+  // @@protoc_insertion_point(field_set:routing_service.TaskPoint.lat)
+}
+
+// double utmx = 3;
+inline void TaskPoint::clear_utmx() {
+  utmx_ = 0;
+}
+inline double TaskPoint::_internal_utmx() const {
+  return utmx_;
+}
+inline double TaskPoint::utmx() const {
+  // @@protoc_insertion_point(field_get:routing_service.TaskPoint.utmx)
+  return _internal_utmx();
+}
+inline void TaskPoint::_internal_set_utmx(double value) {
+  
+  utmx_ = value;
+}
+inline void TaskPoint::set_utmx(double value) {
+  _internal_set_utmx(value);
+  // @@protoc_insertion_point(field_set:routing_service.TaskPoint.utmx)
+}
+
+// double utmy = 4;
+inline void TaskPoint::clear_utmy() {
+  utmy_ = 0;
+}
+inline double TaskPoint::_internal_utmy() const {
+  return utmy_;
+}
+inline double TaskPoint::utmy() const {
+  // @@protoc_insertion_point(field_get:routing_service.TaskPoint.utmy)
+  return _internal_utmy();
+}
+inline void TaskPoint::_internal_set_utmy(double value) {
+  
+  utmy_ = value;
+}
+inline void TaskPoint::set_utmy(double value) {
+  _internal_set_utmy(value);
+  // @@protoc_insertion_point(field_set:routing_service.TaskPoint.utmy)
+}
+
+// double heading = 5;
+inline void TaskPoint::clear_heading() {
+  heading_ = 0;
+}
+inline double TaskPoint::_internal_heading() const {
+  return heading_;
+}
+inline double TaskPoint::heading() const {
+  // @@protoc_insertion_point(field_get:routing_service.TaskPoint.heading)
+  return _internal_heading();
+}
+inline void TaskPoint::_internal_set_heading(double value) {
+  
+  heading_ = value;
+}
+inline void TaskPoint::set_heading(double value) {
+  _internal_set_heading(value);
+  // @@protoc_insertion_point(field_set:routing_service.TaskPoint.heading)
+}
+
+// bool on_or_off = 6;
+inline void TaskPoint::clear_on_or_off() {
+  on_or_off_ = false;
+}
+inline bool TaskPoint::_internal_on_or_off() const {
+  return on_or_off_;
+}
+inline bool TaskPoint::on_or_off() const {
+  // @@protoc_insertion_point(field_get:routing_service.TaskPoint.on_or_off)
+  return _internal_on_or_off();
+}
+inline void TaskPoint::_internal_set_on_or_off(bool value) {
+  
+  on_or_off_ = value;
+}
+inline void TaskPoint::set_on_or_off(bool value) {
+  _internal_set_on_or_off(value);
+  // @@protoc_insertion_point(field_set:routing_service.TaskPoint.on_or_off)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------
