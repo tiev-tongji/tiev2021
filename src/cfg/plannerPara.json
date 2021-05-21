@@ -16,7 +16,7 @@
 		"TrackingWithDebugMode": 3
 	},
 	"debug_speed_mode": 6,
-	"taxi_mode": 1,
+	"taxi_mode": 0,
 	"recommended_speeds": {
 		"BACK": -3,
 		"STOP": 0,
