@@ -64,7 +64,7 @@ int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path, const std::
         point->set_lat(p.lon_lat_position.lat);
     }
     //指定使用的地图
-    request.set_dbname(dbname);
+    request.set_map(dbname);
     ClientContext context;
     RefRoad       response;
     Status        status = stub->FindReferenceRoad(&context, request, &response);
@@ -124,8 +124,8 @@ void Routing::updateInfoToServer(){
     MessageManager* msg_m = MessageManager::getInstance();
     NavInfo nav_info;
     msg_m->getNavInfo(nav_info);
-    pos.set_lon(nav_info.lon);
-    pos.set_lat(nav_info.lat);
+    pos->set_lon(nav_info.lon);
+    pos->set_lat(nav_info.lat);
     MachineManager* mm = MachineManager::getInstance();
     if(mm->machine.isActive<GlobalPlanning>()||mm->machine.isActive<TemporaryStop>()){
         info.set_running(false);
