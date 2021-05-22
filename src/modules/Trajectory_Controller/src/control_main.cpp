@@ -131,9 +131,9 @@ void StanleyContollerThread() {
         aim_dis_base = aim_dis_base_backward;
       }
       //			getRefPose3(control_path, direction,
-      //current_pose, ref_pose);
+      // current_pose, ref_pose);
       //			getRefPose(control_path, direction,
-      //current_pose, ref_pose);
+      // current_pose, ref_pose);
       getRefPose2(control_path, current_velocity_m_s, aim_dis_k, aim_dis_base,
                   ref_pose);
       ref_velocity = getRefVelocity(control_path, current_velocity_m_s,

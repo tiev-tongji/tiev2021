@@ -1,4 +1,6 @@
 syntax = "proto3";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
 
 package routing_service;
 
@@ -6,38 +8,82 @@ service RoutingService {
   rpc FindReferenceRoad(TaskPoints) returns (RefRoad) {}
 }
 
+//路点的坐标
+message Point {
+  double lon = 1;
+  double lat = 2;
+}
+
 //发送给服务器的任务点序列
 message TaskPoints {
   bool blocked = 1;
-  message TaskPoint {
-    double lon = 1;
-    double lat = 2;
-  }
-  repeated TaskPoint task_point = 2;
-  //指定使用的地图
-  string dbname =3;
+  repeated Point task_point = 2;
+  string map = 3;
 }
 
 //返回的路点信息
 message RefRoadPoint {
-  string id = 1;
-  string lon = 2;
-  string lat = 3;
-  string utmx = 4;
-  string utmy = 5;
-  string heading = 6;
-  string curv = 7;
-  string mode = 8;
-  string speed_mode = 9;
-  string event_mode = 10;
-  string opposite_side_mode = 11;
-  string lane_num = 12;
-  string lane_seq = 13;
-  string lane_width = 14;
+  int32 id = 1;
+  double lon = 2;
+  double lat = 3;
+  double utmx = 4;
+  double utmy = 5;
+  double heading = 6;
+  double curv = 7;
+  int32 mode = 8;
+  int32 speed_mode = 9;
+  int32 event_mode = 10;
+  int32 opposite_side_mode = 11;
+  int32 lane_num = 12;
+  int32 lane_seq = 13;
+  double lane_width = 14;
 }
 
 //打包返回
 message RefRoad {
   int32 time_cost = 1;
   repeated RefRoadPoint point = 2;
+}
+
+service MapService {
+  // 更新车辆信息（同时包括注册）
+  rpc UpdateCarInfo(stream CarInfo) returns (google.protobuf.Empty) {}
+  // 移动端请求最近的空闲车辆
+  rpc GetOneAvailableCar(Point) returns (CarInfo) {}
+  // 移动端以车辆id请求其信息
+  rpc GetCarInfoById(google.protobuf.StringValue) returns (CarInfo) {}
+  // 从移动端获取终点，计算任务点（不能太远），返回规划结果（TODO: 待商榷）
+  rpc SendTaskPoint(TaskRequest) returns (RoadPoints) {}
+  // 车辆等待下一个任务点
+  rpc WaitForTaskPoint(google.protobuf.Empty) returns (TaskPoint) {}
+  // 结束任务
+  rpc FinishTask(google.protobuf.StringValue) returns (google.protobuf.Empty) {}
+}
+
+
+message RoadPoints{
+  repeated Point point = 1;
+}
+
+message CarInfo {
+  string id = 1;
+  string map = 2;
+  Point pos = 3;
+  bool running = 4; // 车辆状态
+}
+
+message TaskRequest {
+  Point point = 1;
+  string id = 2;
+  string map = 3;
+  bool on_or_off = 4;
+}
+
+message TaskPoint {
+  double lon = 1;
+  double lat = 2;
+  double utmx = 3;
+  double utmy = 4 ;
+  double heading = 5;
+  bool on_or_off = 6; // on即上车为false，off即下车为true
 }

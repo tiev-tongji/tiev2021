@@ -14,13 +14,13 @@
 #include <google/protobuf/wire_format.h>
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
+extern PROTOBUF_INTERNAL_EXPORT_routing_5fservice_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_Point_routing_5fservice_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_routing_5fservice_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_RefRoadPoint_routing_5fservice_2eproto;
-extern PROTOBUF_INTERNAL_EXPORT_routing_5fservice_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_TaskPoints_TaskPoint_routing_5fservice_2eproto;
 namespace routing_service {
-class TaskPoints_TaskPointDefaultTypeInternal {
+class PointDefaultTypeInternal {
  public:
-  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<TaskPoints_TaskPoint> _instance;
-} _TaskPoints_TaskPoint_default_instance_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<Point> _instance;
+} _Point_default_instance_;
 class TaskPointsDefaultTypeInternal {
  public:
   ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<TaskPoints> _instance;
@@ -33,7 +33,50 @@ class RefRoadDefaultTypeInternal {
  public:
   ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<RefRoad> _instance;
 } _RefRoad_default_instance_;
+class RoadPointsDefaultTypeInternal {
+ public:
+  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<RoadPoints> _instance;
+} _RoadPoints_default_instance_;
+class CarInfoDefaultTypeInternal {
+ public:
+  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<CarInfo> _instance;
+} _CarInfo_default_instance_;
+class TaskRequestDefaultTypeInternal {
+ public:
+  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<TaskRequest> _instance;
+} _TaskRequest_default_instance_;
+class TaskPointDefaultTypeInternal {
+ public:
+  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<TaskPoint> _instance;
+} _TaskPoint_default_instance_;
 }  // namespace routing_service
+static void InitDefaultsscc_info_CarInfo_routing_5fservice_2eproto() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::routing_service::_CarInfo_default_instance_;
+    new (ptr) ::routing_service::CarInfo();
+    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+  }
+}
+
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_CarInfo_routing_5fservice_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_CarInfo_routing_5fservice_2eproto}, {
+      &scc_info_Point_routing_5fservice_2eproto.base,}};
+
+static void InitDefaultsscc_info_Point_routing_5fservice_2eproto() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::routing_service::_Point_default_instance_;
+    new (ptr) ::routing_service::Point();
+    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+  }
+}
+
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_Point_routing_5fservice_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_Point_routing_5fservice_2eproto}, {}};
+
 static void InitDefaultsscc_info_RefRoad_routing_5fservice_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -61,6 +104,33 @@ static void InitDefaultsscc_info_RefRoadPoint_routing_5fservice_2eproto() {
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_RefRoadPoint_routing_5fservice_2eproto =
     {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_RefRoadPoint_routing_5fservice_2eproto}, {}};
 
+static void InitDefaultsscc_info_RoadPoints_routing_5fservice_2eproto() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::routing_service::_RoadPoints_default_instance_;
+    new (ptr) ::routing_service::RoadPoints();
+    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+  }
+}
+
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_RoadPoints_routing_5fservice_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_RoadPoints_routing_5fservice_2eproto}, {
+      &scc_info_Point_routing_5fservice_2eproto.base,}};
+
+static void InitDefaultsscc_info_TaskPoint_routing_5fservice_2eproto() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::routing_service::_TaskPoint_default_instance_;
+    new (ptr) ::routing_service::TaskPoint();
+    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+  }
+}
+
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_TaskPoint_routing_5fservice_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_TaskPoint_routing_5fservice_2eproto}, {}};
+
 static void InitDefaultsscc_info_TaskPoints_routing_5fservice_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -73,33 +143,34 @@ static void InitDefaultsscc_info_TaskPoints_routing_5fservice_2eproto() {
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_TaskPoints_routing_5fservice_2eproto =
     {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_TaskPoints_routing_5fservice_2eproto}, {
-      &scc_info_TaskPoints_TaskPoint_routing_5fservice_2eproto.base,}};
+      &scc_info_Point_routing_5fservice_2eproto.base,}};
 
-static void InitDefaultsscc_info_TaskPoints_TaskPoint_routing_5fservice_2eproto() {
+static void InitDefaultsscc_info_TaskRequest_routing_5fservice_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::routing_service::_TaskPoints_TaskPoint_default_instance_;
-    new (ptr) ::routing_service::TaskPoints_TaskPoint();
+    void* ptr = &::routing_service::_TaskRequest_default_instance_;
+    new (ptr) ::routing_service::TaskRequest();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
 }
 
-::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_TaskPoints_TaskPoint_routing_5fservice_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_TaskPoints_TaskPoint_routing_5fservice_2eproto}, {}};
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_TaskRequest_routing_5fservice_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_TaskRequest_routing_5fservice_2eproto}, {
+      &scc_info_Point_routing_5fservice_2eproto.base,}};
 
-static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_routing_5fservice_2eproto[4];
+static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_routing_5fservice_2eproto[8];
 static constexpr ::PROTOBUF_NAMESPACE_ID::EnumDescriptor const** file_level_enum_descriptors_routing_5fservice_2eproto = nullptr;
 static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const** file_level_service_descriptors_routing_5fservice_2eproto = nullptr;
 
 const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_routing_5fservice_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::routing_service::TaskPoints_TaskPoint, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::routing_service::Point, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::routing_service::TaskPoints_TaskPoint, lon_),
-  PROTOBUF_FIELD_OFFSET(::routing_service::TaskPoints_TaskPoint, lat_),
+  PROTOBUF_FIELD_OFFSET(::routing_service::Point, lon_),
+  PROTOBUF_FIELD_OFFSET(::routing_service::Point, lat_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::routing_service::TaskPoints, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -107,7 +178,7 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_routing_5fservice_2eproto::off
   ~0u,  // no _weak_field_map_
   PROTOBUF_FIELD_OFFSET(::routing_service::TaskPoints, blocked_),
   PROTOBUF_FIELD_OFFSET(::routing_service::TaskPoints, task_point_),
-  PROTOBUF_FIELD_OFFSET(::routing_service::TaskPoints, dbname_),
+  PROTOBUF_FIELD_OFFSET(::routing_service::TaskPoints, map_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::routing_service::RefRoadPoint, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -134,53 +205,123 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_routing_5fservice_2eproto::off
   ~0u,  // no _weak_field_map_
   PROTOBUF_FIELD_OFFSET(::routing_service::RefRoad, time_cost_),
   PROTOBUF_FIELD_OFFSET(::routing_service::RefRoad, point_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::routing_service::RoadPoints, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  PROTOBUF_FIELD_OFFSET(::routing_service::RoadPoints, point_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::routing_service::CarInfo, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  PROTOBUF_FIELD_OFFSET(::routing_service::CarInfo, id_),
+  PROTOBUF_FIELD_OFFSET(::routing_service::CarInfo, map_),
+  PROTOBUF_FIELD_OFFSET(::routing_service::CarInfo, pos_),
+  PROTOBUF_FIELD_OFFSET(::routing_service::CarInfo, running_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::routing_service::TaskRequest, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  PROTOBUF_FIELD_OFFSET(::routing_service::TaskRequest, point_),
+  PROTOBUF_FIELD_OFFSET(::routing_service::TaskRequest, id_),
+  PROTOBUF_FIELD_OFFSET(::routing_service::TaskRequest, map_),
+  PROTOBUF_FIELD_OFFSET(::routing_service::TaskRequest, on_or_off_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::routing_service::TaskPoint, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  PROTOBUF_FIELD_OFFSET(::routing_service::TaskPoint, lon_),
+  PROTOBUF_FIELD_OFFSET(::routing_service::TaskPoint, lat_),
+  PROTOBUF_FIELD_OFFSET(::routing_service::TaskPoint, utmx_),
+  PROTOBUF_FIELD_OFFSET(::routing_service::TaskPoint, utmy_),
+  PROTOBUF_FIELD_OFFSET(::routing_service::TaskPoint, heading_),
+  PROTOBUF_FIELD_OFFSET(::routing_service::TaskPoint, on_or_off_),
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, -1, sizeof(::routing_service::TaskPoints_TaskPoint)},
+  { 0, -1, sizeof(::routing_service::Point)},
   { 7, -1, sizeof(::routing_service::TaskPoints)},
   { 15, -1, sizeof(::routing_service::RefRoadPoint)},
   { 34, -1, sizeof(::routing_service::RefRoad)},
+  { 41, -1, sizeof(::routing_service::RoadPoints)},
+  { 47, -1, sizeof(::routing_service::CarInfo)},
+  { 56, -1, sizeof(::routing_service::TaskRequest)},
+  { 65, -1, sizeof(::routing_service::TaskPoint)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::routing_service::_TaskPoints_TaskPoint_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::routing_service::_Point_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::routing_service::_TaskPoints_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::routing_service::_RefRoadPoint_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::routing_service::_RefRoad_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::routing_service::_RoadPoints_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::routing_service::_CarInfo_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::routing_service::_TaskRequest_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::routing_service::_TaskPoint_default_instance_),
 };
 
 const char descriptor_table_protodef_routing_5fservice_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\025routing_service.proto\022\017routing_service"
-  "\"\217\001\n\nTaskPoints\022\017\n\007blocked\030\001 \001(\010\0229\n\ntask"
-  "_point\030\002 \003(\0132%.routing_service.TaskPoint"
-  "s.TaskPoint\022\016\n\006dbname\030\003 \001(\t\032%\n\tTaskPoint"
-  "\022\013\n\003lon\030\001 \001(\001\022\013\n\003lat\030\002 \001(\001\"\371\001\n\014RefRoadPo"
-  "int\022\n\n\002id\030\001 \001(\t\022\013\n\003lon\030\002 \001(\t\022\013\n\003lat\030\003 \001("
-  "\t\022\014\n\004utmx\030\004 \001(\t\022\014\n\004utmy\030\005 \001(\t\022\017\n\007heading"
-  "\030\006 \001(\t\022\014\n\004curv\030\007 \001(\t\022\014\n\004mode\030\010 \001(\t\022\022\n\nsp"
-  "eed_mode\030\t \001(\t\022\022\n\nevent_mode\030\n \001(\t\022\032\n\022op"
-  "posite_side_mode\030\013 \001(\t\022\020\n\010lane_num\030\014 \001(\t"
-  "\022\020\n\010lane_seq\030\r \001(\t\022\022\n\nlane_width\030\016 \001(\t\"J"
-  "\n\007RefRoad\022\021\n\ttime_cost\030\001 \001(\005\022,\n\005point\030\002 "
-  "\003(\0132\035.routing_service.RefRoadPoint2^\n\016Ro"
-  "utingService\022L\n\021FindReferenceRoad\022\033.rout"
-  "ing_service.TaskPoints\032\030.routing_service"
-  ".RefRoad\"\000b\006proto3"
+  "\032\033google/protobuf/empty.proto\032\036google/pr"
+  "otobuf/wrappers.proto\"!\n\005Point\022\013\n\003lon\030\001 "
+  "\001(\001\022\013\n\003lat\030\002 \001(\001\"V\n\nTaskPoints\022\017\n\007blocke"
+  "d\030\001 \001(\010\022*\n\ntask_point\030\002 \003(\0132\026.routing_se"
+  "rvice.Point\022\013\n\003map\030\003 \001(\t\"\371\001\n\014RefRoadPoin"
+  "t\022\n\n\002id\030\001 \001(\005\022\013\n\003lon\030\002 \001(\001\022\013\n\003lat\030\003 \001(\001\022"
+  "\014\n\004utmx\030\004 \001(\001\022\014\n\004utmy\030\005 \001(\001\022\017\n\007heading\030\006"
+  " \001(\001\022\014\n\004curv\030\007 \001(\001\022\014\n\004mode\030\010 \001(\005\022\022\n\nspee"
+  "d_mode\030\t \001(\005\022\022\n\nevent_mode\030\n \001(\005\022\032\n\022oppo"
+  "site_side_mode\030\013 \001(\005\022\020\n\010lane_num\030\014 \001(\005\022\020"
+  "\n\010lane_seq\030\r \001(\005\022\022\n\nlane_width\030\016 \001(\001\"J\n\007"
+  "RefRoad\022\021\n\ttime_cost\030\001 \001(\005\022,\n\005point\030\002 \003("
+  "\0132\035.routing_service.RefRoadPoint\"3\n\nRoad"
+  "Points\022%\n\005point\030\001 \003(\0132\026.routing_service."
+  "Point\"X\n\007CarInfo\022\n\n\002id\030\001 \001(\t\022\013\n\003map\030\002 \001("
+  "\t\022#\n\003pos\030\003 \001(\0132\026.routing_service.Point\022\017"
+  "\n\007running\030\004 \001(\010\"`\n\013TaskRequest\022%\n\005point\030"
+  "\001 \001(\0132\026.routing_service.Point\022\n\n\002id\030\002 \001("
+  "\t\022\013\n\003map\030\003 \001(\t\022\021\n\ton_or_off\030\004 \001(\010\"e\n\tTas"
+  "kPoint\022\013\n\003lon\030\001 \001(\001\022\013\n\003lat\030\002 \001(\001\022\014\n\004utmx"
+  "\030\003 \001(\001\022\014\n\004utmy\030\004 \001(\001\022\017\n\007heading\030\005 \001(\001\022\021\n"
+  "\ton_or_off\030\006 \001(\0102^\n\016RoutingService\022L\n\021Fi"
+  "ndReferenceRoad\022\033.routing_service.TaskPo"
+  "ints\032\030.routing_service.RefRoad\"\0002\307\003\n\nMap"
+  "Service\022E\n\rUpdateCarInfo\022\030.routing_servi"
+  "ce.CarInfo\032\026.google.protobuf.Empty\"\000(\001\022H"
+  "\n\022GetOneAvailableCar\022\026.routing_service.P"
+  "oint\032\030.routing_service.CarInfo\"\000\022J\n\016GetC"
+  "arInfoById\022\034.google.protobuf.StringValue"
+  "\032\030.routing_service.CarInfo\"\000\022L\n\rSendTask"
+  "Point\022\034.routing_service.TaskRequest\032\033.ro"
+  "uting_service.RoadPoints\"\000\022H\n\020WaitForTas"
+  "kPoint\022\026.google.protobuf.Empty\032\032.routing"
+  "_service.TaskPoint\"\000\022D\n\nFinishTask\022\034.goo"
+  "gle.protobuf.StringValue\032\026.google.protob"
+  "uf.Empty\"\000b\006proto3"
   ;
-static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_routing_5fservice_2eproto_deps[1] = {
+static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_routing_5fservice_2eproto_deps[2] = {
+  &::descriptor_table_google_2fprotobuf_2fempty_2eproto,
+  &::descriptor_table_google_2fprotobuf_2fwrappers_2eproto,
 };
-static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_routing_5fservice_2eproto_sccs[4] = {
+static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_routing_5fservice_2eproto_sccs[8] = {
+  &scc_info_CarInfo_routing_5fservice_2eproto.base,
+  &scc_info_Point_routing_5fservice_2eproto.base,
   &scc_info_RefRoad_routing_5fservice_2eproto.base,
   &scc_info_RefRoadPoint_routing_5fservice_2eproto.base,
+  &scc_info_RoadPoints_routing_5fservice_2eproto.base,
+  &scc_info_TaskPoint_routing_5fservice_2eproto.base,
   &scc_info_TaskPoints_routing_5fservice_2eproto.base,
-  &scc_info_TaskPoints_TaskPoint_routing_5fservice_2eproto.base,
+  &scc_info_TaskRequest_routing_5fservice_2eproto.base,
 };
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_routing_5fservice_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_routing_5fservice_2eproto = {
-  false, false, descriptor_table_protodef_routing_5fservice_2eproto, "routing_service.proto", 618,
-  &descriptor_table_routing_5fservice_2eproto_once, descriptor_table_routing_5fservice_2eproto_sccs, descriptor_table_routing_5fservice_2eproto_deps, 4, 0,
+  false, false, descriptor_table_protodef_routing_5fservice_2eproto, "routing_service.proto", 1458,
+  &descriptor_table_routing_5fservice_2eproto_once, descriptor_table_routing_5fservice_2eproto_sccs, descriptor_table_routing_5fservice_2eproto_deps, 8, 2,
   schemas, file_default_instances, TableStruct_routing_5fservice_2eproto::offsets,
-  file_level_metadata_routing_5fservice_2eproto, 4, file_level_enum_descriptors_routing_5fservice_2eproto, file_level_service_descriptors_routing_5fservice_2eproto,
+  file_level_metadata_routing_5fservice_2eproto, 8, file_level_enum_descriptors_routing_5fservice_2eproto, file_level_service_descriptors_routing_5fservice_2eproto,
 };
 
 // Force running AddDescriptors() at dynamic initialization time.
@@ -189,59 +330,59 @@ namespace routing_service {
 
 // ===================================================================
 
-class TaskPoints_TaskPoint::_Internal {
+class Point::_Internal {
  public:
 };
 
-TaskPoints_TaskPoint::TaskPoints_TaskPoint(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+Point::Point(::PROTOBUF_NAMESPACE_ID::Arena* arena)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena) {
   SharedCtor();
   RegisterArenaDtor(arena);
-  // @@protoc_insertion_point(arena_constructor:routing_service.TaskPoints.TaskPoint)
+  // @@protoc_insertion_point(arena_constructor:routing_service.Point)
 }
-TaskPoints_TaskPoint::TaskPoints_TaskPoint(const TaskPoints_TaskPoint& from)
+Point::Point(const Point& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   ::memcpy(&lon_, &from.lon_,
     static_cast<size_t>(reinterpret_cast<char*>(&lat_) -
     reinterpret_cast<char*>(&lon_)) + sizeof(lat_));
-  // @@protoc_insertion_point(copy_constructor:routing_service.TaskPoints.TaskPoint)
+  // @@protoc_insertion_point(copy_constructor:routing_service.Point)
 }
 
-void TaskPoints_TaskPoint::SharedCtor() {
+void Point::SharedCtor() {
   ::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
       reinterpret_cast<char*>(&lon_) - reinterpret_cast<char*>(this)),
       0, static_cast<size_t>(reinterpret_cast<char*>(&lat_) -
       reinterpret_cast<char*>(&lon_)) + sizeof(lat_));
 }
 
-TaskPoints_TaskPoint::~TaskPoints_TaskPoint() {
-  // @@protoc_insertion_point(destructor:routing_service.TaskPoints.TaskPoint)
+Point::~Point() {
+  // @@protoc_insertion_point(destructor:routing_service.Point)
   SharedDtor();
   _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-void TaskPoints_TaskPoint::SharedDtor() {
+void Point::SharedDtor() {
   GOOGLE_DCHECK(GetArena() == nullptr);
 }
 
-void TaskPoints_TaskPoint::ArenaDtor(void* object) {
-  TaskPoints_TaskPoint* _this = reinterpret_cast< TaskPoints_TaskPoint* >(object);
+void Point::ArenaDtor(void* object) {
+  Point* _this = reinterpret_cast< Point* >(object);
   (void)_this;
 }
-void TaskPoints_TaskPoint::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
+void Point::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
 }
-void TaskPoints_TaskPoint::SetCachedSize(int size) const {
+void Point::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
-const TaskPoints_TaskPoint& TaskPoints_TaskPoint::default_instance() {
-  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_TaskPoints_TaskPoint_routing_5fservice_2eproto.base);
+const Point& Point::default_instance() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_Point_routing_5fservice_2eproto.base);
   return *internal_default_instance();
 }
 
 
-void TaskPoints_TaskPoint::Clear() {
-// @@protoc_insertion_point(message_clear_start:routing_service.TaskPoints.TaskPoint)
+void Point::Clear() {
+// @@protoc_insertion_point(message_clear_start:routing_service.Point)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -252,7 +393,7 @@ void TaskPoints_TaskPoint::Clear() {
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-const char* TaskPoints_TaskPoint::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+const char* Point::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
@@ -295,9 +436,9 @@ failure:
 #undef CHK_
 }
 
-::PROTOBUF_NAMESPACE_ID::uint8* TaskPoints_TaskPoint::_InternalSerialize(
+::PROTOBUF_NAMESPACE_ID::uint8* Point::_InternalSerialize(
     ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:routing_service.TaskPoints.TaskPoint)
+  // @@protoc_insertion_point(serialize_to_array_start:routing_service.Point)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -317,12 +458,12 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:routing_service.TaskPoints.TaskPoint)
+  // @@protoc_insertion_point(serialize_to_array_end:routing_service.Point)
   return target;
 }
 
-size_t TaskPoints_TaskPoint::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:routing_service.TaskPoints.TaskPoint)
+size_t Point::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:routing_service.Point)
   size_t total_size = 0;
 
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -348,23 +489,23 @@ size_t TaskPoints_TaskPoint::ByteSizeLong() const {
   return total_size;
 }
 
-void TaskPoints_TaskPoint::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:routing_service.TaskPoints.TaskPoint)
+void Point::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:routing_service.Point)
   GOOGLE_DCHECK_NE(&from, this);
-  const TaskPoints_TaskPoint* source =
-      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<TaskPoints_TaskPoint>(
+  const Point* source =
+      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<Point>(
           &from);
   if (source == nullptr) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:routing_service.TaskPoints.TaskPoint)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:routing_service.Point)
     ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:routing_service.TaskPoints.TaskPoint)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:routing_service.Point)
     MergeFrom(*source);
   }
 }
 
-void TaskPoints_TaskPoint::MergeFrom(const TaskPoints_TaskPoint& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:routing_service.TaskPoints.TaskPoint)
+void Point::MergeFrom(const Point& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:routing_service.Point)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -378,36 +519,36 @@ void TaskPoints_TaskPoint::MergeFrom(const TaskPoints_TaskPoint& from) {
   }
 }
 
-void TaskPoints_TaskPoint::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:routing_service.TaskPoints.TaskPoint)
+void Point::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:routing_service.Point)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-void TaskPoints_TaskPoint::CopyFrom(const TaskPoints_TaskPoint& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:routing_service.TaskPoints.TaskPoint)
+void Point::CopyFrom(const Point& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:routing_service.Point)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool TaskPoints_TaskPoint::IsInitialized() const {
+bool Point::IsInitialized() const {
   return true;
 }
 
-void TaskPoints_TaskPoint::InternalSwap(TaskPoints_TaskPoint* other) {
+void Point::InternalSwap(Point* other) {
   using std::swap;
   _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(TaskPoints_TaskPoint, lat_)
-      + sizeof(TaskPoints_TaskPoint::lat_)
-      - PROTOBUF_FIELD_OFFSET(TaskPoints_TaskPoint, lon_)>(
+      PROTOBUF_FIELD_OFFSET(Point, lat_)
+      + sizeof(Point::lat_)
+      - PROTOBUF_FIELD_OFFSET(Point, lon_)>(
           reinterpret_cast<char*>(&lon_),
           reinterpret_cast<char*>(&other->lon_));
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata TaskPoints_TaskPoint::GetMetadata() const {
+::PROTOBUF_NAMESPACE_ID::Metadata Point::GetMetadata() const {
   return GetMetadataStatic();
 }
 
@@ -429,9 +570,9 @@ TaskPoints::TaskPoints(const TaskPoints& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       task_point_(from.task_point_) {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  dbname_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_dbname().empty()) {
-    dbname_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_dbname(), 
+  map_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  if (!from._internal_map().empty()) {
+    map_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_map(), 
       GetArena());
   }
   blocked_ = from.blocked_;
@@ -440,7 +581,7 @@ TaskPoints::TaskPoints(const TaskPoints& from)
 
 void TaskPoints::SharedCtor() {
   ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_TaskPoints_routing_5fservice_2eproto.base);
-  dbname_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  map_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   blocked_ = false;
 }
 
@@ -452,7 +593,7 @@ TaskPoints::~TaskPoints() {
 
 void TaskPoints::SharedDtor() {
   GOOGLE_DCHECK(GetArena() == nullptr);
-  dbname_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  map_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 
 void TaskPoints::ArenaDtor(void* object) {
@@ -477,7 +618,7 @@ void TaskPoints::Clear() {
   (void) cached_has_bits;
 
   task_point_.Clear();
-  dbname_.ClearToEmpty();
+  map_.ClearToEmpty();
   blocked_ = false;
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
@@ -496,7 +637,7 @@ const char* TaskPoints::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID:
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // repeated .routing_service.TaskPoints.TaskPoint task_point = 2;
+      // repeated .routing_service.Point task_point = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 18)) {
           ptr -= 1;
@@ -508,12 +649,12 @@ const char* TaskPoints::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID:
           } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<18>(ptr));
         } else goto handle_unusual;
         continue;
-      // string dbname = 3;
+      // string map = 3;
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
-          auto str = _internal_mutable_dbname();
+          auto str = _internal_mutable_map();
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.TaskPoints.dbname"));
+          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.TaskPoints.map"));
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
@@ -551,7 +692,7 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteBoolToArray(1, this->_internal_blocked(), target);
   }
 
-  // repeated .routing_service.TaskPoints.TaskPoint task_point = 2;
+  // repeated .routing_service.Point task_point = 2;
   for (unsigned int i = 0,
       n = static_cast<unsigned int>(this->_internal_task_point_size()); i < n; i++) {
     target = stream->EnsureSpace(target);
@@ -559,14 +700,14 @@ failure:
       InternalWriteMessage(2, this->_internal_task_point(i), target, stream);
   }
 
-  // string dbname = 3;
-  if (this->dbname().size() > 0) {
+  // string map = 3;
+  if (this->map().size() > 0) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_dbname().data(), static_cast<int>(this->_internal_dbname().length()),
+      this->_internal_map().data(), static_cast<int>(this->_internal_map().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "routing_service.TaskPoints.dbname");
+      "routing_service.TaskPoints.map");
     target = stream->WriteStringMaybeAliased(
-        3, this->_internal_dbname(), target);
+        3, this->_internal_map(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -585,18 +726,18 @@ size_t TaskPoints::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated .routing_service.TaskPoints.TaskPoint task_point = 2;
+  // repeated .routing_service.Point task_point = 2;
   total_size += 1UL * this->_internal_task_point_size();
   for (const auto& msg : this->task_point_) {
     total_size +=
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
   }
 
-  // string dbname = 3;
-  if (this->dbname().size() > 0) {
+  // string map = 3;
+  if (this->map().size() > 0) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_dbname());
+        this->_internal_map());
   }
 
   // bool blocked = 1;
@@ -636,8 +777,8 @@ void TaskPoints::MergeFrom(const TaskPoints& from) {
   (void) cached_has_bits;
 
   task_point_.MergeFrom(from.task_point_);
-  if (from.dbname().size() > 0) {
-    _internal_set_dbname(from._internal_dbname());
+  if (from.map().size() > 0) {
+    _internal_set_map(from._internal_map());
   }
   if (from.blocked() != 0) {
     _internal_set_blocked(from._internal_blocked());
@@ -666,7 +807,7 @@ void TaskPoints::InternalSwap(TaskPoints* other) {
   using std::swap;
   _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
   task_point_.InternalSwap(&other->task_point_);
-  dbname_.Swap(&other->dbname_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+  map_.Swap(&other->map_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
   swap(blocked_, other->blocked_);
 }
 
@@ -690,95 +831,17 @@ RefRoadPoint::RefRoadPoint(::PROTOBUF_NAMESPACE_ID::Arena* arena)
 RefRoadPoint::RefRoadPoint(const RefRoadPoint& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  id_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_id().empty()) {
-    id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_id(), 
-      GetArena());
-  }
-  lon_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_lon().empty()) {
-    lon_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_lon(), 
-      GetArena());
-  }
-  lat_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_lat().empty()) {
-    lat_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_lat(), 
-      GetArena());
-  }
-  utmx_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_utmx().empty()) {
-    utmx_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_utmx(), 
-      GetArena());
-  }
-  utmy_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_utmy().empty()) {
-    utmy_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_utmy(), 
-      GetArena());
-  }
-  heading_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_heading().empty()) {
-    heading_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_heading(), 
-      GetArena());
-  }
-  curv_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_curv().empty()) {
-    curv_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_curv(), 
-      GetArena());
-  }
-  mode_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_mode().empty()) {
-    mode_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_mode(), 
-      GetArena());
-  }
-  speed_mode_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_speed_mode().empty()) {
-    speed_mode_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_speed_mode(), 
-      GetArena());
-  }
-  event_mode_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_event_mode().empty()) {
-    event_mode_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_event_mode(), 
-      GetArena());
-  }
-  opposite_side_mode_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_opposite_side_mode().empty()) {
-    opposite_side_mode_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_opposite_side_mode(), 
-      GetArena());
-  }
-  lane_num_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_lane_num().empty()) {
-    lane_num_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_lane_num(), 
-      GetArena());
-  }
-  lane_seq_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_lane_seq().empty()) {
-    lane_seq_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_lane_seq(), 
-      GetArena());
-  }
-  lane_width_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_lane_width().empty()) {
-    lane_width_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_lane_width(), 
-      GetArena());
-  }
+  ::memcpy(&lon_, &from.lon_,
+    static_cast<size_t>(reinterpret_cast<char*>(&lane_seq_) -
+    reinterpret_cast<char*>(&lon_)) + sizeof(lane_seq_));
   // @@protoc_insertion_point(copy_constructor:routing_service.RefRoadPoint)
 }
 
 void RefRoadPoint::SharedCtor() {
-  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_RefRoadPoint_routing_5fservice_2eproto.base);
-  id_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  lon_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  lat_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  utmx_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  utmy_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  heading_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  curv_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  mode_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  speed_mode_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  event_mode_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  opposite_side_mode_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  lane_num_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  lane_seq_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  lane_width_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  ::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
+      reinterpret_cast<char*>(&lon_) - reinterpret_cast<char*>(this)),
+      0, static_cast<size_t>(reinterpret_cast<char*>(&lane_seq_) -
+      reinterpret_cast<char*>(&lon_)) + sizeof(lane_seq_));
 }
 
 RefRoadPoint::~RefRoadPoint() {
@@ -789,20 +852,6 @@ RefRoadPoint::~RefRoadPoint() {
 
 void RefRoadPoint::SharedDtor() {
   GOOGLE_DCHECK(GetArena() == nullptr);
-  id_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  lon_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  lat_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  utmx_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  utmy_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  heading_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  curv_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  mode_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  speed_mode_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  event_mode_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  opposite_side_mode_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  lane_num_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  lane_seq_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  lane_width_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 
 void RefRoadPoint::ArenaDtor(void* object) {
@@ -826,20 +875,9 @@ void RefRoadPoint::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  id_.ClearToEmpty();
-  lon_.ClearToEmpty();
-  lat_.ClearToEmpty();
-  utmx_.ClearToEmpty();
-  utmy_.ClearToEmpty();
-  heading_.ClearToEmpty();
-  curv_.ClearToEmpty();
-  mode_.ClearToEmpty();
-  speed_mode_.ClearToEmpty();
-  event_mode_.ClearToEmpty();
-  opposite_side_mode_.ClearToEmpty();
-  lane_num_.ClearToEmpty();
-  lane_seq_.ClearToEmpty();
-  lane_width_.ClearToEmpty();
+  ::memset(&lon_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&lane_seq_) -
+      reinterpret_cast<char*>(&lon_)) + sizeof(lane_seq_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -850,130 +888,102 @@ const char* RefRoadPoint::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_I
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     CHK_(ptr);
     switch (tag >> 3) {
-      // string id = 1;
+      // int32 id = 1;
       case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
-          auto str = _internal_mutable_id();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.RefRoadPoint.id"));
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 8)) {
+          id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // string lon = 2;
+      // double lon = 2;
       case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 18)) {
-          auto str = _internal_mutable_lon();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.RefRoadPoint.lon"));
-          CHK_(ptr);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 17)) {
+          lon_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
         } else goto handle_unusual;
         continue;
-      // string lat = 3;
+      // double lat = 3;
       case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
-          auto str = _internal_mutable_lat();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.RefRoadPoint.lat"));
-          CHK_(ptr);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 25)) {
+          lat_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
         } else goto handle_unusual;
         continue;
-      // string utmx = 4;
+      // double utmx = 4;
       case 4:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 34)) {
-          auto str = _internal_mutable_utmx();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.RefRoadPoint.utmx"));
-          CHK_(ptr);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 33)) {
+          utmx_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
         } else goto handle_unusual;
         continue;
-      // string utmy = 5;
+      // double utmy = 5;
       case 5:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 42)) {
-          auto str = _internal_mutable_utmy();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.RefRoadPoint.utmy"));
-          CHK_(ptr);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 41)) {
+          utmy_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
         } else goto handle_unusual;
         continue;
-      // string heading = 6;
+      // double heading = 6;
       case 6:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 50)) {
-          auto str = _internal_mutable_heading();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.RefRoadPoint.heading"));
-          CHK_(ptr);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 49)) {
+          heading_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
         } else goto handle_unusual;
         continue;
-      // string curv = 7;
+      // double curv = 7;
       case 7:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 58)) {
-          auto str = _internal_mutable_curv();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.RefRoadPoint.curv"));
-          CHK_(ptr);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 57)) {
+          curv_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
         } else goto handle_unusual;
         continue;
-      // string mode = 8;
+      // int32 mode = 8;
       case 8:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 66)) {
-          auto str = _internal_mutable_mode();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.RefRoadPoint.mode"));
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 64)) {
+          mode_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // string speed_mode = 9;
+      // int32 speed_mode = 9;
       case 9:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 74)) {
-          auto str = _internal_mutable_speed_mode();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.RefRoadPoint.speed_mode"));
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 72)) {
+          speed_mode_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // string event_mode = 10;
+      // int32 event_mode = 10;
       case 10:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 82)) {
-          auto str = _internal_mutable_event_mode();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.RefRoadPoint.event_mode"));
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 80)) {
+          event_mode_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // string opposite_side_mode = 11;
+      // int32 opposite_side_mode = 11;
       case 11:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 90)) {
-          auto str = _internal_mutable_opposite_side_mode();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.RefRoadPoint.opposite_side_mode"));
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 88)) {
+          opposite_side_mode_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // string lane_num = 12;
+      // int32 lane_num = 12;
       case 12:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 98)) {
-          auto str = _internal_mutable_lane_num();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.RefRoadPoint.lane_num"));
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 96)) {
+          lane_num_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // string lane_seq = 13;
+      // int32 lane_seq = 13;
       case 13:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 106)) {
-          auto str = _internal_mutable_lane_seq();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.RefRoadPoint.lane_seq"));
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 104)) {
+          lane_seq_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // string lane_width = 14;
+      // double lane_width = 14;
       case 14:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 114)) {
-          auto str = _internal_mutable_lane_width();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.RefRoadPoint.lane_width"));
-          CHK_(ptr);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 113)) {
+          lane_width_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
         } else goto handle_unusual;
         continue;
       default: {
@@ -1004,144 +1014,88 @@ failure:
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // string id = 1;
-  if (this->id().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_id().data(), static_cast<int>(this->_internal_id().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "routing_service.RefRoadPoint.id");
-    target = stream->WriteStringMaybeAliased(
-        1, this->_internal_id(), target);
+  // int32 id = 1;
+  if (this->id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(1, this->_internal_id(), target);
   }
 
-  // string lon = 2;
-  if (this->lon().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_lon().data(), static_cast<int>(this->_internal_lon().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "routing_service.RefRoadPoint.lon");
-    target = stream->WriteStringMaybeAliased(
-        2, this->_internal_lon(), target);
+  // double lon = 2;
+  if (!(this->lon() <= 0 && this->lon() >= 0)) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(2, this->_internal_lon(), target);
   }
 
-  // string lat = 3;
-  if (this->lat().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_lat().data(), static_cast<int>(this->_internal_lat().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "routing_service.RefRoadPoint.lat");
-    target = stream->WriteStringMaybeAliased(
-        3, this->_internal_lat(), target);
+  // double lat = 3;
+  if (!(this->lat() <= 0 && this->lat() >= 0)) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(3, this->_internal_lat(), target);
   }
 
-  // string utmx = 4;
-  if (this->utmx().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_utmx().data(), static_cast<int>(this->_internal_utmx().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "routing_service.RefRoadPoint.utmx");
-    target = stream->WriteStringMaybeAliased(
-        4, this->_internal_utmx(), target);
+  // double utmx = 4;
+  if (!(this->utmx() <= 0 && this->utmx() >= 0)) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(4, this->_internal_utmx(), target);
   }
 
-  // string utmy = 5;
-  if (this->utmy().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_utmy().data(), static_cast<int>(this->_internal_utmy().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "routing_service.RefRoadPoint.utmy");
-    target = stream->WriteStringMaybeAliased(
-        5, this->_internal_utmy(), target);
+  // double utmy = 5;
+  if (!(this->utmy() <= 0 && this->utmy() >= 0)) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(5, this->_internal_utmy(), target);
   }
 
-  // string heading = 6;
-  if (this->heading().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_heading().data(), static_cast<int>(this->_internal_heading().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "routing_service.RefRoadPoint.heading");
-    target = stream->WriteStringMaybeAliased(
-        6, this->_internal_heading(), target);
+  // double heading = 6;
+  if (!(this->heading() <= 0 && this->heading() >= 0)) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(6, this->_internal_heading(), target);
   }
 
-  // string curv = 7;
-  if (this->curv().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_curv().data(), static_cast<int>(this->_internal_curv().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "routing_service.RefRoadPoint.curv");
-    target = stream->WriteStringMaybeAliased(
-        7, this->_internal_curv(), target);
+  // double curv = 7;
+  if (!(this->curv() <= 0 && this->curv() >= 0)) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(7, this->_internal_curv(), target);
   }
 
-  // string mode = 8;
-  if (this->mode().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_mode().data(), static_cast<int>(this->_internal_mode().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "routing_service.RefRoadPoint.mode");
-    target = stream->WriteStringMaybeAliased(
-        8, this->_internal_mode(), target);
+  // int32 mode = 8;
+  if (this->mode() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(8, this->_internal_mode(), target);
   }
 
-  // string speed_mode = 9;
-  if (this->speed_mode().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_speed_mode().data(), static_cast<int>(this->_internal_speed_mode().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "routing_service.RefRoadPoint.speed_mode");
-    target = stream->WriteStringMaybeAliased(
-        9, this->_internal_speed_mode(), target);
+  // int32 speed_mode = 9;
+  if (this->speed_mode() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(9, this->_internal_speed_mode(), target);
   }
 
-  // string event_mode = 10;
-  if (this->event_mode().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_event_mode().data(), static_cast<int>(this->_internal_event_mode().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "routing_service.RefRoadPoint.event_mode");
-    target = stream->WriteStringMaybeAliased(
-        10, this->_internal_event_mode(), target);
+  // int32 event_mode = 10;
+  if (this->event_mode() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(10, this->_internal_event_mode(), target);
   }
 
-  // string opposite_side_mode = 11;
-  if (this->opposite_side_mode().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_opposite_side_mode().data(), static_cast<int>(this->_internal_opposite_side_mode().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "routing_service.RefRoadPoint.opposite_side_mode");
-    target = stream->WriteStringMaybeAliased(
-        11, this->_internal_opposite_side_mode(), target);
+  // int32 opposite_side_mode = 11;
+  if (this->opposite_side_mode() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(11, this->_internal_opposite_side_mode(), target);
   }
 
-  // string lane_num = 12;
-  if (this->lane_num().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_lane_num().data(), static_cast<int>(this->_internal_lane_num().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "routing_service.RefRoadPoint.lane_num");
-    target = stream->WriteStringMaybeAliased(
-        12, this->_internal_lane_num(), target);
+  // int32 lane_num = 12;
+  if (this->lane_num() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(12, this->_internal_lane_num(), target);
   }
 
-  // string lane_seq = 13;
-  if (this->lane_seq().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_lane_seq().data(), static_cast<int>(this->_internal_lane_seq().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "routing_service.RefRoadPoint.lane_seq");
-    target = stream->WriteStringMaybeAliased(
-        13, this->_internal_lane_seq(), target);
+  // int32 lane_seq = 13;
+  if (this->lane_seq() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(13, this->_internal_lane_seq(), target);
   }
 
-  // string lane_width = 14;
-  if (this->lane_width().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_lane_width().data(), static_cast<int>(this->_internal_lane_width().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "routing_service.RefRoadPoint.lane_width");
-    target = stream->WriteStringMaybeAliased(
-        14, this->_internal_lane_width(), target);
+  // double lane_width = 14;
+  if (!(this->lane_width() <= 0 && this->lane_width() >= 0)) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(14, this->_internal_lane_width(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -1160,102 +1114,88 @@ size_t RefRoadPoint::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // string id = 1;
-  if (this->id().size() > 0) {
+  // double lon = 2;
+  if (!(this->lon() <= 0 && this->lon() >= 0)) {
+    total_size += 1 + 8;
+  }
+
+  // double lat = 3;
+  if (!(this->lat() <= 0 && this->lat() >= 0)) {
+    total_size += 1 + 8;
+  }
+
+  // double utmx = 4;
+  if (!(this->utmx() <= 0 && this->utmx() >= 0)) {
+    total_size += 1 + 8;
+  }
+
+  // int32 id = 1;
+  if (this->id() != 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
         this->_internal_id());
   }
 
-  // string lon = 2;
-  if (this->lon().size() > 0) {
+  // int32 mode = 8;
+  if (this->mode() != 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_lon());
-  }
-
-  // string lat = 3;
-  if (this->lat().size() > 0) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_lat());
-  }
-
-  // string utmx = 4;
-  if (this->utmx().size() > 0) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_utmx());
-  }
-
-  // string utmy = 5;
-  if (this->utmy().size() > 0) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_utmy());
-  }
-
-  // string heading = 6;
-  if (this->heading().size() > 0) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_heading());
-  }
-
-  // string curv = 7;
-  if (this->curv().size() > 0) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_curv());
-  }
-
-  // string mode = 8;
-  if (this->mode().size() > 0) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
         this->_internal_mode());
   }
 
-  // string speed_mode = 9;
-  if (this->speed_mode().size() > 0) {
+  // double utmy = 5;
+  if (!(this->utmy() <= 0 && this->utmy() >= 0)) {
+    total_size += 1 + 8;
+  }
+
+  // double heading = 6;
+  if (!(this->heading() <= 0 && this->heading() >= 0)) {
+    total_size += 1 + 8;
+  }
+
+  // double curv = 7;
+  if (!(this->curv() <= 0 && this->curv() >= 0)) {
+    total_size += 1 + 8;
+  }
+
+  // int32 speed_mode = 9;
+  if (this->speed_mode() != 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
         this->_internal_speed_mode());
   }
 
-  // string event_mode = 10;
-  if (this->event_mode().size() > 0) {
+  // int32 event_mode = 10;
+  if (this->event_mode() != 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
         this->_internal_event_mode());
   }
 
-  // string opposite_side_mode = 11;
-  if (this->opposite_side_mode().size() > 0) {
+  // int32 opposite_side_mode = 11;
+  if (this->opposite_side_mode() != 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
         this->_internal_opposite_side_mode());
   }
 
-  // string lane_num = 12;
-  if (this->lane_num().size() > 0) {
+  // int32 lane_num = 12;
+  if (this->lane_num() != 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
         this->_internal_lane_num());
   }
 
-  // string lane_seq = 13;
-  if (this->lane_seq().size() > 0) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_lane_seq());
+  // double lane_width = 14;
+  if (!(this->lane_width() <= 0 && this->lane_width() >= 0)) {
+    total_size += 1 + 8;
   }
 
-  // string lane_width = 14;
-  if (this->lane_width().size() > 0) {
+  // int32 lane_seq = 13;
+  if (this->lane_seq() != 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_lane_width());
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
+        this->_internal_lane_seq());
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -1289,47 +1229,47 @@ void RefRoadPoint::MergeFrom(const RefRoadPoint& from) {
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  if (from.id().size() > 0) {
-    _internal_set_id(from._internal_id());
-  }
-  if (from.lon().size() > 0) {
+  if (!(from.lon() <= 0 && from.lon() >= 0)) {
     _internal_set_lon(from._internal_lon());
   }
-  if (from.lat().size() > 0) {
+  if (!(from.lat() <= 0 && from.lat() >= 0)) {
     _internal_set_lat(from._internal_lat());
   }
-  if (from.utmx().size() > 0) {
+  if (!(from.utmx() <= 0 && from.utmx() >= 0)) {
     _internal_set_utmx(from._internal_utmx());
   }
-  if (from.utmy().size() > 0) {
-    _internal_set_utmy(from._internal_utmy());
+  if (from.id() != 0) {
+    _internal_set_id(from._internal_id());
   }
-  if (from.heading().size() > 0) {
-    _internal_set_heading(from._internal_heading());
-  }
-  if (from.curv().size() > 0) {
-    _internal_set_curv(from._internal_curv());
-  }
-  if (from.mode().size() > 0) {
+  if (from.mode() != 0) {
     _internal_set_mode(from._internal_mode());
   }
-  if (from.speed_mode().size() > 0) {
+  if (!(from.utmy() <= 0 && from.utmy() >= 0)) {
+    _internal_set_utmy(from._internal_utmy());
+  }
+  if (!(from.heading() <= 0 && from.heading() >= 0)) {
+    _internal_set_heading(from._internal_heading());
+  }
+  if (!(from.curv() <= 0 && from.curv() >= 0)) {
+    _internal_set_curv(from._internal_curv());
+  }
+  if (from.speed_mode() != 0) {
     _internal_set_speed_mode(from._internal_speed_mode());
   }
-  if (from.event_mode().size() > 0) {
+  if (from.event_mode() != 0) {
     _internal_set_event_mode(from._internal_event_mode());
   }
-  if (from.opposite_side_mode().size() > 0) {
+  if (from.opposite_side_mode() != 0) {
     _internal_set_opposite_side_mode(from._internal_opposite_side_mode());
   }
-  if (from.lane_num().size() > 0) {
+  if (from.lane_num() != 0) {
     _internal_set_lane_num(from._internal_lane_num());
   }
-  if (from.lane_seq().size() > 0) {
-    _internal_set_lane_seq(from._internal_lane_seq());
-  }
-  if (from.lane_width().size() > 0) {
+  if (!(from.lane_width() <= 0 && from.lane_width() >= 0)) {
     _internal_set_lane_width(from._internal_lane_width());
+  }
+  if (from.lane_seq() != 0) {
+    _internal_set_lane_seq(from._internal_lane_seq());
   }
 }
 
@@ -1354,20 +1294,12 @@ bool RefRoadPoint::IsInitialized() const {
 void RefRoadPoint::InternalSwap(RefRoadPoint* other) {
   using std::swap;
   _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
-  id_.Swap(&other->id_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-  lon_.Swap(&other->lon_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-  lat_.Swap(&other->lat_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-  utmx_.Swap(&other->utmx_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-  utmy_.Swap(&other->utmy_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-  heading_.Swap(&other->heading_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-  curv_.Swap(&other->curv_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-  mode_.Swap(&other->mode_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-  speed_mode_.Swap(&other->speed_mode_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-  event_mode_.Swap(&other->event_mode_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-  opposite_side_mode_.Swap(&other->opposite_side_mode_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-  lane_num_.Swap(&other->lane_num_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-  lane_seq_.Swap(&other->lane_seq_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-  lane_width_.Swap(&other->lane_width_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(RefRoadPoint, lane_seq_)
+      + sizeof(RefRoadPoint::lane_seq_)
+      - PROTOBUF_FIELD_OFFSET(RefRoadPoint, lon_)>(
+          reinterpret_cast<char*>(&lon_),
+          reinterpret_cast<char*>(&other->lon_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata RefRoadPoint::GetMetadata() const {
@@ -1602,11 +1534,1154 @@ void RefRoad::InternalSwap(RefRoad* other) {
 }
 
 
+// ===================================================================
+
+class RoadPoints::_Internal {
+ public:
+};
+
+RoadPoints::RoadPoints(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena),
+  point_(arena) {
+  SharedCtor();
+  RegisterArenaDtor(arena);
+  // @@protoc_insertion_point(arena_constructor:routing_service.RoadPoints)
+}
+RoadPoints::RoadPoints(const RoadPoints& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message(),
+      point_(from.point_) {
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  // @@protoc_insertion_point(copy_constructor:routing_service.RoadPoints)
+}
+
+void RoadPoints::SharedCtor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_RoadPoints_routing_5fservice_2eproto.base);
+}
+
+RoadPoints::~RoadPoints() {
+  // @@protoc_insertion_point(destructor:routing_service.RoadPoints)
+  SharedDtor();
+  _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+void RoadPoints::SharedDtor() {
+  GOOGLE_DCHECK(GetArena() == nullptr);
+}
+
+void RoadPoints::ArenaDtor(void* object) {
+  RoadPoints* _this = reinterpret_cast< RoadPoints* >(object);
+  (void)_this;
+}
+void RoadPoints::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
+}
+void RoadPoints::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+}
+const RoadPoints& RoadPoints::default_instance() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_RoadPoints_routing_5fservice_2eproto.base);
+  return *internal_default_instance();
+}
+
+
+void RoadPoints::Clear() {
+// @@protoc_insertion_point(message_clear_start:routing_service.RoadPoints)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  point_.Clear();
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* RoadPoints::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
+    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    CHK_(ptr);
+    switch (tag >> 3) {
+      // repeated .routing_service.Point point = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_point(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<10>(ptr));
+        } else goto handle_unusual;
+        continue;
+      default: {
+      handle_unusual:
+        if ((tag & 7) == 4 || tag == 0) {
+          ctx->SetLastTag(tag);
+          goto success;
+        }
+        ptr = UnknownFieldParse(tag,
+            _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+            ptr, ctx);
+        CHK_(ptr != nullptr);
+        continue;
+      }
+    }  // switch
+  }  // while
+success:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto success;
+#undef CHK_
+}
+
+::PROTOBUF_NAMESPACE_ID::uint8* RoadPoints::_InternalSerialize(
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:routing_service.RoadPoints)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // repeated .routing_service.Point point = 1;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->_internal_point_size()); i < n; i++) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(1, this->_internal_point(i), target, stream);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:routing_service.RoadPoints)
+  return target;
+}
+
+size_t RoadPoints::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:routing_service.RoadPoints)
+  size_t total_size = 0;
+
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated .routing_service.Point point = 1;
+  total_size += 1UL * this->_internal_point_size();
+  for (const auto& msg : this->point_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
+  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  SetCachedSize(cached_size);
+  return total_size;
+}
+
+void RoadPoints::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:routing_service.RoadPoints)
+  GOOGLE_DCHECK_NE(&from, this);
+  const RoadPoints* source =
+      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<RoadPoints>(
+          &from);
+  if (source == nullptr) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:routing_service.RoadPoints)
+    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:routing_service.RoadPoints)
+    MergeFrom(*source);
+  }
+}
+
+void RoadPoints::MergeFrom(const RoadPoints& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:routing_service.RoadPoints)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  point_.MergeFrom(from.point_);
+}
+
+void RoadPoints::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:routing_service.RoadPoints)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void RoadPoints::CopyFrom(const RoadPoints& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:routing_service.RoadPoints)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool RoadPoints::IsInitialized() const {
+  return true;
+}
+
+void RoadPoints::InternalSwap(RoadPoints* other) {
+  using std::swap;
+  _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
+  point_.InternalSwap(&other->point_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata RoadPoints::GetMetadata() const {
+  return GetMetadataStatic();
+}
+
+
+// ===================================================================
+
+class CarInfo::_Internal {
+ public:
+  static const ::routing_service::Point& pos(const CarInfo* msg);
+};
+
+const ::routing_service::Point&
+CarInfo::_Internal::pos(const CarInfo* msg) {
+  return *msg->pos_;
+}
+CarInfo::CarInfo(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena) {
+  SharedCtor();
+  RegisterArenaDtor(arena);
+  // @@protoc_insertion_point(arena_constructor:routing_service.CarInfo)
+}
+CarInfo::CarInfo(const CarInfo& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  id_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  if (!from._internal_id().empty()) {
+    id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_id(), 
+      GetArena());
+  }
+  map_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  if (!from._internal_map().empty()) {
+    map_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_map(), 
+      GetArena());
+  }
+  if (from._internal_has_pos()) {
+    pos_ = new ::routing_service::Point(*from.pos_);
+  } else {
+    pos_ = nullptr;
+  }
+  running_ = from.running_;
+  // @@protoc_insertion_point(copy_constructor:routing_service.CarInfo)
+}
+
+void CarInfo::SharedCtor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_CarInfo_routing_5fservice_2eproto.base);
+  id_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  map_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  ::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
+      reinterpret_cast<char*>(&pos_) - reinterpret_cast<char*>(this)),
+      0, static_cast<size_t>(reinterpret_cast<char*>(&running_) -
+      reinterpret_cast<char*>(&pos_)) + sizeof(running_));
+}
+
+CarInfo::~CarInfo() {
+  // @@protoc_insertion_point(destructor:routing_service.CarInfo)
+  SharedDtor();
+  _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+void CarInfo::SharedDtor() {
+  GOOGLE_DCHECK(GetArena() == nullptr);
+  id_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  map_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  if (this != internal_default_instance()) delete pos_;
+}
+
+void CarInfo::ArenaDtor(void* object) {
+  CarInfo* _this = reinterpret_cast< CarInfo* >(object);
+  (void)_this;
+}
+void CarInfo::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
+}
+void CarInfo::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+}
+const CarInfo& CarInfo::default_instance() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_CarInfo_routing_5fservice_2eproto.base);
+  return *internal_default_instance();
+}
+
+
+void CarInfo::Clear() {
+// @@protoc_insertion_point(message_clear_start:routing_service.CarInfo)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  id_.ClearToEmpty();
+  map_.ClearToEmpty();
+  if (GetArena() == nullptr && pos_ != nullptr) {
+    delete pos_;
+  }
+  pos_ = nullptr;
+  running_ = false;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* CarInfo::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
+    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    CHK_(ptr);
+    switch (tag >> 3) {
+      // string id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
+          auto str = _internal_mutable_id();
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.CarInfo.id"));
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // string map = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 18)) {
+          auto str = _internal_mutable_map();
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.CarInfo.map"));
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // .routing_service.Point pos = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
+          ptr = ctx->ParseMessage(_internal_mutable_pos(), ptr);
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // bool running = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 32)) {
+          running_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      default: {
+      handle_unusual:
+        if ((tag & 7) == 4 || tag == 0) {
+          ctx->SetLastTag(tag);
+          goto success;
+        }
+        ptr = UnknownFieldParse(tag,
+            _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+            ptr, ctx);
+        CHK_(ptr != nullptr);
+        continue;
+      }
+    }  // switch
+  }  // while
+success:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto success;
+#undef CHK_
+}
+
+::PROTOBUF_NAMESPACE_ID::uint8* CarInfo::_InternalSerialize(
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:routing_service.CarInfo)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string id = 1;
+  if (this->id().size() > 0) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_id().data(), static_cast<int>(this->_internal_id().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "routing_service.CarInfo.id");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_id(), target);
+  }
+
+  // string map = 2;
+  if (this->map().size() > 0) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_map().data(), static_cast<int>(this->_internal_map().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "routing_service.CarInfo.map");
+    target = stream->WriteStringMaybeAliased(
+        2, this->_internal_map(), target);
+  }
+
+  // .routing_service.Point pos = 3;
+  if (this->has_pos()) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(
+        3, _Internal::pos(this), target, stream);
+  }
+
+  // bool running = 4;
+  if (this->running() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteBoolToArray(4, this->_internal_running(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:routing_service.CarInfo)
+  return target;
+}
+
+size_t CarInfo::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:routing_service.CarInfo)
+  size_t total_size = 0;
+
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string id = 1;
+  if (this->id().size() > 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_id());
+  }
+
+  // string map = 2;
+  if (this->map().size() > 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_map());
+  }
+
+  // .routing_service.Point pos = 3;
+  if (this->has_pos()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *pos_);
+  }
+
+  // bool running = 4;
+  if (this->running() != 0) {
+    total_size += 1 + 1;
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
+  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  SetCachedSize(cached_size);
+  return total_size;
+}
+
+void CarInfo::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:routing_service.CarInfo)
+  GOOGLE_DCHECK_NE(&from, this);
+  const CarInfo* source =
+      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<CarInfo>(
+          &from);
+  if (source == nullptr) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:routing_service.CarInfo)
+    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:routing_service.CarInfo)
+    MergeFrom(*source);
+  }
+}
+
+void CarInfo::MergeFrom(const CarInfo& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:routing_service.CarInfo)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from.id().size() > 0) {
+    _internal_set_id(from._internal_id());
+  }
+  if (from.map().size() > 0) {
+    _internal_set_map(from._internal_map());
+  }
+  if (from.has_pos()) {
+    _internal_mutable_pos()->::routing_service::Point::MergeFrom(from._internal_pos());
+  }
+  if (from.running() != 0) {
+    _internal_set_running(from._internal_running());
+  }
+}
+
+void CarInfo::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:routing_service.CarInfo)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void CarInfo::CopyFrom(const CarInfo& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:routing_service.CarInfo)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool CarInfo::IsInitialized() const {
+  return true;
+}
+
+void CarInfo::InternalSwap(CarInfo* other) {
+  using std::swap;
+  _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
+  id_.Swap(&other->id_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+  map_.Swap(&other->map_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(CarInfo, running_)
+      + sizeof(CarInfo::running_)
+      - PROTOBUF_FIELD_OFFSET(CarInfo, pos_)>(
+          reinterpret_cast<char*>(&pos_),
+          reinterpret_cast<char*>(&other->pos_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata CarInfo::GetMetadata() const {
+  return GetMetadataStatic();
+}
+
+
+// ===================================================================
+
+class TaskRequest::_Internal {
+ public:
+  static const ::routing_service::Point& point(const TaskRequest* msg);
+};
+
+const ::routing_service::Point&
+TaskRequest::_Internal::point(const TaskRequest* msg) {
+  return *msg->point_;
+}
+TaskRequest::TaskRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena) {
+  SharedCtor();
+  RegisterArenaDtor(arena);
+  // @@protoc_insertion_point(arena_constructor:routing_service.TaskRequest)
+}
+TaskRequest::TaskRequest(const TaskRequest& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  id_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  if (!from._internal_id().empty()) {
+    id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_id(), 
+      GetArena());
+  }
+  map_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  if (!from._internal_map().empty()) {
+    map_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_map(), 
+      GetArena());
+  }
+  if (from._internal_has_point()) {
+    point_ = new ::routing_service::Point(*from.point_);
+  } else {
+    point_ = nullptr;
+  }
+  on_or_off_ = from.on_or_off_;
+  // @@protoc_insertion_point(copy_constructor:routing_service.TaskRequest)
+}
+
+void TaskRequest::SharedCtor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_TaskRequest_routing_5fservice_2eproto.base);
+  id_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  map_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  ::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
+      reinterpret_cast<char*>(&point_) - reinterpret_cast<char*>(this)),
+      0, static_cast<size_t>(reinterpret_cast<char*>(&on_or_off_) -
+      reinterpret_cast<char*>(&point_)) + sizeof(on_or_off_));
+}
+
+TaskRequest::~TaskRequest() {
+  // @@protoc_insertion_point(destructor:routing_service.TaskRequest)
+  SharedDtor();
+  _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+void TaskRequest::SharedDtor() {
+  GOOGLE_DCHECK(GetArena() == nullptr);
+  id_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  map_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  if (this != internal_default_instance()) delete point_;
+}
+
+void TaskRequest::ArenaDtor(void* object) {
+  TaskRequest* _this = reinterpret_cast< TaskRequest* >(object);
+  (void)_this;
+}
+void TaskRequest::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
+}
+void TaskRequest::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+}
+const TaskRequest& TaskRequest::default_instance() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_TaskRequest_routing_5fservice_2eproto.base);
+  return *internal_default_instance();
+}
+
+
+void TaskRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:routing_service.TaskRequest)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  id_.ClearToEmpty();
+  map_.ClearToEmpty();
+  if (GetArena() == nullptr && point_ != nullptr) {
+    delete point_;
+  }
+  point_ = nullptr;
+  on_or_off_ = false;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* TaskRequest::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
+    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    CHK_(ptr);
+    switch (tag >> 3) {
+      // .routing_service.Point point = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
+          ptr = ctx->ParseMessage(_internal_mutable_point(), ptr);
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // string id = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 18)) {
+          auto str = _internal_mutable_id();
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.TaskRequest.id"));
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // string map = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
+          auto str = _internal_mutable_map();
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "routing_service.TaskRequest.map"));
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // bool on_or_off = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 32)) {
+          on_or_off_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      default: {
+      handle_unusual:
+        if ((tag & 7) == 4 || tag == 0) {
+          ctx->SetLastTag(tag);
+          goto success;
+        }
+        ptr = UnknownFieldParse(tag,
+            _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+            ptr, ctx);
+        CHK_(ptr != nullptr);
+        continue;
+      }
+    }  // switch
+  }  // while
+success:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto success;
+#undef CHK_
+}
+
+::PROTOBUF_NAMESPACE_ID::uint8* TaskRequest::_InternalSerialize(
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:routing_service.TaskRequest)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // .routing_service.Point point = 1;
+  if (this->has_point()) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(
+        1, _Internal::point(this), target, stream);
+  }
+
+  // string id = 2;
+  if (this->id().size() > 0) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_id().data(), static_cast<int>(this->_internal_id().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "routing_service.TaskRequest.id");
+    target = stream->WriteStringMaybeAliased(
+        2, this->_internal_id(), target);
+  }
+
+  // string map = 3;
+  if (this->map().size() > 0) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_map().data(), static_cast<int>(this->_internal_map().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "routing_service.TaskRequest.map");
+    target = stream->WriteStringMaybeAliased(
+        3, this->_internal_map(), target);
+  }
+
+  // bool on_or_off = 4;
+  if (this->on_or_off() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteBoolToArray(4, this->_internal_on_or_off(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:routing_service.TaskRequest)
+  return target;
+}
+
+size_t TaskRequest::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:routing_service.TaskRequest)
+  size_t total_size = 0;
+
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string id = 2;
+  if (this->id().size() > 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_id());
+  }
+
+  // string map = 3;
+  if (this->map().size() > 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_map());
+  }
+
+  // .routing_service.Point point = 1;
+  if (this->has_point()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *point_);
+  }
+
+  // bool on_or_off = 4;
+  if (this->on_or_off() != 0) {
+    total_size += 1 + 1;
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
+  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  SetCachedSize(cached_size);
+  return total_size;
+}
+
+void TaskRequest::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:routing_service.TaskRequest)
+  GOOGLE_DCHECK_NE(&from, this);
+  const TaskRequest* source =
+      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<TaskRequest>(
+          &from);
+  if (source == nullptr) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:routing_service.TaskRequest)
+    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:routing_service.TaskRequest)
+    MergeFrom(*source);
+  }
+}
+
+void TaskRequest::MergeFrom(const TaskRequest& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:routing_service.TaskRequest)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from.id().size() > 0) {
+    _internal_set_id(from._internal_id());
+  }
+  if (from.map().size() > 0) {
+    _internal_set_map(from._internal_map());
+  }
+  if (from.has_point()) {
+    _internal_mutable_point()->::routing_service::Point::MergeFrom(from._internal_point());
+  }
+  if (from.on_or_off() != 0) {
+    _internal_set_on_or_off(from._internal_on_or_off());
+  }
+}
+
+void TaskRequest::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:routing_service.TaskRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void TaskRequest::CopyFrom(const TaskRequest& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:routing_service.TaskRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool TaskRequest::IsInitialized() const {
+  return true;
+}
+
+void TaskRequest::InternalSwap(TaskRequest* other) {
+  using std::swap;
+  _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
+  id_.Swap(&other->id_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+  map_.Swap(&other->map_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(TaskRequest, on_or_off_)
+      + sizeof(TaskRequest::on_or_off_)
+      - PROTOBUF_FIELD_OFFSET(TaskRequest, point_)>(
+          reinterpret_cast<char*>(&point_),
+          reinterpret_cast<char*>(&other->point_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata TaskRequest::GetMetadata() const {
+  return GetMetadataStatic();
+}
+
+
+// ===================================================================
+
+class TaskPoint::_Internal {
+ public:
+};
+
+TaskPoint::TaskPoint(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena) {
+  SharedCtor();
+  RegisterArenaDtor(arena);
+  // @@protoc_insertion_point(arena_constructor:routing_service.TaskPoint)
+}
+TaskPoint::TaskPoint(const TaskPoint& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::memcpy(&lon_, &from.lon_,
+    static_cast<size_t>(reinterpret_cast<char*>(&on_or_off_) -
+    reinterpret_cast<char*>(&lon_)) + sizeof(on_or_off_));
+  // @@protoc_insertion_point(copy_constructor:routing_service.TaskPoint)
+}
+
+void TaskPoint::SharedCtor() {
+  ::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
+      reinterpret_cast<char*>(&lon_) - reinterpret_cast<char*>(this)),
+      0, static_cast<size_t>(reinterpret_cast<char*>(&on_or_off_) -
+      reinterpret_cast<char*>(&lon_)) + sizeof(on_or_off_));
+}
+
+TaskPoint::~TaskPoint() {
+  // @@protoc_insertion_point(destructor:routing_service.TaskPoint)
+  SharedDtor();
+  _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+void TaskPoint::SharedDtor() {
+  GOOGLE_DCHECK(GetArena() == nullptr);
+}
+
+void TaskPoint::ArenaDtor(void* object) {
+  TaskPoint* _this = reinterpret_cast< TaskPoint* >(object);
+  (void)_this;
+}
+void TaskPoint::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
+}
+void TaskPoint::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+}
+const TaskPoint& TaskPoint::default_instance() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_TaskPoint_routing_5fservice_2eproto.base);
+  return *internal_default_instance();
+}
+
+
+void TaskPoint::Clear() {
+// @@protoc_insertion_point(message_clear_start:routing_service.TaskPoint)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  ::memset(&lon_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&on_or_off_) -
+      reinterpret_cast<char*>(&lon_)) + sizeof(on_or_off_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* TaskPoint::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
+    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    CHK_(ptr);
+    switch (tag >> 3) {
+      // double lon = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 9)) {
+          lon_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
+        } else goto handle_unusual;
+        continue;
+      // double lat = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 17)) {
+          lat_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
+        } else goto handle_unusual;
+        continue;
+      // double utmx = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 25)) {
+          utmx_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
+        } else goto handle_unusual;
+        continue;
+      // double utmy = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 33)) {
+          utmy_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
+        } else goto handle_unusual;
+        continue;
+      // double heading = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 41)) {
+          heading_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
+        } else goto handle_unusual;
+        continue;
+      // bool on_or_off = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 48)) {
+          on_or_off_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      default: {
+      handle_unusual:
+        if ((tag & 7) == 4 || tag == 0) {
+          ctx->SetLastTag(tag);
+          goto success;
+        }
+        ptr = UnknownFieldParse(tag,
+            _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+            ptr, ctx);
+        CHK_(ptr != nullptr);
+        continue;
+      }
+    }  // switch
+  }  // while
+success:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto success;
+#undef CHK_
+}
+
+::PROTOBUF_NAMESPACE_ID::uint8* TaskPoint::_InternalSerialize(
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:routing_service.TaskPoint)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // double lon = 1;
+  if (!(this->lon() <= 0 && this->lon() >= 0)) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(1, this->_internal_lon(), target);
+  }
+
+  // double lat = 2;
+  if (!(this->lat() <= 0 && this->lat() >= 0)) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(2, this->_internal_lat(), target);
+  }
+
+  // double utmx = 3;
+  if (!(this->utmx() <= 0 && this->utmx() >= 0)) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(3, this->_internal_utmx(), target);
+  }
+
+  // double utmy = 4;
+  if (!(this->utmy() <= 0 && this->utmy() >= 0)) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(4, this->_internal_utmy(), target);
+  }
+
+  // double heading = 5;
+  if (!(this->heading() <= 0 && this->heading() >= 0)) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(5, this->_internal_heading(), target);
+  }
+
+  // bool on_or_off = 6;
+  if (this->on_or_off() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteBoolToArray(6, this->_internal_on_or_off(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:routing_service.TaskPoint)
+  return target;
+}
+
+size_t TaskPoint::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:routing_service.TaskPoint)
+  size_t total_size = 0;
+
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // double lon = 1;
+  if (!(this->lon() <= 0 && this->lon() >= 0)) {
+    total_size += 1 + 8;
+  }
+
+  // double lat = 2;
+  if (!(this->lat() <= 0 && this->lat() >= 0)) {
+    total_size += 1 + 8;
+  }
+
+  // double utmx = 3;
+  if (!(this->utmx() <= 0 && this->utmx() >= 0)) {
+    total_size += 1 + 8;
+  }
+
+  // double utmy = 4;
+  if (!(this->utmy() <= 0 && this->utmy() >= 0)) {
+    total_size += 1 + 8;
+  }
+
+  // double heading = 5;
+  if (!(this->heading() <= 0 && this->heading() >= 0)) {
+    total_size += 1 + 8;
+  }
+
+  // bool on_or_off = 6;
+  if (this->on_or_off() != 0) {
+    total_size += 1 + 1;
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
+  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  SetCachedSize(cached_size);
+  return total_size;
+}
+
+void TaskPoint::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:routing_service.TaskPoint)
+  GOOGLE_DCHECK_NE(&from, this);
+  const TaskPoint* source =
+      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<TaskPoint>(
+          &from);
+  if (source == nullptr) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:routing_service.TaskPoint)
+    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:routing_service.TaskPoint)
+    MergeFrom(*source);
+  }
+}
+
+void TaskPoint::MergeFrom(const TaskPoint& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:routing_service.TaskPoint)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!(from.lon() <= 0 && from.lon() >= 0)) {
+    _internal_set_lon(from._internal_lon());
+  }
+  if (!(from.lat() <= 0 && from.lat() >= 0)) {
+    _internal_set_lat(from._internal_lat());
+  }
+  if (!(from.utmx() <= 0 && from.utmx() >= 0)) {
+    _internal_set_utmx(from._internal_utmx());
+  }
+  if (!(from.utmy() <= 0 && from.utmy() >= 0)) {
+    _internal_set_utmy(from._internal_utmy());
+  }
+  if (!(from.heading() <= 0 && from.heading() >= 0)) {
+    _internal_set_heading(from._internal_heading());
+  }
+  if (from.on_or_off() != 0) {
+    _internal_set_on_or_off(from._internal_on_or_off());
+  }
+}
+
+void TaskPoint::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:routing_service.TaskPoint)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void TaskPoint::CopyFrom(const TaskPoint& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:routing_service.TaskPoint)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool TaskPoint::IsInitialized() const {
+  return true;
+}
+
+void TaskPoint::InternalSwap(TaskPoint* other) {
+  using std::swap;
+  _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(TaskPoint, on_or_off_)
+      + sizeof(TaskPoint::on_or_off_)
+      - PROTOBUF_FIELD_OFFSET(TaskPoint, lon_)>(
+          reinterpret_cast<char*>(&lon_),
+          reinterpret_cast<char*>(&other->lon_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata TaskPoint::GetMetadata() const {
+  return GetMetadataStatic();
+}
+
+
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace routing_service
 PROTOBUF_NAMESPACE_OPEN
-template<> PROTOBUF_NOINLINE ::routing_service::TaskPoints_TaskPoint* Arena::CreateMaybeMessage< ::routing_service::TaskPoints_TaskPoint >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::routing_service::TaskPoints_TaskPoint >(arena);
+template<> PROTOBUF_NOINLINE ::routing_service::Point* Arena::CreateMaybeMessage< ::routing_service::Point >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::routing_service::Point >(arena);
 }
 template<> PROTOBUF_NOINLINE ::routing_service::TaskPoints* Arena::CreateMaybeMessage< ::routing_service::TaskPoints >(Arena* arena) {
   return Arena::CreateMessageInternal< ::routing_service::TaskPoints >(arena);
@@ -1616,6 +2691,18 @@ template<> PROTOBUF_NOINLINE ::routing_service::RefRoadPoint* Arena::CreateMaybe
 }
 template<> PROTOBUF_NOINLINE ::routing_service::RefRoad* Arena::CreateMaybeMessage< ::routing_service::RefRoad >(Arena* arena) {
   return Arena::CreateMessageInternal< ::routing_service::RefRoad >(arena);
+}
+template<> PROTOBUF_NOINLINE ::routing_service::RoadPoints* Arena::CreateMaybeMessage< ::routing_service::RoadPoints >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::routing_service::RoadPoints >(arena);
+}
+template<> PROTOBUF_NOINLINE ::routing_service::CarInfo* Arena::CreateMaybeMessage< ::routing_service::CarInfo >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::routing_service::CarInfo >(arena);
+}
+template<> PROTOBUF_NOINLINE ::routing_service::TaskRequest* Arena::CreateMaybeMessage< ::routing_service::TaskRequest >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::routing_service::TaskRequest >(arena);
+}
+template<> PROTOBUF_NOINLINE ::routing_service::TaskPoint* Arena::CreateMaybeMessage< ::routing_service::TaskPoint >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::routing_service::TaskPoint >(arena);
 }
 PROTOBUF_NAMESPACE_CLOSE
 

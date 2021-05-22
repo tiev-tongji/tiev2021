@@ -82,5 +82,269 @@ RoutingService::Service::~Service() {
 }
 
 
+static const char* MapService_method_names[] = {
+  "/routing_service.MapService/UpdateCarInfo",
+  "/routing_service.MapService/GetOneAvailableCar",
+  "/routing_service.MapService/GetCarInfoById",
+  "/routing_service.MapService/SendTaskPoint",
+  "/routing_service.MapService/WaitForTaskPoint",
+  "/routing_service.MapService/FinishTask",
+};
+
+std::unique_ptr< MapService::Stub> MapService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
+  (void)options;
+  std::unique_ptr< MapService::Stub> stub(new MapService::Stub(channel));
+  return stub;
+}
+
+MapService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel)
+  : channel_(channel), rpcmethod_UpdateCarInfo_(MapService_method_names[0], ::grpc::internal::RpcMethod::CLIENT_STREAMING, channel)
+  , rpcmethod_GetOneAvailableCar_(MapService_method_names[1], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_GetCarInfoById_(MapService_method_names[2], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_SendTaskPoint_(MapService_method_names[3], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_WaitForTaskPoint_(MapService_method_names[4], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_FinishTask_(MapService_method_names[5], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  {}
+
+::grpc::ClientWriter< ::routing_service::CarInfo>* MapService::Stub::UpdateCarInfoRaw(::grpc::ClientContext* context, ::google::protobuf::Empty* response) {
+  return ::grpc::internal::ClientWriterFactory< ::routing_service::CarInfo>::Create(channel_.get(), rpcmethod_UpdateCarInfo_, context, response);
+}
+
+void MapService::Stub::experimental_async::UpdateCarInfo(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::experimental::ClientWriteReactor< ::routing_service::CarInfo>* reactor) {
+  ::grpc::internal::ClientCallbackWriterFactory< ::routing_service::CarInfo>::Create(stub_->channel_.get(), stub_->rpcmethod_UpdateCarInfo_, context, response, reactor);
+}
+
+::grpc::ClientAsyncWriter< ::routing_service::CarInfo>* MapService::Stub::AsyncUpdateCarInfoRaw(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::CompletionQueue* cq, void* tag) {
+  return ::grpc::internal::ClientAsyncWriterFactory< ::routing_service::CarInfo>::Create(channel_.get(), cq, rpcmethod_UpdateCarInfo_, context, response, true, tag);
+}
+
+::grpc::ClientAsyncWriter< ::routing_service::CarInfo>* MapService::Stub::PrepareAsyncUpdateCarInfoRaw(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncWriterFactory< ::routing_service::CarInfo>::Create(channel_.get(), cq, rpcmethod_UpdateCarInfo_, context, response, false, nullptr);
+}
+
+::grpc::Status MapService::Stub::GetOneAvailableCar(::grpc::ClientContext* context, const ::routing_service::Point& request, ::routing_service::CarInfo* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::routing_service::Point, ::routing_service::CarInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_GetOneAvailableCar_, context, request, response);
+}
+
+void MapService::Stub::experimental_async::GetOneAvailableCar(::grpc::ClientContext* context, const ::routing_service::Point* request, ::routing_service::CarInfo* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::routing_service::Point, ::routing_service::CarInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetOneAvailableCar_, context, request, response, std::move(f));
+}
+
+void MapService::Stub::experimental_async::GetOneAvailableCar(::grpc::ClientContext* context, const ::routing_service::Point* request, ::routing_service::CarInfo* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetOneAvailableCar_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::routing_service::CarInfo>* MapService::Stub::PrepareAsyncGetOneAvailableCarRaw(::grpc::ClientContext* context, const ::routing_service::Point& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::routing_service::CarInfo, ::routing_service::Point, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_GetOneAvailableCar_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::routing_service::CarInfo>* MapService::Stub::AsyncGetOneAvailableCarRaw(::grpc::ClientContext* context, const ::routing_service::Point& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncGetOneAvailableCarRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status MapService::Stub::GetCarInfoById(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::routing_service::CarInfo* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::google::protobuf::StringValue, ::routing_service::CarInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_GetCarInfoById_, context, request, response);
+}
+
+void MapService::Stub::experimental_async::GetCarInfoById(::grpc::ClientContext* context, const ::google::protobuf::StringValue* request, ::routing_service::CarInfo* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::google::protobuf::StringValue, ::routing_service::CarInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetCarInfoById_, context, request, response, std::move(f));
+}
+
+void MapService::Stub::experimental_async::GetCarInfoById(::grpc::ClientContext* context, const ::google::protobuf::StringValue* request, ::routing_service::CarInfo* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetCarInfoById_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::routing_service::CarInfo>* MapService::Stub::PrepareAsyncGetCarInfoByIdRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::routing_service::CarInfo, ::google::protobuf::StringValue, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_GetCarInfoById_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::routing_service::CarInfo>* MapService::Stub::AsyncGetCarInfoByIdRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncGetCarInfoByIdRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status MapService::Stub::SendTaskPoint(::grpc::ClientContext* context, const ::routing_service::TaskRequest& request, ::routing_service::RoadPoints* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::routing_service::TaskRequest, ::routing_service::RoadPoints, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_SendTaskPoint_, context, request, response);
+}
+
+void MapService::Stub::experimental_async::SendTaskPoint(::grpc::ClientContext* context, const ::routing_service::TaskRequest* request, ::routing_service::RoadPoints* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::routing_service::TaskRequest, ::routing_service::RoadPoints, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_SendTaskPoint_, context, request, response, std::move(f));
+}
+
+void MapService::Stub::experimental_async::SendTaskPoint(::grpc::ClientContext* context, const ::routing_service::TaskRequest* request, ::routing_service::RoadPoints* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_SendTaskPoint_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::routing_service::RoadPoints>* MapService::Stub::PrepareAsyncSendTaskPointRaw(::grpc::ClientContext* context, const ::routing_service::TaskRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::routing_service::RoadPoints, ::routing_service::TaskRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_SendTaskPoint_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::routing_service::RoadPoints>* MapService::Stub::AsyncSendTaskPointRaw(::grpc::ClientContext* context, const ::routing_service::TaskRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncSendTaskPointRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status MapService::Stub::WaitForTaskPoint(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::routing_service::TaskPoint* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::google::protobuf::Empty, ::routing_service::TaskPoint, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_WaitForTaskPoint_, context, request, response);
+}
+
+void MapService::Stub::experimental_async::WaitForTaskPoint(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::routing_service::TaskPoint* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::google::protobuf::Empty, ::routing_service::TaskPoint, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_WaitForTaskPoint_, context, request, response, std::move(f));
+}
+
+void MapService::Stub::experimental_async::WaitForTaskPoint(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::routing_service::TaskPoint* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_WaitForTaskPoint_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::routing_service::TaskPoint>* MapService::Stub::PrepareAsyncWaitForTaskPointRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::routing_service::TaskPoint, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_WaitForTaskPoint_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::routing_service::TaskPoint>* MapService::Stub::AsyncWaitForTaskPointRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncWaitForTaskPointRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status MapService::Stub::FinishTask(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::google::protobuf::Empty* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::google::protobuf::StringValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_FinishTask_, context, request, response);
+}
+
+void MapService::Stub::experimental_async::FinishTask(::grpc::ClientContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::google::protobuf::StringValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_FinishTask_, context, request, response, std::move(f));
+}
+
+void MapService::Stub::experimental_async::FinishTask(::grpc::ClientContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_FinishTask_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* MapService::Stub::PrepareAsyncFinishTaskRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::google::protobuf::Empty, ::google::protobuf::StringValue, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_FinishTask_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* MapService::Stub::AsyncFinishTaskRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncFinishTaskRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+MapService::Service::Service() {
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      MapService_method_names[0],
+      ::grpc::internal::RpcMethod::CLIENT_STREAMING,
+      new ::grpc::internal::ClientStreamingHandler< MapService::Service, ::routing_service::CarInfo, ::google::protobuf::Empty>(
+          [](MapService::Service* service,
+             ::grpc::ServerContext* ctx,
+             ::grpc::ServerReader<::routing_service::CarInfo>* reader,
+             ::google::protobuf::Empty* resp) {
+               return service->UpdateCarInfo(ctx, reader, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      MapService_method_names[1],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< MapService::Service, ::routing_service::Point, ::routing_service::CarInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](MapService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::routing_service::Point* req,
+             ::routing_service::CarInfo* resp) {
+               return service->GetOneAvailableCar(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      MapService_method_names[2],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< MapService::Service, ::google::protobuf::StringValue, ::routing_service::CarInfo, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](MapService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::google::protobuf::StringValue* req,
+             ::routing_service::CarInfo* resp) {
+               return service->GetCarInfoById(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      MapService_method_names[3],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< MapService::Service, ::routing_service::TaskRequest, ::routing_service::RoadPoints, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](MapService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::routing_service::TaskRequest* req,
+             ::routing_service::RoadPoints* resp) {
+               return service->SendTaskPoint(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      MapService_method_names[4],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< MapService::Service, ::google::protobuf::Empty, ::routing_service::TaskPoint, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](MapService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::google::protobuf::Empty* req,
+             ::routing_service::TaskPoint* resp) {
+               return service->WaitForTaskPoint(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      MapService_method_names[5],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< MapService::Service, ::google::protobuf::StringValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](MapService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::google::protobuf::StringValue* req,
+             ::google::protobuf::Empty* resp) {
+               return service->FinishTask(ctx, req, resp);
+             }, this)));
+}
+
+MapService::Service::~Service() {
+}
+
+::grpc::Status MapService::Service::UpdateCarInfo(::grpc::ServerContext* context, ::grpc::ServerReader< ::routing_service::CarInfo>* reader, ::google::protobuf::Empty* response) {
+  (void) context;
+  (void) reader;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status MapService::Service::GetOneAvailableCar(::grpc::ServerContext* context, const ::routing_service::Point* request, ::routing_service::CarInfo* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status MapService::Service::GetCarInfoById(::grpc::ServerContext* context, const ::google::protobuf::StringValue* request, ::routing_service::CarInfo* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status MapService::Service::SendTaskPoint(::grpc::ServerContext* context, const ::routing_service::TaskRequest* request, ::routing_service::RoadPoints* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status MapService::Service::WaitForTaskPoint(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::routing_service::TaskPoint* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status MapService::Service::FinishTask(::grpc::ServerContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+
 }  // namespace routing_service
 

@@ -275,6 +275,7 @@ void sendPath() {
 }
 
 void requestGlobalPathFromMapServer() {
+<<<<<<< HEAD
     time_t          start_time = getTimeStamp();
     MessageManager* msg_m      = MessageManager::getInstance();
     MapManager*     map_m      = MapManager::getInstance();
@@ -314,6 +315,54 @@ void requestGlobalPathFromMapServer() {
         if(!tmp_global_path.empty()) {  // TODO: When to replace?
             map_m->setGlobalPath(tmp_global_path);
         }
+=======
+  time_t start_time = getTimeStamp();
+  MessageManager* msg_m = MessageManager::getInstance();
+  MapManager* map_m = MapManager::getInstance();
+  MachineManager* mm = MachineManager::getInstance();
+  Routing* routing = Routing::getInstance();
+  NavInfo nav_info;
+  vector<Task> task_list;
+  while (!Config::getInstance()->enable_routing_by_file) {
+    msg_m->getNavInfo(nav_info);
+    if (getTimeStamp() - start_time < 2e6) {
+      usleep(2e6 + start_time - getTimeStamp());
+    }
+    start_time = getTimeStamp();
+    routing->updateInfoToServer();
+    vector<HDMapPoint> tmp_global_path;
+    HDMapMode road_mode = map_m->getCurrentMapMode();
+    // mode
+    if (!nav_info.detected || road_mode == HDMapMode::INTERSECTION ||
+        road_mode == HDMapMode::INTERSECTION_SOLID ||
+        road_mode == HDMapMode::IN_PARK)
+      continue;
+    // fsm state
+    if (mm->machine.isActive<UTurn>() ||
+        mm->machine.isActive<GlobalReplanning>() ||
+        mm->machine.isActive<ParkingFSM>() ||
+        mm->machine.isActive<TemporaryParkingFSM>() ||
+        mm->machine.isActive<IntersectionFSM>())
+      continue;
+    Task current_pos;
+    current_pos.lon_lat_position.lon = nav_info.lon;
+    current_pos.lon_lat_position.lat = nav_info.lat;
+    task_list.clear();
+    task_list.push_back(current_pos);
+    vector<Task> current_tasks = map_m->getCurrentTasks();
+    if (!current_tasks.empty())
+      task_list.push_back(current_tasks.back());
+    else
+      task_list.push_back(map_m->getParkingTask());
+    int cost = -1;
+    if (task_list.size() > 1)
+      cost = routing->findReferenceRoad(tmp_global_path, task_list, false);
+    cout << "Cost of global path: " << cost << endl;
+    if (cost == -1) continue;
+    cout << "global path size:" << tmp_global_path.size() << endl;
+    if (!tmp_global_path.empty()) {  // TODO: When to replace?
+      map_m->setGlobalPath(tmp_global_path);
+>>>>>>> cb617d72f7f36e8b19721467625203346a713092
     }
 }
 }  // namespace TiEV

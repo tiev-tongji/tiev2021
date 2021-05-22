@@ -36,6 +36,7 @@ void Config::init() {
   control_mode = (ControlMode)(doc[nameof(control_mode)].GetInt());
   enable_routing_by_file = (bool)doc[nameof(enable_routing_by_file)].GetInt();
   debug_speed_mode = (HDMapSpeed)(doc[nameof(debug_speed_mode)].GetInt());
+  taxi_mode = (bool)doc["taxi_mode"].GetInt();
   targets_num_limit = doc[nameof(targets_num_limit)].Get<int>();
   plan_time_limit_ms = doc[nameof(plan_time_limit_ms)].Get<int>();
   car_away_limit_meter = doc[nameof(car_away_limit_meter)].Get<double>();
