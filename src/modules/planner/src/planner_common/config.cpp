@@ -78,26 +78,28 @@ void Config::init() {
   end_time = start_time + 1e6 * 60 * 60 * 10;
 
   tasks.clear();
-  auto task_arr = doc["tasks"].GetArray();
-  tasks.resize(task_arr.Size());
-  for (int i = 0; i < task_arr.Size(); ++i) {
-    auto& task = task_arr[i]["task"];
-    tasks[i].lon_lat_position.lon = task["lon"].GetDouble();
-    tasks[i].lon_lat_position.lat = task["lat"].GetDouble();
-    tasks[i].utm_position.utm_x = task["utm_x"].GetDouble();
-    tasks[i].utm_position.utm_y = task["utm_y"].GetDouble();
+  if(!taxi_mode){
+    auto task_arr = doc["tasks"].GetArray();
+    tasks.resize(task_arr.Size());
+    for (int i = 0; i < task_arr.Size(); ++i) {
+      auto& task = task_arr[i]["task"];
+      tasks[i].lon_lat_position.lon = task["lon"].GetDouble();
+      tasks[i].lon_lat_position.lat = task["lat"].GetDouble();
+      tasks[i].utm_position.utm_x = task["utm_x"].GetDouble();
+      tasks[i].utm_position.utm_y = task["utm_y"].GetDouble();
 
-    auto task_points_arr = task_arr[i]["task_points"].GetArray();
-    tasks[i].task_points.resize(task_points_arr.Size());
-    for (int j = 0; j < task_points_arr.Size(); ++j) {
-      double utm_x = task_points_arr[j]["utm_x"].GetDouble();
-      double utm_y = task_points_arr[j]["utm_y"].GetDouble();
-      double heading = task_points_arr[j]["heading"].GetDouble();
-      tasks[i].task_points[j] = UtmPosition(utm_x, utm_y, heading);
+      auto task_points_arr = task_arr[i]["task_points"].GetArray();
+      tasks[i].task_points.resize(task_points_arr.Size());
+      for (int j = 0; j < task_points_arr.Size(); ++j) {
+        double utm_x = task_points_arr[j]["utm_x"].GetDouble();
+        double utm_y = task_points_arr[j]["utm_y"].GetDouble();
+        double heading = task_points_arr[j]["heading"].GetDouble();
+        tasks[i].task_points[j] = UtmPosition(utm_x, utm_y, heading);
+      }
+      tasks[i].on_or_off = task["on"].GetInt();
     }
-    tasks[i].on_or_off = task["on"].GetInt();
+    reverse(tasks.begin(), tasks.end());
   }
-  reverse(tasks.begin(), tasks.end());
 #undef nameof
   input.close();
   outputConfigures();

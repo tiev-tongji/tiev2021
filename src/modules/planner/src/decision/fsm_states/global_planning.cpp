@@ -15,8 +15,11 @@ void GlobalPlanning::update(FullControl& control) {
   if(Config::getInstance()->taxi_mode){
     // 获取任务
     Routing* routing = Routing::getInstance();
-    Task next = routing->waitForNextTask();
-    map_manager->pushCurrentTask(next);
+    routing->updateInfoToServer();
+    if(map_manager->getCurrentTasks().size() == 0){
+      Task next = routing->waitForNextTask();
+      map_manager->pushCurrentTask(next);
+    }
   }
   // cout << "Global Planning update..." << endl;
   usleep(20 * 1000);

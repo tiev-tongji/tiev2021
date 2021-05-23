@@ -1,5 +1,5 @@
 {
-	"comment": "plannerPara_town04",
+	"comment": "town05_forward",
 	"roadmap_file": "/home/autolab/ref-road-tiev2020/ramp_on_02_0305.txt",
 	"rs_distance_table_path": "/home/autolab/tiev2020-code/src/cfg/reeds_shepp_distance_table",
 	"dubins_distance_table_path": "/home/autolab/tiev2020-code/src/cfg/dubins_distance_table",
@@ -8,7 +8,7 @@
 		"0": "disable routing by roadmap_file, and routing will request routing-server on internet",
 		"1": "enable routing by roadmap_file in car"
 	},
-	"control_mode": 1,
+	"control_mode": 0,
 	"#control_mode_annotation": {
 		"PlanningWithMapMode": 0,
 		"TrackingWithMapMode": 1,
@@ -44,45 +44,66 @@
 	"routing": {
 		"host": "106.75.246.176",
 		"port": "50051",
-		"dbname": "simu_add2",
+		"dbname": "simu",
 		"user": "postgres",
 		"password": "routing2020",
 		"topo_name": "topo_map",
 		"output": "/tmp/shortest_road.csv"
 	},
 	"parking_task": {
-		"utm_x": 330234.9615022,
-		"utm_y": 3462316.7454848,
-		"heading": 1.5673251,
-		"lat": 31.2828050,
-		"lon": 121.2165720,
+		"utm_x": 329701.0384218,
+		"utm_y": 3462171.9256148,
+		"heading": 1.6178927,
+		"lat": 31.28142099,
+		"lon": 121.2109900,
 		"task_points": [
 			{
-				"utm_x": 330234.9615022,
-				"utm_y": 3462316.7454848,
-				"heading": 1.5673251,
-				"lat": 31.2828050,
-				"lon": 121.2165720
+				"utm_x": 329701.0384218,
+				"utm_y": 3462171.9256148,
+				"heading": 1.6178927,
+				"lat": 31.28142099,
+				"lon": 121.2109900
 			}
 		]
 	},
 	"tasks": [
 		{
 			"task": {
-				"utm_x": 329758.6970712,
-				"utm_y": 3461861.4310393,
-				"heading": -2.2575757,
-				"lat": 31.2786292,
-				"lon": 121.2116483,
+				"utm_x": 329843.3735868,
+				"utm_y": 3462149.3868498,
+				"heading": -1.5356714,
+				"lat": 31.2812385,
+				"lon": 121.2124884,
 				"on": 1
 			},
 			"task_points": [
 				{
-					"utm_x": 329758.6970712,
-					"utm_y": 3461861.4310393,
-					"heading": -2.2575757,
-					"lat": 31.2786292,
-					"lon": 121.2116483
+					"utm_x": 329843.3735868,
+					"utm_y": 3462149.3868498,
+					"heading": -1.5356714,
+					"lat": 31.2812385,
+					"lon": 121.2124884
+				}
+			]
+		}
+	],
+	"tasks1": [
+		{
+			"task": {
+				"utm_x": 329810.5392505,
+				"utm_y": 3462113.0966963,
+				"heading": -3.1360442,
+				"lat": 31.2809064,
+				"lon": 121.2121498,
+				"on": 0
+			},
+			"task_points": [
+				{
+					"utm_x": 329810.5392505,
+					"utm_y": 3462113.0966963,
+					"heading": -3.1360442,
+					"lat": 31.2809064,
+					"lon": 121.2121498
 				}
 			]
 		}

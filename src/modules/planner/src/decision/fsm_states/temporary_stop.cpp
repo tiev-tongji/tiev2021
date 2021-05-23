@@ -30,6 +30,7 @@ void TemporaryStop::update(FullControl& control) {
         // 获取任务
         Task next = routing->waitForNextTask();
         map_manager->pushCurrentTask(next);
+        current_tasks = map_manager->getCurrentTasks();
     }
     if(current_tasks.empty())
         flag_parking = true;

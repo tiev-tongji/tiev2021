@@ -142,6 +142,7 @@ Task Routing::waitForNextTask(){
     ClientContext context;
     TaskPoint res;
     Task result;
+    std::cout<<"Waiting for next task..."<<std::endl;
     Status status = map_stub->WaitForTaskPoint(&context, empty, &res);
     if(status.ok()){
         result.lon_lat_position.lon = res.lon();
@@ -152,8 +153,9 @@ Task Routing::waitForNextTask(){
         result.task_points.clear();
         result.task_points.push_back(UtmPosition(res.utmx(), res.utmy(), res.heading()));
     }else{
-        std::cerr<<"can't get task from server"<<std::endl;
+        std::cerr<<"can't get task from server, error message: "<<status.error_message()<<std::endl;
     }
+    std::cout<<"Get next task"<<std::endl;
     return result;
 }  
 }
