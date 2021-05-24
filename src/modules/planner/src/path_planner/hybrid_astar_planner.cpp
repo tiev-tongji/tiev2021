@@ -298,6 +298,15 @@ namespace TiEV {
             return true;
         } else {
             provider->~analytic_expansion_provider();
+        #ifdef DEBUG_ANALYTIC_EXPANSION_CALLBACK
+            if (analytic_expanded != NULL){
+                vector<pair<double, double>> xys;
+                xys.reserve(analytic_expansion_result.size());
+                for (const auto& p : analytic_expansion_result)
+                    xys.emplace_back(p.x, p.y);
+                analytic_expanded(xys);
+            }
+        #endif
             analytic_expansion_result.clear();
             return false;
         }

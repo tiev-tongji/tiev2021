@@ -10,6 +10,7 @@
 #include <iostream>
 #include <termio.h>
 #include <thread>
+#include <random>
 
 using namespace std;
 using namespace TiEV;
@@ -32,37 +33,54 @@ namespace TiEV {
 
 
 OperationStatus operationStatus = WaitingForTargetPoint;
+bool target_preset = false;
 TiEV::Pose      targetPose;
 char*           map_file_path = NULL;
 bool            backward_enabled = false;
 double          current_speed = 0;
 cv::Mat map_view, expansion_layer, analytic_expansion_layer;
-#define mtov(a) ((a) * 3 / 2)
-#define vtom(a) ((a) * 2 / 3)
+#define mtov(a) ((a) * 1.5)
+#define vtom(a) ((a) / 1.5)
 
 void usage() {
+    cerr << "path_planner_test [-b] [-s SPEED] [-t TARGETX TARGETY TARGETA] MAP_FILE" << endl;
+    cerr << "\t-b  --enbale-backward  Enable backwarding search." << endl;
+    cerr << "\t-s  --speed            Set the speed of the vehicle in m/s." << endl;
+    cerr << "\t-t  --target           Set the target pose of the vehicle" << endl;
     exit(0);
 }
 
 void read_args(int argc, char** argv) {
     for(int i = 1; i < argc; ++i) {
         if (strcmp(argv[i], "-b") == 0 || strcmp(argv[i], "--enable-backward") == 0) {
-            cout << "backward enabled" << endl;
+            log_0("backward enabled");
             backward_enabled = true;
         } else if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--speed") == 0) {
             if (i + 1 < argc) {
                 current_speed = atof(argv[++i]);
-                cout << "current speed set: " << current_speed << " m/s" << endl;
+                log_0("current speed set: ", current_speed, " m/s");
             }
             else {
-                cout << "error using flag " << argv[i] << " , argument missing." << endl;
+                cerr << "error using flag " << argv[i] << " , argument missing." << endl;
+                usage();
+            }
+        } else if (strcmp(argv[i], "-t") == 0 || strcmp(argv[i], "--target") == 0) {
+            if (i + 3 < argc) {
+                targetPose.x = atof(argv[++i]);
+                targetPose.y = atof(argv[++i]);
+                targetPose.ang = atof(argv[++i]);
+                target_preset = true;
+                log_0("target preset");
+            }
+            else {
+                cerr << "error using flag " << argv[i] << " , argument missing." << endl;
                 usage();
             }
         } else if (map_file_path == NULL) {
             map_file_path = argv[i];
-            cout << "map file path: " << map_file_path << endl;
+            log_0("map file path: ", map_file_path);
         } else {
-            cout << "unrecognized input " << argv[i] << endl;
+            cerr << "unrecognized input " << argv[i] << endl;
             usage();
         }
     }
@@ -83,7 +101,7 @@ void merge_layer(cv::Mat& dest, const cv::Mat& layer, double alpha) {
 void refresh_main_view() {
     cv::Mat main_view = map_view.clone();
     merge_layer(main_view, expansion_layer, 0.8);
-    merge_layer(main_view, analytic_expansion_layer, 0.5);
+    merge_layer(main_view, analytic_expansion_layer, 0.2);
     cv::imshow("PathPlanner Test", main_view);
     // while (cv::waitKey(0) != 32) ;
     cv::waitKey(1);
@@ -110,28 +128,31 @@ void on_mouse(int event, int x, int y, int flags, void *ustc)
             break;
         }
     }
-
-    cerr << "\33[2K\rmouse moving map_x = " << vtom(y) << ", y = " << vtom(x);
 }
 
 void on_node_expanded(double x, double y, double a, double k,
     bool is_backward, double heuristic, double cost) {
-    log_0("expansion: (x, y, a) = (", x, ", ", y, ", ", a, "), ",
-        "curvature = ", k, ", ", (is_backward ? "backwarding" : "forwarding"),
-        ", h = ", heuristic, ", g = ", cost);
+    double p = min(1.0, max(0.0, heuristic / 500.0));
+    cv::Scalar colora(255, 0, 0), colorb(0, 0, 255);
+    cv::Scalar color = colora + (colorb - colora) * p;
     cv::arrowedLine(expansion_layer, mtov(cv::Point(y, x)),
         mtov(cv::Point(y + 8 * sin(a), x + 8 * cos(a))),
-        cv::Scalar(255, 204, 153), 2, 8, 0, 0.5);
+        color, 1, 8, 0, 0.2);
+    return;
+    // log_0("expansion: (x, y, a) = (", x, ", ", y, ", ", a, "), ",
+    //     "curvature = ", k, ", ", (is_backward ? "backwarding" : "forwarding"),
+    //     ", h = ", heuristic, ", g = ", cost);
     refresh_main_view();
 }
 
 void on_analytic_expanded(const vector<pair<double, double>>& xys) {
-    log_0("analytic expansion failed, states = ", xys.size());
+    return;
     analytic_expansion_layer = 0.0;
     for (const auto& xy_pair : xys)
         analytic_expansion_layer.at<cv::Vec3b>(
             mtov(lround(xy_pair.first)),
             mtov(lround(xy_pair.second))) = {200, 0, 200};
+    // log_0("analytic expansion failed, states = ", xys.size());
     refresh_main_view();
 }
 
@@ -150,7 +171,6 @@ void generate_safe_map(double safe_map[MAX_ROW][MAX_COL]) {
     constexpr int deltas_length = sizeof(deltas) / sizeof(deltas[0]);
     #undef vec
     time_t time_0 = getTimeStamp();
-    log_0("generating safe map");
     queue<pair<int, int>> que;
     bool in_queue[MAX_ROW][MAX_COL] = { 0 };
     for (int row = 0; row < MAX_ROW; ++row)
@@ -185,14 +205,12 @@ void generate_safe_map(double safe_map[MAX_ROW][MAX_COL]) {
             }
         }
     }
-
-    log_0("safe map generated in ", (getTimeStamp() - time_0) / 1000.0, " ms");
 }
 
 void show_curvature_graph(PathPlanner* planner) {
-    constexpr int graph_cols = 1000, graph_rows = 160, border = 5;
+    constexpr int graph_cols = 600, graph_rows = 160, border = 5;
     constexpr int rows = graph_rows + 2 * border, cols = graph_cols + 2 * border;
-    constexpr int num_print = 10;
+    constexpr int num_print = 20;
     constexpr int text_voffset = 15;
 
     cv::Mat view = cv::Mat::zeros(rows, cols, CV_8UC3);
@@ -211,19 +229,25 @@ void show_curvature_graph(PathPlanner* planner) {
     for(auto& path : res) {
         int idx = 0;
         double total_s = path.path.back().s;
+        double max_k = 0.0;
+        for(auto& p : path.path)
+            max_k = max(max_k, fabs(p.k));
+        max_k *= 2.0;
+        max_k = min(max_k, 0.2);
+
         for(auto& p : path.path) {
             double rel_s = p.s / total_s;
             int c = border + (int)round(rel_s * graph_cols);
-            double rel_k = min(p.k, 0.3);
-            rel_k = max(p.k, -0.3);
-            rel_k /= 0.3;
+            double rel_k = min(p.k, max_k);
+            rel_k = max(p.k, -max_k);
+            rel_k /= max_k;
             int r = rows - border - graph_rows / 2 - (int)round(rel_k * graph_rows / 2);
-            view.at<cv::Vec3b>(r, c) = {255 * p.backward, 0, 255 * !p.backward};
+            view.at<cv::Vec3b>(r, c) = {255 * (int)p.backward, 0, 255 * (int)!p.backward};
             int idx_mod = ((++idx) % (num_print * 2));
             if (idx_mod == 0 || idx_mod == num_print) {
                 cv::Scalar color = {idx_mod ? 200.0 : 0.0, idx_mod ? 0.0 : 200.0, 0};
                 cv::circle(view, Point(c, r), 2, color);
-                string text = to_string(p.k).substr(0, 5);
+                string text = to_string(p.k).substr(0, 6);
                 constexpr int font_face = FONT_HERSHEY_PLAIN;
                 auto size = cv::getTextSize(text, font_face, 1.0, 1.0, NULL);
                 cv::putText(view, text,
@@ -262,7 +286,7 @@ void draw_planner_map(PathPlanner* planner, cv::Mat& view) {
                     for (int k = 0; k < 4; ++k) {
                         int l =  t * 240 / path.path.size();
                         line(view, vertices[k], vertices[(k + 1) % 4],
-                            Scalar(0, 200, 128));
+                            Scalar(0, 150, 50));
                     }
                 }
             }
@@ -281,13 +305,14 @@ void draw_planner_map(PathPlanner* planner, cv::Mat& view) {
         cv::Scalar(0, 0, 200), 2, 8, 0, 0.3);
 }
 
-void show_heuristic(PathPlanner* planner) {
+void show_heuristic(PathPlanner* planner, double safe_map[MAX_ROW][MAX_COL]) {
     pair<double, double> xya_distance[MAX_ROW][MAX_COL];
     planner->getDistanceMaps(xya_distance);
     double max_dis = 1e-5;
     for (int i = 0; i < MAX_ROW; ++i)
         for (int j = 0; j < MAX_COL; ++j) {
-            if (xya_distance[i][j].first > 10000.0)
+            if (xya_distance[i][j].first > 10000.0
+                || safe_map[i][j] == 0.0)
                 xya_distance[i][j].first = -1.0;
             max_dis = max(max_dis, xya_distance[i][j].first);
         }
@@ -318,7 +343,7 @@ void test_steering_functions(double x, double y, double a) {
     State start = State { CAR_CEN_ROW, CAR_CEN_COL, M_PI, 0.0, 1.0 };
     State end = State { x, y, a, 0.0, 1.0 };
     static cv::Mat view = cv::Mat::zeros(MAX_ROW, MAX_COL, CV_8UC3);
-    view *= 0.8;
+    view *= 0;
 
     CC00_Dubins_State_Space dubins_space(1.0 / 25.0, 0.001, 1.0);
     auto controls = dubins_space.get_controls(start, end);
@@ -327,7 +352,7 @@ void test_steering_functions(double x, double y, double a) {
         view.at<cv::Vec3b>(lround(stat.x), lround(stat.y)) = {255, 255, 255};
     }
 
-    CC00_Reeds_Shepp_State_Space rs_space(1.0 / 25.0, 0.001, 1.0);
+    HC_Reeds_Shepp_State_Space rs_space(1.0 / 25.0, 0.001, 1.0);
     controls = rs_space.get_controls(start, end);
     for (double i = 0.0; i <= 1.0; i += 0.01) {
         State stat = rs_space.interpolate(start, controls, i);
@@ -335,6 +360,21 @@ void test_steering_functions(double x, double y, double a) {
     }
 
     cv::imshow("CC Path Test", view);
+}
+
+string rand_string(int length) {
+    const char characs[] = {
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        'A', 'B', 'C', 'D', 'E', 'F'
+    };
+    string buffer;
+
+    random_device rd;
+    default_random_engine random(rd());
+
+    for (int i = 0; i < length; i++)
+        buffer += characs[random() % sizeof(characs)];
+    return buffer;
 }
 
 int main(int argc, char** argv){
@@ -347,21 +387,22 @@ int main(int argc, char** argv){
     read_args(argc, argv);
     PathPlanner* planner = PathPlanner::getInstance();
     cv::namedWindow("PathPlanner Test");
-    cv::setMouseCallback("PathPlanner Test", on_mouse);
-    cout << "DPI scale: " << mtov(1.0) << "x" << endl;
+    if (!target_preset) cv::setMouseCallback("PathPlanner Test", on_mouse);
     cv::Mat map_image = cv::imread(map_file_path);
     cv::resize(map_image, map_image, cv::Size(MAX_COL, MAX_ROW));
     double safe_map[MAX_ROW][MAX_COL] = {0};
     for(int i = 0; i < MAX_ROW; ++i)
         for(int j = 0; j < MAX_COL; ++j)
-            if(map_image.at<cv::Vec3b>(i, j)[0] < 200)
+            if(map_image.at<cv::Vec3b>(i, j)[0] < 30 &&
+            map_image.at<cv::Vec3b>(i, j)[1] < 30 &&
+            map_image.at<cv::Vec3b>(i, j)[2] < 30)
                 safe_map[i][j] = 0;
             else safe_map[i][j] = 1e8;
     generate_safe_map(safe_map);
     map_view = cv::Mat(mtov(MAX_ROW), mtov(MAX_COL), CV_8UC3, {255, 255, 255});
     for(int i = 0; i < map_view.rows; ++i)
         for(int j = 0; j < map_view.cols; ++j) {
-            double safe_value = safe_map[vtom(i)][vtom(j)];
+            double safe_value = safe_map[(int)vtom(i)][(int)vtom(j)];
             if (safe_value == 0.0)
                 map_view.at<cv::Vec3b>(i, j) = Vec3b(0, 0, 0);
             else if (safe_value <= COLLISION_CIRCLE_SMALL_R / GRID_RESOLUTION)
@@ -369,13 +410,21 @@ int main(int argc, char** argv){
         }
 
     cv::imshow("PathPlanner Test", map_view);
-    while (true) {
-        while (operationStatus != Planning) cv::waitKey(30);
+    do {
+        if (!target_preset)
+        {
+            while (operationStatus != Planning)
+                cv::waitKey(30);
+        }
 
-        test_steering_functions(targetPose.x, targetPose.y, targetPose.ang);
         analytic_expansion_layer = (map_view.clone() = 0.0);
         expansion_layer = (map_view.clone() = 0.0);
 
+        string key = rand_string(5);
+
+        log_0("[", key, "] ", "target ",
+            targetPose.x, " ", targetPose.y, " ", targetPose.ang);
+        cerr << "[" << key << "] planner start" << endl;
         planner->setBackwardEnabled(backward_enabled);
         planner->setCurrentSpeed(current_speed);
         planner->setStartMaintainedPath(vector<TiEV::Pose>());
@@ -385,12 +434,15 @@ int main(int argc, char** argv){
         planner->plan();
 
         cv::Mat main_view = map_view.clone();
-        merge_layer(main_view, expansion_layer, 0.8);
+        merge_layer(main_view, expansion_layer, 0.4);
         draw_planner_map(planner, main_view);
         cv::imshow("PathPlanner Test", main_view);
         show_curvature_graph(planner);
-        show_heuristic(planner);
-        operationStatus = WaitingForTargetPoint;
-    }
+        show_heuristic(planner, safe_map);
+        if (target_preset)
+            cv::waitKey(0);
+        else
+            operationStatus = WaitingForTargetPoint;
+    } while (!target_preset);
     return 0;
 }
