@@ -99,7 +99,8 @@ namespace TiEV {
                 analytic_expansion_probability) {
                 if (try_analytic_expansion(current_state,
                     reverse_allowed, maximum_curvature_allowed,
-                    max_sigma_under_velocity(current.minimum_speed))) {
+                    max_sigma_under_velocity(current.minimum_speed)
+                    * GRID_RESOLUTION * GRID_RESOLUTION)) {
                     last_primitive_ptr = current.ptr;
                     if (last_primitive_ptr != NULL)
                         target_offset = last_primitive_ptr->
@@ -226,7 +227,7 @@ namespace TiEV {
 
     bool PathPlanner::hybrid_astar_planner::is_time_out() {
 #ifdef NO_TIME_LIMIT
-        return (++iterations) >= 100000;
+        return (++iterations) && false;
 #endif
         constexpr int mod = (1 << 10) - 1;
         if (!((++iterations) & mod)) {
@@ -253,13 +254,11 @@ namespace TiEV {
         if (is_backward_enabled && backward_allowed)
             provider = new (_provider)
                 hc_reeds_shepp_path_provider(state, target_state,
-                max(max_curvature * GRID_RESOLUTION, fabs(state.curvature)),
-                max_sigma * pow(GRID_RESOLUTION, 2));
+                max(max_curvature, fabs(state.curvature)), max_sigma);
         else
             provider = new (_provider)
                 cc_dubins_path_provider(state, target_state,
-                max(max_curvature * GRID_RESOLUTION, fabs(state.curvature)),
-                max_sigma * pow(GRID_RESOLUTION, 2));
+                max(max_curvature, fabs(state.curvature)), max_sigma);
 #elif defined(USE_DUBINS_ANALYTIC_EXPANSION)
         unsigned char _provider[
             max(sizeof(reeds_shepp_provider),
