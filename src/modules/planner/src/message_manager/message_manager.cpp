@@ -111,6 +111,8 @@ bool MessageManager::getDynamicObjList(DynamicObjList& dynamic_obj_list) {
 #define copy_point(a, b)                                \
   a.x = CAR_CEN_ROW - ((b.y - 1.48) / GRID_RESOLUTION); \
   a.y = CAR_CEN_COL + b.x / GRID_RESOLUTION;
+        copy_point(new_obj.corners[0], obj.corners.p1);
+        copy_point(new_obj.corners[1], obj.corners.p2);
         copy_point(new_obj.corners[2], obj.corners.p3);
         copy_point(new_obj.corners[3], obj.corners.p4);
         /*
