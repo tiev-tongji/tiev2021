@@ -7,10 +7,5 @@ target_include_directories(routing PUBLIC
     ${CMAKE_SOURCE_DIR}/include/routing
 )
 target_link_libraries(routing PUBLIC 
-    pqxx 
-    pq
-    protos 
-    gRPC::grpc++ 
-    gRPC::grpc++_reflection
-    planner_common
+    planner_common routing_service gRPC::grpc++
 )

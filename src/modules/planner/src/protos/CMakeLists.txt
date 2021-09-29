@@ -1,28 +1,32 @@
-cmake_minimum_required(VERSION 3.0.0)
-project(protos)
-
+find_package(Protobuf REQUIRED)
+find_package(gRPC REQUIRED)
+if(GRPC_FOUND)
+    message("-------grpc include dir: ${GRPC_INCLUDE_DIRS}")
+else()
+    message("do not find grpc......")
+endif()
 # 输出文件到源文件目录
 add_custom_command(
-    OUTPUT "${PROJECT_SOURCE_DIR}/routing_service.pb.cc" "${PROJECT_SOURCE_DIR}/routing_service.pb.h" 
-    COMMAND protoc --proto_path=${PROJECT_SOURCE_DIR} --cpp_out=${PROJECT_SOURCE_DIR} routing_service.proto
+    OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/routing_service.pb.cc" "${CMAKE_CURRENT_SOURCE_DIR}/routing_service.pb.h" 
+    COMMAND protoc --proto_path=${CMAKE_CURRENT_SOURCE_DIR} --cpp_out=${CMAKE_CURRENT_SOURCE_DIR} routing_service.proto
     DEPENDS "routing_service.proto"
 )
 
 add_custom_target(
     gen_pb
-    DEPENDS ${PROJECT_SOURCE_DIR}/routing_service.pb.cc
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/routing_service.pb.cc
 )
 
 add_custom_command(
-    OUTPUT "${PROJECT_SOURCE_DIR}/routing_service.grpc.pb.cc" "${PROJECT_SOURCE_DIR}/routing_service.grpc.pb.h" 
-    COMMAND protoc --proto_path=${PROJECT_SOURCE_DIR} --grpc_out=${PROJECT_SOURCE_DIR}
+    OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/routing_service.grpc.pb.cc" "${CMAKE_CURRENT_SOURCE_DIR}/routing_service.grpc.pb.h" 
+    COMMAND protoc --proto_path=${CMAKE_CURRENT_SOURCE_DIR} --grpc_out=${CMAKE_CURRENT_SOURCE_DIR}
     --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` routing_service.proto
     DEPENDS "routing_service.proto"
 )
 
 add_custom_target(
     gen_pb_grpc
-    DEPENDS ${PROJECT_SOURCE_DIR}/routing_service.grpc.pb.cc
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/routing_service.grpc.pb.cc
 )
 
 add_custom_target(gen_all)
@@ -31,14 +35,16 @@ add_dependencies(gen_all
 )
 
 # 打包成一个库
-add_library(protos
-    ${PROJECT_SOURCE_DIR}/routing_service.pb.cc
-    ${PROJECT_SOURCE_DIR}/routing_service.grpc.pb.cc
+add_library(routing_service
+    ${CMAKE_CURRENT_SOURCE_DIR}/routing_service.pb.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/routing_service.grpc.pb.cc
 )
 
-add_dependencies(protos gen_all)
+add_dependencies(routing_service gen_all)
 
-target_include_directories(protos
+target_include_directories(routing_service
     PUBLIC
-    ${PROJECT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+target_include_directories(routing_service PRIVATE ${GRPC_INCLUDE_DIRS})
