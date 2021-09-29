@@ -1,0 +1,89 @@
+{
+	"comment": "town05_reverse",
+	"roadmap_file": "/home/autolab/ref-road-tiev2020/ramp_on_02_0305.txt",
+	"rs_distance_table_path": "/home/autolab/tiev2020-code/src/cfg/reeds_shepp_distance_table",
+	"dubins_distance_table_path": "/home/autolab/tiev2020-code/src/cfg/dubins_distance_table",
+	"enable_routing_by_file": 0,
+	"#enable_routing_by_file": {
+		"0": "disable routing by roadmap_file, and routing will request routing-server on internet",
+		"1": "enable routing by roadmap_file in car"
+	},
+	"control_mode": 0,
+	"#control_mode_annotation": {
+		"PlanningWithMapMode": 0,
+		"TrackingWithMapMode": 1,
+		"PlanningWithDebugMode": 2,
+		"TrackingWithDebugMode": 3
+	},
+	"debug_speed_mode": 6,
+	"recommended_speeds": {
+		"BACK": -3,
+		"STOP": 0,
+		"VERYLOW": 8,
+		"LOW": 15,
+		"MID": 30,
+		"HIGH": 30,
+		"VERYHIGH": 80
+	},
+	"max_acceleration": 1.0,
+	"max_deceleration": -1.0,
+	"start_time": 2605922200000000,
+	"targets_num_limit": 5,
+	"plan_time_limit_ms": 50,
+	"car_away_limit_meter": 1.0,
+	"steering_ability_factor": 0.6,
+	"collision_detection_radius_meter": 1.5,
+	"collision_detection_axis_length_meter": 1.0,
+	"maintained_length_factor": 1.8,
+	"a_star_extention_step_meter": 0.2,
+	"a_star_analytic_expansion_param_k": 40,
+	"a_star_analytic_expansion_param_t": 50,
+	"a_star_analytic_expansion_max_N": 30,
+	"a_star_curvature_changed_punishment": 1,
+	"routing": {
+		"host": "106.75.246.176",
+		"port": "50051",
+		"dbname": "simu",
+		"user": "postgres",
+		"password": "routing2020",
+		"topo_name": "topo_map",
+		"output": "/tmp/shortest_road.csv"
+	},
+	"parking_task": {
+		"utm_x": 329684.1082765,
+		"utm_y": 3462152.7643637,
+		"heading": -1.5446923,
+		"lat": 31.2812457,
+		"lon": 121.2108155,
+		"task_points": [
+			{
+				"utm_x": 329684.1082765,
+				"utm_y": 3462152.7643637,
+				"heading": -1.5446923,
+				"lat": 31.2812457,
+				"lon": 121.2108155
+			}
+		]
+	},
+	"tasks": [
+		{
+			"task": {
+				"utm_x": 329854.1061021,
+				"utm_y": 3462161.9401755,
+				"heading": 1.5591039,
+				"lat": 31.2813533,
+				"lon": 121.2125990,
+				"on": 1
+			},
+			"task_points": [
+				{
+					"utm_x": 329854.1061021,
+					"utm_y": 3462161.9401755,
+					"heading": 1.5591039,
+					"lat": 31.2813533,
+					"lon": 121.2125990
+				}
+			]
+		}
+	]
+}

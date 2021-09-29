@@ -1,3 +1,4 @@
+find_package(gRPC CONFIG REQUIRED)
 add_library(routing STATIC "")
 target_sources(routing PRIVATE
     Routing.cpp
@@ -8,5 +9,8 @@ target_include_directories(routing PUBLIC
 target_link_libraries(routing PUBLIC 
     pqxx 
     pq
+    protos 
+    gRPC::grpc++ 
+    gRPC::grpc++_reflection
     planner_common
 )

@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <ctime>
 
 namespace TiEV {
 
@@ -11,6 +12,8 @@ bool GriddedPathTimeGraph::Search(SpeedData* speed_data) {
     /**
      * In the situation below, the vehicle can't move at the very beginning
      */
+    clock_t start_t, end_t;
+
     for(const auto& boundary : st_data_.st_boundaries()) {
         if(boundary.IsPointInBoundary({ 0.0, 0.0 }) || (std::fabs(boundary.min_t()) < kBoundaryEpsilon && std::fabs(boundary.min_s()) < kBoundaryEpsilon)) {
             std::vector<SpeedPoint> speed_profile;
@@ -28,16 +31,21 @@ bool GriddedPathTimeGraph::Search(SpeedData* speed_data) {
         }
     }
 
+    
     if(!InitCostTable()) {
         std::cout << "Initialize cost table failed." << std::endl;
         return false;
     }
+    
 
+   
     if(!CalculateTotalCost()) {
         std::cout << "Calculate total cost failed." << std::endl;
         return false;
     }
 
+
+    
     if(!RetrieveSpeedProfile(speed_data)) {
         std::cout << "Retrieve best speed profile failed." << std::endl;
         std::vector<SpeedPoint> speed_profile;
@@ -53,6 +61,7 @@ bool GriddedPathTimeGraph::Search(SpeedData* speed_data) {
         }
         *speed_data = SpeedData(speed_profile);
     }
+    
 
     // Classify st boundaries based on speed profile
     for(auto& boundary : st_data_.st_boundaries()) {

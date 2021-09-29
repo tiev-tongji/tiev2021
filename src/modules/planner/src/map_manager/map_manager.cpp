@@ -129,6 +129,12 @@ void MapManager::popCurrentTask() {
   task_points_mutex.unlock();
 }
 
+void MapManager::pushCurrentTask(const Task& next_task){
+  task_points_mutex.lock_shared();
+  this->map.current_task_points.push_back(next_task);
+  task_points_mutex.unlock_shared();
+}
+
 void MapManager::clearTask() {
   task_points_mutex.lock();
   this->map.current_task_points.clear();
@@ -637,7 +643,7 @@ void MapManager::handleLidarMap() {
         continue;
       }
       map.static_lidar_map[r][c] = map.lidar.map[r][c];
-      if (map.lidar.map[r][c] & 04) continue;
+      if (map.lidar.map[r][c] & 0x04) continue;
       map.lidar_map[r][c] = map.lidar.map[r][c];
       if (map.lidar_map[r][c] != 0) {
         map.lidar_dis_map[r][c] = 0;

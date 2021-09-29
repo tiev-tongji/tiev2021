@@ -1,3 +1,4 @@
+add_subdirectory(protos)
 add_subdirectory(planner_common)
 add_subdirectory(message_manager)
 add_subdirectory(map_manager)

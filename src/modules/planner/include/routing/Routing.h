@@ -6,12 +6,20 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <memory>
+
+#include <grpcpp/grpcpp.h>
+#include "routing_service.grpc.pb.h"
 
 /***********
  * 一次规划
 ***********/
 
 namespace TiEV {
+using grpc::ClientContext;
+using grpc::ClientWriter;
+using google::protobuf::Empty;
+using routing_service::CarInfo;
 static mutex routing_mtx;
 class Routing {
 public:
@@ -45,6 +53,10 @@ public:
      */
     int findReferenceRoad(std::vector<HDMapPoint>& global_path, const std::vector<Task>& task_points, bool blockeds = false);
 
+    // 将车辆信息发送至服务器
+    void updateInfoToServer();
+    // 获取下一个任务点
+    Task waitForNextTask();
 private:
     Routing();
     ~Routing();
@@ -57,6 +69,15 @@ private:
     std::string output;
     std::string connect_sql;
     std::string topo_name;
+
+    //gRPC stubs for client
+    std::unique_ptr<routing_service::RoutingService::Stub> stub;
+    std::unique_ptr<routing_service::MapService::Stub> map_stub;
+
+    //arguments for update car info
+    ClientContext writer_context;
+    Empty writer_empty;
+    std::unique_ptr<ClientWriter<CarInfo>> writer;
 
     //将输入的task points转为sql array语句
     void Array2Str(const std::vector<Task>& task_points, std::string& array_x_str, std::string& array_y_str);

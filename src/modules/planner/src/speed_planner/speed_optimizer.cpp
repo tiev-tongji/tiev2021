@@ -1,6 +1,7 @@
 #include "speed_optimizer.h"
 #include <fstream>
 #include <iostream>
+#include <ctime>
 
 namespace TiEV {
 
@@ -67,10 +68,16 @@ bool SpeedOptimizer::QP_Process() {
 }
 
 bool SpeedOptimizer::Process(SpeedPath& speed_path) {
+    clock_t start_t, end_t;
+    start_t = clock();
     if(!DP_Process()) {
         return false;
     }
-    
+    end_t = clock();
+
+    std::cout << "SpeedTime: dp time cost=" << static_cast<double>(end_t - start_t) / CLOCKS_PER_SEC << std::endl;
+
+    start_t = clock();
     if(trajectory_.back().s > 5.0 && QP_Process() && qp_speed_optimizer_.RetrieveSpeedData(spline_speed_data_)) {
         speed_path.qp_success = true;
         speed_path.splines    = splines();
@@ -106,6 +113,8 @@ bool SpeedOptimizer::Process(SpeedPath& speed_path) {
             }
         }
     }
+    end_t = clock();
+    std::cout << "SpeedTime: qp time cost=" << static_cast<double>(end_t - start_t) / CLOCKS_PER_SEC << std::endl;
 
     for(auto& point : trajectory_) {
         point.v = spline_speed_data_.GetVelocityByS(point.s);

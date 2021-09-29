@@ -26,7 +26,12 @@ void TemporaryStop::update(FullControl& control) {
     vector<HDMapPoint> tmp_global_path;
     task_list.push_back(current_pos);
     Routing* routing = Routing::getInstance();
-
+    if(Config::getInstance()->taxi_mode){
+        // 获取任务
+        Task next = routing->waitForNextTask();
+        map_manager->pushCurrentTask(next);
+        current_tasks = map_manager->getCurrentTasks();
+    }
     if(current_tasks.empty())
         flag_parking = true;
     else if(!current_tasks.back().on_or_off && current_tasks.size() > 1) {

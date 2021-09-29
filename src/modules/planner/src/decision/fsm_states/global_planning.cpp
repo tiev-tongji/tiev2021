@@ -2,6 +2,7 @@
 #include <iostream>
 #include "map_manager.h"
 #include "tiev_fsm.h"
+#include "Routing.h"
 namespace TiEV {
 using namespace std;
 
@@ -11,6 +12,15 @@ void GlobalPlanning::enter(Control& control) {
 
 void GlobalPlanning::update(FullControl& control) {
   MapManager* map_manager = MapManager::getInstance();
+  if(Config::getInstance()->taxi_mode){
+    // 获取任务
+    Routing* routing = Routing::getInstance();
+    routing->updateInfoToServer();
+    if(map_manager->getCurrentTasks().size() == 0){
+      Task next = routing->waitForNextTask();
+      map_manager->pushCurrentTask(next);
+    }
+  }
   // cout << "Global Planning update..." << endl;
   usleep(20 * 1000);
   // for test
