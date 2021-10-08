@@ -1,5 +1,7 @@
 #include <unistd.h>
+
 #include <thread>
+
 #include "decision.h"
 #include "message_manager.h"
 

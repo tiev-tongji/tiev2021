@@ -1,6 +1,6 @@
 {
 	"comment": "town05_forward",
-	"roadmap_file": "/home/autolab/carla_path/carla_path_2.txt",
+	"roadmap_file": "/home/autolab/carla_path/Town03_original.txt",
 	"rs_distance_table_path": "/home/autolab/tiev2020-code/src/cfg/reeds_shepp_distance_table",
 	"dubins_distance_table_path": "/home/autolab/tiev2020-code/src/cfg/dubins_distance_table",
 	"enable_routing_by_file": 1,
@@ -30,7 +30,7 @@
 	"max_deceleration": -1.0,
 	"start_time": 2605922200000000,
 	"targets_num_limit": 5,
-	"plan_time_limit_ms": 50,
+	"plan_time_limit_ms": 150,
 	"car_away_limit_meter": 1.0,
 	"steering_ability_factor": 0.6,
 	"collision_detection_radius_meter": 1.5,
@@ -44,45 +44,45 @@
 	"routing": {
 		"host": "106.75.246.176",
 		"port": "50051",
-		"dbname": "simu",
+		"dbname": "simu_add1",
 		"user": "postgres",
 		"password": "routing2020",
 		"topo_name": "topo_map",
 		"output": "/tmp/shortest_road.csv"
 	},
 	"parking_task": {
-		"utm_x": 329701.0384218,
-		"utm_y": 3462171.9256148,
-		"heading": 1.6178927,
-		"lat": 31.28142099,
-		"lon": 121.2109900,
+		"utm_x": 329862.90235157927964,
+		"utm_y": 3462205.13100242521614,
+		"heading": 3.12,
+		"lat": 31.28174411615805,
+		"lon": 121.21268407990375,
 		"task_points": [
 			{
-				"utm_x": 329701.0384218,
-				"utm_y": 3462171.9256148,
-				"heading": 1.6178927,
-				"lat": 31.28142099,
-				"lon": 121.2109900
+				"utm_x": 329862.90235157927964,
+				"utm_y": 3462205.13100242521614,
+				"heading": 3.12,
+				"lat": 31.28174411615805,
+				"lon": 121.212684079903754
 			}
 		]
 	},
 	"tasks": [
 		{
 			"task": {
-				"utm_x": 329843.3735868,
-				"utm_y": 3462149.3868498,
-				"heading": -1.5356714,
-				"lat": 31.2812385,
-				"lon": 121.2124884,
-				"on": 1
+				"utm_x": 329951.50502034148667,
+				"utm_y": 3462134.92141485121101,
+				"heading": 0,
+				"lat": 31.28112387964008,
+				"lon": 121.21362641959773,
+				"on": 0
 			},
 			"task_points": [
 				{
-					"utm_x": 329843.3735868,
-					"utm_y": 3462149.3868498,
-					"heading": -1.5356714,
-					"lat": 31.2812385,
-					"lon": 121.2124884
+					"utm_x": 329862.90235157927964,
+					"utm_y": 3462205.13100242521614,
+					"heading": 3.12,
+					"lat": 31.28174411615805,
+					"lon": 121.212684079903754
 				}
 			]
 		}
@@ -90,20 +90,20 @@
 	"tasks1": [
 		{
 			"task": {
-				"utm_x": 329810.5392505,
-				"utm_y": 3462113.0966963,
-				"heading": -3.1360442,
-				"lat": 31.2809064,
-				"lon": 121.2121498,
-				"on": 0
+				"utm_x": 329862.90235157927964,
+				"utm_y": 3462205.13100242521614,
+				"heading": 1.56732511520386,
+				"lat": 31.28174411615805,
+				"lon": 121.21268407990375,
+				"on": 1
 			},
 			"task_points": [
 				{
-					"utm_x": 329810.5392505,
-					"utm_y": 3462113.0966963,
-					"heading": -3.1360442,
-					"lat": 31.2809064,
-					"lon": 121.2121498
+					"utm_x": 329862.90235157927964,
+					"utm_y": 3462205.13100242521614,
+					"heading": 1.56732511520386,
+					"lat": 31.28174411615805,
+					"lon": 121.21268407990375
 				}
 			]
 		}

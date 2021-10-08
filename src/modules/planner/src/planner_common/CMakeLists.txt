@@ -6,6 +6,7 @@ target_sources(planner_common PRIVATE
     collision_check.cpp
     config.cpp
     tiev_utils.cpp
+    tievlog.cpp
 )
 
 target_include_directories(planner_common PUBLIC 
