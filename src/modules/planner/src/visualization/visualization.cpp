@@ -1,5 +1,7 @@
 #include "visualization.h"
+
 #include <iostream>
+
 #include "config.h"
 #include "const.h"
 
@@ -22,36 +24,36 @@ void Visualization::init() {
   main_window = cv::Mat(900, 1100, CV_8UC3, TiEV_BLACK);
 
   speed_view_main_window = main_window(cv::Rect(0, 100, 520, 520));
-  text_main_window = main_window(cv::Rect(0, 620, 1100, 280));
-  planner_main_window = main_window(cv::Rect(520, 0, 580, 620));
+  text_main_window       = main_window(cv::Rect(0, 620, 1100, 280));
+  planner_main_window    = main_window(cv::Rect(520, 0, 580, 620));
 
-  text_window = cv::Mat(380, 1100, CV_8UC3, TiEV_BLACK);
+  text_window       = cv::Mat(380, 1100, CV_8UC3, TiEV_BLACK);
   speed_view_window = cv::Mat(520, 520, CV_8UC3, TiEV_BLACK);
-  planner_window = cv::Mat(620, 580, CV_8UC3, TiEV_BLACK);
+  planner_window    = cv::Mat(620, 580, CV_8UC3, TiEV_BLACK);
 
   // cv::putText(planner_window, "Perception", cv::Point(85, 80),
   // cv::FONT_HERSHEY_SIMPLEX, 0.7, TiEV_BLUE, 2); cv::putText(planner_window,
   // "Planning", cv::Point(390, 80), cv::FONT_HERSHEY_SIMPLEX, 0.7, TiEV_BLUE,
   // 2);
 
-  init_text_window = cv::Mat(280, 1100, CV_8UC3, TiEV_BLACK);
+  init_text_window       = cv::Mat(280, 1100, CV_8UC3, TiEV_BLACK);
   init_speed_view_window = cv::Mat(520, 520, CV_8UC3, TiEV_BLACK);
-  init_planner_window = cv::Mat(MAX_ROW, MAX_COL, CV_8UC3, TiEV_BLUE);
+  init_planner_window    = cv::Mat(MAX_ROW, MAX_COL, CV_8UC3, TiEV_BLUE);
 
-  int font_style = cv::FONT_HERSHEY_SIMPLEX;
-  double font_size = 1;
+  int    font_style = cv::FONT_HERSHEY_SIMPLEX;
+  double font_size  = 1;
   cv::putText(init_planner_window, "No Data!", cv::Point(55, 250), font_style,
               font_size, TiEV_BLACK, 2);
   cv::putText(init_speed_view_window, "No Data!", cv::Point(200, 350),
               font_style, font_size, TiEV_BLUE, 2);
 
-  planner_map_left = planner_window(cv::Rect(20, 100, MAX_COL, MAX_ROW));
+  planner_map_left  = planner_window(cv::Rect(20, 100, MAX_COL, MAX_ROW));
   planner_map_right = planner_window(cv::Rect(311, 100, MAX_COL, MAX_ROW));
-  auto_rect = cv::Mat(80, 80, CV_8UC3, TiEV_BLACK);
+  auto_rect         = cv::Mat(80, 80, CV_8UC3, TiEV_BLACK);
   auto_window =
       planner_window(cv::Rect(10, 10, auto_rect.cols, auto_rect.rows));
-  traffic_light_rect = cv::Mat(60, 60, CV_8UC3, TiEV_BLACK);
-  traffic_light_window = planner_window(cv::Rect(
+  traffic_light_rect        = cv::Mat(60, 60, CV_8UC3, TiEV_BLACK);
+  traffic_light_window      = planner_window(cv::Rect(
       190, 20, 3 * traffic_light_rect.cols + 20, traffic_light_rect.rows));
   left_traffic_light_window = traffic_light_window(
       cv::Rect(0, 0, traffic_light_rect.cols, traffic_light_rect.rows));
@@ -65,8 +67,8 @@ void Visualization::init() {
   TiEV_car = cv::Mat(20, 9, CV_8UC3, TiEV_BLACK);
 
   cv::Mat car_img = cv::imread(TiEV_car_jpg_path);
-  auto_start = cv::imread(TiEV_cfg_pics_path + "auto_start.jpg");
-  auto_end = cv::imread(TiEV_cfg_pics_path + "auto_end.jpg");
+  auto_start      = cv::imread(TiEV_cfg_pics_path + "auto_start.jpg");
+  auto_end        = cv::imread(TiEV_cfg_pics_path + "auto_end.jpg");
   traffic_light_gray_straight =
       cv::imread(TiEV_traffic_light_path + "gray_straight.png");
   traffic_light_gray_left =
@@ -163,7 +165,7 @@ void Visualization::init() {
 void Visualization::visualize() {
   cv::namedWindow("TiEV", cv::WINDOW_KEEPRATIO | cv::WINDOW_GUI_NORMAL);
   cv::resizeWindow("TiEV", 1100, 900);
-  int key = -1;
+  int                 key = -1;
   structREMOTECONTROL remote_control;
   remote_control.enabled = 0x00;
   while (!TiEV_Stop) {
@@ -175,7 +177,7 @@ void Visualization::visualize() {
     cv::imshow("TiEV", main_window);
     key = cv::waitKey(50);
     if ('q' == key) {
-      TiEV_Stop = true;
+      TiEV_Stop              = true;
       remote_control.enabled = 0x00;
     } else if (27 == key)
       remote_control.enabled = 0x00;
@@ -236,21 +238,21 @@ void Visualization::draw_speed_window() {
   cv::arrowedLine(speed_view_window, cv::Point(20, 500), cv::Point(520, 500),
                   TiEV_BLUE, 1, 8, 0, 0.02);
   for (int i = 1; i < 10; i++) {
-    double time = 0.5 * i;
+    double time     = 0.5 * i;
     string time_str = to_string(time);
-    size_t pos = time_str.find(".");
+    size_t pos      = time_str.find(".");
     if (pos != string::npos && time_str.length() - pos > 2) {
       time_str.erase(pos + 2, time_str.length());
     }
-    int s = i * 10;
+    int       s = i * 10;
     cv::Point time_ori;
     cv::Point s_ori;
-    time_ori.x = i * 50;
-    time_ori.y = 515;
-    s_ori.x = 0;
-    s_ori.y = 500 - i * 50;
-    int font_style = cv::FONT_HERSHEY_SIMPLEX;
-    double font_size = 0.4;
+    time_ori.x        = i * 50;
+    time_ori.y        = 515;
+    s_ori.x           = 0;
+    s_ori.y           = 500 - i * 50;
+    int    font_style = cv::FONT_HERSHEY_SIMPLEX;
+    double font_size  = 0.4;
     cv::putText(speed_view_window, time_str, time_ori, font_style, font_size,
                 TiEV_BLUE);
     cv::putText(speed_view_window, to_string(s), s_ori, font_style, font_size,
@@ -261,8 +263,8 @@ void Visualization::draw_speed_window() {
 }
 
 void Visualization::draw_text_window() {
-  int font_style = cv::FONT_HERSHEY_SIMPLEX;
-  double font_size = 0.7;
+  int    font_style = cv::FONT_HERSHEY_SIMPLEX;
+  double font_size  = 0.7;
   cv::putText(text_window, "---NAV INFO---", cv::Point(2, 20), font_style, 0.7,
               TiEV_WHITE, 2);
   cv::putText(text_window, "---PERCEPTION INFO---", cv::Point(400, 20),
@@ -271,7 +273,7 @@ void Visualization::draw_text_window() {
               0.7, TiEV_WHITE, 2);
   text_mtx.lock();
   map<string, string>::iterator it;
-  int i = 0;
+  int                           i = 0;
   for (it = nav_info.begin(); it != nav_info.end(); ++it, i++) {
     string dp;
     dp.append(it->first);
@@ -410,7 +412,7 @@ bool Visualization::drawTrafficLight() {
 
 // 绘制Decision相关信息
 void Visualization::drawPathPlanner() {
-  time_t current_time = getTimeStamp();
+  time_t  current_time = getTimeStamp();
   cv::Mat left_map(MAX_ROW, MAX_COL, CV_8UC3, TiEV_BLACK);
   cv::Mat right_map(MAX_ROW, MAX_COL, CV_8UC3, TiEV_BLACK);
   // 雷达地图
@@ -420,7 +422,7 @@ void Visualization::drawPathPlanner() {
   // 停车库位
   bool parking_spot = drawParkingLots(left_map, right_map, 0);
   // 视觉车道线
-  bool lanes = drawLanes(left_map, right_map, 0);
+  bool lanes     = drawLanes(left_map, right_map, 0);
   bool visualize = false;
   if (current_time - inner_handler.update_time_visualization <
       VISUALIZATION_TIMEOUT_US) {
@@ -488,7 +490,7 @@ bool Visualization::drawLidarMap(cv::Mat& left_map, cv::Mat& right_map,
           else if (opt == 1)
             *right_map.ptr<cv::Vec3b>(r, c) = VEC_OBS_COLOR;
           else {
-            *left_map.ptr<cv::Vec3b>(r, c) = VEC_OBS_COLOR;
+            *left_map.ptr<cv::Vec3b>(r, c)  = VEC_OBS_COLOR;
             *right_map.ptr<cv::Vec3b>(r, c) = VEC_OBS_COLOR;
           }
         }
@@ -514,7 +516,7 @@ bool Visualization::drawSafeMap(cv::Mat& left_map, cv::Mat& right_map,
         else if (opt == 1)
           *right_map.ptr<cv::Vec3b>(r, c) = VEC_OBS_COLOR;
         else {
-          *left_map.ptr<cv::Vec3b>(r, c) = VEC_OBS_COLOR;
+          *left_map.ptr<cv::Vec3b>(r, c)  = VEC_OBS_COLOR;
           *right_map.ptr<cv::Vec3b>(r, c) = VEC_OBS_COLOR;
         }
       }
@@ -537,7 +539,7 @@ bool Visualization::drawUsedMap(cv::Mat& left_map, cv::Mat& right_map,
         else if (opt == 1)
           *right_map.ptr<cv::Vec3b>(r, c) = USED_COLOR;
         else {
-          *left_map.ptr<cv::Vec3b>(r, c) = USED_COLOR;
+          *left_map.ptr<cv::Vec3b>(r, c)  = USED_COLOR;
           *right_map.ptr<cv::Vec3b>(r, c) = USED_COLOR;
         }
       }
@@ -781,7 +783,7 @@ bool Visualization::drawReferencePath(cv::Mat& left_map, cv::Mat& right_map,
     else if (opt == 1)
       *right_map.ptr<cv::Vec3b>(x, y) = VEC_REFER_PATH_COLOR;
     else {
-      *left_map.ptr<cv::Vec3b>(x, y) = VEC_REFER_PATH_COLOR;
+      *left_map.ptr<cv::Vec3b>(x, y)  = VEC_REFER_PATH_COLOR;
       *right_map.ptr<cv::Vec3b>(x, y) = VEC_REFER_PATH_COLOR;
     }
   }
@@ -802,7 +804,7 @@ bool Visualization::drawBestPath(cv::Mat& left_map, cv::Mat& right_map,
     else if (opt == 1)
       *right_map.ptr<cv::Vec3b>(x, y) = VEC_BEST_PATH_COLOR;
     else {
-      *left_map.ptr<cv::Vec3b>(x, y) = VEC_BEST_PATH_COLOR;
+      *left_map.ptr<cv::Vec3b>(x, y)  = VEC_BEST_PATH_COLOR;
       *right_map.ptr<cv::Vec3b>(x, y) = VEC_BEST_PATH_COLOR;
     }
   }
@@ -842,7 +844,7 @@ bool Visualization::drawMaintainedPath(cv::Mat& left_map, cv::Mat& right_map,
     else if (opt == 1)
       *right_map.ptr<cv::Vec3b>(x, y) = VEC_MAINTAINED_PATH_COLOR;
     else {
-      *left_map.ptr<cv::Vec3b>(x, y) = VEC_MAINTAINED_PATH_COLOR;
+      *left_map.ptr<cv::Vec3b>(x, y)  = VEC_MAINTAINED_PATH_COLOR;
       *right_map.ptr<cv::Vec3b>(x, y) = VEC_MAINTAINED_PATH_COLOR;
     }
   }
@@ -885,7 +887,7 @@ bool Visualization::drawPaths(cv::Mat& left_map, cv::Mat& right_map, int opt) {
       else if (opt == 1)
         *right_map.ptr<cv::Vec3b>(x, y) = PATH_COLORS[i];
       else {
-        *left_map.ptr<cv::Vec3b>(x, y) = PATH_COLORS[i];
+        *left_map.ptr<cv::Vec3b>(x, y)  = PATH_COLORS[i];
         *right_map.ptr<cv::Vec3b>(x, y) = PATH_COLORS[i];
       }
     }
@@ -908,7 +910,7 @@ bool Visualization::drawReferenceLanes(cv::Mat& left_map, cv::Mat& right_map,
       else if (opt == 1)
         *right_map.ptr<cv::Vec3b>(x, y) = VEC_HDMAP_LINE_COLOR;
       else {
-        *left_map.ptr<cv::Vec3b>(x, y) = VEC_HDMAP_LINE_COLOR;
+        *left_map.ptr<cv::Vec3b>(x, y)  = VEC_HDMAP_LINE_COLOR;
         *right_map.ptr<cv::Vec3b>(x, y) = VEC_HDMAP_LINE_COLOR;
       }
     }
@@ -948,9 +950,9 @@ bool Visualization::drawQPSpeedCurve(cv::Mat& speed_view_mat) {
         Coefficient(inner_handler.tmp_visualization.qp_speed_curve[i].params);
     for (int t = 0; t < area_size; ++t) {
       double dt = t * 0.01;
-      double s = co.get_value(dt);
-      int r = 500 - s / 0.2;
-      int c = t + i * area_size;
+      double s  = co.get_value(dt);
+      int    r  = 500 - s / 0.2;
+      int    c  = t + i * area_size;
       if (r < 0 || r >= 500 || c < 0 || c >= 500) continue;
       *speed_view_mat.ptr<cv::Vec3b>(r, c) = VEC_TiEV_BLUE;
     }
@@ -963,17 +965,17 @@ bool Visualization::drawSplinesSpeedCurve(cv::Mat& speed_view_mat) {
        i < inner_handler.tmp_visualization.splines_speed_curve.size(); ++i) {
     const auto& spline = inner_handler.tmp_visualization.splines_speed_curve[i];
     SplineLib::cSpline2 s;
-    SplineLib::Vec4f vec1 =
+    SplineLib::Vec4f    vec1 =
         SplineLib::Vec4f(spline.xb.x, spline.xb.y, spline.xb.z, spline.xb.w);
     SplineLib::Vec4f vec2 =
         SplineLib::Vec4f(spline.yb.x, spline.yb.y, spline.yb.z, spline.yb.w);
     s.xb = vec1;
     s.yb = vec2;
     for (int t = 0; t < 50; t++) {
-      double dt = t * 0.01 * 2;
-      Vec2f position = Position(s, dt);
-      int r = 500 - position.y / 0.2;
-      int c = t + i * 50;
+      double dt       = t * 0.01 * 2;
+      Vec2f  position = Position(s, dt);
+      int    r        = 500 - position.y / 0.2;
+      int    c        = t + i * 50;
       if (r < 0 || r >= 500 || c < 0 || c >= 500) continue;
       *speed_view_mat.ptr<cv::Vec3b>(r, c) = VEC_TiEV_BLUE;
     }
@@ -1014,10 +1016,10 @@ void Visualization::publishRemoteControl(
 }
 
 void Visualization::Handler::handleFUSIONMAP(const zcm::ReceiveBuffer* rbuf,
-                                             const std::string& chan,
-                                             const structFUSIONMAP* msg) {
+                                             const std::string&        chan,
+                                             const structFUSIONMAP*    msg) {
   lidar_mtx.lock();
-  tmp_lidar_map = *msg;
+  tmp_lidar_map     = *msg;
   update_time_lidar = getTimeStamp();
   lidar_mtx.unlock();
 }
@@ -1026,61 +1028,61 @@ void Visualization::Handler::handleTRAFFICLIGHT(
     const zcm::ReceiveBuffer* rbuf, const std::string& chan,
     const MsgTrafficLightSignal* msg) {
   traffic_mtx.lock();
-  tmp_traffic = *msg;
+  tmp_traffic               = *msg;
   update_time_traffic_light = getTimeStamp();
   traffic_mtx.unlock();
 }
 
-void Visualization::Handler::handleLANES(const zcm::ReceiveBuffer* rbuf,
-                                         const std::string& chan,
+void Visualization::Handler::handleLANES(const zcm::ReceiveBuffer*    rbuf,
+                                         const std::string&           chan,
                                          const structRoadMarkingList* msg) {
   lane_mtx.lock();
-  tmp_lanes = *msg;
+  tmp_lanes         = *msg;
   update_time_lanes = getTimeStamp();
   lane_mtx.unlock();
 }
 
 void Visualization::Handler::handlePARKINGSLOTS(const zcm::ReceiveBuffer* rbuf,
-                                                const std::string& chan,
+                                                const std::string&        chan,
                                                 const structPARKINGSLOTS* msg) {
   parking_lots_mtx.lock();
-  tmp_slot = *msg;
+  tmp_slot                  = *msg;
   update_time_parking_slots = getTimeStamp();
   parking_lots_mtx.unlock();
 }
 
 void Visualization::Handler::handleOBJECTLIST(const zcm::ReceiveBuffer* rbuf,
-                                              const std::string& chan,
-                                              const structOBJECTLIST* msg) {
+                                              const std::string&        chan,
+                                              const structOBJECTLIST*   msg) {
   objects_mtx.lock();
-  tmp_objects[msg->data_source] = *msg;
+  tmp_objects[msg->data_source]         = *msg;
   update_time_objects[msg->data_source] = getTimeStamp();
   objects_mtx.unlock();
 }
 
 void Visualization::Handler::handleVISUALIZATION(const zcm::ReceiveBuffer* rbuf,
-                                                 const std::string& chan,
+                                                 const std::string&        chan,
                                                  const visVISUALIZATION* msg) {
   visualization_mtx.lock();
-  tmp_visualization = *msg;
+  tmp_visualization         = *msg;
   update_time_visualization = getTimeStamp();
   visualization_mtx.unlock();
 }
 
 void Visualization::Handler::handleSLAMLOC(const zcm::ReceiveBuffer* rbuf,
-                                           const std::string& chan,
-                                           const structSLAMLOC* msg) {
+                                           const std::string&        chan,
+                                           const structSLAMLOC*      msg) {
   slam_loc_mtx.lock();
-  tmp_slam_loc = *msg;
+  tmp_slam_loc         = *msg;
   update_time_slam_loc = getTimeStamp();
   slam_loc_mtx.unlock();
 }
 
 void Visualization::Handler::handleNAVINFO(const zcm::ReceiveBuffer* rbuf,
-                                           const std::string& chan,
-                                           const structNAVINFO* msg) {
+                                           const std::string&        chan,
+                                           const structNAVINFO*      msg) {
   nav_mtx.lock();
-  tmp_nav = *msg;
+  tmp_nav              = *msg;
   update_time_nav_info = getTimeStamp();
   nav_mtx.unlock();
 }
