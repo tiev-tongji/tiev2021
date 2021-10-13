@@ -904,6 +904,7 @@ void MapManager::getLaneLineList() {
 vector<Pose> MapManager::getLaneTargets() {
   vector<Pose> targets;
   for (const auto& line : map.lane_center_list) {
+    /*
     int    targets_id = -1;
     double s          = 0;
     if (line.size() == 0) continue;
@@ -926,27 +927,27 @@ vector<Pose> MapManager::getLaneTargets() {
       targets.push_back(Pose(pp.x, pp.y, ang));
     }
   }
+  */
 
-  // for(int i = line.size() - 1; i >= 0; --i) {
-  //     const Point2d& p = line[i];
-  //     if(point2PointDis(p, map.nav_info.car_pose) < 3 / GRID_RESOLUTION)
-  //         break;
-  //     if(map.accessible_map[int(p.x)][int(p.y)]) {
-  //         double ang = PI;
-  //         if(i - 1 >= 0) {
-  //             const Point2d& pp  = line[i - 1];
-  //             Point2d        vec = p - pp;
-  //             ang                = vec.getRad();
-  //         }
-  //         else if(i + 1 < line.size()) {
-  //             const Point2d& np  = line[i + 1];
-  //             Point2d        vec = np - p;
-  //             ang                = vec.getRad();
-  //         }
-  //         targets.push_back(Pose(p.x, p.y, ang));
-  //         break;
-  //     }
-  // }
+    for (int i = line.size() - 1; i >= 0; --i) {
+      const Point2d& p = line[i];
+      if (point2PointDis(p, map.nav_info.car_pose) < 3 / GRID_RESOLUTION) break;
+      if (map.accessible_map[int(p.x)][int(p.y)]) {
+        double ang = PI;
+        if (i - 1 >= 0) {
+          const Point2d& pp  = line[i - 1];
+          Point2d        vec = p - pp;
+          ang                = vec.getRad();
+        } else if (i + 1 < line.size()) {
+          const Point2d& np  = line[i + 1];
+          Point2d        vec = np - p;
+          ang                = vec.getRad();
+        }
+        targets.push_back(Pose(p.x, p.y, ang));
+        break;
+      }
+    }
+  }
 
   return targets;
 }
@@ -1177,6 +1178,16 @@ void MapManager::getBoundaryLine() {
       if (line[n].type == LineType::UNKNOWN_LINE)
         line[n].type = line[n - 1].type;
     }
+    if (line.size() > 2) {
+      const auto& p_end        = line.back();
+      const auto& p_before_end = line[line.size() - 2];
+      const auto  direction    = (p_end - p_before_end).getDirection();
+      Point2d     extra_p      = p_end + direction * 2;
+      while (extra_p.in_map()) {
+        line.emplace_back(extra_p.x, extra_p.y, p_end.type);
+        extra_p = extra_p + direction * 2;
+      }
+    }
   }
 }
 
@@ -1239,19 +1250,6 @@ vector<Pose> MapManager::getStartMaintainedPath() {
   maintained_path_mutex.unlock_shared();
   if (path.empty()) return path;
   double maintained_s = 2 * map.nav_info.current_speed;
-  // maintain point is selected according to the
-  // delta theta between target point and itself
-  double ang_end     = path.back().ang;
-  double delta_theta = 0;
-  double delta_s     = 0;
-  for (auto& p : path) {
-    delta_theta = fabs(p.ang - ang_end);
-    if (delta_theta < M_PI / 3) {
-      delta_s = fabs(p.s - path.front().s);
-      break;
-    }
-  }
-  maintained_s = max(maintained_s, delta_s);
   for (auto& p : path) p.updateLocalCoordinate(map.nav_info.car_pose);
   int          shortest_index = shortestPointIndex(map.nav_info.car_pose, path);
   vector<Pose> res;
@@ -1266,8 +1264,11 @@ vector<Pose> MapManager::getStartMaintainedPath() {
       break;
     }
   }
-  if (!res.empty() && point2PointSqrDis(res.front(), map.nav_info.car_pose) > 5)
+  if (res.size() <= 2 ||
+      (!res.empty() &&
+       point2PointSqrDis(res.front(), map.nav_info.car_pose) > 5)) {
     res.clear();
+  }
   return res;
 }
 
@@ -1449,7 +1450,7 @@ void MapManager::predictDynamicObsInMap() {
   }
 }
 
-void MapManager::maintainPath(NavInfo& nav_info, vector<Pose>& path) {
+void MapManager::maintainPath(const NavInfo& nav_info, vector<Pose>& path) {
   if (path.empty()) return;
   maintained_path_mutex.lock();
   maintained_path.clear();

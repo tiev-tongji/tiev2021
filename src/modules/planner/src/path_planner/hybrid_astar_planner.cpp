@@ -1,9 +1,16 @@
+#include <unistd.h>
+
 #include <random>
 
 #include "log.h"
 #include "look_up_tables/dubins_table/dubins.h"
 #include "math.h"
+#include "opencv2/opencv.hpp"
 #include "path_planner.h"
+#include "tievlog.h"
+
+// #define NO_TIME_LIMIT
+// #define VIS_EXPANSION
 
 namespace TiEV {
 
@@ -16,10 +23,27 @@ PathPlanner::analytic_expansion_callback analytic_expanded;
 #endif
 
 void PathPlanner::hybrid_astar_planner::plan(
-    const astate& _start_state, const astate& _target_state,
-    double _start_speed_m_s, bool        _is_backward_enabled,
-    double (*_safe_map)[MAX_COL], time_t _max_duration,
+    const std::vector<HDMapPoint>& ref_path, const astate& _start_state,
+    const astate& _target_state, double _start_speed_m_s,
+    bool _is_backward_enabled, double (*_abs_safe_map)[MAX_COL],
+    double (*_lane_safe_map)[MAX_COL], time_t _max_duration,
     const base_primitive_set* _base_primitives) {
+  // LOG(WARNING) << "running hybrid astar...";
+#ifdef VIS_EXPANSION
+  cv::namedWindow("expansion", cv::WINDOW_KEEPRATIO);
+  cv::Mat expansion_img = cv::Mat(MAX_ROW, MAX_COL, CV_8UC3, {255, 255, 255});
+  for (int r = 0; r < MAX_ROW; ++r) {
+    for (int c = 0; c < MAX_COL; ++c) {
+      if (_lane_safe_map[r][c] == 0) {
+        expansion_img.at<cv::Vec3b>(r, c) = cv::Vec3b(0, 0, 0);
+      }
+    }
+  }
+  for (const auto& p : ref_path) {
+    expansion_img.at<cv::Vec3b>(lround(p.x), lround(p.y)) =
+        cv::Vec3b(0, 255, 0);
+  }
+#endif
   have_result     = false;
   start_time      = getTimeStamp();
   dead_line       = start_time + _max_duration;
@@ -32,14 +56,22 @@ void PathPlanner::hybrid_astar_planner::plan(
   _is_backward_enabled |= start_state.is_backward;
   is_backward_enabled = _is_backward_enabled;
 
-  memset(node_history_map, 0, sizeof(node_history_map));
+  memset(node_visited_map, false, sizeof(node_visited_map));
   result.clear();
   analytic_expansion_result.clear();
   primitive_pool.clear();
 
   // clear node_pool
   while (!node_pool.empty()) node_pool.pop();
-  planning_map.prepare(target_state, _safe_map, is_backward_enabled);
+  planning_map.prepare(ref_path, target_state, _abs_safe_map, _lane_safe_map,
+                       is_backward_enabled);
+  // LOG(WARNING) << "start:" << start_state << " target:" << target_state;
+#ifdef VIS_EXPANSION
+  cv::circle(expansion_img, cv::Point(int(start_state.y), int(start_state.x)),
+             3, cv::Scalar(0, 255, 0), -1);
+  cv::circle(expansion_img, cv::Point(int(target_state.y), int(target_state.x)),
+             3, cv::Scalar(0, 0, 255), -1);
+#endif
 
   // init random floating point number generator
   std::mt19937 gen(
@@ -63,25 +95,42 @@ void PathPlanner::hybrid_astar_planner::plan(
   int target_offset = -1;
   while (!(is_time_out() || target_reached || node_pool.empty())) {
     // get current node
+    /*
+    LOG(WARNING) << "-----node_pool_start------";
+    std::vector<node> tmp_pool;
+    tmp_pool.reserve(node_pool.size());
+    while (!node_pool.empty()) {
+      tmp_pool.push_back(node_pool.top());
+      node_pool.pop();
+    }
+    for (const auto& n : tmp_pool) {
+      LOG(INFO) << "score = " << n.score << " cost=" << n.cost
+                << " heuristic=" << n.score - n.cost;
+      node_pool.push(n);
+    }
+    LOG(WARNING) << "-----node_pool_end------";
+    //*/
     node current = node_pool.top();
     node_pool.pop();
 
     // get current state
-    astate                               current_state;
-    const vector<const base_primitive*>* bases;
+    astate                      current_state;
+    std::vector<base_primitive> bases;
     // only the first node in the open list has
     // a null current.ptr
-    if (current.ptr == NULL) {
+    if (current.ptr == nullptr) {
       current_state = _start_state;
-      bases         = &base_primitives->get_nexts(current_state);
     } else {
       current_state = current.ptr->get_end_state();
-      bases         = &base_primitives->get_nexts(*current.ptr);
     }
+    bases = base_primitives->get_nexts(current_state);
+    // LOG(WARNING) << "current_state:" << current_state
+    //              << " score=" << current.score;
+    // usleep(100 * 1000);
 
     bool reverse_allowed =
-        is_backward_enabled && (current.minimum_speed == 0.0) &&
-        (current.dis_after_reverse >= MIN_DISTANCE_BETWEEN_REVERSING);
+        is_backward_enabled && (current.minimum_speed == 0.0);
+    //(current.dis_after_reverse >= MIN_DISTANCE_BETWEEN_REVERSING);
     double maximum_curvature_allowed =
         GRID_RESOLUTION * max_curvature_under_velocity(current.minimum_speed);
 
@@ -89,46 +138,59 @@ void PathPlanner::hybrid_astar_planner::plan(
     // perform analytic expansion from it.
     // the probability depends on its heuristic x.
     double x                              = current.score - current.cost;
-    double analytic_expansion_probability = 0;  // 0.2402 * exp(-0.006 * x);
-    // if(iterations == 1
-    //    || random_urd(gen) <= analytic_expansion_probability) {
-    //     if(try_analytic_expansion(
-    //            current_state, reverse_allowed, maximum_curvature_allowed,
-    //            max_sigma_under_velocity(current.minimum_speed)
-    //                * GRID_RESOLUTION * GRID_RESOLUTION)) {
-    //         last_primitive_ptr = current.ptr;
-    //         if(last_primitive_ptr != NULL)
-    //             target_offset = last_primitive_ptr->get_states().size() -
-    //             1;
-    //         target_reached = true;
-    //         break;
-    //     }
+    double analytic_expansion_probability = 0.2402 * exp(-0.006 * x);
+    // if (iterations == -1 || random_urd(gen) <=
+    // analytic_expansion_probability) {
+    //   if (try_analytic_expansion(
+    //           current_state, reverse_allowed, maximum_curvature_allowed,
+    //           max_sigma_under_velocity(current.minimum_speed) *
+    //               GRID_RESOLUTION * GRID_RESOLUTION)) {
+    //     last_primitive_ptr = current.ptr;
+    //     if (last_primitive_ptr != NULL)
+    //       target_offset = last_primitive_ptr->get_states().size() - 1;
+    //     target_reached = true;
+    //     break;
+    //   }
     // }
 
-    // sin and cos values prepared for expansion
-    double trans_sin, trans_cos;
-    sincos(current_state.a, &trans_sin, &trans_cos);
-
-    for (const auto* base : *bases) {
+    for (const auto& base : bases) {
       // if this expansion changes the driving direction
       // (backward/forward)
       bool reversed_expansion =
-          (base->get_states().front().is_backward != current_state.is_backward);
+          (base.get_states().front().is_backward != current_state.is_backward);
       // check if the base primitive is legal now
-      if ((reverse_allowed == false && reversed_expansion) ||
-          (fabs(base->get_maximum_curvature()) > maximum_curvature_allowed))
-        continue;
+      // if ((reverse_allowed == false && reversed_expansion) ||
+      //     (fabs(base.get_maximum_curvature()) > maximum_curvature_allowed))
+      //   continue;
       // create a new primitive from primitive pool expanded from
       // current_state, based on primitive base, and linked to
       // its parent primitive 'current.ptr'
-      primitive& expansion = *(primitive_pool.make(
-          base, current.ptr, current_state, trans_sin, trans_cos));
+      primitive& expansion = *(primitive_pool.make(base, current.ptr));
+      // LOG(INFO) << "expansion size=" << primitive_pool.size();
+      // LOG(INFO) << "is_visited=" << is_visited(expansion.get_end_state());
+#ifdef VIS_EXPANSION
+      // LOG(INFO) << "---expansion k_step="
+      //           << expansion.get_end_state().curvature -
+      //                  expansion.get_start_state().curvature
+      //           << "---";
+      for (const auto& st : expansion.get_states()) {
+        // LOG(INFO) << st;
+        expansion_img.at<cv::Vec3b>(int(st.x), int(st.y))[1] -= 5;
+        expansion_img.at<cv::Vec3b>(int(st.x), int(st.y))[2] -= 5;
+      }
+      cv::imshow("expansion", expansion_img);
+      cv::waitKey();
+#endif
+      // for (const auto& st : expansion.get_states()) {
+      //   LOG(INFO) << st;
+      // }
+      if (is_visited(expansion.get_end_state())) continue;
       // check if primitive crashed
       // is_crashed does not check if the primitive is completely
       // or partly outside the local map. if the primitive is
       // not crashed but partly outside the local map, we still
       // assume that a sampled state on it might reach the target
-      if (!planning_map.is_crashed(expansion)) {
+      if (!planning_map.is_lane_crashed(expansion)) {
         // primitive is not crashed
         astate end_state = expansion.get_end_state();
         // check if primitive is near target
@@ -142,30 +204,23 @@ void PathPlanner::hybrid_astar_planner::plan(
         // if end_state is in the local map, add it to open list
         else if (planning_map.is_in_map(end_state)) {
           // update end_state to history
-          int    end_state_visits = history(end_state)++;
+          visit(end_state);
           double heuristic =
               planning_map.get_heuristic(end_state, reverse_allowed);
           double minimum_speed =
               sqrt(max(0.0,
                        (current.minimum_speed * current.minimum_speed -
-                        2 * base->get_length() *
+                        2 * base.get_length() *
                             (GRID_RESOLUTION *
                              SPEED_DESCENT_FACTOR))));  // v_t = v_0
                                                         // + at =
                                                         // \sqrt{{v_0}^2
                                                         // + 2as}
-          double cost_factor =
-              get_cost_factor(current_state, end_state, end_state_visits);
-          double cost = current.cost + base->get_length() * cost_factor;
+          double cost_factor = get_cost_factor(current_state, end_state);
+          double cost        = current.cost + base.get_length() * cost_factor;
           double dis_after_reverse =
-              base->get_length() +
+              base.get_length() +
               (reversed_expansion ? 0.0 : current.dis_after_reverse);
-#ifdef DEBUG_EXPANSION_CALLBACK
-          if (node_expanded != NULL)
-            node_expanded(end_state.x, end_state.y, end_state.a,
-                          end_state.curvature, end_state.is_backward, heuristic,
-                          cost);
-#endif
           node_pool.push({heuristic + cost, minimum_speed, cost,
                           dis_after_reverse, &expansion});
         }
@@ -217,16 +272,16 @@ PathPlanner::hybrid_astar_planner::get_result() const {
   };
 }
 
-void PathPlanner::hybrid_astar_planner::merge_xya_distance_map(
-    pair<double, double> (*output_map)[MAX_COL]) const {
-  planning_map.merge_xya_distance_map(output_map);
+void PathPlanner::hybrid_astar_planner::visit(const astate& state) {
+  double a       = PathPlanner::wrap_angle_0_2_PI(state.a);
+  int    ang_idx = a / (2 * M_PI / ANGLE_NUM);
+  node_visited_map[lround(2 * state.x)][lround(2 * state.y)][ang_idx] = true;
 }
 
-int& PathPlanner::hybrid_astar_planner::history(const astate& state) {
+bool PathPlanner::hybrid_astar_planner::is_visited(const astate& state) {
   double a       = PathPlanner::wrap_angle_0_2_PI(state.a);
-  int    ang_idx = a / HISTORY_MAP_DELTA_A;
-  return node_history_map[lround(state.x) >> HISTORY_MAP_SHIFT_FACTOR]
-                         [lround(state.y) >> HISTORY_MAP_SHIFT_FACTOR][ang_idx];
+  int    ang_idx = a / (2 * M_PI / ANGLE_NUM);
+  return node_visited_map[lround(2 * state.x)][lround(2 * state.y)][ang_idx];
 }
 
 bool PathPlanner::hybrid_astar_planner::is_time_out() {
@@ -287,7 +342,7 @@ bool PathPlanner::hybrid_astar_planner::try_analytic_expansion(
         aer.emplace_back(sampled_state);
         astate& end_state = aer.back();
         end_state.s += state.s;
-        if (map.is_in_map(end_state) == false || map.is_crashed(end_state))
+        if (map.is_in_map(end_state) == false || map.is_lane_crashed(end_state))
           return false;
         else
           return true;
@@ -312,18 +367,17 @@ bool PathPlanner::hybrid_astar_planner::try_analytic_expansion(
 }
 
 double PathPlanner::hybrid_astar_planner::get_cost_factor(
-    const astate& prev_state, const astate& now_state,
-    int history_visits) const {
+    const astate& prev_state, const astate& now_state) const {
   double result = 1.0;
   // punish backwarding
   if (now_state.is_backward) result *= BACKWARD_COST_FACTOR;
-  // punish large curvature
-  result *= (1.0 + fabs(now_state.curvature) * CURVATURE_PUNISHMENT_FACTOR);
-  // punish large curvature change
-  result *= (1.0 + fabs(now_state.curvature - prev_state.curvature) *
-                       CURVATURE_CHANGE_PUNISHMENT_FACTOR);
-  // punish history visited nodes
-  result *= (1.0 + history_visits * NODE_REVISIT_PUNISHMENT);
+  // // punish large curvature
+  // result *= (1.0 + fabs(now_state.curvature) * CURVATURE_PUNISHMENT_FACTOR);
+  // // punish large curvature change
+  // result *= (1.0 + fabs(now_state.curvature - prev_state.curvature) *
+  //                      CURVATURE_CHANGE_PUNISHMENT_FACTOR);
+  // // punish history visited nodes
+  // result *= (1.0 + history_visits * NODE_REVISIT_PUNISHMENT);
 
   return result;
 }

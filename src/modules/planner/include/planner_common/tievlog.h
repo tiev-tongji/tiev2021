@@ -18,7 +18,7 @@ class TiEVLog {
   LOG_LEVEL            log_level;
 };
 
-#define filename(x) strrchr(x, '/') ? strrchr(x, '/') + 1 : x
-#define LOG(level)  TiEVLog(level).log(level, filename(__FILE__), __LINE__)
+#define filename(path) strrchr(path, '/') ? strrchr(path, '/') + 1 : path
+#define LOG(level)     TiEVLog(level).log(level, filename(__FILE__), __LINE__)
 
 #endif

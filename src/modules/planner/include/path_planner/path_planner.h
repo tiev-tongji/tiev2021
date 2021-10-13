@@ -12,6 +12,7 @@
 #include "config.h"
 #include "const.h"
 #include "message_manager.h"
+#include "planner_common/look_up_tables/distance_table.h"
 #include "pose.h"
 #include "speed_optimizer.h"
 #include "steering_functions/dubins_state_space/dubins_state_space.hpp"
@@ -26,8 +27,7 @@ using namespace std;
 // #define DEBUG_ANALYTIC_EXPANSION_CALLBACK
 #define USE_HC_PATH_ANALYTIC_EXPANSION
 // #define USE_DUBINS_ANALYTIC_EXPANSION
-// #define USE_CLOTHOID_PRIMITIVES
-#define USE_ARC_PRIMITIVES
+#define USE_CLOTHOID_PRIMITIVES
 
 namespace TiEV {
 
@@ -35,25 +35,46 @@ constexpr int MAX_TARGET_NUM = 5;
 
 static mutex path_planner_mtx;
 
+// the length of primitive
+const static double primi_l = 1.0;  // m
+
+const static std::vector<double> k_list      = {-CAR_MAX_K,
+                                           -3.0 / 4.0 * CAR_MAX_K,
+                                           -1.0 / 2.0 * CAR_MAX_K,
+                                           -1.0 / 4.0 * CAR_MAX_K,
+                                           0.0,
+                                           1.0 / 4.0 * CAR_MAX_K,
+                                           1.0 / 2.0 * CAR_MAX_K,
+                                           3.0 / 4.0 * CAR_MAX_K,
+                                           CAR_MAX_K};
+const static std::vector<double> k_step_list = {
+    0.0, -1.0 / 4.0 * CAR_MAX_K, 1.0 / 4.0 * CAR_MAX_K, 1.0 / 2.0 * CAR_MAX_K,
+    -1.0 / 2.0 * CAR_MAX_K};
+
 class PathPlanner {
  public:
   static PathPlanner* getInstance() {
-    path_planner_mtx.lock();
     static PathPlanner inner_instance;
-    path_planner_mtx.unlock();
     return &inner_instance;
   }
 
-  void runPlanner(const DynamicObjList& dynamic_objs, double max_speed,
-                  bool reverse, double abs_safe_map[MAX_ROW][MAX_COL],
-                  double              lane_safe_map[MAX_ROW][MAX_COL],
+  // lookup distance table for rs and dubins curve
+  const DistanceTable* distance_table_rs;
+  const DistanceTable* distance_table_dubins;
+
+  void runPlanner(const std::vector<HDMapPoint>& ref_path,
+                  const DynamicObjList& dynamic_objs, double max_speed,
+                  bool reverse, const double abs_safe_map[MAX_ROW][MAX_COL],
+                  const double        lane_safe_map[MAX_ROW][MAX_COL],
                   const vector<Pose>& start_maintained_path,
                   const vector<Pose>& targets, double current_speed,
                   vector<SpeedPath>& results);
 
-  void setAbsSafeMap(double map[MAX_ROW][MAX_COL]);
+  void setReferencePath(const std::vector<HDMapPoint>& ref_path);
 
-  void setLaneSafeMap(double map[MAX_ROW][MAX_COL]);
+  void setAbsSafeMap(const double map[MAX_ROW][MAX_COL]);
+
+  void setLaneSafeMap(const double map[MAX_ROW][MAX_COL]);
 
   void setStartMaintainedPath(const vector<Pose>& start_maintained_path);
 
@@ -70,8 +91,6 @@ class PathPlanner {
   void plan();
 
   bool getResults(vector<SpeedPath>& results);
-
-  void getDistanceMaps(pair<double, double> (*xya_dis_map)[MAX_COL]) const;
 
 #ifdef DEBUG_EXPANSION_CALLBACK
   typedef void (*node_expansion_callback)(double x, double y, double a,
@@ -101,8 +120,9 @@ class PathPlanner {
   Pose         start_point;
   vector<Pose> targets;
 
+  std::vector<HDMapPoint> ref_path;
+
   // messages
-  double         safe_map[MAX_ROW][MAX_COL];
   double         lane_safe_map[MAX_ROW][MAX_COL];
   double         abs_safe_map[MAX_ROW][MAX_COL];
   DynamicObjList dynamic_obj_list;
@@ -132,31 +152,32 @@ class PathPlanner {
   // AStar
   //-----------------------------------------------------------
   class primitive;
-  /*
-  class primitive_ptr {
-      public:
-          primitive_ptr() : vec(NULL), index(-1) {}
-          primitive_ptr(vector<primitive>* vec, int index)
-              : vec(vec), index(index) {}
-          primitive* operator -> () const { return &(vec->operator[](index));
-  } primitive& operator * () const { return vec->operator[](index); } bool
-  is_null() const { return vec == NULL; } primitive* base() const { return
-  &(vec->operator[](index)); }
-
-      private:
-          vector<primitive>* vec;
-          int index;
-  };
-  */
   typedef primitive* primitive_ptr;
 
   // astate is the inner state used by hybrid astar planner
   class astate {
    public:
-    double x, y, a;
-    double s;
-    double curvature;
-    bool   is_backward;
+    astate() : x(0), y(0), a(0), s(0), curvature(0), is_backward(false){};
+    astate(double x_, double y_, double a_, double s_, double k_,
+           bool is_backward_)
+        : x(x_),
+          y(y_),
+          a(a_),
+          s(s_),
+          curvature(k_),
+          is_backward(is_backward_){};
+    double               x;
+    double               y;
+    double               a;
+    double               s;
+    double               curvature;
+    bool                 is_backward;
+    friend std::ostream& operator<<(std::ostream& out, const astate& state) {
+      out << "astate:{x=" << state.x << " y=" << state.y << " a=" << state.a
+          << " s=" << state.s << " k=" << state.curvature
+          << " b=" << state.is_backward << "}";
+      return out;
+    }
   };
 
   // node of the hybrid astar search contains properties of a node like
@@ -191,15 +212,14 @@ class PathPlanner {
     double get_maximum_curvature() const { return max_curvature; }
     double get_average_curvature() const { return average_curvature; }
     bool   get_is_backward() const { return is_backward; }
-    static constexpr double PRIMITIVE_SAMPLING_STEP = 0.2 / GRID_RESOLUTION;
+    static constexpr double PRIMITIVE_SAMPLING_STEP = GRID_RESOLUTION;
 
    protected:
     static vector<astate> generate_line(double length, bool is_backward);
     static vector<astate> generate_arc(double curvature, double length,
                                        bool is_backward);
     static vector<astate> generate_clothoid(double begin_curvature,
-                                            double end_curvature, double length,
-                                            bool is_backward);
+                                            double k_step, bool is_backward);
 
    private:
     vector<astate> sampled_states;
@@ -225,7 +245,7 @@ class PathPlanner {
 
   class clothoid_base_primitive : public base_primitive {
    public:
-    clothoid_base_primitive(double begin_curvature, double end_curvature,
+    clothoid_base_primitive(double begin_curvature, double k_step,
                             double length, bool is_backward);
     double get_begin_curvature() const { return begin_curvature; }
     double get_end_curvature() const { return end_curvature; }
@@ -241,58 +261,37 @@ class PathPlanner {
   //  possible base primitive successors for each base primitive)
   class base_primitive_set {
    public:
-    virtual const vector<const base_primitive*>& get_nexts(
+    virtual const vector<base_primitive> get_nexts(
         const astate& state) const = 0;
-    virtual const vector<const base_primitive*>& get_nexts(
+    virtual const vector<base_primitive> get_nexts(
         const primitive& primitive) const = 0;
-  };
-
-  class arc_base_primitive_set : public base_primitive_set {
-   public:
-    arc_base_primitive_set();
-    virtual const vector<const base_primitive*>& get_nexts(
-        const astate& state) const;
-    virtual const vector<const base_primitive*>& get_nexts(
-        const primitive& primitive) const;
-
-   private:
-    vector<arc_base_primitive>            primitives;
-    vector<vector<const base_primitive*>> nexts;
+    virtual void prepare(bool backward_enabled){};
   };
 
   class clothoid_base_primitive_set : public base_primitive_set {
    public:
     clothoid_base_primitive_set();
-    void prepare(double current_speed_m_s, bool backward_enabled);
-    virtual const vector<const base_primitive*>& get_nexts(
-        const astate& state) const;
-    virtual const vector<const base_primitive*>& get_nexts(
+    virtual const vector<base_primitive> get_nexts(const astate& state) const;
+    virtual const vector<base_primitive> get_nexts(
         const primitive& primitive) const;
+    virtual void prepare(bool backward_enabled);
 
    private:
-    struct subset_for_speed {
-      double                                current_speed_m_s;
-      bool                                  backward_enabled;
-      vector<clothoid_base_primitive>       primitives;
-      vector<vector<const base_primitive*>> nexts;
+    struct primitives_for_k {
+      double                          current_k;
+      bool                            backward_enabled;
+      vector<clothoid_base_primitive> primitives;
     };
 
-    vector<subset_for_speed> subsets;
-    const subset_for_speed*  current_subset = NULL;
+    vector<primitives_for_k>        all_k_sets;
+    vector<const primitives_for_k*> current_subset;
 
     static void generate_clothoid_base_primitive_set(
-        double max_curvature, double max_sigma, double clothoid_length,
-        bool backward_enabled, vector<clothoid_base_primitive>& out_primitives,
-        vector<vector<const base_primitive*>>& out_nexts);
+        const double begin_k, bool backward_enabled,
+        vector<clothoid_base_primitive>& out_primitives);
   };
 
-#if defined(USE_ARC_PRIMITIVES)
-  arc_base_primitive_set arc_base_primitives;
-#elif defined(USE_CLOTHOID_PRIMITIVES)
   clothoid_base_primitive_set clothoid_base_primitives;
-#else
-#error define at least one flag to set which type of primitives to use
-#endif
 
   // primitive contains properties of a transformed base primitive
   // each expansion generates a primitive object at search time.
@@ -306,30 +305,17 @@ class PathPlanner {
     // other states are automatically transformed at the first time
     // get_states() is called. only call get_states() when u need
     // exactly each internal state sampled and transformed.
-    primitive(const base_primitive* base, const primitive_ptr parent,
-              const astate& start_state, double sin_start_state_a,
-              double cos_start_state_a);
+    primitive(const base_primitive& base, const primitive_ptr parent);
     const vector<astate>& get_states();
     astate                get_start_state() const;
     astate                get_end_state() const;
     double                get_length() const;
-    const base_primitive* get_base() const;
+    const base_primitive& get_base() const;
     const primitive_ptr   get_parent() const;
-    const bool            is_samped() const;
 
    private:
-    const base_primitive* base;
-    const primitive_ptr   parent;
-
-    astate         start_state, end_state;
-    vector<astate> sampled_states;
-    bool           sampled;
-
-    // translations
-    double trans_sin;
-    double trans_cos;
-
-    void trans(astate& src) const;
+    const base_primitive base;
+    const primitive_ptr  parent;
   };
 
   // analytic_expansion_provider provides analytic_expansion
@@ -416,12 +402,16 @@ class PathPlanner {
 
   class local_planning_map {
    public:
-    void prepare(const astate& target, double (*safe_map)[MAX_COL],
-                 bool          is_backward_enabled);
+    void prepare(const std::vector<HDMapPoint>& ref_path, const astate& target,
+                 double (*abs_safe_map)[MAX_COL],
+                 double (*lane_safe_map)[MAX_COL], bool is_backward_enabled);
 
-    bool   is_crashed(int x, int y) const;
-    bool   is_crashed(const astate& state) const;
-    bool   is_crashed(primitive& primitive) const;
+    bool   is_abs_crashed(int x, int y) const;
+    bool   is_abs_crashed(const astate& state) const;
+    bool   is_abs_crashed(primitive& primitive) const;
+    bool   is_lane_crashed(int x, int y) const;
+    bool   is_lane_crashed(const astate& state) const;
+    bool   is_lane_crashed(primitive& primitive) const;
     double get_maximum_safe_distance(int row_idx, int col_idx) const;
     double get_minimum_distance_from_map_boundaries(const astate& state) const;
 
@@ -431,30 +421,16 @@ class PathPlanner {
     bool   is_in_map(const astate& state) const;
     bool   is_in_map(int row_idx, int col_idx) const;
 
-    void merge_xya_distance_map(
-        pair<double, double> (*output_map)[MAX_COL]) const;
-
    private:
-    astate target;
-    double (*safe_map)[MAX_COL];
+    std::vector<HDMapPoint> ref_path;
+    astate                  target;
+    double (*abs_safe_map)[MAX_COL];
+    double (*lane_safe_map)[MAX_COL];
     bool backward_enabled;
 
-    static constexpr int XYA_MAP_SHIFT_FACTOR = 2;
-    // the xya maps are one cell larger than our local map,
-    // so that we can mark the edge of the map unsafe,
-    // then we don't need to worry about cells out of the
-    // boundary, since we only do 1-step expansion when
-    // calculating xya_distance_map.
-    static constexpr int XYA_MAP_ROWS =
-        ((MAX_ROW - 1) >> XYA_MAP_SHIFT_FACTOR) + 2;
-    static constexpr int XYA_MAP_COLS =
-        ((MAX_COL - 1) >> XYA_MAP_SHIFT_FACTOR) + 2;
-    static constexpr int    XYA_MAP_DEPTH   = 32;
-    static constexpr double XYA_MAP_DELTA_A = (M_PI * 2) / (XYA_MAP_DEPTH);
     static constexpr double BACKWARD_PUNISHMENT_FACTOR = 2.0;
     static constexpr double TURNING_PUNISHMENT_FACTOR  = 1.0;
-    double xya_distance_map[XYA_MAP_ROWS][XYA_MAP_COLS][XYA_MAP_DEPTH];
-    bool   xya_safe_map[XYA_MAP_ROWS][XYA_MAP_COLS];
+    double                  astar_2d_distance_map[MAX_ROW][MAX_COL];
 
     template <class T, int buffer_size>
     class ring_buffer {
@@ -484,35 +460,28 @@ class PathPlanner {
       int       end_idx;
     };
 
-    static constexpr int XYA_BUFFER_SIZE = (int)pow(
-        2, (int)ceil(std::log2(XYA_MAP_ROWS* XYA_MAP_COLS* XYA_MAP_DEPTH)));
-
-    ring_buffer<int, XYA_BUFFER_SIZE> ring_buffer_xya;
-    bool is_in_buffer_xya[XYA_MAP_ROWS * XYA_MAP_COLS * XYA_MAP_DEPTH];
-
-    static int get_angle_index(double ang);
-    void       calculate_xya_distance_map();
+    void calculate_2d_distance_map();
   };
 
   class hybrid_astar_planner {
    public:
-    void plan(const astate& start_state, const astate& target_state,
-              double start_speed_m_s, bool        is_backward_enabled,
-              double (*safe_map)[MAX_COL], time_t max_duration,
-              const base_primitive_set* base_primitives);
+    void plan(const std::vector<HDMapPoint>& ref_path,
+              const astate& start_state, const astate& target_state,
+              double start_speed_m_s, bool is_backward_enabled,
+              double (*abs_safe_map)[MAX_COL], double (*lane_safe_map)[MAX_COL],
+              time_t max_duration, const base_primitive_set* base_primitives);
     bool get_have_result() const;
+
     const vector<astate>& get_result() const;
 
-    void merge_xya_distance_map(
-        pair<double, double> (*output_map)[MAX_COL]) const;
-
    private:
-    int&   history(const astate& state);
+    void   visit(const astate& state);
+    bool   is_visited(const astate& state);
     bool   is_time_out();
     bool   try_analytic_expansion(const astate& state, bool backward_allowed,
                                   double max_curvature, double max_sigma);
-    double get_cost_factor(const astate& prev_state, const astate& now_state,
-                           int history_visits) const;
+    double get_cost_factor(const astate& prev_state,
+                           const astate& now_state) const;
 
     time_t start_time;
     time_t dead_line;
@@ -522,12 +491,14 @@ class PathPlanner {
     double start_speed_m_s;
     bool   is_backward_enabled;
 
-    static constexpr double BACKWARD_COST_FACTOR = 3.0;
+    bool node_visited_map[2 * MAX_ROW][2 * MAX_COL][ANGLE_NUM];
+
+    static constexpr double BACKWARD_COST_FACTOR = 2.0;
     static constexpr double MIN_DISTANCE_BETWEEN_REVERSING =
-        3.0 / GRID_RESOLUTION;
+        0.0 / GRID_RESOLUTION;
     static constexpr double NODE_REVISIT_PUNISHMENT            = 0.2;
-    static constexpr double CURVATURE_PUNISHMENT_FACTOR        = 25.0;  // 25.0;
-    static constexpr double CURVATURE_CHANGE_PUNISHMENT_FACTOR = 12.5;
+    static constexpr double CURVATURE_PUNISHMENT_FACTOR        = 5;  // 25.0;
+    static constexpr double CURVATURE_CHANGE_PUNISHMENT_FACTOR = 2.5;
 
     template <class T, int block_size>
     class block_mem_pool {
@@ -565,16 +536,6 @@ class PathPlanner {
     priority_queue<node, vector<node>> node_pool;
     vector<astate>                     analytic_expansion_result;
 
-    static constexpr int HISTORY_MAP_SHIFT_FACTOR = 2;
-    static constexpr int HISTORY_MAP_ROWS =
-        ((MAX_ROW - 1) >> HISTORY_MAP_SHIFT_FACTOR) + 1;
-    static constexpr int HISTORY_MAP_COLS =
-        ((MAX_COL - 1) >> HISTORY_MAP_SHIFT_FACTOR) + 1;
-    static constexpr int    HISTORY_MAP_DEPTH = 16;
-    static constexpr double HISTORY_MAP_DELTA_A =
-        (M_PI * 2) / HISTORY_MAP_DEPTH;
-    int node_history_map[MAX_ROW][MAX_COL][HISTORY_MAP_DEPTH];
-
     vector<astate> result;
     bool           have_result;
   } hybrid_astar_planners[MAX_TARGET_NUM];
@@ -587,43 +548,6 @@ class PathPlanner {
   }
 
  public:
-  /* Safe map is an integer map
-   * output[i][j] == 0 => point (i,j) is safe
-   * output[i][j] > 0 => point (i,j) is too close to some obstacles
-   */
-  static void calculateSafeMap(u_char map[MAX_ROW][MAX_COL],
-                               int output[MAX_ROW][MAX_COL], int safe_distance,
-                               queue<pair<int, int>>& using_queue) {
-    const int dx[] = {0, 0, -1, 1};
-    const int dy[] = {-1, 1, 0, 0};
-
-    memset(output, 0, sizeof(int) * MAX_ROW * MAX_COL);
-
-    if (safe_distance <= 0) return;
-
-    while (!using_queue.empty()) using_queue.pop();
-    for (int i = 0; i < MAX_ROW; ++i)
-      for (int j = 0; j < MAX_COL; ++j)
-        if (map[i][j]) {
-          output[i][j] = safe_distance;
-          using_queue.push(make_pair(i, j));
-        }
-
-    while (!using_queue.empty()) {
-      const int x = using_queue.front().first;
-      const int y = using_queue.front().second;
-      using_queue.pop();
-      for (int i = 0; i < 4; ++i) {
-        const int tx = x + dx[i], ty = y + dy[i];
-        if (tx >= 0 && tx < MAX_ROW && ty >= 0 && ty < MAX_COL &&
-            output[tx][ty] < output[x][y] - 1) {
-          output[tx][ty] = output[x][y] - 1;
-          using_queue.push(make_pair(tx, ty));
-        }
-      }
-    }
-  }
-
   /* It is what it seems to be */
   static inline double euclideanDistance(const double& x_0, const double& y_0,
                                          const double& x_1, const double& y_1) {

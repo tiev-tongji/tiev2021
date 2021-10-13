@@ -1,4 +1,5 @@
 #include "message_manager.h"
+
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -11,20 +12,20 @@ bool MessageManager::getNavInfo(NavInfo& nav_info) {
   inner_handler.nav_mtx.lock_shared();
   time_t current_time = getTimeStamp();
 
-  nav_info.detected = false;
-  nav_info.reliable = false;
-  nav_info.car_pose = Pose(CAR_CEN_ROW, CAR_CEN_COL, PI);
+  nav_info.detected      = false;
+  nav_info.reliable      = false;
+  nav_info.car_pose      = Pose(CAR_CEN_ROW, CAR_CEN_COL, PI);
   nav_info.current_speed = 0;
-  nav_info.lon = 0;
-  nav_info.lat = 0;
+  nav_info.lon           = 0;
+  nav_info.lat           = 0;
   if (current_time - inner_handler.update_time_nav_info < NAV_INFO_TIMEOUT_US) {
-    nav_info.detected = true;
-    nav_info.car_pose.utm_position.utm_x = inner_handler.tmp_nav.utmX;
-    nav_info.car_pose.utm_position.utm_y = inner_handler.tmp_nav.utmY;
+    nav_info.detected                      = true;
+    nav_info.car_pose.utm_position.utm_x   = inner_handler.tmp_nav.utmX;
+    nav_info.car_pose.utm_position.utm_y   = inner_handler.tmp_nav.utmY;
     nav_info.car_pose.utm_position.heading = inner_handler.tmp_nav.mHeading;
-    nav_info.current_speed = inner_handler.tmp_nav.mSpeed3d;
-    nav_info.lon = inner_handler.tmp_nav.mLon;
-    nav_info.lat = inner_handler.tmp_nav.mLat;
+    nav_info.current_speed                 = inner_handler.tmp_nav.mSpeed3d;
+    nav_info.lon                           = inner_handler.tmp_nav.mLon;
+    nav_info.lat                           = inner_handler.tmp_nav.mLat;
     if (inner_handler.tmp_nav.mRTKStatus == 1 ||
         inner_handler.tmp_nav.isReckoningVaild) {
       nav_info.reliable = true;
@@ -60,7 +61,7 @@ bool MessageManager::getRainSignal(RainSignal& rain_signal) {
   if (current_time - inner_handler.update_time_rain_signal <
       RAIN_SIGNAL_TIMEOUT_US) {
     rain_signal.detected = true;
-    rain_signal.signal = inner_handler.tmp_rain_signal.rain_signal;
+    rain_signal.signal   = inner_handler.tmp_rain_signal.rain_signal;
   }
   inner_handler.rain_mtx.unlock_shared();
   return rain_signal.detected;
@@ -73,7 +74,7 @@ void MessageManager::setTextInfo() {
   visualization.text_info_size = 0;
   for (const auto& itr : text_info) {
     visText vis_text;
-    vis_text.name = itr.first;
+    vis_text.name  = itr.first;
     vis_text.value = itr.second;
     visualization.text_info.emplace_back(vis_text);
     visualization.text_info_size += 1;
@@ -94,17 +95,17 @@ bool MessageManager::getDynamicObjList(DynamicObjList& dynamic_obj_list) {
         OBJECT_LIST_TIMEOUT_US) {
       if (!inner_handler.tmp_objects[i].obj.size()) continue;
       dynamic_obj_list.detected = true;
-      int old_size = dynamic_obj_list.dynamic_obj_list.size();
+      int old_size              = dynamic_obj_list.dynamic_obj_list.size();
       dynamic_obj_list.dynamic_obj_list.resize(
           old_size + inner_handler.tmp_objects[i].obj.size());
       for (int j = 0; j < inner_handler.tmp_objects[i].obj.size(); ++j) {
-        OBJECT& obj = inner_handler.tmp_objects[i].obj[j];
+        OBJECT&     obj     = inner_handler.tmp_objects[i].obj[j];
         DynamicObj& new_obj = dynamic_obj_list.dynamic_obj_list[j + old_size];
 
-        new_obj.id = obj.id;
-        new_obj.type = (ObjectType)obj.obj_type;
-        new_obj.width = obj.width;
-        new_obj.length = obj.length;
+        new_obj.id      = obj.id;
+        new_obj.type    = (ObjectType)obj.obj_type;
+        new_obj.width   = obj.width;
+        new_obj.length  = obj.length;
         new_obj.heading = obj.theta + PI / 2;
         normalizeAngle(new_obj.heading);
         new_obj.corners.resize(4);
@@ -128,10 +129,10 @@ bool MessageManager::getDynamicObjList(DynamicObjList& dynamic_obj_list) {
           copy_point(new_obj.path[k], obj.path[k]);
           new_obj.path[k].x =
               CAR_CEN_ROW - ((obj.path[k].y - 1.48) / GRID_RESOLUTION);
-          new_obj.path[k].y = CAR_CEN_COL + obj.path[k].x / GRID_RESOLUTION;
-          new_obj.path[k].t = k;
+          new_obj.path[k].y   = CAR_CEN_COL + obj.path[k].x / GRID_RESOLUTION;
+          new_obj.path[k].t   = k;
           new_obj.path[k].ang = new_obj.heading;
-          new_obj.path[k].v = obj.v;
+          new_obj.path[k].v   = obj.v;
           // cout << "obj" << j << "x y:" << obj.path[k].x << " " <<
           // obj.path[k].y << endl;
         }
@@ -149,13 +150,13 @@ bool MessageManager::getWarningObjList(WarningObjList& warning_obj_list) {
 
 bool MessageManager::getTrafficLight(TrafficLight& traffic_light) {
   inner_handler.traffic_mtx.lock_shared();
-  time_t current_time = getTimeStamp();
+  time_t current_time    = getTimeStamp();
   traffic_light.detected = false;
   if (current_time - inner_handler.update_time_traffic_light <
       TRAFFIC_LIGHT_TIMEOUT_US) {
     traffic_light.detected = true;
-    traffic_light.left = inner_handler.tmp_traffic.left;
-    traffic_light.right = inner_handler.tmp_traffic.right;
+    traffic_light.left     = inner_handler.tmp_traffic.left;
+    traffic_light.right    = inner_handler.tmp_traffic.right;
     traffic_light.straight = inner_handler.tmp_traffic.forward;
   }
   inner_handler.traffic_mtx.unlock_shared();
@@ -169,7 +170,7 @@ bool MessageManager::getLaneList(LaneList& lane_list) {
   time_t current_time = getTimeStamp();
   if (current_time - inner_handler.update_time_lane < LANE_TIMEOUT_US) {
     if (inner_handler.tmp_lanes.num > 0) {
-      lane_list.detected = true;
+      lane_list.detected   = true;
       lane_list.current_id = inner_handler.tmp_lanes.current_lane_id;
       for (int i = 0; i < inner_handler.tmp_lanes.num; ++i) {
         Lane lane;
@@ -236,16 +237,16 @@ bool MessageManager::getLaneList(LaneList& lane_list) {
         for (auto& point : inner_handler.tmp_lanes.lanes[i].left_line.points) {
           LinePoint p;
           p.type = lane.left_line.type;
-          p.x = CAR_CEN_ROW - (point.x / GRID_RESOLUTION);
-          p.y = CAR_CEN_COL - (point.y / GRID_RESOLUTION);
+          p.x    = CAR_CEN_ROW - (point.x / GRID_RESOLUTION);
+          p.y    = CAR_CEN_COL - (point.y / GRID_RESOLUTION);
           if (!p.in_map()) continue;
           lane.left_line.points.push_back(p);
         }
         for (auto& point : inner_handler.tmp_lanes.lanes[i].right_line.points) {
           LinePoint p;
           p.type = lane.right_line.type;
-          p.x = CAR_CEN_ROW - (point.x / GRID_RESOLUTION);
-          p.y = CAR_CEN_COL - (point.y / GRID_RESOLUTION);
+          p.x    = CAR_CEN_ROW - (point.x / GRID_RESOLUTION);
+          p.y    = CAR_CEN_COL - (point.y / GRID_RESOLUTION);
           if (!p.in_map()) continue;
           lane.right_line.points.push_back(p);
         }
@@ -260,7 +261,7 @@ bool MessageManager::getLaneList(LaneList& lane_list) {
 
 bool MessageManager::getParkingLotList(ParkingLotList& parking_lot_list) {
   inner_handler.parking_slot_mtx.lock_shared();
-  time_t current_time = getTimeStamp();
+  time_t current_time       = getTimeStamp();
   parking_lot_list.detected = false;
   if (current_time - inner_handler.update_time_parking_slots <
           PARKING_SLOT_TIMEOUT_US &&
@@ -308,9 +309,9 @@ bool MessageManager::getSlamInfo(SlamInfo& slam_info) {
   slam_info.detected =
       getTimeStamp() - inner_handler.update_time_slam_loc < SLAM_LOC_TIMEOUT_US;
   if (slam_info.detected) {
-    slam_info.x = inner_handler.tmp_slam_loc.x;
-    slam_info.y = inner_handler.tmp_slam_loc.y;
-    slam_info.heading = inner_handler.tmp_slam_loc.mHeading;
+    slam_info.x        = inner_handler.tmp_slam_loc.x;
+    slam_info.y        = inner_handler.tmp_slam_loc.y;
+    slam_info.heading  = inner_handler.tmp_slam_loc.mHeading;
     slam_info.reliable = inner_handler.tmp_slam_loc.SLAMStatus;
   } else
     slam_info.reliable = false;
@@ -319,18 +320,18 @@ bool MessageManager::getSlamInfo(SlamInfo& slam_info) {
 }
 
 void MessageManager::Handler::handleNAVINFO(const zcm::ReceiveBuffer* rbuf,
-                                            const std::string& chan,
-                                            const structNAVINFO* msg) {
+                                            const std::string&        chan,
+                                            const structNAVINFO*      msg) {
   std::unique_lock<std::shared_mutex> lock(nav_mtx);
-  tmp_nav = *msg;
+  tmp_nav              = *msg;
   update_time_nav_info = getTimeStamp();
 }
 
 void MessageManager::Handler::handleFUSIONMAP(const zcm::ReceiveBuffer* rbuf,
-                                              const std::string& chan,
-                                              const structFUSIONMAP* msg) {
+                                              const std::string&        chan,
+                                              const structFUSIONMAP*    msg) {
   std::unique_lock<std::shared_mutex> lock(map_mtx);
-  tmp_map = *msg;
+  tmp_map                = *msg;
   update_time_fusion_map = getTimeStamp();
 }
 
@@ -338,47 +339,47 @@ void MessageManager::Handler::handleTRAFFICLIGHT(
     const zcm::ReceiveBuffer* rbuf, const std::string& chan,
     const MsgTrafficLightSignal* msg) {
   std::unique_lock<std::shared_mutex> lock(traffic_mtx);
-  tmp_traffic = *msg;
+  tmp_traffic               = *msg;
   update_time_traffic_light = getTimeStamp();
 }
 
-void MessageManager::Handler::handleLANES(const zcm::ReceiveBuffer* rbuf,
-                                          const std::string& chan,
+void MessageManager::Handler::handleLANES(const zcm::ReceiveBuffer*    rbuf,
+                                          const std::string&           chan,
                                           const structRoadMarkingList* msg) {
   std::unique_lock<std::shared_mutex> lock(lane_mtx);
   update_time_lane = getTimeStamp();
-  tmp_lanes = *msg;
+  tmp_lanes        = *msg;
 }
 
 void MessageManager::Handler::handlePARKINGSLOTS(
     const zcm::ReceiveBuffer* rbuf, const std::string& chan,
     const structPARKINGSLOTS* msg) {
   std::unique_lock<std::shared_mutex> lock(parking_slot_mtx);
-  tmp_slot = *msg;
+  tmp_slot                  = *msg;
   update_time_parking_slots = getTimeStamp();
 }
 
 void MessageManager::Handler::handleOBJECTLIST(const zcm::ReceiveBuffer* rbuf,
-                                               const std::string& chan,
-                                               const structOBJECTLIST* msg) {
+                                               const std::string&        chan,
+                                               const structOBJECTLIST*   msg) {
   std::unique_lock<std::shared_mutex> lock(objects_mtx);
-  tmp_objects[msg->data_source] = *msg;
+  tmp_objects[msg->data_source]         = *msg;
   update_time_objects[msg->data_source] = getTimeStamp();
 }
 
 void MessageManager::Handler::handleSLAMLOC(const zcm::ReceiveBuffer* rbuf,
-                                            const std::string& chan,
-                                            const structSLAMLOC* msg) {
+                                            const std::string&        chan,
+                                            const structSLAMLOC*      msg) {
   std::unique_lock<std::shared_mutex> lock(slam_loc_mtx);
-  tmp_slam_loc = *msg;
+  tmp_slam_loc         = *msg;
   update_time_slam_loc = getTimeStamp();
 }
 
 void MessageManager::Handler::handleCANINFO(const zcm::ReceiveBuffer* rbuf,
-                                            const std::string& chan,
-                                            const structCANINFO* msg) {
+                                            const std::string&        chan,
+                                            const structCANINFO*      msg) {
   std::unique_lock<std::shared_mutex> lock(nav_mtx);
-  tmp_can_info = *msg;
+  tmp_can_info         = *msg;
   update_time_can_info = getTimeStamp();
 }
 
@@ -486,15 +487,15 @@ void MessageManager::setSpeedPath(const SpeedPath& speed_path) {
 
   for (int i = 0; i < speed_path.st_boundaries.size(); ++i) {
     visSTBoundary st_boundary;
-    visSTPoint ulp, urp, blp, brp;
-    ulp.s = speed_path.st_boundaries[i].upper_left_point().s();
-    ulp.t = speed_path.st_boundaries[i].upper_left_point().t();
-    urp.s = speed_path.st_boundaries[i].upper_right_point().s();
-    urp.t = speed_path.st_boundaries[i].upper_right_point().t();
-    blp.s = speed_path.st_boundaries[i].bottom_left_point().s();
-    blp.t = speed_path.st_boundaries[i].bottom_left_point().t();
-    brp.s = speed_path.st_boundaries[i].bottom_right_point().s();
-    brp.t = speed_path.st_boundaries[i].bottom_right_point().t();
+    visSTPoint    ulp, urp, blp, brp;
+    ulp.s           = speed_path.st_boundaries[i].upper_left_point().s();
+    ulp.t           = speed_path.st_boundaries[i].upper_left_point().t();
+    urp.s           = speed_path.st_boundaries[i].upper_right_point().s();
+    urp.t           = speed_path.st_boundaries[i].upper_right_point().t();
+    blp.s           = speed_path.st_boundaries[i].bottom_left_point().s();
+    blp.t           = speed_path.st_boundaries[i].bottom_left_point().t();
+    brp.s           = speed_path.st_boundaries[i].bottom_right_point().s();
+    brp.t           = speed_path.st_boundaries[i].bottom_right_point().t();
     st_boundary.ulp = ulp;
     st_boundary.urp = urp;
     st_boundary.blp = blp;
@@ -517,15 +518,15 @@ void MessageManager::setSpeedPath(const SpeedPath& speed_path) {
 
   for (const auto& spline : speed_path.cubic_splines) {
     visSpline2 tmp;
-    visVec4f xb, yb;
-    xb.x = spline.xb.x;
-    xb.y = spline.xb.y;
-    xb.z = spline.xb.z;
-    xb.w = spline.xb.w;
-    yb.x = spline.yb.x;
-    yb.y = spline.yb.y;
-    yb.z = spline.yb.z;
-    yb.w = spline.yb.w;
+    visVec4f   xb, yb;
+    xb.x   = spline.xb.x;
+    xb.y   = spline.xb.y;
+    xb.z   = spline.xb.z;
+    xb.w   = spline.xb.w;
+    yb.x   = spline.yb.x;
+    yb.y   = spline.yb.y;
+    yb.z   = spline.yb.z;
+    yb.w   = spline.yb.w;
     tmp.xb = xb;
     tmp.yb = yb;
     visualization.splines_speed_curve.emplace_back(tmp);

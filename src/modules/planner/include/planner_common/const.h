@@ -8,6 +8,9 @@ constexpr int    CAR_CEN_ROW     = 350;
 constexpr float  GRID_RESOLUTION = 0.2;
 constexpr double PI              = 3.1415926535898;
 constexpr double inf             = 1e8;
-}  // TiEV
+constexpr double CAR_R           = 5.5;  // m
+constexpr double CAR_MAX_K       = 1 / CAR_R;
+constexpr int    ANGLE_NUM       = 360;
+}  // namespace TiEV
 
 #endif  //!__CONST__H__

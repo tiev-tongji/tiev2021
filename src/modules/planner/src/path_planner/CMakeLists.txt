@@ -27,26 +27,28 @@ target_include_directories(path_planner PUBLIC
     ${CMAKE_SOURCE_DIR}/include/path_planner
 )
 
+find_package(OpenCV REQUIRED)
 target_link_libraries(path_planner
     PRIVATE
         ${G1FITTING_LIBRARY}
     PUBLIC
+        distance_table
         speed_planner
         message_manager
         planner_common
         ${STEERING_LIBRARY}
         zcm
-)
-
-find_package(OpenCV REQUIRED)
-
-add_executable(path_planner_test "")
-
-target_sources(path_planner_test PRIVATE
-    "path_planner_test.cpp"
-)
-
-target_link_libraries(path_planner_test PUBLIC
     ${OpenCV_LIBS}
-    path_planner
 )
+
+
+# add_executable(path_planner_test "")
+
+# target_sources(path_planner_test PRIVATE
+#     "path_planner_test.cpp"
+# )
+
+# target_link_libraries(path_planner_test PUBLIC
+#     ${OpenCV_LIBS}
+#     path_planner
+# )

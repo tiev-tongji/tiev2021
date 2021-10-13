@@ -418,7 +418,7 @@ void Visualization::drawPathPlanner() {
   // 雷达地图
   bool lidar = drawLidarMap(left_map, right_map, 0);
   // 动态障碍物
-  bool dynamic = drawDynamicObjs(left_map, right_map, 1);
+  bool dynamic = drawDynamicObjs(left_map, right_map, 2);
   // 停车库位
   bool parking_spot = drawParkingLots(left_map, right_map, 0);
   // 视觉车道线
@@ -431,11 +431,11 @@ void Visualization::drawPathPlanner() {
     // 参考路
     drawReferencePath(left_map, right_map, 0);
     // 最优路径
-    drawBestPath(left_map, right_map, 2);
+    drawBestPath(left_map, right_map, 0);
     // 目标点
     drawTargets(left_map, right_map, 1);
     // Maintained path
-    drawMaintainedPath(left_map, right_map, 2);
+    drawMaintainedPath(left_map, right_map, 0);
     // 规划起始点
     drawStartPoint(left_map, right_map, 1);
     // used_map

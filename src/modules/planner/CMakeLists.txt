@@ -1,12 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
 project(planner)
-set(CMAKE_BUILD_TYPE "Release")
-# if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-#     message("Building planner in Debug mode")
-# else()
-#     set(CMAKE_BUILD_TYPE "Release")
-#     message("Building planner in Release mode")
-# endif()
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")
