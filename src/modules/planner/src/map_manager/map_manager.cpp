@@ -549,6 +549,7 @@ void MapManager::updatePlanningMap(LaneLineBlockType lane_line_block_type,
       }
     }
     // block dash line and boundary
+    /*
     if (carInRoad()) {
       if (lane_line_block_type == LaneLineBlockType::ALL_BLOCK) {
         for (const auto& line : map.lane_line_list) {
@@ -596,6 +597,7 @@ void MapManager::updatePlanningMap(LaneLineBlockType lane_line_block_type,
         }
       }
     }
+  */
   }
   // predict dynamic obs map
   predictDynamicObsInMap();

@@ -552,6 +552,12 @@ class PathPlanner {
 
  public:
   /* It is what it seems to be */
+  static inline double sqrDistance(const double& x_0, const double& y_0,
+                                   const double& x_1, const double& y_1) {
+    const double dx = x_0 - x_1;
+    const double dy = y_0 - y_1;
+    return dx * dx + dy * dy;
+  }
   static inline double euclideanDistance(const double& x_0, const double& y_0,
                                          const double& x_1, const double& y_1) {
     const double dx = x_0 - x_1;

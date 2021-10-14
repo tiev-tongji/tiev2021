@@ -25,8 +25,9 @@ void NormalDriving::update(FullControl& control) {
             << "ms";
 
   const auto start_path = map_manager->getStartMaintainedPath();
-  const auto targets    = map_manager->getLaneTargets();
-  auto       map        = map_manager->getMap();
+  // const auto targets    = map_manager->getLaneTargets();
+  const auto targets = {Pose(0, 0)};
+  auto       map     = map_manager->getMap();
 
   vector<SpeedPath> speed_path_list;
   const auto        start3 = getTimeStamp();
@@ -39,7 +40,7 @@ void NormalDriving::update(FullControl& control) {
   map_manager->selectBestPath(speed_path_list);
   map_manager->maintainPath(map.nav_info, map.best_path.path);
   if (speed_path_list.empty() && duration_time() > limited_time) {
-    control.changeTo<LaneFreeDriving>();
+    // control.changeTo<LaneFreeDriving>();
   } else if (!speed_path_list.empty()) {
     entry_time = getTimeStamp();
   }

@@ -66,6 +66,16 @@ struct Pose : public Point2d {
 
   inline Point2d getDirectionVec() const { return Point2d(cos(ang), sin(ang)); }
 
+  inline Point2d getNormalVec() const { return Point2d(-sin(ang), cos(ang)); }
+
+  inline void offset(const double l) {
+    const double _l         = l / GRID_RESOLUTION;
+    const auto&  offset_vec = getNormalVec() * _l;
+
+    x += offset_vec.x;
+    y += offset_vec.y;
+  };
+
   inline Pose getLateralPose(const double l) const {
     double _tmp      = l / GRID_RESOLUTION;
     double dx        = -sin(ang) * _tmp;

@@ -39,6 +39,19 @@ void PathPlanner::local_planning_map::prepare(
   // when there is no target
   // if (target.x == 0 && target.y == 0 && !ref_path.empty()) {
   if (!ref_path.empty()) {
+    // cv::namedWindow("offset_map");
+    // cv::Mat dis_img = cv::Mat(MAX_ROW, MAX_COL, CV_8UC3, {255, 255, 255});
+    // resize the ref_path to get the first one path
+    auto new_size = ref_path.size();
+    for (int i = 0; i < ref_path.size(); ++i) {
+      const auto& p = ref_path[i];
+      if (p.s < 0) continue;
+      if (p.x <= 1 || p.x > MAX_ROW - 2 || p.y <= 1 || p.y >= MAX_COL - 2) {
+        new_size = i + 1;
+        break;
+      }
+    }
+    ref_path.resize(new_size);
     // calculate the ref path end arrival area
     const auto& ref_end_p = ref_path.back();
     // left bound and right bound point
@@ -54,6 +67,92 @@ void PathPlanner::local_planning_map::prepare(
             p.getLateralPose(p.lane_width * (i - p.lane_seq + 1)));
       }
     }
+    // offset the center point to avoid bostacles
+    std::vector<std::pair<Point2d, double>> offset_list;
+
+    constexpr double offset_decent = 0.05;  // m
+    for (auto it = ref_path.rbegin(); it != ref_path.rend(); it++) {
+      auto&                              ref_p = *it;
+      std::vector<pair<Point2d, double>> new_offset_list;
+      for (int i = 0; i < ref_p.neighbors.size(); ++i) {
+        auto&   pi         = ref_p.neighbors[i];
+        double  offset_dis = 0.0;
+        Point2d origin_p(pi.x, pi.y);
+        // dis_img.at<cv::Vec3b>(int(origin_p.x), int(origin_p.y)) =
+        //     cv::Vec3b(0, 0, 255);
+        // find the closest pre point's offset
+        double min_dis = 1e8;
+        for (const auto& off_p : offset_list) {
+          const double dis =
+              sqrDistance(off_p.first.x, off_p.first.y, pi.x, pi.y);
+          if (dis < min_dis) {
+            min_dis    = dis;
+            offset_dis = off_p.second;
+          }
+        }
+        // offset this pi by decent offset_dis
+        const auto& offset_after_decent = [&](const double offdis) {
+          if (offdis > 0) {
+            return std::max(offdis - offset_decent, 0.0);
+          } else {
+            return std::min(offdis + offset_decent, 0.0);
+          }
+        };
+        offset_dis = offset_after_decent(offset_dis);
+
+        const auto& tmp_off_point = pi.getLateralPose(offset_dis);
+        // is this offset safe?
+        if (is_lane_crashed(tmp_off_point.x, tmp_off_point.y)) {
+          // if the center_p is crash, can it offset to neibor?
+          bool safe_offset = false;
+          // find the left closest obstatle free center
+          for (int j = i + 1; j < ref_p.neighbors.size(); ++j) {
+            const auto& pj = ref_p.neighbors[j];
+            if (!is_lane_crashed(pj.x, pj.y)) {
+              offset_dis =
+                  euclideanDistance(pj.x, pj.y, pi.x, pi.y) * GRID_RESOLUTION;
+              safe_offset = true;
+              break;
+            }
+          }
+          // find the right closest obstatle free center
+          for (int j = i - 1; j >= 0; --j) {
+            const auto& pj = ref_p.neighbors[j];
+            if (!is_lane_crashed(pj.x, pj.y)) {
+              Point2d      pij_vec(pj.x - pi.x, pj.y - pi.y);
+              const double o_dis =
+                  pi.getDirection().cross(pij_vec) * GRID_RESOLUTION;
+              if (fabs(o_dis) < offset_dis) {
+                offset_dis  = o_dis;
+                safe_offset = true;
+                break;
+              }
+            }
+          }
+          // if the road is all crashed
+          if (!safe_offset) {
+            offset_dis = (ref_p.neighbors.back() - pi).len() * GRID_RESOLUTION +
+                         ref_p.lane_width;
+          }
+        }
+        // offset the pi
+        pi.offset(offset_dis);
+        new_offset_list.push_back(std::make_pair(origin_p, offset_dis));
+      }
+      offset_list = new_offset_list;
+      // LOG(WARNING) << "---at ref_p:" << ref_p.s << "---";
+      // for (const auto& p : offset_list) {
+      //   LOG(INFO) << p.first << " offset=" << p.second;
+      // }
+    }
+    // for (const auto& ref_p : ref_path) {
+    //   for (const auto& p : ref_p.neighbors) {
+    //     if (!is_in_map(int(p.x), int(p.y))) continue;
+    //     dis_img.at<cv::Vec3b>(int(p.x), int(p.y)) = cv::Vec3b(255, 100, 0);
+    //   }
+    // }
+    // cv::imshow("offset_map", dis_img);
+    // cv::waitKey();
   } else {
     calculate_2d_distance_map();
   }
@@ -81,7 +180,7 @@ bool PathPlanner::local_planning_map::is_lane_crashed(int x, int y) const {
 
 bool PathPlanner::local_planning_map::is_lane_crashed(
     const astate& state) const {
-  return collision(state.x, state.y, state.a, lane_safe_map, 0.0);
+  return collision(state.x, state.y, state.a, lane_safe_map, 0.5);
 }
 
 bool PathPlanner::local_planning_map::is_lane_crashed(primitive& prim) const {
@@ -113,8 +212,8 @@ double PathPlanner::local_planning_map::get_heuristic(const astate& state,
   // calculate the ref_path heuristic for this state
   heuristic += 2 * (end_s - ref_near_p.s);  // guide forward along the ref
   // path guide close to ref path
-  // TODO: modify this close to lane center not ref path center
   // close to lane center
+  min_distance = 1e8;
   for (const auto& p : ref_near_p.neighbors) {
     double center_dis = sqr_dis(p.x, p.y, state.x, state.y);
     if (center_dis < min_distance) min_distance = center_dis;
