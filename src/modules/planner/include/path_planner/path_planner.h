@@ -423,7 +423,10 @@ class PathPlanner {
 
    private:
     std::vector<HDMapPoint> ref_path;
-    astate                  target;
+
+    Pose   left_bound_p, right_bound_p;
+    astate target;
+
     double (*abs_safe_map)[MAX_COL];
     double (*lane_safe_map)[MAX_COL];
     bool backward_enabled;
@@ -497,7 +500,7 @@ class PathPlanner {
     static constexpr double MIN_DISTANCE_BETWEEN_REVERSING =
         0.0 / GRID_RESOLUTION;
     static constexpr double NODE_REVISIT_PUNISHMENT            = 0.2;
-    static constexpr double CURVATURE_PUNISHMENT_FACTOR        = 5;  // 25.0;
+    static constexpr double CURVATURE_PUNISHMENT_FACTOR        = 80;  // 25.0;
     static constexpr double CURVATURE_CHANGE_PUNISHMENT_FACTOR = 2.5;
 
     template <class T, int block_size>

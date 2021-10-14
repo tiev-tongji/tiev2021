@@ -36,11 +36,27 @@ void PathPlanner::local_planning_map::prepare(
   lane_safe_map    = _lane_safe_map;
   backward_enabled = _backward_enabled;
 
-  time_t time_1 = getTimeStamp();
-  calculate_2d_distance_map();
-  time_t time_2 = getTimeStamp();
-  log_1("astart_2d_distance_map calculated in ", (time_2 - time_1) / 1000,
-        " ms");
+  // when there is no target
+  // if (target.x == 0 && target.y == 0 && !ref_path.empty()) {
+  if (!ref_path.empty()) {
+    // calculate the ref path end arrival area
+    const auto& ref_end_p = ref_path.back();
+    // left bound and right bound point
+    left_bound_p = ref_end_p.getLateralPose(
+        ref_end_p.lane_width * (ref_end_p.lane_num - ref_end_p.lane_seq + 0.5));
+    right_bound_p = ref_end_p.getLateralPose(ref_end_p.lane_width *
+                                             (ref_end_p.lane_seq - 0.5));
+    // get the lane center for each ref path p
+    for (auto& p : ref_path) {
+      if (!p.neighbors.empty()) continue;
+      for (int i = 0; i < p.lane_num; ++i) {
+        p.neighbors.push_back(
+            p.getLateralPose(p.lane_width * (i - p.lane_seq + 1)));
+      }
+    }
+  } else {
+    calculate_2d_distance_map();
+  }
 }
 
 bool PathPlanner::local_planning_map::is_abs_crashed(int x, int y) const {
@@ -79,12 +95,15 @@ double PathPlanner::local_planning_map::get_heuristic(const astate& state,
                                                       bool can_reverse) const {
   double heuristic = 0;
   // along the ref_path, the heuristic is small
-  double     min_distance = 1e8;
-  HDMapPoint ref_near_p;
-  double     end_s = 0;
+  double      min_distance = 1e8;
+  HDMapPoint  ref_near_p;
+  double      end_s   = 0;
+  const auto& sqr_dis = [](const double x0, const double y0, const double x1,
+                           const double y1) {
+    return (x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1);
+  };
   for (const auto& p : ref_path) {
-    double dis =
-        (p.x - state.x) * (p.x - state.x) + (p.y - state.y) * (p.y - state.y);
+    double dis = sqr_dis(p.x, p.y, state.x, state.y);
     if (dis < min_distance) {
       min_distance = dis;
       ref_near_p   = p;
@@ -95,9 +114,19 @@ double PathPlanner::local_planning_map::get_heuristic(const astate& state,
   heuristic += 2 * (end_s - ref_near_p.s);  // guide forward along the ref
   // path guide close to ref path
   // TODO: modify this close to lane center not ref path center
+  // close to lane center
+  for (const auto& p : ref_near_p.neighbors) {
+    double center_dis = sqr_dis(p.x, p.y, state.x, state.y);
+    if (center_dis < min_distance) min_distance = center_dis;
+  }
   heuristic += 0.03 * (min_distance);
   // guide heading close to ref path
   heuristic += 10 * (1 - cos(fabs(state.a - ref_near_p.ang)));
+  if (!ref_path.empty()) {
+    // when pilot with ref_path, more dis_to lane_center heuristic
+    // heuristic += 10 * (min_distance);
+    return heuristic;
+  }
   // if the state is near to target
   // constexpr double target_effect_r = 20 / GRID_RESOLUTION;  // 10m
   // min_distance                     = 1e8;
@@ -139,6 +168,11 @@ double PathPlanner::local_planning_map::get_heuristic(const astate& state,
 
 int PathPlanner::local_planning_map::try_get_target_index(
     primitive& primitive) const {
+  if (!ref_path.empty()) {
+    const auto& states = primitive.get_states();
+    for (int i = 0, size = states.size(); i < size; ++i)
+      if (is_target(states[i])) return i;
+  }
   const auto& start_state = primitive.get_start_state();
   double      dis =
       max(fabs(start_state.x - target.x), fabs(start_state.y - target.y)) *
@@ -163,6 +197,17 @@ bool PathPlanner::local_planning_map::is_in_map(int row_idx,
 }
 
 bool PathPlanner::local_planning_map::is_target(const astate& state) const {
+  // arrive the ref path end
+  if (!ref_path.empty()) {                 // and no target
+    constexpr double end_area_length = 5;  //  grid
+    return euclideanDistance(state.x, state.y, left_bound_p.x, left_bound_p.y) +
+               euclideanDistance(state.x, state.y, right_bound_p.x,
+                                 right_bound_p.y) <
+           ref_path.back().lane_width / GRID_RESOLUTION *
+                   ref_path.back().lane_num +
+               end_area_length;
+  }
+  // arrive target
   constexpr double dx = 5;
   constexpr double dy = 5;
   constexpr double da = 15 / 180.0 * M_PI;
