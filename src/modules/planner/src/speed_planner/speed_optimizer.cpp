@@ -10,7 +10,7 @@ SpeedPath SpeedOptimizer::RunSpeedOptimizer(
     const std::vector<DynamicObj>& obstacle_list, std::vector<Pose>& trajectory,
     const std::vector<std::pair<double, double>>& speed_limit,
     double                                        total_path_length) {
-  double                                 max_acceleration = 2.5;
+  // double                                 max_acceleration = 2.5;
   double                                 max_deceleration = -1.0;
   double                                 init_v = trajectory.front().v;
   std::vector<std::pair<double, double>> modified_speed_limit;
@@ -116,7 +116,7 @@ bool SpeedOptimizer::Process(SpeedPath& speed_path) {
       speed_path.cubic_splines.push_back(splines[i]);
     }
     const float T_RESOLUTION = 0.005;
-    for (size_t i = 0; i < NUM_POINT - 1; ++i) {
+    for (size_t i = 0; i + 1 < NUM_POINT; ++i) {
       float relative_time = 0.0;
       while (relative_time < 1.0) {
         double s = SplineLib::Position(splines[i], relative_time).y;

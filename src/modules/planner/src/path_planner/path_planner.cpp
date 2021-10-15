@@ -16,12 +16,12 @@ using namespace std;
 namespace TiEV {
 
 PathPlanner::PathPlanner()
-    : config(Config::getInstance()),
-      view_controller(MessageManager::getInstance()),
-      distance_table_rs(
+    : distance_table_rs(
           new DistanceTable(Config::getInstance()->rs_distance_table_path)),
-      distance_table_dubins(new DistanceTable(
-          Config::getInstance()->dubins_distance_table_path)) {}
+      distance_table_dubins(
+          new DistanceTable(Config::getInstance()->dubins_distance_table_path)),
+      config(Config::getInstance()),
+      view_controller(MessageManager::getInstance()) {}
 
 void PathPlanner::runPlanner(
     const std::vector<HDMapPoint>& ref_path, const DynamicObjList& dynamic_objs,
@@ -32,18 +32,17 @@ void PathPlanner::runPlanner(
   setReferencePath(ref_path);
   setAbsSafeMap(abs_safe_map);
   setLaneSafeMap(lane_safe_map);
+  setVelocityLimit(max_speed);
   setStartMaintainedPath(start_maintained_path);
   setTargets(targets);
   setBackwardEnabled(reverse);
   setCurrentSpeed(current_speed);
   setDynamicObjList(dynamic_objs);
-  setVelocityLimit(max_speed);
   plan();
   getResults(results);
   MessageManager*   msg_m = MessageManager::getInstance();
   visVISUALIZATION& vis   = msg_m->visualization;
-  memcpy(vis.used_map, used_map, sizeof(vis.used_map));
-  vis.paths_size = results.size();
+  vis.paths_size          = results.size();
   for (const auto& speed_path : results) {
     visPath vis_path;
     vis_path.path_size = speed_path.path.size();
@@ -61,21 +60,25 @@ void PathPlanner::setStartMaintainedPath(
     const vector<Pose>& start_maintained_path) {
   if (is_planning) return;
   this->start_maintained_path.clear();
-  int start_idx = 0;
+  int start_idx = -1;
   for (int i = start_maintained_path.size() - 1; i >= 0; --i) {
     const auto& p = start_maintained_path[i];
     for (const auto& k : k_list) {
-      if (p.k == k) {
+      if (fabs(p.k - k) < 1e-8) {
         start_idx = i;
         break;
       }
     }
-    if (start_idx != 0) break;
+    if (start_idx >= 0) break;
   }
   this->start_maintained_path = start_maintained_path;
-  this->start_maintained_path.resize(start_idx + 1);
+  if (start_idx < 0) {
+    this->start_maintained_path.clear();
+  } else {
+    this->start_maintained_path.resize(start_idx + 1);
+  }
   for (auto& p : this->start_maintained_path) {
-    p.v = inf;
+    p.v = velocity_limit;
   }
   if (!this->start_maintained_path.empty())
     start_point = this->start_maintained_path.back();
@@ -223,7 +226,7 @@ void PathPlanner::planner_thread(int target_index) {
       p.x   = state.x;
       p.y   = state.y;
       p.ang = state.a;
-      p.updateGlobalCoordinate(start_point);
+      // p.updateGlobalCoordinate(start_point);
       p.s        = state.s + offset_s;
       p.k        = state.curvature;
       p.backward = state.is_backward;
@@ -240,6 +243,7 @@ void PathPlanner::planner_thread(int target_index) {
 
 void PathPlanner::planSpeed(int target_index) {
 #ifndef NO_SPEED_PLANNER
+  // find the first part before reverse
   int end_point = speed_paths[target_index].path.size();
   for (int i = 1; i < speed_paths[target_index].path.size(); ++i) {
     if (speed_paths[target_index].path[i].backward !=
@@ -248,7 +252,7 @@ void PathPlanner::planSpeed(int target_index) {
       break;
     }
   }
-
+  // the rest part after reverse
   vector<Pose> result_tail;
   result_tail.insert(result_tail.begin(),
                      speed_paths[target_index].path.begin() + end_point,
@@ -268,10 +272,11 @@ void PathPlanner::planSpeed(int target_index) {
 
   // conversion
   for (auto& point : speed_paths[target_index].path) {
+    point.ang        = wrap_angle_in_PI(point.ang);
     double max_speed = point.v;
     if (point.backward) {
       max_speed = 2;
-      point.ang = PI + point.ang;
+      point.ang = wrap_angle_in_PI(PI + point.ang);
     }
     speed_limits[target_index].emplace_back(
         point.s, min(max_velocity_for_curvature(point.k), max_speed));
@@ -286,7 +291,7 @@ void PathPlanner::planSpeed(int target_index) {
   // anti-conversion
   for (auto& point : speed_paths[target_index].path) {
     if (point.backward) {
-      point.ang = point.ang - PI;
+      point.ang = wrap_angle_in_PI(point.ang - PI);
       point.v   = -point.v;
       point.a   = -point.a;
     }

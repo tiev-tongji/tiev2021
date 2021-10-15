@@ -26,15 +26,14 @@ void NormalDriving::update(FullControl& control) {
 
   const auto start_path = map_manager->getStartMaintainedPath();
   // const auto targets    = map_manager->getLaneTargets();
-  const auto targets = {Pose(0, 0)};
-  auto       map     = map_manager->getMap();
+  auto map = map_manager->getMap();
 
   vector<SpeedPath> speed_path_list;
   const auto        start3 = getTimeStamp();
   PathPlanner::getInstance()->runPlanner(
       map.ref_path, map.dynamic_obj_list, map_manager->getCurrentMapSpeed(),
-      false, map.lidar_dis_map, map.planning_dis_map, start_path, targets,
-      map.nav_info.current_speed, speed_path_list);
+      false, map.lidar_dis_map, map.planning_dis_map, start_path,
+      {Pose(0, 0, 0)}, map.nav_info.current_speed, speed_path_list);
   LOG(INFO) << "planning time:" << (getTimeStamp() - start3) * 1e-3 << "ms";
 
   map_manager->selectBestPath(speed_path_list);

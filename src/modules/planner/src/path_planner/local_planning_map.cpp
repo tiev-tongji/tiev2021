@@ -7,6 +7,7 @@
 #include "tievlog.h"
 
 namespace TiEV {
+// #define VIS_OFFSET_LANE_CENTER
 
 #define MULTILINE(SEGMENT) \
   do {                     \
@@ -37,16 +38,19 @@ void PathPlanner::local_planning_map::prepare(
   backward_enabled = _backward_enabled;
 
   // when there is no target
-  // if (target.x == 0 && target.y == 0 && !ref_path.empty()) {
-  if (!ref_path.empty()) {
-    // cv::namedWindow("offset_map");
-    // cv::Mat dis_img = cv::Mat(MAX_ROW, MAX_COL, CV_8UC3, {255, 255, 255});
+  if (target.x == 0 && target.y == 0 && !ref_path.empty()) {
+    is_planning_to_target = false;
+#ifdef VIS_OFFSET_LANE_CENTER
+    cv::namedWindow("offset_map");
+    cv::Mat dis_img = cv::Mat(MAX_ROW, MAX_COL, CV_8UC3, {255, 255, 255});
+#endif
     // resize the ref_path to get the first one path
     auto new_size = ref_path.size();
     for (int i = 0; i < ref_path.size(); ++i) {
       const auto& p = ref_path[i];
       if (p.s < 0) continue;
-      if (p.x <= 1 || p.x > MAX_ROW - 2 || p.y <= 1 || p.y >= MAX_COL - 2) {
+      if (p.s >= 120 || int(p.x) <= 2 || int(p.x) > MAX_ROW - 2 ||
+          int(p.y) <= 1 || int(p.y) >= MAX_COL - 2) {
         new_size = i + 1;
         break;
       }
@@ -70,7 +74,7 @@ void PathPlanner::local_planning_map::prepare(
     // offset the center point to avoid bostacles
     std::vector<std::pair<Point2d, double>> offset_list;
 
-    constexpr double offset_decent = 0.05;  // m
+    constexpr double offset_decent = 0.0;  // m
     for (auto it = ref_path.rbegin(); it != ref_path.rend(); it++) {
       auto&                              ref_p = *it;
       std::vector<pair<Point2d, double>> new_offset_list;
@@ -78,8 +82,11 @@ void PathPlanner::local_planning_map::prepare(
         auto&   pi         = ref_p.neighbors[i];
         double  offset_dis = 0.0;
         Point2d origin_p(pi.x, pi.y);
-        // dis_img.at<cv::Vec3b>(int(origin_p.x), int(origin_p.y)) =
-        //     cv::Vec3b(0, 0, 255);
+#ifdef VIS_OFFSET_LANE_CENTER
+        if (origin_p.in_map())
+          dis_img.at<cv::Vec3b>(int(origin_p.x), int(origin_p.y)) =
+              cv::Vec3b(0, 0, 255);
+#endif
         // find the closest pre point's offset
         double min_dis = 1e8;
         for (const auto& off_p : offset_list) {
@@ -104,9 +111,10 @@ void PathPlanner::local_planning_map::prepare(
         // is this offset safe?
         if (is_lane_crashed(tmp_off_point.x, tmp_off_point.y)) {
           // if the center_p is crash, can it offset to neibor?
+          offset_dis       = 1e8;
           bool safe_offset = false;
           // find the left closest obstatle free center
-          for (int j = i + 1; j < ref_p.neighbors.size(); ++j) {
+          for (int j = i; j < ref_p.neighbors.size(); ++j) {
             const auto& pj = ref_p.neighbors[j];
             if (!is_lane_crashed(pj.x, pj.y)) {
               offset_dis =
@@ -115,13 +123,13 @@ void PathPlanner::local_planning_map::prepare(
               break;
             }
           }
-          // find the right closest obstatle free center
+          // find the right closest obstatle-free center
           for (int j = i - 1; j >= 0; --j) {
             const auto& pj = ref_p.neighbors[j];
             if (!is_lane_crashed(pj.x, pj.y)) {
               Point2d      pij_vec(pj.x - pi.x, pj.y - pi.y);
               const double o_dis =
-                  pi.getDirection().cross(pij_vec) * GRID_RESOLUTION;
+                  pi.getDirectionVec().cross(pij_vec) * GRID_RESOLUTION;
               if (fabs(o_dis) < offset_dis) {
                 offset_dis  = o_dis;
                 safe_offset = true;
@@ -133,6 +141,7 @@ void PathPlanner::local_planning_map::prepare(
           if (!safe_offset) {
             offset_dis = (ref_p.neighbors.back() - pi).len() * GRID_RESOLUTION +
                          ref_p.lane_width;
+            offset_dis = 0;
           }
         }
         // offset the pi
@@ -145,15 +154,18 @@ void PathPlanner::local_planning_map::prepare(
       //   LOG(INFO) << p.first << " offset=" << p.second;
       // }
     }
-    // for (const auto& ref_p : ref_path) {
-    //   for (const auto& p : ref_p.neighbors) {
-    //     if (!is_in_map(int(p.x), int(p.y))) continue;
-    //     dis_img.at<cv::Vec3b>(int(p.x), int(p.y)) = cv::Vec3b(255, 100, 0);
-    //   }
-    // }
-    // cv::imshow("offset_map", dis_img);
-    // cv::waitKey();
+#ifdef VIS_OFFSET_LANE_CENTER
+    for (const auto& ref_p : ref_path) {
+      for (const auto& p : ref_p.neighbors) {
+        if (!is_in_map(int(p.x), int(p.y))) continue;
+        dis_img.at<cv::Vec3b>(int(p.x), int(p.y)) = cv::Vec3b(255, 100, 0);
+      }
+    }
+    cv::imshow("offset_map", dis_img);
+    cv::waitKey(1);
+#endif
   } else {
+    is_planning_to_target = true;
     calculate_2d_distance_map();
   }
 }
@@ -180,7 +192,7 @@ bool PathPlanner::local_planning_map::is_lane_crashed(int x, int y) const {
 
 bool PathPlanner::local_planning_map::is_lane_crashed(
     const astate& state) const {
-  return collision(state.x, state.y, state.a, lane_safe_map, 0.5);
+  return collision(state.x, state.y, state.a, lane_safe_map, 0.0);
 }
 
 bool PathPlanner::local_planning_map::is_lane_crashed(primitive& prim) const {
@@ -194,36 +206,34 @@ double PathPlanner::local_planning_map::get_heuristic(const astate& state,
                                                       bool can_reverse) const {
   double heuristic = 0;
   // along the ref_path, the heuristic is small
-  double      min_distance = 1e8;
-  HDMapPoint  ref_near_p;
-  double      end_s   = 0;
-  const auto& sqr_dis = [](const double x0, const double y0, const double x1,
-                           const double y1) {
-    return (x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1);
-  };
-  for (const auto& p : ref_path) {
-    double dis = sqr_dis(p.x, p.y, state.x, state.y);
-    if (dis < min_distance) {
-      min_distance = dis;
-      ref_near_p   = p;
+  if (!is_planning_to_target) {
+    double      min_distance = 1e8;
+    HDMapPoint  ref_near_p;
+    double      end_s   = 0;
+    const auto& sqr_dis = [](const double x0, const double y0, const double x1,
+                             const double y1) {
+      return (x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1);
+    };
+    for (const auto& p : ref_path) {
+      double dis = sqr_dis(p.x, p.y, state.x, state.y);
+      if (dis < min_distance) {
+        min_distance = dis;
+        ref_near_p   = p;
+      }
+      end_s = p.s;
     }
-    end_s = p.s;
-  }
-  // calculate the ref_path heuristic for this state
-  heuristic += 2 * (end_s - ref_near_p.s);  // guide forward along the ref
-  // path guide close to ref path
-  // close to lane center
-  min_distance = 1e8;
-  for (const auto& p : ref_near_p.neighbors) {
-    double center_dis = sqr_dis(p.x, p.y, state.x, state.y);
-    if (center_dis < min_distance) min_distance = center_dis;
-  }
-  heuristic += 0.03 * (min_distance);
-  // guide heading close to ref path
-  heuristic += 10 * (1 - cos(fabs(state.a - ref_near_p.ang)));
-  if (!ref_path.empty()) {
-    // when pilot with ref_path, more dis_to lane_center heuristic
-    // heuristic += 10 * (min_distance);
+    // calculate the ref_path heuristic for this state
+    heuristic += 2 * (end_s - ref_near_p.s);  // guide forward along the ref
+    // path guide close to ref path
+    // close to lane center
+    min_distance = 1e8;
+    for (const auto& p : ref_near_p.neighbors) {
+      double center_dis = sqr_dis(p.x, p.y, state.x, state.y);
+      if (center_dis < min_distance) min_distance = center_dis;
+    }
+    heuristic += 0.03 * (min_distance);
+    // guide heading close to ref path
+    heuristic += 10 * (1 - cos(fabs(state.a - ref_near_p.ang)));
     return heuristic;
   }
   // if the state is near to target
@@ -267,20 +277,21 @@ double PathPlanner::local_planning_map::get_heuristic(const astate& state,
 
 int PathPlanner::local_planning_map::try_get_target_index(
     primitive& primitive) const {
-  if (!ref_path.empty()) {
+  if (!is_planning_to_target) {
     const auto& states = primitive.get_states();
     for (int i = 0, size = states.size(); i < size; ++i)
       if (is_target(states[i])) return i;
-  }
-  const auto& start_state = primitive.get_start_state();
-  double      dis =
-      max(fabs(start_state.x - target.x), fabs(start_state.y - target.y)) *
-      GRID_RESOLUTION;
+  } else {
+    const auto& start_state = primitive.get_start_state();
+    double      dis =
+        max(fabs(start_state.x - target.x), fabs(start_state.y - target.y)) *
+        GRID_RESOLUTION;
 
-  if (dis <= primitive.get_length()) {
-    const auto& states = primitive.get_states();
-    for (int i = 0, size = states.size(); i < size; ++i)
-      if (is_target(states[i])) return i;
+    if (dis <= primitive.get_length()) {
+      const auto& states = primitive.get_states();
+      for (int i = 0, size = states.size(); i < size; ++i)
+        if (is_target(states[i])) return i;
+    }
   }
 
   return -1;
@@ -297,7 +308,7 @@ bool PathPlanner::local_planning_map::is_in_map(int row_idx,
 
 bool PathPlanner::local_planning_map::is_target(const astate& state) const {
   // arrive the ref path end
-  if (!ref_path.empty()) {                 // and no target
+  if (!is_planning_to_target) {
     constexpr double end_area_length = 5;  //  grid
     return euclideanDistance(state.x, state.y, left_bound_p.x, left_bound_p.y) +
                euclideanDistance(state.x, state.y, right_bound_p.x,

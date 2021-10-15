@@ -103,8 +103,8 @@ class MapManager {
   void              getSpeedMaintainedPath(NavInfo& nav_info);
   void              predictDynamicObsInMap();
   std::vector<Pose> getStartMaintainedPath();
-  void              maintainPath(const NavInfo& nav_info, vector<Pose>& path);
-  void              selectBestPath(const std::vector<SpeedPath>& paths);
+  void maintainPath(const NavInfo& nav_info, const vector<Pose>& path);
+  void selectBestPath(const std::vector<SpeedPath>& paths);
 
  public:
   static MapManager* getInstance() { return instance; };

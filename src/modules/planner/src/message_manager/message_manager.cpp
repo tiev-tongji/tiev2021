@@ -4,6 +4,8 @@
 #include <sstream>
 #include <string>
 
+#include "tievlog.h"
+
 using namespace std;
 
 namespace TiEV {
@@ -90,6 +92,7 @@ bool MessageManager::getDynamicObjList(DynamicObjList& dynamic_obj_list) {
   time_t current_time_us = getTimeStamp();
   dynamic_obj_list.dynamic_obj_list.clear();
   dynamic_obj_list.detected = false;
+  constexpr double y_offset = 0;
   for (int i = 0; i < MessageManager::OBJECTS_SOURCE_NUM; ++i)
     if (current_time_us - inner_handler.update_time_objects[i] <
         OBJECT_LIST_TIMEOUT_US) {
@@ -109,8 +112,8 @@ bool MessageManager::getDynamicObjList(DynamicObjList& dynamic_obj_list) {
         new_obj.heading = obj.theta + PI / 2;
         normalizeAngle(new_obj.heading);
         new_obj.corners.resize(4);
-#define copy_point(a, b)                                \
-  a.x = CAR_CEN_ROW - ((b.y - 1.48) / GRID_RESOLUTION); \
+#define copy_point(a, b)                                    \
+  a.x = CAR_CEN_ROW - ((b.y + y_offset) / GRID_RESOLUTION); \
   a.y = CAR_CEN_COL + b.x / GRID_RESOLUTION;
         copy_point(new_obj.corners[0], obj.corners.p1);
         copy_point(new_obj.corners[1], obj.corners.p2);
@@ -128,7 +131,7 @@ bool MessageManager::getDynamicObjList(DynamicObjList& dynamic_obj_list) {
         for (int k = 0; k < obj.path.size(); ++k) {
           copy_point(new_obj.path[k], obj.path[k]);
           new_obj.path[k].x =
-              CAR_CEN_ROW - ((obj.path[k].y - 1.48) / GRID_RESOLUTION);
+              CAR_CEN_ROW - ((obj.path[k].y + y_offset) / GRID_RESOLUTION);
           new_obj.path[k].y   = CAR_CEN_COL + obj.path[k].x / GRID_RESOLUTION;
           new_obj.path[k].t   = k;
           new_obj.path[k].ang = new_obj.heading;

@@ -430,6 +430,7 @@ class PathPlanner {
     double (*abs_safe_map)[MAX_COL];
     double (*lane_safe_map)[MAX_COL];
     bool backward_enabled;
+    bool is_planning_to_target;
 
     static constexpr double BACKWARD_PUNISHMENT_FACTOR = 2.0;
     static constexpr double TURNING_PUNISHMENT_FACTOR  = 1.0;
@@ -548,6 +549,13 @@ class PathPlanner {
   static inline double wrap_angle_0_2_PI(double a) {
     a = fmod(a, 2 * M_PI);
     return a < 0 ? a + 2 * M_PI : a;
+  }
+
+  static inline double wrap_angle_in_PI(double a) {
+    a = wrap_angle_0_2_PI(a);
+    if (a > M_PI) a -= 2 * M_PI;
+    if (a <= -M_PI) a += 2 * M_PI;
+    return a;
   }
 
  public:

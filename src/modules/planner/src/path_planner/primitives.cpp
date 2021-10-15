@@ -108,10 +108,10 @@ vector<PathPlanner::astate> PathPlanner::base_primitive::generate_clothoid(
 PathPlanner::arc_base_primitive::arc_base_primitive(double _curvature,
                                                     double _length,
                                                     bool   _is_backward)
-    : curvature(_curvature),
-      base_primitive(_curvature == 0.0
+    : base_primitive(_curvature == 0.0
                          ? generate_line(_length, _is_backward)
-                         : generate_arc(_curvature, _length, _is_backward)) {}
+                         : generate_arc(_curvature, _length, _is_backward)),
+      curvature(_curvature) {}
 
 PathPlanner::line_base_primitive::line_base_primitive(double _length,
                                                       bool   _is_backward)
@@ -119,13 +119,13 @@ PathPlanner::line_base_primitive::line_base_primitive(double _length,
 
 PathPlanner::clothoid_base_primitive::clothoid_base_primitive(
     double _begin_curvature, double _k_step, double _length, bool _is_backward)
-    : begin_curvature(_begin_curvature),
-      end_curvature(_begin_curvature + _k_step),
-      base_primitive(
+    : base_primitive(
           _is_backward
               ? (_k_step != 0.0 ? generate_arc(_k_step, primi_l, _is_backward)
                                 : generate_line(primi_l, _is_backward))
-              : generate_clothoid(_begin_curvature, _k_step, _is_backward)) {}
+              : generate_clothoid(_begin_curvature, _k_step, _is_backward)),
+      begin_curvature(_begin_curvature),
+      end_curvature(_begin_curvature + _k_step) {}
 
 PathPlanner::primitive::primitive(const base_primitive& _base,
                                   const primitive_ptr   _parent)

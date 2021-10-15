@@ -43,14 +43,14 @@ struct LonLatPosition {
  * 定义轨迹
  */
 struct Pose : public Point2d {
-  UtmPosition utm_position;
   double      ang;  // rad
+  double      k;    // curvature 1/m
+  double      v;    // velocity m/s
   double      a;
-  double      k;  // curvature 1/m
-  double      v;  // velocity m/s
   double      s;  // lenth meter
   double      t;  // time second
   bool        backward;
+  UtmPosition utm_position;
   Pose(double x_ = -1, double y_ = -1, double ang_ = 0, double k_ = 0,
        double v_ = 0, double a_ = 0, double s_ = 0, double t_ = 0,
        bool backward_ = false)
@@ -92,9 +92,9 @@ struct Pose : public Point2d {
   friend std::ostream& operator<<(std::ostream& out, const Pose& pose) {
     out << "Pose:{utm position:(" << pose.utm_position.utm_x << ", "
         << pose.utm_position.utm_y << ", " << pose.utm_position.heading
-        << ") x=" << pose.x << ", y=" << pose.y << ", ang=" << pose.ang
+        << ") \tx=" << pose.x << ", y=" << pose.y << ", ang=" << pose.ang
         << ", k=" << pose.k << ", v=" << pose.v << " , a=" << pose.a
-        << ", s=" << pose.s << ", t=" << pose.t
+        << ", \ts=" << pose.s << ", t=" << pose.t
         << ", backward=" << pose.backward << "}";
     return out;
   }

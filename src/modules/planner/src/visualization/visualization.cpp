@@ -431,7 +431,7 @@ void Visualization::drawPathPlanner() {
     // 参考路
     drawReferencePath(left_map, right_map, 0);
     // 最优路径
-    drawBestPath(left_map, right_map, 0);
+    // drawBestPath(left_map, right_map, 0);
     // 目标点
     drawTargets(left_map, right_map, 1);
     // Maintained path
@@ -553,7 +553,8 @@ bool Visualization::drawDynamicObjs(cv::Mat& left_map, cv::Mat& right_map,
                                     int opt) {
   assert(opt >= 0);
   assert(opt <= 2);
-  time_t current_time = getTimeStamp();
+  constexpr double y_offset     = 0;
+  time_t           current_time = getTimeStamp();
   inner_handler.objects_mtx.lock_shared();
   for (int i = 0; i < OBJECTS_SOURCE_NUM; ++i) {
     // std::cout << "SizeOfDynamic: " << inner_handler.tmp_objects[i].obj.size()
@@ -562,22 +563,22 @@ bool Visualization::drawDynamicObjs(cv::Mat& left_map, cv::Mat& right_map,
         OBJECT_LIST_TIMEOUT_US) {
       for (const auto& obj : inner_handler.tmp_objects[i].obj) {
         vector<cv::Point> points;
-        int x1 = CAR_CEN_ROW - (obj.corners.p1.y - 1.48) / GRID_RESOLUTION;
+        int x1 = CAR_CEN_ROW - (obj.corners.p1.y + y_offset) / GRID_RESOLUTION;
         int y1 = CAR_CEN_COL + obj.corners.p1.x / GRID_RESOLUTION;
         points.emplace_back(cv::Point(y1, x1));
-        int x2 = CAR_CEN_ROW - (obj.corners.p2.y - 1.48) / GRID_RESOLUTION;
+        int x2 = CAR_CEN_ROW - (obj.corners.p2.y + y_offset) / GRID_RESOLUTION;
         int y2 = CAR_CEN_COL + obj.corners.p2.x / GRID_RESOLUTION;
         points.emplace_back(cv::Point(y2, x2));
-        int x3 = CAR_CEN_ROW - (obj.corners.p3.y - 1.48) / GRID_RESOLUTION;
+        int x3 = CAR_CEN_ROW - (obj.corners.p3.y + y_offset) / GRID_RESOLUTION;
         int y3 = CAR_CEN_COL + obj.corners.p3.x / GRID_RESOLUTION;
         points.emplace_back(cv::Point(y3, x3));
-        int x4 = CAR_CEN_ROW - (obj.corners.p4.y - 1.48) / GRID_RESOLUTION;
+        int x4 = CAR_CEN_ROW - (obj.corners.p4.y + y_offset) / GRID_RESOLUTION;
         int y4 = CAR_CEN_COL + obj.corners.p4.x / GRID_RESOLUTION;
         points.emplace_back(cv::Point(y4, x4));
 
         vector<cv::Point> path;
         for (int j = 0; j < obj.path.size(); ++j) {
-          int x = CAR_CEN_ROW - (obj.path[j].y - 1.48) / GRID_RESOLUTION;
+          int x = CAR_CEN_ROW - (obj.path[j].y + y_offset) / GRID_RESOLUTION;
           int y = CAR_CEN_COL + obj.path[j].x / GRID_RESOLUTION;
           path.emplace_back(cv::Point(y, x));
         }

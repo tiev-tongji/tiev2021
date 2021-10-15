@@ -124,8 +124,7 @@ bool QpSpeedOptimizer::Process(PathTimeGraph&   st_graph_data,
     return false;
   }
   if (!spline_constraint->AddThirdDerivativeSmoothConstraint()) {
-  std:
-    cout
+    std::cout
         << "QpSpeedOptimizer: Fail to apply third derivative smooth constraint!"
         << std::endl;
     return false;
@@ -164,7 +163,7 @@ bool QpSpeedOptimizer::Process(PathTimeGraph&   st_graph_data,
   spline_kernel->AddSecondOrderDerivativeMatrix(1000.0);
   spline_kernel->AddThirdOrderDerivativeMatrix(1000.0);
 
-  const double&       last_v = speed_limit_.back().second;
+  // const double&       last_v = speed_limit_.back().second;
   std::vector<double> fx_guide;
   for (size_t i = 0; i < t_knots_.size(); ++i) {
     if (i >= reference_dp_speed_points.size()) {

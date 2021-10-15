@@ -131,14 +131,15 @@ void PathPlanner::hybrid_astar_planner::plan(
     bool reverse_allowed =
         is_backward_enabled && (current.minimum_speed == 0.0);
     //(current.dis_after_reverse >= MIN_DISTANCE_BETWEEN_REVERSING);
-    double maximum_curvature_allowed =
-        GRID_RESOLUTION * max_curvature_under_velocity(current.minimum_speed);
+    // double maximum_curvature_allowed =
+    //     GRID_RESOLUTION *
+    //     max_curvature_under_velocity(current.minimum_speed);
 
     // for each node we caculate the probability to
     // perform analytic expansion from it.
     // the probability depends on its heuristic x.
-    double x                              = current.score - current.cost;
-    double analytic_expansion_probability = 0.2402 * exp(-0.006 * x);
+    // double x                              = current.score - current.cost;
+    // double analytic_expansion_probability = 0.2402 * exp(-0.006 * x);
     // if (iterations == -1 || random_urd(gen) <=
     // analytic_expansion_probability) {
     //   if (try_analytic_expansion(
@@ -236,12 +237,12 @@ void PathPlanner::hybrid_astar_planner::plan(
     // path stores the reversed states list
     vector<astate> path;
 
-    if (last_primitive_ptr != NULL) {
+    if (last_primitive_ptr != nullptr) {
       vector<astate> states(last_primitive_ptr->get_states());
       path.insert(path.end(), states.rend() - target_offset - 1, states.rend());
 
       last_primitive_ptr = last_primitive_ptr->get_parent();
-      while (last_primitive_ptr != NULL) {
+      while (last_primitive_ptr != nullptr) {
         vector<astate> states = last_primitive_ptr->get_states();
         path.insert(path.end(), states.rbegin() + 1, states.rend());
         last_primitive_ptr = last_primitive_ptr->get_parent();

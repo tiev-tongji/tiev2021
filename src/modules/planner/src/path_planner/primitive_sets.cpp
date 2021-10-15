@@ -102,7 +102,7 @@ PathPlanner::clothoid_base_primitive_set::get_nexts(const astate& state) const {
   for (const auto& primi : current_subset[min_idx]->primitives) {
     base.push_back(rotate_and_translate(primi));
   }
-  return std::move(base);
+  return base;
 }
 
 const vector<PathPlanner::base_primitive>

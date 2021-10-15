@@ -73,7 +73,7 @@ void lineInterpolation(std::vector<T>& line, double min_step = 2) {
   std::vector<T> new_line;
   int            pre = 1;
   new_line.push_back(line.front());
-  for (int i = 2; i < line.size() - 1; ++i) {
+  for (int i = 2; i + 1 < line.size(); ++i) {
     T       ppp  = line[pre - 1];
     T       pp   = line[pre];
     T       np   = line[i];
