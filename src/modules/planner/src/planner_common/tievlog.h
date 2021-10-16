@@ -1,8 +1,9 @@
 #ifndef _TIEVLOG_H
 #define _TIEVLOG_H
 
+#include <string.h>
+
 #include <iostream>
-#include <string>
 
 enum LOG_LEVEL { INFO, WARNING, ERROR, FATAL };
 

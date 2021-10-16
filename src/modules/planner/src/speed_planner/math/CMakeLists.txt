@@ -5,7 +5,7 @@ target_sources(math PRIVATE
     box.cpp
 )
 target_include_directories(math PUBLIC 
-    ${CMAKE_SOURCE_DIR}/include/speed_planner
+    ./
 )
 target_link_libraries(math PUBLIC
     planner_common

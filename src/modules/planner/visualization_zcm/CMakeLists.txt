@@ -1,0 +1,2 @@
+add_library(visualization_zcm INTERFACE)
+target_include_directories(visualization_zcm INTERFACE ./)

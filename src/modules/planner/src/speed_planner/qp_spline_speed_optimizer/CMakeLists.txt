@@ -11,12 +11,14 @@ target_sources(qp_spline_speed_optimizer PRIVATE
     spline_1d_constraint.cpp
 )
 target_include_directories(qp_spline_speed_optimizer PUBLIC 
-    ${CMAKE_SOURCE_DIR}/include/speed_planner
+    ./
     ${osqp_INCLUDE_DIRS}
     ${Eigen3_INCLUDE_DIRS}
 )
 target_link_libraries(qp_spline_speed_optimizer PUBLIC 
     planner_common
+    path_time_graph
+    speed
     osqp::osqp 
     Eigen3::Eigen
 )

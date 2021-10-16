@@ -426,14 +426,12 @@ void MessageManager::msgReceiveUdp() {
   zcm_udp.run();
 }
 
-void MessageManager::setTargets(const vector<Pose>& targets) {
+void MessageManager::setTarget(const Pose& target) {
   visualization.targets.clear();
-  for (const auto& target : targets) {
-    visPoint p;
-    p.x = round(target.x);
-    p.y = round(target.y);
-    visualization.targets.emplace_back(p);
-  }
+  visPoint p;
+  p.x = round(target.x);
+  p.y = round(target.y);
+  visualization.targets.emplace_back(p);
   visualization.targets_size = visualization.targets.size();
 }
 
@@ -447,25 +445,18 @@ void MessageManager::setSafeMap(double safe_map[MAX_ROW][MAX_COL]) {
 }
 
 void MessageManager::setPath(const vector<Pose>& path) {
-  visPath p;
-  for (int i = 0; i < path.size(); ++i) {
-    visPoint point;
-    point.x = path[i].x;
-    point.y = path[i].y;
-    p.path.emplace_back(point);
+  visualization.planner_path.path.clear();
+  visualization.planner_path.path_size = path.size();
+  for (const auto& p : path) {
+    visPoint vis_point;
+    vis_point.x = p.x;
+    vis_point.y = p.y;
+    visualization.planner_path.path.push_back(vis_point);
   }
-  p.path_size = p.path.size();
-  visualization.paths.emplace_back(p);
-  visualization.paths_size += 1;
-}
+}  // namespace TiEV
 
 void MessageManager::setUsedMap(bool used_map[MAX_ROW][MAX_COL]) {
   memcpy(visualization.used_map, used_map, sizeof(visualization.used_map));
-}
-
-void MessageManager::clearPaths() {
-  visualization.paths.clear();
-  visualization.paths_size = 0;
 }
 
 void MessageManager::setSpeedPath(const SpeedPath& speed_path) {

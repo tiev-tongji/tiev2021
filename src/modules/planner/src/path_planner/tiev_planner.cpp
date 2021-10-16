@@ -22,12 +22,11 @@ PathPlanner::node_expansion_callback node_expanded;
 PathPlanner::analytic_expansion_callback analytic_expanded;
 #endif
 
-void PathPlanner::hybrid_astar_planner::plan(
+const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
     const std::vector<HDMapPoint>& ref_path, const astate& _start_state,
-    const astate& _target_state, double _start_speed_m_s,
-    bool _is_backward_enabled, double (*_abs_safe_map)[MAX_COL],
-    double (*_lane_safe_map)[MAX_COL], time_t _max_duration,
-    const base_primitive_set* _base_primitives) {
+    double _start_speed_m_s, bool _is_backward_enabled,
+    double (*_abs_safe_map)[MAX_COL], double (*_lane_safe_map)[MAX_COL],
+    time_t _max_duration, const base_primitive_set* _base_primitives) {
   // LOG(WARNING) << "running hybrid astar...";
 #ifdef VIS_EXPANSION
   cv::namedWindow("expansion", cv::WINDOW_KEEPRATIO);
@@ -44,16 +43,13 @@ void PathPlanner::hybrid_astar_planner::plan(
         cv::Vec3b(0, 255, 0);
   }
 #endif
-  have_result     = false;
   start_time      = getTimeStamp();
   dead_line       = start_time + _max_duration;
   iterations      = 0;
   base_primitives = _base_primitives;
 
-  start_state     = _start_state;
-  target_state    = _target_state;
-  start_speed_m_s = _start_speed_m_s;
-  _is_backward_enabled |= start_state.is_backward;
+  start_state         = _start_state;
+  start_speed_m_s     = _start_speed_m_s;
   is_backward_enabled = _is_backward_enabled;
 
   memset(node_visited_map, false, sizeof(node_visited_map));
@@ -63,7 +59,7 @@ void PathPlanner::hybrid_astar_planner::plan(
 
   // clear node_pool
   while (!node_pool.empty()) node_pool.pop();
-  planning_map.prepare(ref_path, target_state, _abs_safe_map, _lane_safe_map,
+  planning_map.prepare(ref_path, _abs_safe_map, _lane_safe_map,
                        is_backward_enabled);
   // LOG(WARNING) << "start:" << start_state << " target:" << target_state;
 #ifdef VIS_EXPANSION
@@ -252,40 +248,24 @@ void PathPlanner::hybrid_astar_planner::plan(
     result.insert(result.begin(), path.rbegin(), path.rend());
     result.insert(result.end(), analytic_expansion_result.begin(),
                   analytic_expansion_result.end());
-    have_result = true;
   } else
     log_1("timeout: no result found");
+  return result;
 }
 
-bool PathPlanner::hybrid_astar_planner::get_have_result() const {
-  return have_result;
-}
-
-const vector<PathPlanner::astate>&
-PathPlanner::hybrid_astar_planner::get_result() const {
-  if (have_result)
-    return result;
-  else {
-    log_0(
-        "calling get_result() throws an exception when get_have_result() "
-        "returns false");
-    throw exception();
-  };
-}
-
-void PathPlanner::hybrid_astar_planner::visit(const astate& state) {
+void PathPlanner::TiEVPlanner::visit(const astate& state) {
   double a       = PathPlanner::wrap_angle_0_2_PI(state.a);
   int    ang_idx = a / (2 * M_PI / ANGLE_NUM);
   node_visited_map[lround(2 * state.x)][lround(2 * state.y)][ang_idx] = true;
 }
 
-bool PathPlanner::hybrid_astar_planner::is_visited(const astate& state) {
+bool PathPlanner::TiEVPlanner::is_visited(const astate& state) {
   double a       = PathPlanner::wrap_angle_0_2_PI(state.a);
   int    ang_idx = a / (2 * M_PI / ANGLE_NUM);
   return node_visited_map[lround(2 * state.x)][lround(2 * state.y)][ang_idx];
 }
 
-bool PathPlanner::hybrid_astar_planner::is_time_out() {
+bool PathPlanner::TiEVPlanner::is_time_out() {
 #ifdef NO_TIME_LIMIT
   return (++iterations) && false;
 #endif
@@ -296,9 +276,10 @@ bool PathPlanner::hybrid_astar_planner::is_time_out() {
     return false;
 }
 
-bool PathPlanner::hybrid_astar_planner::try_analytic_expansion(
-    const astate& state, bool backward_allowed, double max_curvature,
-    double max_sigma) {
+bool PathPlanner::AstarPlanner::try_analytic_expansion(const astate& state,
+                                                       bool   backward_allowed,
+                                                       double max_curvature,
+                                                       double max_sigma) {
   const analytic_expansion_provider* provider = NULL;
 
   // since we must check whether we are approved to drive backward
@@ -367,7 +348,7 @@ bool PathPlanner::hybrid_astar_planner::try_analytic_expansion(
   }
 }
 
-double PathPlanner::hybrid_astar_planner::get_cost_factor(
+double PathPlanner::TiEVPlanner::get_cost_factor(
     const astate& prev_state, const astate& now_state) const {
   double result = 1.0;
   // punish backwarding

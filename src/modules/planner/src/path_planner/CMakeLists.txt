@@ -1,7 +1,7 @@
 add_library(path_planner STATIC "")
 
 target_sources(path_planner PRIVATE
-    hybrid_astar_planner.cpp
+    tiev_planner.cpp
     analytic_expansion_providers.cpp
     local_planning_map.cpp
     primitive_sets.cpp
@@ -24,7 +24,7 @@ else()
 endif()
 
 target_include_directories(path_planner PUBLIC
-    ${CMAKE_SOURCE_DIR}/include/path_planner
+    ./
 )
 
 find_package(OpenCV REQUIRED)

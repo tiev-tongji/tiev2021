@@ -1,4 +1,4 @@
-#include "qp_spline_speed_optimizer/qp_speed_optimizer.h"
+#include "qp_speed_optimizer.h"
 
 #include <iostream>
 

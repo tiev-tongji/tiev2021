@@ -11,8 +11,8 @@
 
 #include "config.h"
 #include "const.h"
+#include "distance_table.h"
 #include "message_manager.h"
-#include "planner_common/look_up_tables/distance_table.h"
 #include "pose.h"
 #include "speed_optimizer.h"
 #include "steering_functions/dubins_state_space/dubins_state_space.hpp"
@@ -58,17 +58,14 @@ class PathPlanner {
     return &inner_instance;
   }
 
-  // lookup distance table for rs and dubins curve
-  const DistanceTable* distance_table_rs;
-  const DistanceTable* distance_table_dubins;
-
-  void runPlanner(const std::vector<HDMapPoint>& ref_path,
-                  const DynamicObjList& dynamic_objs, double max_speed,
-                  bool reverse, const double abs_safe_map[MAX_ROW][MAX_COL],
-                  const double        lane_safe_map[MAX_ROW][MAX_COL],
-                  const vector<Pose>& start_maintained_path,
-                  const vector<Pose>& targets, double current_speed,
-                  vector<SpeedPath>& results);
+  void runPathPlanner(const std::vector<HDMapPoint>& ref_path,
+                      const DynamicObjList&          dynamic_objs,
+                      const double max_speed, const bool reverse,
+                      const double        abs_safe_map[MAX_ROW][MAX_COL],
+                      const double        lane_safe_map[MAX_ROW][MAX_COL],
+                      const vector<Pose>& start_maintained_path,
+                      const Pose& target, double current_speed,
+                      std::vector<Pose>* result_path);
 
   void setReferencePath(const std::vector<HDMapPoint>& ref_path);
 
@@ -78,7 +75,7 @@ class PathPlanner {
 
   void setStartMaintainedPath(const vector<Pose>& start_maintained_path);
 
-  void setTargets(const vector<Pose>& targets);
+  void setTarget(const Pose& target);
 
   void setBackwardEnabled(bool enabled);
 
@@ -86,28 +83,19 @@ class PathPlanner {
 
   void setDynamicObjList(const DynamicObjList& dynamic_obj_list);
 
-  void setVelocityLimit(double speed);
+  void setVelocityLimit(const double speed);
 
-  void plan();
-
-  bool getResults(vector<SpeedPath>& results);
-
-#ifdef DEBUG_EXPANSION_CALLBACK
-  typedef void (*node_expansion_callback)(double x, double y, double a,
-                                          double k, bool is_backward,
-                                          double heuristic, double cost);
-#endif
-#ifdef DEBUG_ANALYTIC_EXPANSION_CALLBACK
-  typedef void (*analytic_expansion_callback)(
-      const vector<pair<double, double>>& xys);
-#endif
+  void plan(std::vector<Pose>* result);
 
  private:
   PathPlanner();
   ~PathPlanner(){};
 
-  const Config*   config;
-  MessageManager* view_controller;
+  // lookup distance table for rs and dubins curve
+  const DistanceTable* distance_table_rs;
+  const DistanceTable* distance_table_dubins;
+  const Config*        config;
+  MessageManager*      view_controller;
 
   // is_planning
   bool is_planning = false;
@@ -116,40 +104,52 @@ class PathPlanner {
   time_t plan_start_time;
 
   // planner settings
-  bool         backward_enabled = false;
-  Pose         start_point;
-  vector<Pose> targets;
+  Pose   start_pose;
+  Pose   target_pose;
+  bool   backward_enabled;
+  double lane_safe_map[MAX_ROW][MAX_COL];
+  double abs_safe_map[MAX_ROW][MAX_COL];
+  double current_speed  = 0;
+  double velocity_limit = 20;
 
+  DynamicObjList          dynamic_obj_list;
+  std::vector<Pose>       start_maintained_path;
   std::vector<HDMapPoint> ref_path;
 
-  // messages
-  double         lane_safe_map[MAX_ROW][MAX_COL];
-  double         abs_safe_map[MAX_ROW][MAX_COL];
-  DynamicObjList dynamic_obj_list;
-  double         current_speed  = 0;
-  double         velocity_limit = 20;
-
-  // visualization
-  bool used_map[MAX_ROW][MAX_COL];
-
   // results
-  SpeedPath                    speed_paths[MAX_TARGET_NUM];
-  vector<Pose>                 start_maintained_path;
-  vector<pair<double, double>> speed_limits[MAX_TARGET_NUM];
-  bool                         have_result[MAX_TARGET_NUM];
+  std::vector<Pose> trajectory;
 
-  //-----------------------------------------------------------
-  // Threads
-  //-----------------------------------------------------------
-  void planner_thread(int target_index);
+  template <class T, int block_size>
+  class block_mem_pool {
+   public:
+    template <class... arg_types>
+    T* make(const arg_types&... args) {
+      if (tail_offset >= block_size) {
+        void* alloced = ::operator new(sizeof(T) * block_size);
+        mems.emplace_back(static_cast<T*>(alloced));
+        tail_offset = 0;
+      }
+      return new (mems.back() + (tail_offset++)) T(args...);
+    }
+    void clear() {
+      while (!mems.empty()) {
+        for (int i = 0; i < tail_offset; ++i) (mems.back() + i)->~T();
+        ::operator delete(static_cast<void*>(mems.back()));
+        mems.pop_back();
+        tail_offset = block_size;
+      }
+    }
+    int size() {
+      return (mems.size() * block_size) - (block_size - tail_offset);
+    }
+    ~block_mem_pool() { clear(); }
 
+   private:
+    vector<T*> mems;
+    int        tail_offset = block_size;
+  };
   //-----------------------------------------------------------
-  // SpeedPlanner
-  //-----------------------------------------------------------
-  void planSpeed(int target_index);
-
-  //-----------------------------------------------------------
-  // AStar
+  // Local path planning definition
   //-----------------------------------------------------------
   class primitive;
   typedef primitive* primitive_ptr;
@@ -402,7 +402,9 @@ class PathPlanner {
 
   class local_planning_map {
    public:
-    void prepare(const std::vector<HDMapPoint>& ref_path, const astate& target,
+    void prepare(const astate& target, double (*abs_safe_map)[MAX_COL],
+                 double (*lane_safe_map)[MAX_COL], bool is_backward_enabled);
+    void prepare(const std::vector<HDMapPoint>& ref_path,
                  double (*abs_safe_map)[MAX_COL],
                  double (*lane_safe_map)[MAX_COL], bool is_backward_enabled);
 
@@ -429,54 +431,66 @@ class PathPlanner {
 
     double (*abs_safe_map)[MAX_COL];
     double (*lane_safe_map)[MAX_COL];
+    double astar_2d_distance_map[MAX_ROW][MAX_COL];
+
     bool backward_enabled;
     bool is_planning_to_target;
 
     static constexpr double BACKWARD_PUNISHMENT_FACTOR = 2.0;
     static constexpr double TURNING_PUNISHMENT_FACTOR  = 1.0;
-    double                  astar_2d_distance_map[MAX_ROW][MAX_COL];
-
-    template <class T, int buffer_size>
-    class ring_buffer {
-     public:
-#define add(a) ((a + 1) % buffer_size)
-#define dec(a) ((a + (buffer_size - 1)) % buffer_size)
-      ring_buffer() : buffer(buffer_size) {}
-      void clear() { begin_idx = end_idx = 0; }
-      bool empty() const { return begin_idx == end_idx; }
-      int  length() const {
-        return (end_idx - begin_idx + buffer_size) % buffer_size;
-      }
-      void push_front(const T& t) { buffer[begin_idx = dec(begin_idx)] = t; }
-      void push_back(const T& t) {
-        buffer[end_idx] = t;
-        end_idx         = add(end_idx);
-      }
-      void     pop_front() { begin_idx = add(begin_idx); }
-      void     pop_back() { end_idx = dec(end_idx); }
-      const T& front() const { return buffer[begin_idx]; }
-      const T& back() const { return buffer[dec(end_idx)]; }
-#undef add
-#undef dec
-     private:
-      vector<T> buffer;
-      int       begin_idx;
-      int       end_idx;
-    };
 
     void calculate_2d_distance_map();
   };
 
-  class hybrid_astar_planner {
+  //--------------------------------------------
+  //      TiEV Path Planning Algrithom
+  //--------------------------------------------
+  class TiEVPlanner {
    public:
-    void plan(const std::vector<HDMapPoint>& ref_path,
-              const astate& start_state, const astate& target_state,
-              double start_speed_m_s, bool is_backward_enabled,
-              double (*abs_safe_map)[MAX_COL], double (*lane_safe_map)[MAX_COL],
-              time_t max_duration, const base_primitive_set* base_primitives);
-    bool get_have_result() const;
+    const std::vector<astate>& plan(
+        const std::vector<HDMapPoint>& ref_path, const astate& start_state,
+        double start_speed_m_s, bool is_backward_enabled,
+        double (*abs_safe_map)[MAX_COL], double (*lane_safe_map)[MAX_COL],
+        time_t max_duration, const base_primitive_set* base_primitives);
 
-    const vector<astate>& get_result() const;
+   private:
+    void   visit(const astate& state);
+    bool   is_visited(const astate& state);
+    bool   is_time_out();
+    double get_cost_factor(const astate& prev_state,
+                           const astate& now_state) const;
+
+    time_t start_time;
+    time_t dead_line;
+    long   iterations;
+
+    astate start_state;
+    double start_speed_m_s;
+    bool   is_backward_enabled;
+
+    bool node_visited_map[2 * MAX_ROW][2 * MAX_COL][ANGLE_NUM];
+
+    static constexpr double BACKWARD_COST_FACTOR = 2.0;
+
+    local_planning_map                 planning_map;
+    const base_primitive_set*          base_primitives;
+    block_mem_pool<primitive, 32768>   primitive_pool;
+    priority_queue<node, vector<node>> node_pool;
+    vector<astate>                     analytic_expansion_result;
+
+    vector<astate> result;
+  } tiev_planner;
+
+  //---------------------------------------
+  // Hybrid Astar Path Planning Algrithom
+  //---------------------------------------
+  class AstarPlanner {
+   public:
+    const std::vector<astate>& plan(
+        const astate& start_state, const astate& target_state,
+        double start_speed_m_s, bool is_backward_enabled,
+        double (*abs_safe_map)[MAX_COL], double (*lane_safe_map)[MAX_COL],
+        time_t max_duration, const base_primitive_set* base_primitives);
 
    private:
     void   visit(const astate& state);
@@ -491,48 +505,14 @@ class PathPlanner {
     time_t dead_line;
     long   iterations;
 
-    astate start_state, target_state;
+    astate start_state;
+    astate target_state;
     double start_speed_m_s;
     bool   is_backward_enabled;
 
     bool node_visited_map[2 * MAX_ROW][2 * MAX_COL][ANGLE_NUM];
 
     static constexpr double BACKWARD_COST_FACTOR = 2.0;
-    static constexpr double MIN_DISTANCE_BETWEEN_REVERSING =
-        0.0 / GRID_RESOLUTION;
-    static constexpr double NODE_REVISIT_PUNISHMENT            = 0.2;
-    static constexpr double CURVATURE_PUNISHMENT_FACTOR        = 80;  // 25.0;
-    static constexpr double CURVATURE_CHANGE_PUNISHMENT_FACTOR = 2.5;
-
-    template <class T, int block_size>
-    class block_mem_pool {
-     public:
-      template <class... arg_types>
-      T* make(const arg_types&... args) {
-        if (tail_offset >= block_size) {
-          void* alloced = ::operator new(sizeof(T) * block_size);
-          mems.emplace_back(static_cast<T*>(alloced));
-          tail_offset = 0;
-        }
-        return new (mems.back() + (tail_offset++)) T(args...);
-      }
-      void clear() {
-        while (!mems.empty()) {
-          for (int i = 0; i < tail_offset; ++i) (mems.back() + i)->~T();
-          ::operator delete(static_cast<void*>(mems.back()));
-          mems.pop_back();
-          tail_offset = block_size;
-        }
-      }
-      int size() {
-        return (mems.size() * block_size) - (block_size - tail_offset);
-      }
-      ~block_mem_pool() { clear(); }
-
-     private:
-      vector<T*> mems;
-      int        tail_offset = block_size;
-    };
 
     local_planning_map                 planning_map;
     const base_primitive_set*          base_primitives;
@@ -541,8 +521,7 @@ class PathPlanner {
     vector<astate>                     analytic_expansion_result;
 
     vector<astate> result;
-    bool           have_result;
-  } hybrid_astar_planners[MAX_TARGET_NUM];
+  } astar_planner;
 
   static constexpr double SPEED_DESCENT_FACTOR = 1.0;  // m/s^2
 

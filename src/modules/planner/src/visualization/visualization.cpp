@@ -4,6 +4,7 @@
 
 #include "config.h"
 #include "const.h"
+#include "tievlog.h"
 
 namespace TiEV {
 using namespace std;
@@ -878,19 +879,17 @@ bool Visualization::drawPaths(cv::Mat& left_map, cv::Mat& right_map, int opt) {
       cv::Vec3b(0xff, 0xaa, 0xaa), cv::Vec3b(0xaa, 0xff, 0xaa),
       cv::Vec3b(0xaa, 0xaa, 0xff), cv::Vec3b(0xff, 0xff, 0xaa),
       cv::Vec3b(0xaa, 0xff, 0xff)};
-  for (int i = 0; i < inner_handler.tmp_visualization.paths.size(); ++i) {
-    for (const auto& point : inner_handler.tmp_visualization.paths[i].path) {
-      int x = point.x;
-      int y = point.y;
-      if (x < 0 || x >= MAX_ROW || y < 0 || y >= MAX_COL) continue;
-      if (opt == 0)
-        *left_map.ptr<cv::Vec3b>(x, y) = PATH_COLORS[i];
-      else if (opt == 1)
-        *right_map.ptr<cv::Vec3b>(x, y) = PATH_COLORS[i];
-      else {
-        *left_map.ptr<cv::Vec3b>(x, y)  = PATH_COLORS[i];
-        *right_map.ptr<cv::Vec3b>(x, y) = PATH_COLORS[i];
-      }
+  for (const auto& point : inner_handler.tmp_visualization.planner_path.path) {
+    int x = point.x;
+    int y = point.y;
+    if (x < 0 || x >= MAX_ROW || y < 0 || y >= MAX_COL) continue;
+    if (opt == 0)
+      *left_map.ptr<cv::Vec3b>(x, y) = PATH_COLORS[0];
+    else if (opt == 1)
+      *right_map.ptr<cv::Vec3b>(x, y) = PATH_COLORS[1];
+    else {
+      *left_map.ptr<cv::Vec3b>(x, y)  = PATH_COLORS[1];
+      *right_map.ptr<cv::Vec3b>(x, y) = PATH_COLORS[3];
     }
   }
   return true;

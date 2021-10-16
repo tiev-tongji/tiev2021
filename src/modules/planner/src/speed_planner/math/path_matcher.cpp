@@ -1,8 +1,10 @@
-#include "math/path_matcher.h"
+#include "path_matcher.h"
 
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+
+#include "tievlog.h"
 
 namespace TiEV {
 
@@ -86,11 +88,13 @@ Pose PathMatcher::FindProjectionPoint(const Pose& p0, const Pose& p1,
 std::pair<double, double> PathMatcher::GetPathFrenetCoordinate(
     const std::vector<Pose>& path, const double x, const double y) {
   Pose matched_path_point = MatchToPath(path, x, y);  // return pose.xy is gird
-  double rtheta           = matched_path_point.ang;
-  double rx               = matched_path_point.x;
-  double ry               = matched_path_point.y;
-  double delta_x          = x - rx;
-  double delta_y          = y - ry;
+  LOG(INFO) << "match point: s=" << matched_path_point.s
+            << " x=" << matched_path_point.x << " y=" << matched_path_point.y;
+  double rtheta  = matched_path_point.ang;
+  double rx      = matched_path_point.x;
+  double ry      = matched_path_point.y;
+  double delta_x = x - rx;
+  double delta_y = y - ry;
 
   // The original coord represents gridded cells
   // Here we need to transfer it to actual distance

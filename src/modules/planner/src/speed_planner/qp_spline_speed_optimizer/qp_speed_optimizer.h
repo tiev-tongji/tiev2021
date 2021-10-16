@@ -1,11 +1,11 @@
 #pragma once
 
-#include "../../../include/planner_common/pose.h"
-#include "../path_time_graph/path_time_graph.h"
-#include "../speed/speed_data.h"
-#include "../speed/speed_limit.h"
 #include "osqp_spline_solver.h"
+#include "path_time_graph.h"
+#include "pose.h"
 #include "qp_st_config.h"
+#include "speed_data.h"
+#include "speed_limit.h"
 
 namespace TiEV {
 

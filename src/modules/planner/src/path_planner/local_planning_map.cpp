@@ -7,7 +7,7 @@
 #include "tievlog.h"
 
 namespace TiEV {
-// #define VIS_OFFSET_LANE_CENTER
+#define VIS_OFFSET_LANE_CENTER
 
 #define MULTILINE(SEGMENT) \
   do {                     \
@@ -28,146 +28,166 @@ namespace TiEV {
 constexpr double len(int a, int b) { return sqrt(a * a + b * b); }
 
 void PathPlanner::local_planning_map::prepare(
-    const std::vector<HDMapPoint>& _ref_path, const astate& _target,
-    double (*_abs_safe_map)[MAX_COL], double (*_lane_safe_map)[MAX_COL],
-    bool _backward_enabled) {
-  ref_path         = _ref_path;
-  target           = _target;
-  abs_safe_map     = _abs_safe_map;
-  lane_safe_map    = _lane_safe_map;
-  backward_enabled = _backward_enabled;
+    const std::vector<HDMapPoint>& _ref_path, double (*_abs_safe_map)[MAX_COL],
+    double (*_lane_safe_map)[MAX_COL], bool _backward_enabled) {
+  is_planning_to_target = false;
+  ref_path              = _ref_path;
+  abs_safe_map          = _abs_safe_map;
+  lane_safe_map         = _lane_safe_map;
+  backward_enabled      = _backward_enabled;
 
   // when there is no target
-  if (target.x == 0 && target.y == 0 && !ref_path.empty()) {
-    is_planning_to_target = false;
 #ifdef VIS_OFFSET_LANE_CENTER
-    cv::namedWindow("offset_map");
-    cv::Mat dis_img = cv::Mat(MAX_ROW, MAX_COL, CV_8UC3, {255, 255, 255});
+  cv::namedWindow("offset_map");
+  cv::Mat dis_img = cv::Mat(MAX_ROW, MAX_COL, CV_8UC3, {255, 255, 255});
 #endif
-    // resize the ref_path to get the first one path
-    auto new_size = ref_path.size();
-    for (int i = 0; i < ref_path.size(); ++i) {
-      const auto& p = ref_path[i];
-      if (p.s < 0) continue;
-      if (p.s >= 120 || int(p.x) <= 2 || int(p.x) > MAX_ROW - 2 ||
-          int(p.y) <= 1 || int(p.y) >= MAX_COL - 2) {
-        new_size = i + 1;
-        break;
-      }
+  // resize the ref_path to get the first one path
+  auto new_size = ref_path.size();
+  for (int i = 0; i < ref_path.size(); ++i) {
+    const auto& p = ref_path[i];
+    if (p.s < 0) continue;
+    if (p.s >= 120 || int(p.x) <= 2 || int(p.x) > MAX_ROW - 2 ||
+        int(p.y) <= 1 || int(p.y) >= MAX_COL - 2) {
+      new_size = i + 1;
+      break;
     }
-    ref_path.resize(new_size);
-    // calculate the ref path end arrival area
-    const auto& ref_end_p = ref_path.back();
-    // left bound and right bound point
-    left_bound_p = ref_end_p.getLateralPose(
-        ref_end_p.lane_width * (ref_end_p.lane_num - ref_end_p.lane_seq + 0.5));
-    right_bound_p = ref_end_p.getLateralPose(ref_end_p.lane_width *
-                                             (ref_end_p.lane_seq - 0.5));
-    // get the lane center for each ref path p
-    for (auto& p : ref_path) {
-      if (!p.neighbors.empty()) continue;
-      for (int i = 0; i < p.lane_num; ++i) {
-        p.neighbors.push_back(
-            p.getLateralPose(p.lane_width * (i - p.lane_seq + 1)));
-      }
+  }
+  ref_path.resize(new_size);
+  // calculate the ref path end arrival area
+  const auto& ref_end_p = ref_path.back();
+  // left bound and right bound point
+  left_bound_p = ref_end_p.getLateralPose(
+      ref_end_p.lane_width * (ref_end_p.lane_num - ref_end_p.lane_seq + 0.5));
+  right_bound_p = ref_end_p.getLateralPose(ref_end_p.lane_width *
+                                           (ref_end_p.lane_seq - 0.5));
+  // get the lane center for each ref path p
+  for (auto& p : ref_path) {
+    if (!p.neighbors.empty()) continue;
+    for (int i = 0; i < p.lane_num; ++i) {
+      p.neighbors.push_back(
+          p.getLateralPose(p.lane_width * (i - p.lane_seq + 1)));
     }
-    // offset the center point to avoid bostacles
-    std::vector<std::pair<Point2d, double>> offset_list;
+  }
+  // offset the center point to avoid bostacles
+  std::vector<std::pair<Point2d, double>> offset_list;
 
-    constexpr double offset_decent = 0.0;  // m
-    for (auto it = ref_path.rbegin(); it != ref_path.rend(); it++) {
-      auto&                              ref_p = *it;
-      std::vector<pair<Point2d, double>> new_offset_list;
-      for (int i = 0; i < ref_p.neighbors.size(); ++i) {
-        auto&   pi         = ref_p.neighbors[i];
-        double  offset_dis = 0.0;
-        Point2d origin_p(pi.x, pi.y);
+  constexpr double offset_decent = 0.0;  // m
+  for (auto it = ref_path.rbegin(); it != ref_path.rend(); it++) {
+    auto&                              ref_p = *it;
+    std::vector<pair<Point2d, double>> new_offset_list;
+    for (int i = 0; i < ref_p.neighbors.size(); ++i) {
+      auto&   pi         = ref_p.neighbors[i];
+      double  offset_dis = 0.0;
+      Point2d origin_p(pi.x, pi.y);
 #ifdef VIS_OFFSET_LANE_CENTER
-        if (origin_p.in_map())
-          dis_img.at<cv::Vec3b>(int(origin_p.x), int(origin_p.y)) =
-              cv::Vec3b(0, 0, 255);
+      if (origin_p.in_map())
+        dis_img.at<cv::Vec3b>(int(origin_p.x), int(origin_p.y)) =
+            cv::Vec3b(0, 0, 255);
 #endif
-        // find the closest pre point's offset
-        double min_dis = 1e8;
-        for (const auto& off_p : offset_list) {
-          const double dis =
-              sqrDistance(off_p.first.x, off_p.first.y, pi.x, pi.y);
-          if (dis < min_dis) {
-            min_dis    = dis;
-            offset_dis = off_p.second;
+      // find the closest pre point's offset
+      double min_dis = 1e8;
+      for (const auto& off_p : offset_list) {
+        const double dis =
+            sqrDistance(off_p.first.x, off_p.first.y, pi.x, pi.y);
+        if (dis < min_dis) {
+          min_dis    = dis;
+          offset_dis = off_p.second;
+        }
+      }
+      // offset this pi by decent offset_dis
+      const auto& offset_after_decent = [&](const double offdis) {
+        if (offdis > 0) {
+          return std::max(offdis - offset_decent, 0.0);
+        } else {
+          return std::min(offdis + offset_decent, 0.0);
+        }
+      };
+      offset_dis = offset_after_decent(offset_dis);
+
+      const auto& tmp_off_point = pi.getLateralPose(offset_dis);
+      // is this offset safe?
+      if (is_lane_crashed(tmp_off_point.x, tmp_off_point.y)) {
+        // if the center_p is crash, can it offset to neibor?
+        offset_dis       = 1e8;
+        bool safe_offset = false;
+        // find the left closest obstatle free center
+        for (int j = i; j < ref_p.neighbors.size(); ++j) {
+          const auto& pj = ref_p.neighbors[j];
+          if (!is_lane_crashed(pj.x, pj.y)) {
+            offset_dis =
+                euclideanDistance(pj.x, pj.y, pi.x, pi.y) * GRID_RESOLUTION;
+            safe_offset = true;
+            break;
           }
         }
-        // offset this pi by decent offset_dis
-        const auto& offset_after_decent = [&](const double offdis) {
-          if (offdis > 0) {
-            return std::max(offdis - offset_decent, 0.0);
-          } else {
-            return std::min(offdis + offset_decent, 0.0);
-          }
-        };
-        offset_dis = offset_after_decent(offset_dis);
-
-        const auto& tmp_off_point = pi.getLateralPose(offset_dis);
-        // is this offset safe?
-        if (is_lane_crashed(tmp_off_point.x, tmp_off_point.y)) {
-          // if the center_p is crash, can it offset to neibor?
-          offset_dis       = 1e8;
-          bool safe_offset = false;
-          // find the left closest obstatle free center
-          for (int j = i; j < ref_p.neighbors.size(); ++j) {
-            const auto& pj = ref_p.neighbors[j];
-            if (!is_lane_crashed(pj.x, pj.y)) {
-              offset_dis =
-                  euclideanDistance(pj.x, pj.y, pi.x, pi.y) * GRID_RESOLUTION;
+        // find the right closest obstatle-free center
+        for (int j = i - 1; j >= 0; --j) {
+          const auto& pj = ref_p.neighbors[j];
+          if (!is_lane_crashed(pj.x, pj.y)) {
+            Point2d      pij_vec(pj.x - pi.x, pj.y - pi.y);
+            const double o_dis =
+                pi.getDirectionVec().cross(pij_vec) * GRID_RESOLUTION;
+            if (fabs(o_dis) < offset_dis) {
+              offset_dis  = o_dis;
               safe_offset = true;
               break;
             }
           }
-          // find the right closest obstatle-free center
-          for (int j = i - 1; j >= 0; --j) {
-            const auto& pj = ref_p.neighbors[j];
-            if (!is_lane_crashed(pj.x, pj.y)) {
-              Point2d      pij_vec(pj.x - pi.x, pj.y - pi.y);
-              const double o_dis =
-                  pi.getDirectionVec().cross(pij_vec) * GRID_RESOLUTION;
-              if (fabs(o_dis) < offset_dis) {
-                offset_dis  = o_dis;
-                safe_offset = true;
-                break;
-              }
-            }
-          }
-          // if the road is all crashed
-          if (!safe_offset) {
-            offset_dis = (ref_p.neighbors.back() - pi).len() * GRID_RESOLUTION +
-                         ref_p.lane_width;
-            offset_dis = 0;
+        }
+        // if the road is all crashed
+        if (!safe_offset) {
+          // is it safe outside the road?
+          const double left_outside_dis =
+              (ref_p.neighbors.back() - pi).len() * GRID_RESOLUTION +
+              ref_p.lane_width;
+          const double right_outside_dis = -(i + 1) * ref_p.lane_width;
+          const auto&  right_off_point   = pi.getLateralPose(right_outside_dis);
+          const auto&  left_off_point    = pi.getLateralPose(left_outside_dis);
+          if (!is_lane_crashed(int(right_off_point.x),
+                               int(right_off_point.y))) {
+            offset_dis = right_outside_dis;
+          } else if (!is_lane_crashed(int(left_off_point.x),
+                                      int(left_off_point.y))) {
+            offset_dis = left_outside_dis;
+          } else {
+            offset_dis = fabs(right_outside_dis) < fabs(left_outside_dis)
+                             ? right_outside_dis
+                             : left_outside_dis;
           }
         }
-        // offset the pi
-        pi.offset(offset_dis);
-        new_offset_list.push_back(std::make_pair(origin_p, offset_dis));
       }
-      offset_list = new_offset_list;
-      // LOG(WARNING) << "---at ref_p:" << ref_p.s << "---";
-      // for (const auto& p : offset_list) {
-      //   LOG(INFO) << p.first << " offset=" << p.second;
-      // }
+      // offset the pi
+      pi.offset(offset_dis);
+      new_offset_list.push_back(std::make_pair(origin_p, offset_dis));
     }
-#ifdef VIS_OFFSET_LANE_CENTER
-    for (const auto& ref_p : ref_path) {
-      for (const auto& p : ref_p.neighbors) {
-        if (!is_in_map(int(p.x), int(p.y))) continue;
-        dis_img.at<cv::Vec3b>(int(p.x), int(p.y)) = cv::Vec3b(255, 100, 0);
-      }
-    }
-    cv::imshow("offset_map", dis_img);
-    cv::waitKey(1);
-#endif
-  } else {
-    is_planning_to_target = true;
-    calculate_2d_distance_map();
+    offset_list = new_offset_list;
+    // LOG(WARNING) << "---at ref_p:" << ref_p.s << "---";
+    // for (const auto& p : offset_list) {
+    //   LOG(INFO) << p.first << " offset=" << p.second;
+    // }
   }
+#ifdef VIS_OFFSET_LANE_CENTER
+  for (const auto& ref_p : ref_path) {
+    for (const auto& p : ref_p.neighbors) {
+      if (!is_in_map(int(p.x), int(p.y))) continue;
+      dis_img.at<cv::Vec3b>(int(p.x), int(p.y)) = cv::Vec3b(255, 100, 0);
+    }
+  }
+  cv::imshow("offset_map", dis_img);
+  cv::waitKey(1);
+#endif
+}
+void PathPlanner::local_planning_map::prepare(const astate& _target,
+                                              double (*_abs_safe_map)[MAX_COL],
+                                              double (*_lane_safe_map)[MAX_COL],
+                                              bool _backward_enabled) {
+  is_planning_to_target = true;
+  target                = _target;
+  abs_safe_map          = _abs_safe_map;
+  lane_safe_map         = _lane_safe_map;
+  backward_enabled      = _backward_enabled;
+
+  calculate_2d_distance_map();
 }
 
 bool PathPlanner::local_planning_map::is_abs_crashed(int x, int y) const {
@@ -236,27 +256,6 @@ double PathPlanner::local_planning_map::get_heuristic(const astate& state,
     heuristic += 10 * (1 - cos(fabs(state.a - ref_near_p.ang)));
     return heuristic;
   }
-  // if the state is near to target
-  // constexpr double target_effect_r = 20 / GRID_RESOLUTION;  // 10m
-  // min_distance                     = 1e8;
-  // HDMapPoint ref_target_p;
-  // for (const auto& p : ref_path) {
-  //   double dis = (p.x - target.x) * (p.x - target.x) +
-  //                (p.y - target.y) * (p.y - target.y);
-  //   if (dis < min_distance) {
-  //     min_distance = dis;
-  //     ref_target_p = p;
-  //   }
-  // }
-  // const double s_to_target = fabs(ref_target_p.s - ref_near_p.s);
-  // if (s_to_target < target_effect_r) {
-  //   heuristic -=
-  //       std::max(5 * (target_effect_r -
-  //                     euclideanDistance(state.x, state.y, target.x,
-  //                     target.y)),
-  //                0.0);
-  // }
-  // return heuristic;
   // calculate the target heuristic
   const int x_idx              = (int)state.x;
   const int y_idx              = (int)state.y;

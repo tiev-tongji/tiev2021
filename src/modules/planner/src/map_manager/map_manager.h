@@ -1,5 +1,6 @@
-#ifndef MAP_MANAGER_H
-#define MAP_MANAGER_H
+#ifndef _MAP_MANAGER_H
+#define _MAP_MANAGER_H
+
 #include <mutex>
 #include <shared_mutex>
 #include <string>
@@ -99,7 +100,7 @@ class MapManager {
   std::vector<Pose> maintained_uturn_target;
   // Pose getRefPathTarget(double s);
   //------
-  std::vector<Pose> getMaintainedPath(NavInfo& nav_info);
+  std::vector<Pose> getMaintainedPath(const NavInfo& nav_info);
   void              getSpeedMaintainedPath(NavInfo& nav_info);
   void              predictDynamicObsInMap();
   std::vector<Pose> getStartMaintainedPath();

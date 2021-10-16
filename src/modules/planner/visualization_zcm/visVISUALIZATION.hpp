@@ -53,9 +53,7 @@ class visVISUALIZATION
 
         visPoint   start_point;
 
-        int32_t    paths_size;
-
-        std::vector< visPath > paths;
+        visPath    planner_path;
 
         int32_t    st_boundaries_size;
 
@@ -236,13 +234,8 @@ int visVISUALIZATION::_encodeNoHash(void* buf, uint32_t offset, uint32_t maxlen)
     thislen = this->start_point._encodeNoHash(buf, offset + pos, maxlen - pos);
     if(thislen < 0) return thislen; else pos += thislen;
 
-    thislen = __int32_t_encode_array(buf, offset + pos, maxlen - pos, &this->paths_size, 1);
+    thislen = this->planner_path._encodeNoHash(buf, offset + pos, maxlen - pos);
     if(thislen < 0) return thislen; else pos += thislen;
-
-    for (int a0 = 0; a0 < this->paths_size; ++a0) {
-        thislen = this->paths[a0]._encodeNoHash(buf, offset + pos, maxlen - pos);
-        if(thislen < 0) return thislen; else pos += thislen;
-    }
 
     thislen = __int32_t_encode_array(buf, offset + pos, maxlen - pos, &this->st_boundaries_size, 1);
     if(thislen < 0) return thislen; else pos += thislen;
@@ -353,14 +346,8 @@ int visVISUALIZATION::_decodeNoHash(const void* buf, uint32_t offset, uint32_t m
     thislen = this->start_point._decodeNoHash(buf, offset + pos, maxlen - pos);
     if(thislen < 0) return thislen; else pos += thislen;
 
-    thislen = __int32_t_decode_array(buf, offset + pos, maxlen - pos, &this->paths_size, 1);
+    thislen = this->planner_path._decodeNoHash(buf, offset + pos, maxlen - pos);
     if(thislen < 0) return thislen; else pos += thislen;
-
-    this->paths.resize(this->paths_size);
-    for (int a0 = 0; a0 < this->paths_size; ++a0) {
-        thislen = this->paths[a0]._decodeNoHash(buf, offset + pos, maxlen - pos);
-        if(thislen < 0) return thislen; else pos += thislen;
-    }
 
     thislen = __int32_t_decode_array(buf, offset + pos, maxlen - pos, &this->st_boundaries_size, 1);
     if(thislen < 0) return thislen; else pos += thislen;
@@ -439,10 +426,7 @@ uint32_t visVISUALIZATION::_getEncodedSizeNoHash() const
         enc_size += this->targets[a0]._getEncodedSizeNoHash();
     }
     enc_size += this->start_point._getEncodedSizeNoHash();
-    enc_size += __int32_t_encoded_array_size(NULL, 1);
-    for (int a0 = 0; a0 < this->paths_size; ++a0) {
-        enc_size += this->paths[a0]._getEncodedSizeNoHash();
-    }
+    enc_size += this->planner_path._getEncodedSizeNoHash();
     enc_size += __int32_t_encoded_array_size(NULL, 1);
     for (int a0 = 0; a0 < this->st_boundaries_size; ++a0) {
         enc_size += this->st_boundaries[a0]._getEncodedSizeNoHash();
@@ -475,7 +459,7 @@ uint64_t visVISUALIZATION::_computeHash(const __zcm_hash_ptr* p)
             return 0;
     const __zcm_hash_ptr cp = { p, (void*)visVISUALIZATION::getHash };
 
-    uint64_t hash = (uint64_t)0x9ab873376f6a9f55LL +
+    uint64_t hash = (uint64_t)0x2244e308829db868LL +
          visLaneLine::_computeHash(&cp) +
          visPoint::_computeHash(&cp) +
          visPoint::_computeHash(&cp) +

@@ -37,10 +37,10 @@ void SafeDriving::update(FullControl& control) {
   map_manager->addPedestrian(map.dynamic_obj_list,
                              map_manager->getForwardRefPath());
 
-  PathPlanner::getInstance()->runPlanner(
-      map.ref_path, map.dynamic_obj_list, map_manager->getCurrentMapSpeed(),
-      false, map.lidar_dis_map, map.planning_dis_map, start_path, targets,
-      map.nav_info.current_speed, speed_path_list);
+  // PathPlanner::getInstance()->runPathPlanner(
+  //     map.ref_path, map.dynamic_obj_list, map_manager->getCurrentMapSpeed(),
+  //     false, map.lidar_dis_map, map.planning_dis_map, start_path, targets,
+  //     map.nav_info.current_speed, speed_path_list);
   map_manager->selectBestPath(speed_path_list);
   map_manager->maintainPath(map.nav_info, map.best_path.path);
 

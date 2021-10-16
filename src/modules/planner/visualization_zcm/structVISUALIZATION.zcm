@@ -78,8 +78,7 @@ struct visVISUALIZATION
     int32_t targets_size;
     visPoint targets[targets_size];
     visPoint start_point;
-    int32_t paths_size;
-    visPath paths[paths_size];
+    visPath planner_path;
     int32_t st_boundaries_size;
     visSTBoundary st_boundaries[st_boundaries_size];
     int32_t dp_speed_size;

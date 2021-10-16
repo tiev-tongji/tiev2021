@@ -1201,6 +1201,7 @@ void MapManager::getBoundaryLine() {
 void MapManager::visualization() {
   MessageManager*   msgm = MessageManager::getInstance();
   visVISUALIZATION& vis  = msgm->visualization;
+  LOG(INFO) << "in map:" << vis.planner_path.path_size;
   msgm->setTextInfo();
   // reference path
   vis.reference_path.clear();
@@ -1272,7 +1273,7 @@ vector<Pose> MapManager::getStartMaintainedPath() {
   return path;
 }
 
-vector<Pose> MapManager::getMaintainedPath(NavInfo& nav_info) {
+vector<Pose> MapManager::getMaintainedPath(const NavInfo& nav_info) {
   maintained_path_mutex.lock_shared();
   vector<Pose> path = maintained_path;
   maintained_path_mutex.unlock_shared();

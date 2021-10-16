@@ -1,4 +1,4 @@
-#include "look_up_tables/distance_table.h"
+#include "distance_table.h"
 
 #include <unistd.h>
 
@@ -6,7 +6,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "look_up_tables/binary_file_helper.h"
+#include "binary_file_helper.h"
 
 using namespace std;
 

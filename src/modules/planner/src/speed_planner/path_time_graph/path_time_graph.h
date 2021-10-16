@@ -3,10 +3,10 @@
 #include <string>
 #include <vector>
 
+#include "box.h"
 #include "collision_check.h"
-#include "math/box.h"
-#include "math/sl_boundary.h"
 #include "obstacle.h"
+#include "sl_boundary.h"
 #include "st_boundary.h"
 #include "st_point.h"
 #include "tiev_class.h"
@@ -26,7 +26,7 @@ class PathTimeGraph {
   double path_length_;
   double total_time_;
 
-  const double Default_Path_Width_        = 1.2 * CAR_WIDTH;  // m
+  const double Default_Path_Width_        = 1.0 * CAR_WIDTH;  // m
   const double Trajectory_Time_Resolution = 0.05;             // Temporarily set
 
  public:

@@ -1,4 +1,4 @@
-#include "path_time_heuristic/gridded_path_time_graph.h"
+#include "gridded_path_time_graph.h"
 
 #include <algorithm>
 #include <cmath>

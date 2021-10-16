@@ -22,10 +22,10 @@ void UTurn::update(FullControl& control) {
   vector<Pose> uturn_targets = map_manager->getUTurnTargets();
   if (uturn_targets.empty()) return;
   vector<SpeedPath> speed_path_list;
-  PathPlanner::getInstance()->runPlanner(
-      map.ref_path, map.dynamic_obj_list, map_manager->getCurrentMapSpeed(),
-      true, map.lidar_dis_map, map.planning_dis_map, start_path, uturn_targets,
-      map.nav_info.current_speed, speed_path_list);
+  // PathPlanner::getInstance()->runPathPlanner(
+  //     map.ref_path, map.dynamic_obj_list, map_manager->getCurrentMapSpeed(),
+  //     true, map.lidar_dis_map, map.planning_dis_map, start_path,
+  //     uturn_targets, map.nav_info.current_speed, speed_path_list);
   map_manager->selectBestPath(speed_path_list);
   map_manager->maintainPath(map.nav_info, map.best_path.path);
   vector<HDMapPoint> forward_ref_path = map_manager->getForwardRefPath();
