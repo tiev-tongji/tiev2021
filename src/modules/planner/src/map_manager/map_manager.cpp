@@ -1440,7 +1440,7 @@ void MapManager::maintainPath(const NavInfo&      nav_info,
   maintained_path.clear();
   maintained_path.reserve(path.size());
   for (auto p : path) {
-    p.updateGlobalCoordinate(nav_info.car_pose);
+    // p.updateGlobalCoordinate(nav_info.car_pose);
     maintained_path.push_back(p);
   }
   maintained_path_mutex.unlock();

@@ -29,6 +29,8 @@
 #define VEC_OBS_COLOR             cv::Vec3b(255, 239, 191)
 #define VEC_HDMAP_LINE_COLOR      cv::Vec3b(255, 112, 132)
 #define VEC_MAINTAINED_PATH_COLOR cv::Vec3b(72, 61, 139)
+#define VEC_PIORITY_LANE_COLOR    cv::Vec3b(120, 200, 120)
+#define VEC_ORIGIN_LANE_COLOR     cv::Vec3b(20, 20, 120)
 
 #define BACKGROUND_COLOR       cv::Scalar(28, 28, 28)
 #define MAINTAINED_POINT_COLOR cv::Scalar(0x77, 0x77, 0x77)

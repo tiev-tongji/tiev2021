@@ -2,6 +2,7 @@
 #include "visCoefficient.hpp"
 #include "visLaneLine.hpp"
 #include "visPoint.hpp"
+#include "visPriorityLane.hpp"
 #include "visReferencePath.hpp"
 #include "visSTBoundary.hpp"
 #include "visSpline2.hpp"

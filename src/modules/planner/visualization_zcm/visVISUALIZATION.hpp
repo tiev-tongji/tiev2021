@@ -22,6 +22,7 @@
 #include "visCoefficient.hpp"
 #include "visSpline2.hpp"
 #include "visText.hpp"
+#include "visPriorityLane.hpp"
 
 
 class visVISUALIZATION
@@ -76,6 +77,8 @@ class visVISUALIZATION
         int32_t    text_info_size;
 
         std::vector< visText > text_info;
+
+        visPriorityLane priority_lane;
 
     public:
         /**
@@ -280,6 +283,9 @@ int visVISUALIZATION::_encodeNoHash(void* buf, uint32_t offset, uint32_t maxlen)
         if(thislen < 0) return thislen; else pos += thislen;
     }
 
+    thislen = this->priority_lane._encodeNoHash(buf, offset + pos, maxlen - pos);
+    if(thislen < 0) return thislen; else pos += thislen;
+
     return pos;
 }
 
@@ -397,6 +403,9 @@ int visVISUALIZATION::_decodeNoHash(const void* buf, uint32_t offset, uint32_t m
         if(thislen < 0) return thislen; else pos += thislen;
     }
 
+    thislen = this->priority_lane._decodeNoHash(buf, offset + pos, maxlen - pos);
+    if(thislen < 0) return thislen; else pos += thislen;
+
     return pos;
 }
 
@@ -448,6 +457,7 @@ uint32_t visVISUALIZATION::_getEncodedSizeNoHash() const
     for (int a0 = 0; a0 < this->text_info_size; ++a0) {
         enc_size += this->text_info[a0]._getEncodedSizeNoHash();
     }
+    enc_size += this->priority_lane._getEncodedSizeNoHash();
     return enc_size;
 }
 
@@ -459,7 +469,7 @@ uint64_t visVISUALIZATION::_computeHash(const __zcm_hash_ptr* p)
             return 0;
     const __zcm_hash_ptr cp = { p, (void*)visVISUALIZATION::getHash };
 
-    uint64_t hash = (uint64_t)0x2244e308829db868LL +
+    uint64_t hash = (uint64_t)0x44e308829db86844LL +
          visLaneLine::_computeHash(&cp) +
          visPoint::_computeHash(&cp) +
          visPoint::_computeHash(&cp) +
@@ -471,7 +481,8 @@ uint64_t visVISUALIZATION::_computeHash(const __zcm_hash_ptr* p)
          visSTPoint::_computeHash(&cp) +
          visCoefficient::_computeHash(&cp) +
          visSpline2::_computeHash(&cp) +
-         visText::_computeHash(&cp);
+         visText::_computeHash(&cp) +
+         visPriorityLane::_computeHash(&cp);
 
     return (hash<<1) + ((hash>>63)&1);
 }

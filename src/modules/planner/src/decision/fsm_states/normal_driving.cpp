@@ -32,16 +32,14 @@ void NormalDriving::update(FullControl& control) {
   const auto        start3 = getTimeStamp();
   std::vector<Pose> result_path;
   PathPlanner::getInstance()->runPathPlanner(
-      map.ref_path, map.dynamic_obj_list, map_manager->getCurrentMapSpeed(),
-      false, map.lidar_dis_map, map.planning_dis_map, start_path,
-      {Pose(0, 0, 0)}, map.nav_info.current_speed, &result_path);
+      map.nav_info, map.ref_path, map.dynamic_obj_list,
+      map_manager->getCurrentMapSpeed(), true, map.lidar_dis_map,
+      map.planning_dis_map, start_path, {Pose(0, 0, 0)}, &result_path);
   LOG(INFO) << "planning time:" << (getTimeStamp() - start3) * 1e-3 << "ms";
 
   // map_manager->selectBestPath(speed_path_list);
-  const auto maintained_path = map_manager->getMaintainedPath(map.nav_info);
-  if (maintained_path.empty() ||
-      maintained_path.back().s < map.nav_info.current_speed * 5 + 5)
-    map_manager->maintainPath(map.nav_info, result_path);
+  // const auto maintained_path = map_manager->getMaintainedPath(map.nav_info);
+  map_manager->maintainPath(map.nav_info, result_path);
   if (speed_path_list.empty() && duration_time() > limited_time) {
     // control.changeTo<LaneFreeDriving>();
   } else if (!speed_path_list.empty()) {

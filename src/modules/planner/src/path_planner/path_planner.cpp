@@ -23,14 +23,15 @@ PathPlanner::PathPlanner()
       config(Config::getInstance()),
       view_controller(MessageManager::getInstance()) {}
 
-void PathPlanner::runPathPlanner(const std::vector<HDMapPoint>& ref_path,
+void PathPlanner::runPathPlanner(const NavInfo&                 nav_info,
+                                 const std::vector<HDMapPoint>& ref_path,
                                  const DynamicObjList&          dynamic_objs,
                                  double max_speed, bool reverse,
                                  const double abs_safe_map[MAX_ROW][MAX_COL],
                                  const double lane_safe_map[MAX_ROW][MAX_COL],
                                  const vector<Pose>& start_maintained_path,
-                                 const Pose& target, const double current_speed,
-                                 std::vector<Pose>* result) {
+                                 const Pose&         target,
+                                 std::vector<Pose>*  result) {
   setReferencePath(ref_path);
   setAbsSafeMap(abs_safe_map);
   setLaneSafeMap(lane_safe_map);
@@ -38,7 +39,7 @@ void PathPlanner::runPathPlanner(const std::vector<HDMapPoint>& ref_path,
   setStartMaintainedPath(start_maintained_path);
   setTarget(target);
   setBackwardEnabled(reverse);
-  setCurrentSpeed(current_speed);
+  setNavInfo(nav_info);
   setDynamicObjList(dynamic_objs);
   plan(result);
 }
@@ -103,11 +104,11 @@ void PathPlanner::setDynamicObjList(const DynamicObjList& dynamic_obj_list) {
   // MAYBE: coordinate conversion
 }
 
-void PathPlanner::setCurrentSpeed(double speed) { current_speed = speed; }
+void PathPlanner::setNavInfo(const NavInfo& nav_info_) { nav_info = nav_info_; }
 
 void PathPlanner::plan(std::vector<Pose>* result) {
   bool planning_to_target = false;
-  start_pose.v            = current_speed;
+  start_pose.v            = nav_info.current_speed;
   std::vector<astate> result_path;
   // chose the clothoid primitives
   clothoid_base_primitives.prepare(backward_enabled);
@@ -118,8 +119,8 @@ void PathPlanner::plan(std::vector<Pose>* result) {
     astate start_state(start_pose.x, start_pose.y, start_pose.ang, 0,
                        start_pose.k, start_pose.backward);
     result_path = tiev_planner.plan(
-        ref_path, start_state, current_speed, backward_enabled, abs_safe_map,
-        lane_safe_map, config->plan_time_limit_ms * 1000,
+        ref_path, start_state, nav_info.current_speed, backward_enabled,
+        abs_safe_map, lane_safe_map, config->plan_time_limit_ms * 1000,
         &clothoid_base_primitives);
   } else if (target_pose.x != 0 && target_pose.y != 0 && target_pose.ang != 0) {
     // planning to target
@@ -147,8 +148,10 @@ void PathPlanner::plan(std::vector<Pose>* result) {
     p.k        = state.curvature;
     p.backward = state.is_backward;
     p.v        = velocity_limit;
+    p.updateGlobalCoordinate(nav_info.car_pose);
     result->push_back(p);
   }
+  if (result_path.empty()) result->clear();
   // sen visualization data
   if (planning_to_target) view_controller->setTarget(target_pose);
   view_controller->setStartPoint(start_pose);

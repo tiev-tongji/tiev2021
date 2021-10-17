@@ -58,14 +58,14 @@ class PathPlanner {
     return &inner_instance;
   }
 
-  void runPathPlanner(const std::vector<HDMapPoint>& ref_path,
+  void runPathPlanner(const NavInfo&                 nav_info,
+                      const std::vector<HDMapPoint>& ref_path,
                       const DynamicObjList&          dynamic_objs,
                       const double max_speed, const bool reverse,
                       const double        abs_safe_map[MAX_ROW][MAX_COL],
                       const double        lane_safe_map[MAX_ROW][MAX_COL],
                       const vector<Pose>& start_maintained_path,
-                      const Pose& target, double current_speed,
-                      std::vector<Pose>* result_path);
+                      const Pose& target, std::vector<Pose>* result_path);
 
   void setReferencePath(const std::vector<HDMapPoint>& ref_path);
 
@@ -79,7 +79,7 @@ class PathPlanner {
 
   void setBackwardEnabled(bool enabled);
 
-  void setCurrentSpeed(double speed);
+  void setNavInfo(const NavInfo& nav_info);
 
   void setDynamicObjList(const DynamicObjList& dynamic_obj_list);
 
@@ -104,13 +104,13 @@ class PathPlanner {
   time_t plan_start_time;
 
   // planner settings
-  Pose   start_pose;
-  Pose   target_pose;
-  bool   backward_enabled;
-  double lane_safe_map[MAX_ROW][MAX_COL];
-  double abs_safe_map[MAX_ROW][MAX_COL];
-  double current_speed  = 0;
-  double velocity_limit = 20;
+  Pose    start_pose;
+  Pose    target_pose;
+  bool    backward_enabled;
+  double  lane_safe_map[MAX_ROW][MAX_COL];
+  double  abs_safe_map[MAX_ROW][MAX_COL];
+  double  velocity_limit = 20;
+  NavInfo nav_info;
 
   DynamicObjList          dynamic_obj_list;
   std::vector<Pose>       start_maintained_path;

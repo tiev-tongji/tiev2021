@@ -21,7 +21,7 @@
 		"BACK": -3,
 		"STOP": 0,
 		"VERYLOW": 8,
-		"LOW": 30,
+		"LOW": 60,
 		"MID": 30,
 		"HIGH": 30,
 		"VERYHIGH": 80

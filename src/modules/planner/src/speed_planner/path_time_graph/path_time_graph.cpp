@@ -58,12 +58,13 @@ SLBoundary PathTimeGraph::ComputeObstacleSLBoundary(
   double start_l(std::numeric_limits<double>::max());
   double end_l(std::numeric_limits<double>::lowest());
 
-  LOG(WARNING) << "----Obstale----";
+  // LOG(WARNING) << "----Obstale----";
   for (const auto& point : vertices) {
     std::pair<double, double> sl_point =
         PathMatcher::GetPathFrenetCoordinate(path, point.x(), point.y());
-    LOG(INFO) << "vertice:[" << point.x() << " " << point.y()
-              << "] sl_point: s=" << sl_point.first << " l=" << sl_point.second;
+    // LOG(INFO) << "vertice:[" << point.x() << " " << point.y()
+    //           << "] sl_point: s=" << sl_point.first << " l=" <<
+    //           sl_point.second;
 
     start_s = std::fmin(start_s, sl_point.first);
     end_s   = std::fmax(end_s, sl_point.first);
@@ -83,7 +84,7 @@ SLBoundary PathTimeGraph::ComputeObstacleSLBoundary(
 void PathTimeGraph::SetupObstacles(std::vector<Obstacle>&   obstacles,
                                    const std::vector<Pose>& path) {
   for (auto& obstacle : obstacles) {
-    if (obstacle.path.empty() || obstacle.path.front().v == 0) {
+    if (obstacle.path.size() <= 1 || obstacle.path.front().v == 0) {
       SetStaticObstacle(obstacle, path);
     } else {
       SetDynamicObstacle(obstacle, path);
@@ -94,6 +95,7 @@ void PathTimeGraph::SetupObstacles(std::vector<Obstacle>&   obstacles,
 void PathTimeGraph::SetStaticObstacle(Obstacle&                obstacle,
                                       const std::vector<Pose>& path) {
   const Box box = GetStaticBoundingBox(obstacle);
+  // LOG(INFO) << "Static Obstacle";
 
   SLBoundary sl_boundary = ComputeObstacleSLBoundary(box.corners(), path);
 
@@ -128,6 +130,7 @@ void PathTimeGraph::SetDynamicObstacle(Obstacle&                obstacle,
   STPoint bottom_right(0, 0);
   STPoint upper_left(0, 0);
   STPoint upper_right(0, 0);
+  // LOG(INFO) << "Dynamic Obstacle";
 
   bool left_edge_set = false;
   while (relative_time < time_range_.second) {

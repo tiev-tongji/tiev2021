@@ -59,16 +59,19 @@ class MessageManager {
   // 用于决策与规划等模块发送可视化信息至visualization
   visVISUALIZATION    visualization;
   map<string, string> text_info;
-  void                publishVisualization();
-  void                setTarget(const Pose& target);
-  void                setStartPoint(const Pose& start_point);
-  void                setSafeMap(double safe_map[MAX_ROW][MAX_COL]);
-  void                setPath(const vector<Pose>& path);
-  void                setUsedMap(bool used_map[MAX_ROW][MAX_COL]);
-  void                setSpeedPath(const SpeedPath& speed_path);
-  void                clearTextInfo();
-  void                addTextInfo(const string& name, const string& value);
-  void                setTextInfo();
+
+  void publishVisualization();
+  void setTarget(const Pose& target);
+  void setStartPoint(const Pose& start_point);
+  void setSafeMap(double safe_map[MAX_ROW][MAX_COL]);
+  void setPath(const vector<Pose>& path);
+  void setUsedMap(bool used_map[MAX_ROW][MAX_COL]);
+  void setSpeedPath(const SpeedPath& speed_path);
+  void clearTextInfo();
+  void addTextInfo(const string& name, const string& value);
+  void setTextInfo();
+  void setPriorityLane(const std::vector<HDMapPoint>& ref_path,
+                       const std::vector<Point2d>&    origin_points);
 
  private:
   MessageManager(){};

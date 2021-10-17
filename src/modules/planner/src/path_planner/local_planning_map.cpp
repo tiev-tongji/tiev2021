@@ -7,7 +7,6 @@
 #include "tievlog.h"
 
 namespace TiEV {
-#define VIS_OFFSET_LANE_CENTER
 
 #define MULTILINE(SEGMENT) \
   do {                     \
@@ -37,10 +36,7 @@ void PathPlanner::local_planning_map::prepare(
   backward_enabled      = _backward_enabled;
 
   // when there is no target
-#ifdef VIS_OFFSET_LANE_CENTER
-  cv::namedWindow("offset_map");
-  cv::Mat dis_img = cv::Mat(MAX_ROW, MAX_COL, CV_8UC3, {255, 255, 255});
-#endif
+  std::vector<Point2d> origin_lane_points;
   // resize the ref_path to get the first one path
   auto new_size = ref_path.size();
   for (int i = 0; i < ref_path.size(); ++i) {
@@ -76,14 +72,9 @@ void PathPlanner::local_planning_map::prepare(
     auto&                              ref_p = *it;
     std::vector<pair<Point2d, double>> new_offset_list;
     for (int i = 0; i < ref_p.neighbors.size(); ++i) {
-      auto&   pi         = ref_p.neighbors[i];
-      double  offset_dis = 0.0;
-      Point2d origin_p(pi.x, pi.y);
-#ifdef VIS_OFFSET_LANE_CENTER
-      if (origin_p.in_map())
-        dis_img.at<cv::Vec3b>(int(origin_p.x), int(origin_p.y)) =
-            cv::Vec3b(0, 0, 255);
-#endif
+      auto&  pi         = ref_p.neighbors[i];
+      double offset_dis = 0.0;
+      origin_lane_points.emplace_back(pi.x, pi.y);
       // find the closest pre point's offset
       double min_dis = 1e8;
       for (const auto& off_p : offset_list) {
@@ -158,7 +149,8 @@ void PathPlanner::local_planning_map::prepare(
       }
       // offset the pi
       pi.offset(offset_dis);
-      new_offset_list.push_back(std::make_pair(origin_p, offset_dis));
+      new_offset_list.push_back(
+          std::make_pair(origin_lane_points.back(), offset_dis));
     }
     offset_list = new_offset_list;
     // LOG(WARNING) << "---at ref_p:" << ref_p.s << "---";
@@ -166,17 +158,10 @@ void PathPlanner::local_planning_map::prepare(
     //   LOG(INFO) << p.first << " offset=" << p.second;
     // }
   }
-#ifdef VIS_OFFSET_LANE_CENTER
-  for (const auto& ref_p : ref_path) {
-    for (const auto& p : ref_p.neighbors) {
-      if (!is_in_map(int(p.x), int(p.y))) continue;
-      dis_img.at<cv::Vec3b>(int(p.x), int(p.y)) = cv::Vec3b(255, 100, 0);
-    }
-  }
-  cv::imshow("offset_map", dis_img);
-  cv::waitKey(1);
-#endif
+  // send to visualization center line offset
+  MessageManager::getInstance()->setPriorityLane(ref_path, origin_lane_points);
 }
+
 void PathPlanner::local_planning_map::prepare(const astate& _target,
                                               double (*_abs_safe_map)[MAX_COL],
                                               double (*_lane_safe_map)[MAX_COL],
@@ -254,6 +239,14 @@ double PathPlanner::local_planning_map::get_heuristic(const astate& state,
     heuristic += 0.03 * (min_distance);
     // guide heading close to ref path
     heuristic += 10 * (1 - cos(fabs(state.a - ref_near_p.ang)));
+    // guide to away from obstacles
+    const double max_obstacle_affect_dis = 2;  // m
+    heuristic +=
+        std::pow(std::min<double>(lane_safe_map[int(state.x)][int(state.y)] *
+                                          GRID_RESOLUTION -
+                                      max_obstacle_affect_dis,
+                                  0.0),
+                 2);
     return heuristic;
   }
   // calculate the target heuristic

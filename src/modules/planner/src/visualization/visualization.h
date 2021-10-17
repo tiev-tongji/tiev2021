@@ -49,9 +49,9 @@ struct Coefficient {
 
 class Visualization {
  public:
-  const double alpha = 0.5;
-  const double belta = 1 - alpha;
-  bool TiEV_Stop = false;
+  const double alpha     = 0.5;
+  const double belta     = 1 - alpha;
+  bool         TiEV_Stop = false;
 
  public:
   static Visualization* getInstance() {
@@ -192,20 +192,22 @@ class Visualization {
                  int opt);  // opt: 0 for left, 1 for right, 2 for both
   bool drawReferenceLanes(cv::Mat& left_map, cv::Mat& right_map,
                           int opt);  // opt: 0 for left, 1 for right, 2 for both
+  bool drawPriorityLane(cv::Mat& left_map, cv::Mat& right_map,
+                        int opt);  // opt: 0 for left, 1 for right, 2 for both
   bool drawSTBoundaries(cv::Mat& speed_view_mat);
   bool drawDPReferenceCurve(cv::Mat& speed_view_mat);
   bool drawQPSpeedCurve(cv::Mat& speed_view_mat);
   bool drawSplinesSpeedCurve(cv::Mat& speed_view_mat);
 
-  const static time_t NAV_INFO_TIMEOUT_US = 1e6;
-  const static time_t SLAM_LOC_TIMEOUT_US = 1e6;
-  const static time_t LIDAR_MAP_TIMEOUT_US = 1e6;
-  const static time_t LANE_TIMEOUT_US = 2e5;
+  const static time_t NAV_INFO_TIMEOUT_US      = 1e6;
+  const static time_t SLAM_LOC_TIMEOUT_US      = 1e6;
+  const static time_t LIDAR_MAP_TIMEOUT_US     = 1e6;
+  const static time_t LANE_TIMEOUT_US          = 2e5;
   const static time_t TRAFFIC_LIGHT_TIMEOUT_US = 2e6;
-  const static time_t PARKING_SLOT_TIMEOUT_US = 1e6;
+  const static time_t PARKING_SLOT_TIMEOUT_US  = 1e6;
   const static time_t VISUALIZATION_TIMEOUT_US = 1e6;
-  const static time_t OBJECT_LIST_TIMEOUT_US = 1e6;
-  const static int OBJECTS_SOURCE_NUM = 3;
+  const static time_t OBJECT_LIST_TIMEOUT_US   = 1e6;
+  const static int    OBJECTS_SOURCE_NUM       = 3;
 
   // zcm可视化消息获取
   class Handler {
@@ -214,21 +216,21 @@ class Visualization {
                        const structNAVINFO* msg);
     void handleFUSIONMAP(const zcm::ReceiveBuffer* rbuf,
                          const std::string& chan, const structFUSIONMAP* msg);
-    void handleTRAFFICLIGHT(const zcm::ReceiveBuffer* rbuf,
-                            const std::string& chan,
+    void handleTRAFFICLIGHT(const zcm::ReceiveBuffer*    rbuf,
+                            const std::string&           chan,
                             const MsgTrafficLightSignal* msg);
     void handleLANES(const zcm::ReceiveBuffer* rbuf, const std::string& chan,
                      const structRoadMarkingList* msg);
     void handlePARKINGSLOTS(const zcm::ReceiveBuffer* rbuf,
-                            const std::string& chan,
+                            const std::string&        chan,
                             const structPARKINGSLOTS* msg);
     void handleOBJECTLIST(const zcm::ReceiveBuffer* rbuf,
                           const std::string& chan, const structOBJECTLIST* msg);
     void handleSLAMLOC(const zcm::ReceiveBuffer* rbuf, const std::string& chan,
                        const structSLAMLOC* msg);
     void handleVISUALIZATION(const zcm::ReceiveBuffer* rbuf,
-                             const std::string& chan,
-                             const visVISUALIZATION* msg);
+                             const std::string&        chan,
+                             const visVISUALIZATION*   msg);
 
     time_t update_time_nav_info;
     time_t update_time_slam_loc;
@@ -241,17 +243,17 @@ class Visualization {
 
     std::shared_mutex nav_mtx, slam_loc_mtx, lidar_mtx, objects_mtx,
         traffic_mtx, lane_mtx, parking_lots_mtx, visualization_mtx;
-    structNAVINFO tmp_nav;
-    structSLAMLOC tmp_slam_loc;
-    structFUSIONMAP tmp_lidar_map;
+    structNAVINFO         tmp_nav;
+    structSLAMLOC         tmp_slam_loc;
+    structFUSIONMAP       tmp_lidar_map;
     MsgTrafficLightSignal tmp_traffic;
-    structOBJECTLIST tmp_objects[OBJECTS_SOURCE_NUM];
+    structOBJECTLIST      tmp_objects[OBJECTS_SOURCE_NUM];
     structRoadMarkingList tmp_lanes;
-    structPARKINGSLOTS tmp_slot;
-    visVISUALIZATION tmp_visualization;
+    structPARKINGSLOTS    tmp_slot;
+    visVISUALIZATION      tmp_visualization;
   };
 
-  Handler inner_handler;
+  Handler  inner_handler;
   zcm::ZCM zcm_ipc{"ipc"};
   zcm::ZCM zcm_udp{""};
 };

@@ -445,6 +445,7 @@ void Visualization::drawPathPlanner() {
     drawPaths(left_map, right_map, 1);
     // 地图参考车道
     drawReferenceLanes(left_map, right_map, 0);
+    drawPriorityLane(left_map, right_map, 1);
     inner_handler.visualization_mtx.unlock_shared();
     visualize = true;
   }
@@ -886,7 +887,7 @@ bool Visualization::drawPaths(cv::Mat& left_map, cv::Mat& right_map, int opt) {
     if (opt == 0)
       *left_map.ptr<cv::Vec3b>(x, y) = PATH_COLORS[0];
     else if (opt == 1)
-      *right_map.ptr<cv::Vec3b>(x, y) = PATH_COLORS[1];
+      *right_map.ptr<cv::Vec3b>(x, y) = PATH_COLORS[2];
     else {
       *left_map.ptr<cv::Vec3b>(x, y)  = PATH_COLORS[1];
       *right_map.ptr<cv::Vec3b>(x, y) = PATH_COLORS[3];
@@ -913,6 +914,40 @@ bool Visualization::drawReferenceLanes(cv::Mat& left_map, cv::Mat& right_map,
         *left_map.ptr<cv::Vec3b>(x, y)  = VEC_HDMAP_LINE_COLOR;
         *right_map.ptr<cv::Vec3b>(x, y) = VEC_HDMAP_LINE_COLOR;
       }
+    }
+  }
+  return true;
+}
+
+bool Visualization::drawPriorityLane(cv::Mat& left_map, cv::Mat& right_map,
+                                     int opt) {
+  assert(opt >= 0);
+  assert(opt <= 2);
+  const auto& priority_lane = inner_handler.tmp_visualization.priority_lane;
+  for (const auto& p : priority_lane.origin_points) {
+    int x = p.x;
+    int y = p.y;
+    if (x < 0 || x >= MAX_ROW || y < 0 || y >= MAX_COL) continue;
+    if (opt == 0)
+      *left_map.ptr<cv::Vec3b>(x, y) = VEC_ORIGIN_LANE_COLOR;
+    else if (opt == 1)
+      *right_map.ptr<cv::Vec3b>(x, y) = VEC_ORIGIN_LANE_COLOR;
+    else {
+      *left_map.ptr<cv::Vec3b>(x, y)  = VEC_ORIGIN_LANE_COLOR;
+      *right_map.ptr<cv::Vec3b>(x, y) = VEC_ORIGIN_LANE_COLOR;
+    }
+  }
+  for (const auto& p : priority_lane.priority_points) {
+    int x = p.x;
+    int y = p.y;
+    if (x < 0 || x >= MAX_ROW || y < 0 || y >= MAX_COL) continue;
+    if (opt == 0)
+      *left_map.ptr<cv::Vec3b>(x, y) = VEC_PIORITY_LANE_COLOR;
+    else if (opt == 1)
+      *right_map.ptr<cv::Vec3b>(x, y) = VEC_PIORITY_LANE_COLOR;
+    else {
+      *left_map.ptr<cv::Vec3b>(x, y)  = VEC_PIORITY_LANE_COLOR;
+      *right_map.ptr<cv::Vec3b>(x, y) = VEC_PIORITY_LANE_COLOR;
     }
   }
   return true;
