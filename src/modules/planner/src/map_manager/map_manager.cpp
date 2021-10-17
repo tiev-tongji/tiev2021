@@ -417,13 +417,13 @@ void MapManager::updateRefPath(bool need_opposite) {
   }
   ref_path_mutex.unlock();
   getLaneLineList();
-  laneMatch();
-  getBoundaryLine();
+  // laneMatch();
+  // getBoundaryLine();
 }
 
 void MapManager::addPedestrian(DynamicObjList&           dynamic_obj_list,
                                const vector<HDMapPoint>& ref_path) {
-  const int tmp_inf = 9999999;
+  const int tmp_inf = 1e8;
   int       idx     = tmp_inf;
   if (ref_path.empty()) return;
   for (const auto& obj : dynamic_obj_list.dynamic_obj_list) {
@@ -502,9 +502,9 @@ void MapManager::updatePlanningMap(LaneLineBlockType lane_line_block_type,
     for (const auto& p : map.ref_path) {
       if (getCurrentMapMode() == HDMapMode::INTERSECTION_SOLID) break;
       if (p.mode == HDMapMode::INTERSECTION_SOLID) {
-        if (p.lane_num < 2)
+        if (p.lane_num < 2) {
           continue;
-        else if (p.lane_num == 2) {
+        } else if (p.lane_num == 2) {
           double base_dis = 0;
           if (p.direction == RoadDirection::RIGHT ||
               p.direction == RoadDirection::STRAIGHT)
@@ -1264,7 +1264,16 @@ vector<Pose> MapManager::getStartMaintainedPath() {
       break;
     }
   }
-  path.resize(safe_size / 2);
+  // get maintain s by car speed
+  const double maintain_s   = 2 * map.nav_info.current_speed;
+  int          maintain_idx = 0;
+  for (const auto& p : path) {
+    maintain_idx++;
+    if (p.s >= maintain_s) break;
+  }
+  // chose the shorter one
+  safe_size = std::min(safe_size, maintain_idx);
+  path.resize(safe_size);
   if (path.size() <= 2 ||
       (!path.empty() &&
        point2PointSqrDis(path.front(), map.nav_info.car_pose) > 5)) {
@@ -1304,6 +1313,7 @@ vector<Pose> MapManager::getMaintainedPath(const NavInfo& nav_info) {
         break;
     }
   }
+  /*
   if (res.size() < path.size() && !res.empty() && res.back().s <= 3) {
     res.clear();
     bool back_ward    = path[shortest_index].backward;
@@ -1326,6 +1336,7 @@ vector<Pose> MapManager::getMaintainedPath(const NavInfo& nav_info) {
         break;
     }
   }
+  */
   return res;
 }
 
@@ -1408,29 +1419,6 @@ void MapManager::predictDynamicObsInMap() {
     }
   }
   return;
-  SpeedPath speed_maintained_path = map.speed_maintained_path;
-  for (const auto& st_boundary : speed_maintained_path.st_boundaries) {
-    if (st_boundary.obs_type == ObjectType::PEDESTRIAN ||
-        st_boundary.obs_type == ObjectType::UNKNOWN)
-      continue;
-    STPoint lb = st_boundary.bottom_left_point();
-    STPoint rb = st_boundary.bottom_right_point();
-    if (lb.t() > 2 || rb.t() < 3) continue;
-    Point2d vec_st(rb.t() - lb.t(), rb.s() - lb.s());
-    Point2d vec_2 =
-        Point2d(lb.t(), lb.s()) + vec_st * ((2 - lb.t()) / vec_st.x);
-    Point2d vec_3 =
-        Point2d(lb.t(), lb.s()) + vec_st * ((3 - lb.t()) / vec_st.x);
-    double start_s = min(vec_2.y, vec_3.y);
-    double end_s   = max(vec_2.y, vec_3.y);
-    for (const auto& p : speed_maintained_path.path) {
-      if (fabs(p.s) < start_s || fabs(p.s) > end_s + 5) continue;
-      for (double dis = -1.2; dis <= 1.2; dis += 0.2) {
-        Pose block_p = p.getLateralPose(dis);
-        map.dynamic_obs_map[int(block_p.x)][int(block_p.y)] = 1;
-      }
-    }
-  }
 }
 
 void MapManager::maintainPath(const NavInfo&      nav_info,
@@ -1440,6 +1428,7 @@ void MapManager::maintainPath(const NavInfo&      nav_info,
   maintained_path.clear();
   maintained_path.reserve(path.size());
   for (auto p : path) {
+    // the point have been updated in path planner
     // p.updateGlobalCoordinate(nav_info.car_pose);
     maintained_path.push_back(p);
   }

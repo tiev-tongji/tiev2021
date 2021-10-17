@@ -119,9 +119,9 @@ void PathPlanner::plan(std::vector<Pose>* result) {
     astate start_state(start_pose.x, start_pose.y, start_pose.ang, 0,
                        start_pose.k, start_pose.backward);
     result_path = tiev_planner.plan(
-        ref_path, start_state, nav_info.current_speed, backward_enabled,
-        abs_safe_map, lane_safe_map, config->plan_time_limit_ms * 1000,
-        &clothoid_base_primitives);
+        dynamic_obj_list, ref_path, start_state, nav_info.current_speed,
+        backward_enabled, abs_safe_map, lane_safe_map,
+        config->plan_time_limit_ms * 1000, &clothoid_base_primitives);
   } else if (target_pose.x != 0 && target_pose.y != 0 && target_pose.ang != 0) {
     // planning to target
     planning_to_target = true;

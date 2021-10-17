@@ -37,8 +37,11 @@ void NormalDriving::update(FullControl& control) {
       map.planning_dis_map, start_path, {Pose(0, 0, 0)}, &result_path);
   LOG(INFO) << "planning time:" << (getTimeStamp() - start3) * 1e-3 << "ms";
 
-  // map_manager->selectBestPath(speed_path_list);
-  // const auto maintained_path = map_manager->getMaintainedPath(map.nav_info);
+  const auto maintained_path = map_manager->getMaintainedPath(map.nav_info);
+  if (!maintained_path.empty() && maintained_path.front().backward &&
+      map.nav_info.current_speed > 0.2) {
+    return;
+  }
   map_manager->maintainPath(map.nav_info, result_path);
   if (speed_path_list.empty() && duration_time() > limited_time) {
     // control.changeTo<LaneFreeDriving>();

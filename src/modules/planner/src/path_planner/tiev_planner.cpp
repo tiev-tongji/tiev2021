@@ -23,6 +23,7 @@ PathPlanner::analytic_expansion_callback analytic_expanded;
 #endif
 
 const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
+    const DynamicObjList&          dynamic_obj_list,
     const std::vector<HDMapPoint>& ref_path, const astate& _start_state,
     double _start_speed_m_s, bool _is_backward_enabled,
     double (*_abs_safe_map)[MAX_COL], double (*_lane_safe_map)[MAX_COL],
@@ -59,8 +60,8 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
 
   // clear node_pool
   while (!node_pool.empty()) node_pool.pop();
-  planning_map.prepare(ref_path, _abs_safe_map, _lane_safe_map,
-                       is_backward_enabled);
+  planning_map.prepare(dynamic_obj_list, ref_path, _abs_safe_map,
+                       _lane_safe_map, is_backward_enabled);
   // LOG(WARNING) << "start:" << start_state << " target:" << target_state;
 #ifdef VIS_EXPANSION
   cv::circle(expansion_img, cv::Point(int(start_state.y), int(start_state.x)),
@@ -88,7 +89,20 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
   primitive_ptr last_primitive_ptr;
   // target_offset is the offset of the most close state to
   // the target in sampled_states of the last primitive.
-  int target_offset = -1;
+  int        target_offset         = -1;
+  double     max_cos_with_ref_path = -1;
+  const auto get_cos_with_ref_path = [&ref_path](const astate& sta) {
+    double min_dis = 1e8;
+    double cos_val = -1;
+    for (const auto& ref_p : ref_path) {
+      const double sqr_dis = sqrDistance(ref_p.x, ref_p.y, sta.x, sta.y);
+      if (sqr_dis < min_dis) {
+        min_dis = sqr_dis;
+        cos_val = std::cos(sta.a - ref_p.ang);
+      }
+    }
+    return cos_val;
+  };
   while (!(is_time_out() || target_reached || node_pool.empty())) {
     // get current node
     /*
@@ -162,7 +176,13 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
       // create a new primitive from primitive pool expanded from
       // current_state, based on primitive base, and linked to
       // its parent primitive 'current.ptr'
-      primitive& expansion = *(primitive_pool.make(base, current.ptr));
+      primitive&   expansion = *(primitive_pool.make(base, current.ptr));
+      const double cos_with_ref =
+          get_cos_with_ref_path(expansion.get_end_state());
+      if (cos_with_ref > max_cos_with_ref_path) {
+        max_cos_with_ref_path = cos_with_ref;
+        last_primitive_ptr    = &expansion;
+      }
       // LOG(INFO) << "expansion size=" << primitive_pool.size();
       // LOG(INFO) << "is_visited=" << is_visited(expansion.get_end_state());
 #ifdef VIS_EXPANSION
@@ -228,28 +248,28 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
   log_1("end searching after ", iterations, " iterations");
   log_1("searching duration: ", (getTimeStamp() - start_time) / 1000, " ms");
 
-  if (target_reached) {
-    log_1("succ: collecting result");
-    // path stores the reversed states list
-    vector<astate> path;
+  // if (target_reached) {
+  log_1("succ: collecting result");
+  // path stores the reversed states list
+  vector<astate> path;
 
-    if (last_primitive_ptr != nullptr) {
-      vector<astate> states(last_primitive_ptr->get_states());
-      path.insert(path.end(), states.rend() - target_offset - 1, states.rend());
+  if (last_primitive_ptr != nullptr) {
+    vector<astate> states(last_primitive_ptr->get_states());
+    path.insert(path.end(), states.rend() - target_offset - 1, states.rend());
 
+    last_primitive_ptr = last_primitive_ptr->get_parent();
+    while (last_primitive_ptr != nullptr) {
+      vector<astate> states = last_primitive_ptr->get_states();
+      path.insert(path.end(), states.rbegin() + 1, states.rend());
       last_primitive_ptr = last_primitive_ptr->get_parent();
-      while (last_primitive_ptr != nullptr) {
-        vector<astate> states = last_primitive_ptr->get_states();
-        path.insert(path.end(), states.rbegin() + 1, states.rend());
-        last_primitive_ptr = last_primitive_ptr->get_parent();
-      }
     }
+  }
 
-    result.insert(result.begin(), path.rbegin(), path.rend());
-    result.insert(result.end(), analytic_expansion_result.begin(),
-                  analytic_expansion_result.end());
-  } else
-    log_1("timeout: no result found");
+  result.insert(result.begin(), path.rbegin(), path.rend());
+  // result.insert(result.end(), analytic_expansion_result.begin(),
+  //               analytic_expansion_result.end());
+  // } else
+  //   log_1("timeout: no result found");
   return result;
 }
 

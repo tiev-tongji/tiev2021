@@ -146,26 +146,10 @@ void sendPath() {
     }
     // get maintained path
     vector<Pose> maintained_path = mapm->getMaintainedPath(nav_info);
-    int          end_point       = maintained_path.size();
-    for (int i = 1; i < maintained_path.size(); ++i) {
-      if (maintained_path[i].backward != maintained_path[i - 1].backward) {
-        end_point = i;
-        break;
-      }
-    }
 
-    vector<Pose> new_maintained_path;
-    new_maintained_path.insert(new_maintained_path.begin(),
-                               maintained_path.begin() + end_point,
-                               maintained_path.end());
-    for (auto& p : new_maintained_path) {
+    for (auto& p : maintained_path) {
       p.v = 0;
       p.t = inf;
-    }
-
-    if (end_point != maintained_path.size()) {
-      maintained_path.resize(end_point);
-      maintained_path.back().v = 0;
     }
 
     // run speed planner
@@ -198,25 +182,16 @@ void sendPath() {
         dynamic.dynamic_obj_list.push_back(dummy_obj);
       }
     }
-    // std::cout << "add collision dynamic:" << add_collision_dynamic <<
-    // std::endl;
-    // for (const auto& dyo : dynamic.dynamic_obj_list) {
-    //   std::cout << "dynamic_obj: id=" << dyo.id << " width=" << dyo.width
-    //             << " length=" << dyo.length << " heading=" << dyo.heading
-    //             << " path={";
-    //   for (const auto& p : dyo.path)
-    //     std::cout << "[" << p.x << " " << p.y << "]";
-    //   std::cout << "}" << std::endl;
-    // }
     // conversion
     vector<pair<double, double>> speed_limits;
     for (auto& point : maintained_path) {
       if (point.backward) {
         max_speed = min(2.0, max_speed);
-        point.ang = PI + point.ang;
+        point.ang = M_PI + point.ang;
       }
-      speed_limits.emplace_back(
-          point.s, min(max_speed, max_velocity_for_curvature(point.k)));
+      speed_limits.emplace_back(point.s, 20);
+      // speed_limits.emplace_back(
+      //     point.s, min(max_speed, max_velocity_for_curvature(point.k)));
     }
     if (!maintained_path.empty())
       maintained_path.front().v = fabs(nav_info.current_speed);
@@ -232,7 +207,7 @@ void sendPath() {
     // anti-conversion
     for (auto& point : speed_path.path) {
       if (point.backward) {
-        point.ang = point.ang - PI;
+        point.ang = point.ang - M_PI;
         point.v   = -point.v;
         point.a   = -point.a;
       }
@@ -253,7 +228,7 @@ void sendPath() {
       tp.v = p.v;
       if (road_mode == HDMapMode::IN_PARK)
         tp.v = min(tp.v, mapm->getCurrentMapSpeed());
-      if (tp.v < 0.5 && tp.v > 0.0000001) tp.v = 0.5;
+      if (tp.v < 0.8 && tp.v > 0.0000001) tp.v = 0.8;
       control_path.points.push_back(tp);
     }
     if (control_path.points.empty()) {

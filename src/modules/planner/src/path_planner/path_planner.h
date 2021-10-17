@@ -404,7 +404,8 @@ class PathPlanner {
    public:
     void prepare(const astate& target, double (*abs_safe_map)[MAX_COL],
                  double (*lane_safe_map)[MAX_COL], bool is_backward_enabled);
-    void prepare(const std::vector<HDMapPoint>& ref_path,
+    void prepare(const DynamicObjList&          dynamic_obj_list,
+                 const std::vector<HDMapPoint>& ref_path,
                  double (*abs_safe_map)[MAX_COL],
                  double (*lane_safe_map)[MAX_COL], bool is_backward_enabled);
 
@@ -448,6 +449,7 @@ class PathPlanner {
   class TiEVPlanner {
    public:
     const std::vector<astate>& plan(
+        const DynamicObjList&          dynamic_obj_list,
         const std::vector<HDMapPoint>& ref_path, const astate& start_state,
         double start_speed_m_s, bool is_backward_enabled,
         double (*abs_safe_map)[MAX_COL], double (*lane_safe_map)[MAX_COL],
@@ -470,7 +472,7 @@ class PathPlanner {
 
     bool node_visited_map[2 * MAX_ROW][2 * MAX_COL][ANGLE_NUM];
 
-    static constexpr double BACKWARD_COST_FACTOR = 2.0;
+    static constexpr double BACKWARD_COST_FACTOR = 5.0;
 
     local_planning_map                 planning_map;
     const base_primitive_set*          base_primitives;

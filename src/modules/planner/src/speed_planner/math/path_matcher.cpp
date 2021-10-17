@@ -81,7 +81,7 @@ Pose PathMatcher::FindProjectionPoint(const Pose& p0, const Pose& p1,
   double v1_norm = std::sqrt(v1x * v1x + v1y * v1y);
   double dot     = v0x * v1x + v0y * v1y;
 
-  double delta_s = dot / v1_norm;
+  double delta_s = dot / v1_norm * GRID_RESOLUTION;
   return InterpolateUsingLinearApproximationWithS(p0, p1, p0.s + delta_s);
 }
 
