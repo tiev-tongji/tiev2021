@@ -232,6 +232,7 @@ void PathPlanner::local_planning_map::prepare(const astate& _target,
 }
 
 bool PathPlanner::local_planning_map::is_abs_crashed(int x, int y) const {
+  if (!is_in_map(x, y)) return false;
   return abs_safe_map[x][y] <= COLLISION_CIRCLE_SMALL_R / GRID_RESOLUTION;
 }
 
@@ -248,6 +249,7 @@ bool PathPlanner::local_planning_map::is_abs_crashed(primitive& prim) const {
 }
 
 bool PathPlanner::local_planning_map::is_lane_crashed(int x, int y) const {
+  if (!is_in_map(x, y)) return false;
   return lane_safe_map[x][y] <= COLLISION_CIRCLE_SMALL_R / GRID_RESOLUTION;
 }
 
