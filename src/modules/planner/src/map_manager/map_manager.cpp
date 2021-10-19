@@ -1201,7 +1201,6 @@ void MapManager::getBoundaryLine() {
 void MapManager::visualization() {
   MessageManager*   msgm = MessageManager::getInstance();
   visVISUALIZATION& vis  = msgm->visualization;
-  LOG(INFO) << "in map:" << vis.planner_path.path_size;
   msgm->setTextInfo();
   // reference path
   vis.reference_path.clear();
@@ -1284,7 +1283,7 @@ vector<Pose> MapManager::getStartMaintainedPath() {
 
 vector<Pose> MapManager::getMaintainedPath(const NavInfo& nav_info) {
   maintained_path_mutex.lock_shared();
-  vector<Pose> path = maintained_path;
+  auto path = maintained_path;
   maintained_path_mutex.unlock_shared();
   for (auto& p : path) {
     p.updateLocalCoordinate(nav_info.car_pose);
@@ -1427,7 +1426,7 @@ void MapManager::maintainPath(const NavInfo&      nav_info,
   maintained_path_mutex.lock();
   maintained_path.clear();
   maintained_path.reserve(path.size());
-  for (auto p : path) {
+  for (const auto& p : path) {
     // the point have been updated in path planner
     // p.updateGlobalCoordinate(nav_info.car_pose);
     maintained_path.push_back(p);

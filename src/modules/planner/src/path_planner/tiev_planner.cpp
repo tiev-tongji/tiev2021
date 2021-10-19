@@ -86,7 +86,7 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
   // last_primitive_ptr points to the last primitive
   // in the whole primitive link after target is reached
   // otherwise it is null
-  primitive_ptr last_primitive_ptr;
+  primitive_ptr last_primitive_ptr = nullptr;
   // target_offset is the offset of the most close state to
   // the target in sampled_states of the last primitive.
   int        target_offset         = -1;
@@ -133,7 +133,7 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
     } else {
       current_state = current.ptr->get_end_state();
     }
-    bases = base_primitives->get_nexts(current_state);
+    bases = base_primitives->get_nexts(current_state, start_speed_m_s);
     // LOG(WARNING) << "current_state:" << current_state
     //              << " score=" << current.score;
     // usleep(100 * 1000);
@@ -179,7 +179,7 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
       primitive&   expansion = *(primitive_pool.make(base, current.ptr));
       const double cos_with_ref =
           get_cos_with_ref_path(expansion.get_end_state());
-      if (cos_with_ref > max_cos_with_ref_path) {
+      if (_start_speed_m_s < 3 && cos_with_ref > max_cos_with_ref_path) {
         max_cos_with_ref_path = cos_with_ref;
         last_primitive_ptr    = &expansion;
       }

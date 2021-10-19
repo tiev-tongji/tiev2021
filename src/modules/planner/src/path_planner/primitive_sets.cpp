@@ -32,7 +32,7 @@ void PathPlanner::clothoid_base_primitive_set::
 }
 
 PathPlanner::clothoid_base_primitive_set::clothoid_base_primitive_set() {
-  log_0("constructing ", nameof(clothoid_base_primitive_set));
+  LOG(INFO) << "constructing " << nameof(clothoid_base_primitive_set);
   // forward and backward sets
   all_k_sets.reserve(k_list.size() * 2);
   for (int i = 0; i < k_list.size(); ++i) {
@@ -66,7 +66,8 @@ void PathPlanner::clothoid_base_primitive_set::prepare(bool backward_enabled) {
 }
 
 const vector<PathPlanner::base_primitive>
-PathPlanner::clothoid_base_primitive_set::get_nexts(const astate& state) const {
+PathPlanner::clothoid_base_primitive_set::get_nexts(
+    const astate& state, const double current_speed) const {
   // select the primitives by state's k
   double min_delta_k = numeric_limits<double>::max();
   int    min_idx     = -1;
@@ -100,6 +101,9 @@ PathPlanner::clothoid_base_primitive_set::get_nexts(const astate& state) const {
   std::vector<PathPlanner::base_primitive> base;
   base.reserve(current_subset[min_idx]->primitives.size());
   for (const auto& primi : current_subset[min_idx]->primitives) {
+    // if (fabs(primi.get_end_curvature()) >
+    //     max_curvature_under_velocity(current_speed))
+    //   continue;
     base.push_back(rotate_and_translate(primi));
   }
   return base;
@@ -108,6 +112,6 @@ PathPlanner::clothoid_base_primitive_set::get_nexts(const astate& state) const {
 const vector<PathPlanner::base_primitive>
 PathPlanner::clothoid_base_primitive_set::get_nexts(
     const primitive& primitive) const {
-  return get_nexts(primitive.get_end_state());
+  return get_nexts(primitive.get_end_state(), 0.0);
 }
 }  // namespace TiEV

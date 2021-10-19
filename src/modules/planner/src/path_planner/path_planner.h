@@ -262,7 +262,7 @@ class PathPlanner {
   class base_primitive_set {
    public:
     virtual const vector<base_primitive> get_nexts(
-        const astate& state) const = 0;
+        const astate& state, const double current_speed) const = 0;
     virtual const vector<base_primitive> get_nexts(
         const primitive& primitive) const = 0;
     virtual void prepare(bool backward_enabled){};
@@ -271,7 +271,8 @@ class PathPlanner {
   class clothoid_base_primitive_set : public base_primitive_set {
    public:
     clothoid_base_primitive_set();
-    virtual const vector<base_primitive> get_nexts(const astate& state) const;
+    virtual const vector<base_primitive> get_nexts(
+        const astate& state, const double current_speed) const;
     virtual const vector<base_primitive> get_nexts(
         const primitive& primitive) const;
     virtual void prepare(bool backward_enabled);

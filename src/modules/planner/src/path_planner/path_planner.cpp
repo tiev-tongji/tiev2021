@@ -130,15 +130,15 @@ void PathPlanner::plan(std::vector<Pose>* result) {
     return;
   }
   // contruct the whole path
+  double offset_s = 0.0;
   if (!start_maintained_path.empty()) {
+    offset_s = start_maintained_path.back().s;
     start_maintained_path.pop_back();
   }
   result->clear();
   result->reserve(start_maintained_path.size() + result_path.size());
   result->insert(result->end(), start_maintained_path.begin(),
                  start_maintained_path.end());
-  double offset_s =
-      start_maintained_path.empty() ? 0.0 : start_maintained_path.back().s;
   for (const auto& state : result_path) {
     Pose p;
     p.x        = state.x;

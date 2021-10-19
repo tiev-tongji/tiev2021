@@ -9,6 +9,7 @@
 #include "config.h"
 #include "map_manager.h"
 #include "tiev_utils.h"
+#include "tievlog.h"
 
 namespace TiEV {
 
@@ -184,14 +185,18 @@ void sendPath() {
     }
     // conversion
     vector<pair<double, double>> speed_limits;
+    int                          count = 0;
     for (auto& point : maintained_path) {
       if (point.backward) {
         max_speed = min(2.0, max_speed);
         point.ang = M_PI + point.ang;
       }
-      speed_limits.emplace_back(point.s, 20);
-      // speed_limits.emplace_back(
-      //     point.s, min(max_speed, max_velocity_for_curvature(point.k)));
+      // speed_limits.emplace_back(point.s, 20);
+      // LOG(INFO) << "idx=" << count++ << " s=" << point.s << " \tk=" <<
+      // point.k
+      //           << " \tv_by_k=" << max_velocity_for_curvature(point.k);
+      speed_limits.emplace_back(
+          point.s, min(max_speed, max_velocity_for_curvature(point.k)));
     }
     if (!maintained_path.empty())
       maintained_path.front().v = fabs(nav_info.current_speed);

@@ -117,9 +117,8 @@ inline double max_curvature_under_velocity(double velocity_m_s) {
 }
 
 inline double max_velocity_for_curvature(double curvature_1_m) {
-  return std::sqrt(
-      1.0 /
-      std::max(1e-8, KV_LINE_K * std::max(curvature_1_m, 0.0) + KV_LINE_B));
+  return std::sqrt(1.0 /
+                   std::max(1e-8, KV_LINE_K * fabs(curvature_1_m) + KV_LINE_B));
 }
 
 // we assume the steering wheel can rotate PI every 1.5 seconds
