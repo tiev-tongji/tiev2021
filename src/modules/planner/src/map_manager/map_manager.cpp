@@ -1298,7 +1298,7 @@ vector<Pose> MapManager::getMaintainedPath(const NavInfo& nav_info) {
   if (path[shortest_index].backward) {
     for (auto p : path) {
       if (p.s < 0) continue;
-      if (p.backward)
+      if (p.in_map() && p.backward)
         res.push_back(p);
       else
         break;
@@ -1306,7 +1306,7 @@ vector<Pose> MapManager::getMaintainedPath(const NavInfo& nav_info) {
   } else {
     for (auto p : path) {
       if (p.s < 0) continue;
-      if (!p.backward)
+      if (p.in_map() && !p.backward)
         res.push_back(p);
       else
         break;

@@ -44,7 +44,7 @@ void NormalDriving::update(FullControl& control) {
   }
   map_manager->maintainPath(map.nav_info, result_path);
   if (speed_path_list.empty() && duration_time() > limited_time) {
-    // control.changeTo<LaneFreeDriving>();
+    // control.changeTo<TemporaryParking>();
   } else if (!speed_path_list.empty()) {
     entry_time = getTimeStamp();
   }
