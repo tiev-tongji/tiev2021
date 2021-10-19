@@ -102,8 +102,9 @@ PathPlanner::clothoid_base_primitive_set::get_nexts(
   base.reserve(current_subset[min_idx]->primitives.size());
   for (const auto& primi : current_subset[min_idx]->primitives) {
     // if (fabs(primi.get_end_curvature()) >
-    //     max_curvature_under_velocity(current_speed))
+    //     max_curvature_under_velocity(current_speed)) {
     //   continue;
+    // }
     base.push_back(rotate_and_translate(primi));
   }
   return base;

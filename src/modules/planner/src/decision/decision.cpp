@@ -186,17 +186,26 @@ void sendPath() {
     // conversion
     vector<pair<double, double>> speed_limits;
     int                          count = 0;
-    for (auto& point : maintained_path) {
+    for (int i = 0; i < maintained_path.size(); ++i) {
+      auto& point = maintained_path[i];
+      // get average k for near 5 points to smooth the k
+      double average_k = 0.0;
+      int    begin_idx = std::max(i - 5, 0);
+      int    end_idx   = std::min(i + 5, int(maintained_path.size()) - 1);
+      for (int j = begin_idx; j < end_idx; ++j) {
+        average_k += maintained_path[j].k / (end_idx - begin_idx);
+      }
       if (point.backward) {
         max_speed = min(2.0, max_speed);
         point.ang = M_PI + point.ang;
       }
-      // speed_limits.emplace_back(point.s, 20);
       // LOG(INFO) << "idx=" << count++ << " s=" << point.s << " \tk=" <<
       // point.k
-      //           << " \tv_by_k=" << max_velocity_for_curvature(point.k);
+      //           << " \tave_k" << average_k
+      //           << " \tv_by_k=" << max_velocity_for_curvature(average_k);
+
       speed_limits.emplace_back(
-          point.s, min(max_speed, max_velocity_for_curvature(point.k)));
+          point.s, min(max_speed, max_velocity_for_curvature(average_k)));
     }
     if (!maintained_path.empty())
       maintained_path.front().v = fabs(nav_info.current_speed);

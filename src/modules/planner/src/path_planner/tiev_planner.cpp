@@ -25,10 +25,9 @@ PathPlanner::analytic_expansion_callback analytic_expanded;
 const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
     const DynamicObjList&          dynamic_obj_list,
     const std::vector<HDMapPoint>& ref_path, const astate& _start_state,
-    double _start_speed_m_s, bool _is_backward_enabled,
+    double current_speed, bool _is_backward_enabled,
     double (*_abs_safe_map)[MAX_COL], double (*_lane_safe_map)[MAX_COL],
     time_t _max_duration, const base_primitive_set* _base_primitives) {
-  // LOG(WARNING) << "running hybrid astar...";
 #ifdef VIS_EXPANSION
   cv::namedWindow("expansion", cv::WINDOW_KEEPRATIO);
   cv::Mat expansion_img = cv::Mat(MAX_ROW, MAX_COL, CV_8UC3, {255, 255, 255});
@@ -44,13 +43,16 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
         cv::Vec3b(0, 255, 0);
   }
 #endif
-  start_time      = getTimeStamp();
-  dead_line       = start_time + _max_duration;
-  iterations      = 0;
-  base_primitives = _base_primitives;
+  constexpr double max_dcc = -0.5;  // m/s^2
+  start_time               = getTimeStamp();
+  dead_line                = start_time + _max_duration;
+  iterations               = 0;
+  base_primitives          = _base_primitives;
 
-  start_state         = _start_state;
-  start_speed_m_s     = _start_speed_m_s;
+  start_state     = _start_state;
+  start_speed_m_s = std::sqrt(
+      std::max(2.0 * max_dcc * start_state.s + current_speed * current_speed,
+               0.0));  // v = sqrt(2*a*s+ v_0^2)
   is_backward_enabled = _is_backward_enabled;
 
   memset(node_visited_map, false, sizeof(node_visited_map));
@@ -133,7 +135,10 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
     } else {
       current_state = current.ptr->get_end_state();
     }
-    bases = base_primitives->get_nexts(current_state, start_speed_m_s);
+    const double state_possible_speed = std::sqrt(std::max(
+        2.0 * max_dcc * current_state.s + current_speed * current_speed,
+        0.0));  // v = sqrt(2*a*s+ v_0^2)
+    bases = base_primitives->get_nexts(current_state, state_possible_speed);
     // LOG(WARNING) << "current_state:" << current_state
     //              << " score=" << current.score;
     // usleep(100 * 1000);
@@ -176,12 +181,14 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
       // create a new primitive from primitive pool expanded from
       // current_state, based on primitive base, and linked to
       // its parent primitive 'current.ptr'
-      primitive&   expansion = *(primitive_pool.make(base, current.ptr));
-      const double cos_with_ref =
-          get_cos_with_ref_path(expansion.get_end_state());
-      if (_start_speed_m_s < 3 && cos_with_ref > max_cos_with_ref_path) {
-        max_cos_with_ref_path = cos_with_ref;
-        last_primitive_ptr    = &expansion;
+      primitive& expansion = *(primitive_pool.make(base, current.ptr));
+      if (current_speed < 3) {
+        const double cos_with_ref =
+            get_cos_with_ref_path(expansion.get_end_state());
+        if (cos_with_ref > max_cos_with_ref_path) {
+          max_cos_with_ref_path = cos_with_ref;
+          last_primitive_ptr    = &expansion;
+        }
       }
       // LOG(INFO) << "expansion size=" << primitive_pool.size();
       // LOG(INFO) << "is_visited=" << is_visited(expansion.get_end_state());
@@ -224,21 +231,12 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
           visit(end_state);
           double heuristic =
               planning_map.get_heuristic(end_state, reverse_allowed);
-          double minimum_speed =
-              sqrt(max(0.0,
-                       (current.minimum_speed * current.minimum_speed -
-                        2 * base.get_length() *
-                            (GRID_RESOLUTION *
-                             SPEED_DESCENT_FACTOR))));  // v_t = v_0
-                                                        // + at =
-                                                        // \sqrt{{v_0}^2
-                                                        // + 2as}
           double cost_factor = get_cost_factor(current_state, end_state);
           double cost        = current.cost + base.get_length() * cost_factor;
           double dis_after_reverse =
               base.get_length() +
               (reversed_expansion ? 0.0 : current.dis_after_reverse);
-          node_pool.push({heuristic + cost, minimum_speed, cost,
+          node_pool.push({heuristic + cost, state_possible_speed, cost,
                           dis_after_reverse, &expansion});
         }
       }

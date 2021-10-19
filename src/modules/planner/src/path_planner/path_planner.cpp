@@ -67,8 +67,10 @@ void PathPlanner::setStartMaintainedPath(
   for (auto& p : this->start_maintained_path) {
     p.v = velocity_limit;
   }
-  if (!this->start_maintained_path.empty())
+  if (!this->start_maintained_path.empty()) {
     start_pose = this->start_maintained_path.back();
+    this->start_maintained_path.pop_back();
+  }
   if (!start_pose.in_map() || this->start_maintained_path.empty()) {
     start_pose = Pose(CAR_CEN_ROW, CAR_CEN_COL, PI);
   }
@@ -116,7 +118,7 @@ void PathPlanner::plan(std::vector<Pose>* result) {
   if (!ref_path.empty() && target_pose.x == 0 && target_pose.y == 0 &&
       target_pose.ang == 0) {
     // no target but have reference path
-    astate start_state(start_pose.x, start_pose.y, start_pose.ang, 0,
+    astate start_state(start_pose.x, start_pose.y, start_pose.ang, start_pose.s,
                        start_pose.k, start_pose.backward);
     result_path = tiev_planner.plan(
         dynamic_obj_list, ref_path, start_state, nav_info.current_speed,
@@ -130,11 +132,6 @@ void PathPlanner::plan(std::vector<Pose>* result) {
     return;
   }
   // contruct the whole path
-  double offset_s = 0.0;
-  if (!start_maintained_path.empty()) {
-    offset_s = start_maintained_path.back().s;
-    start_maintained_path.pop_back();
-  }
   result->clear();
   result->reserve(start_maintained_path.size() + result_path.size());
   result->insert(result->end(), start_maintained_path.begin(),
@@ -144,7 +141,7 @@ void PathPlanner::plan(std::vector<Pose>* result) {
     p.x        = state.x;
     p.y        = state.y;
     p.ang      = state.a;
-    p.s        = state.s + offset_s;
+    p.s        = state.s;
     p.k        = state.curvature;
     p.backward = state.is_backward;
     p.v        = velocity_limit;
