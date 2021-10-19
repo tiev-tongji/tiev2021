@@ -185,7 +185,7 @@ void sendPath() {
     }
     // conversion
     vector<pair<double, double>> speed_limits;
-    int                          count = 0;
+    // int                          count = 0;
     for (int i = 0; i < maintained_path.size(); ++i) {
       auto& point = maintained_path[i];
       // get average k for near 5 points to smooth the k

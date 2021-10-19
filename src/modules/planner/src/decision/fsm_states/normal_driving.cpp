@@ -31,9 +31,10 @@ void NormalDriving::update(FullControl& control) {
   vector<SpeedPath> speed_path_list;
   const auto        start3 = getTimeStamp();
   std::vector<Pose> result_path;
+  bool              back_ward = map.nav_info.current_speed < 3 ? true : false;
   PathPlanner::getInstance()->runPathPlanner(
       map.nav_info, map.ref_path, map.dynamic_obj_list,
-      map_manager->getCurrentMapSpeed(), true, map.lidar_dis_map,
+      map_manager->getCurrentMapSpeed(), back_ward, map.lidar_dis_map,
       map.planning_dis_map, start_path, {Pose(0, 0, 0)}, &result_path);
   LOG(INFO) << "planning time:" << (getTimeStamp() - start3) * 1e-3 << "ms";
 
