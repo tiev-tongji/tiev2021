@@ -18,7 +18,6 @@ const double EPSILON = 1e-6;
 #define nameof(x) (#x)
 
 DistanceTable::DistanceTable(const string &table_file_name) {
-  return;
   fstream input(table_file_name, ios::in | ios::binary);
   if (!input.is_open()) {
     cerr << "File \"" << table_file_name << "\" not exist." << endl;

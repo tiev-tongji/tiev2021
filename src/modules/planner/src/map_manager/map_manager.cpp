@@ -1064,12 +1064,12 @@ std::vector<Pose> MapManager::getParkingSpotTarget() {
   return targets;
 }
 
-std::vector<Pose> MapManager::getTemporaryParkingTarget() {
-  vector<Pose> targets;
-  auto         current_tasks = this->getCurrentTasks();
+Pose MapManager::getTemporaryParkingTarget() {
+  Pose target;
+  auto current_tasks = this->getCurrentTasks();
   if (current_tasks.empty()) {
     Task parking_task = this->getParkingTask();
-    if (parking_task.task_points.empty()) return targets;
+    if (parking_task.task_points.empty()) return target;
     current_tasks.push_back(parking_task);
   }
   for (auto spot : current_tasks.back().task_points) {
@@ -1077,11 +1077,10 @@ std::vector<Pose> MapManager::getTemporaryParkingTarget() {
     p.utm_position = spot;
     p.updateLocalCoordinate(map.nav_info.car_pose);
     if (p.in_map() && map.accessible_map[int(p.x)][int(p.y)]) {
-      targets.push_back(p);
-      return targets;
+      return p;
     }
   }
-  return targets;
+  return target;
 }
 
 vector<Pose> MapManager::getTaskTarget() {

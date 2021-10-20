@@ -126,10 +126,9 @@ inline double max_velocity_for_curvature(double curvature_1_m) {
 constexpr double MAX_STEERING_WHEEL_ROTATE_SPEED = M_PI / 1.5;         // ang/s
 constexpr double MAX_STEERING_WHEEL_ANGLE        = 2 * M_PI + M_PI_2;  // ang
 
-inline double max_sigma_under_velocity(double velocity_m_s) {
+inline double max_sigma() {
   return CAR_MAX_CURVATURE /
-         (std::max(fabs(velocity_m_s), 5.0 / 3.6) *
-          (MAX_STEERING_WHEEL_ANGLE / MAX_STEERING_WHEEL_ROTATE_SPEED));
+         (MAX_STEERING_WHEEL_ANGLE / MAX_STEERING_WHEEL_ROTATE_SPEED);
 }
 }  // namespace TiEV
 

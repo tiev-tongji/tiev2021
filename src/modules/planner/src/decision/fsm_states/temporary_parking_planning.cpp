@@ -16,23 +16,27 @@ void TemporaryParkingPlanning::update(FullControl& control) {
   map_manager->updatePlanningMap(MapManager::LaneLineBlockType::NO_BLOCK);
   auto&        map        = map_manager->getMap();
   vector<Pose> start_path = map_manager->getStartMaintainedPath();
-  vector<Pose> targets    = map_manager->getTemporaryParkingTarget();
-  if (targets.empty()) {
+  Pose         target     = map_manager->getTemporaryParkingTarget();
+  if (target.x == 0 && target.y == 0 && target.ang == 0) {
     control.changeTo<NormalDriving>();
     return;
   }
-  vector<SpeedPath> speed_path_list;
-  // PathPlanner::getInstance()->runPathPlanner(
-  //     map.ref_path, map.dynamic_obj_list, map_manager->getCurrentMapSpeed(),
-  //     true, map.lidar_dis_map, map.planning_dis_map, start_path, targets,
-  //     map.nav_info.current_speed, speed_path_list);
-  map_manager->selectBestPath(speed_path_list);
-  map_manager->maintainPath(map.nav_info, map.best_path.path);
-  Pose& current_pose = map.nav_info.car_pose;
-
-  if (point2PointDis(current_pose, targets.front()) <= 2.1 &&
-      fabs(current_pose.cosDeltaAngle(targets.front())) > cos(PI / 3)) {
-    control.changeTo<TemporaryStop>();
+  std::vector<Pose> result_path;
+  PathPlanner::getInstance()->runPathPlanner(
+      map.nav_info, map.ref_path, map.dynamic_obj_list,
+      map_manager->getCurrentMapSpeed(), true, map.lidar_dis_map,
+      map.planning_dis_map, start_path, target, &result_path);
+  const auto maintained_path = map_manager->getMaintainedPath(map.nav_info);
+  if (!maintained_path.empty() && maintained_path.front().backward &&
+      map.nav_info.current_speed > 0.2) {
+    return;
   }
+  map_manager->maintainPath(map.nav_info, result_path);
+  const auto& current_pose = map.nav_info.car_pose;
+
+  // if (point2PointDis(current_pose, target) <= 2.1 &&
+  //     fabs(current_pose.cosDeltaAngle(target)) > cos(PI / 3)) {
+  //   control.changeTo<TemporaryStop>();
+  // }
 }
 }  // namespace TiEV

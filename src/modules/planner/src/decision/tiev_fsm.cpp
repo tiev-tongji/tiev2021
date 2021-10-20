@@ -40,12 +40,6 @@ void OnRoadFSM::update(FullControl& control) {
     task_pose.updateLocalCoordinate(map.nav_info.car_pose);
     // cout << "The task: " << task_pose << " car pose:" <<
     // map.nav_info.car_pose << endl;
-    if (task_pose.in_map()) {
-      //    cout << "The task point is in map" << endl;
-      map_manager->updatePlanningMap(MapManager::LaneLineBlockType::NO_BLOCK);
-      vector<Pose> targets = map_manager->getTemporaryParkingTarget();
-      if (!targets.empty()) control.changeTo<TemporaryParkingPlanning>();
-    }
   }
   auto mode = map_manager->getCurrentMapMode();
   if (mode == HDMapMode::INTERSECTION_SOLID || mode == HDMapMode::INTERSECTION)

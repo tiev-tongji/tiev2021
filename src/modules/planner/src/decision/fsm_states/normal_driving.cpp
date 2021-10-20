@@ -35,7 +35,7 @@ void NormalDriving::update(FullControl& control) {
   PathPlanner::getInstance()->runPathPlanner(
       map.nav_info, map.ref_path, map.dynamic_obj_list,
       map_manager->getCurrentMapSpeed(), back_ward, map.lidar_dis_map,
-      map.planning_dis_map, start_path, {Pose(0, 0, 0)}, &result_path);
+      map.planning_dis_map, start_path, Pose(0, 0, 0), &result_path);
   LOG(INFO) << "planning time:" << (getTimeStamp() - start3) * 1e-3 << "ms";
 
   const auto maintained_path = map_manager->getMaintainedPath(map.nav_info);

@@ -25,8 +25,8 @@ using namespace std;
 // #define NO_TIME_LIMIT
 // #define DEBUG_EXPANSION_CALLBACK
 // #define DEBUG_ANALYTIC_EXPANSION_CALLBACK
-#define USE_HC_PATH_ANALYTIC_EXPANSION
-// #define USE_DUBINS_ANALYTIC_EXPANSION
+// #define USE_HC_PATH_ANALYTIC_EXPANSION
+#define USE_DUBINS_ANALYTIC_EXPANSION
 #define USE_CLOTHOID_PRIMITIVES
 
 namespace TiEV {
@@ -510,7 +510,6 @@ class PathPlanner {
 
     astate start_state;
     astate target_state;
-    double start_speed_m_s;
     bool   is_backward_enabled;
 
     bool node_visited_map[2 * MAX_ROW][2 * MAX_COL][ANGLE_NUM];

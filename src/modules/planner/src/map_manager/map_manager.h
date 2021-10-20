@@ -94,7 +94,7 @@ class MapManager {
   Pose              getBackTarget();
   std::vector<Pose> getExplorationTargets();
   std::vector<Pose> getParkingSpotTarget();
-  std::vector<Pose> getTemporaryParkingTarget();
+  Pose              getTemporaryParkingTarget();
   std::vector<Pose> getTaskTarget();
   std::vector<Pose> getUTurnTargets();
   std::vector<Pose> maintained_uturn_target;

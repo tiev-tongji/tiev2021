@@ -321,7 +321,7 @@ double PathPlanner::local_planning_map::get_heuristic(const astate& state,
         getInstance()->distance_table_dubins->getDistance(q0, q1);
   }
   // heuristic += 20 * astar_2d_distance;
-  heuristic += 20 * std::max(astar_2d_distance, rs_dubins_distance);
+  heuristic += std::max(astar_2d_distance, rs_dubins_distance);
   return heuristic;
 }
 

@@ -115,18 +115,24 @@ void PathPlanner::plan(std::vector<Pose>* result) {
   // chose the clothoid primitives
   clothoid_base_primitives.prepare(backward_enabled);
   // chose a specific path planning algrithom
+  astate start_state(start_pose.x, start_pose.y, start_pose.ang, start_pose.s,
+                     start_pose.k, start_pose.backward);
   if (!ref_path.empty() && target_pose.x == 0 && target_pose.y == 0 &&
       target_pose.ang == 0) {
     // no target but have reference path
-    astate start_state(start_pose.x, start_pose.y, start_pose.ang, start_pose.s,
-                       start_pose.k, start_pose.backward);
     result_path = tiev_planner.plan(
         dynamic_obj_list, ref_path, start_state, nav_info.current_speed,
         backward_enabled, abs_safe_map, lane_safe_map,
         config->plan_time_limit_ms * 1000, &clothoid_base_primitives);
-  } else if (target_pose.x != 0 && target_pose.y != 0 && target_pose.ang != 0) {
+  } else if (target_pose.x != 0 || target_pose.y != 0 || target_pose.ang != 0) {
     // planning to target
+    astate target_state(target_pose.x, target_pose.y, target_pose.ang, 0,
+                        target_pose.k, target_pose.backward);
     planning_to_target = true;
+    result_path        = astar_planner.plan(
+        start_state, target_state, nav_info.current_speed, backward_enabled,
+        abs_safe_map, lane_safe_map, config->plan_time_limit_ms * 1000,
+        &clothoid_base_primitives);
   } else {
     LOG(WARNING) << "No reference path and target! to plan";
     return;
