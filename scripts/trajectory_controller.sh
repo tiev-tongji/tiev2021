@@ -1,5 +1,5 @@
 #!/bin/bash
-cd ~/tiev2020-code/src/modules/Trajectory_Controller
+cd ~/tiev2021/src/modules/Trajectory_Controller
 if [ ! -d "build" ]
 then
 	mkdir build
