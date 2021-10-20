@@ -1,5 +1,5 @@
 #!/bin/bash
-cd ~/tiev2020-code/src/modules/ControlCenterZLG_sim
+cd ~/tiev2021/src/modules/ControlCenterZLG_sim
 if [ ! -d "build" ]
 then
 	mkdir build

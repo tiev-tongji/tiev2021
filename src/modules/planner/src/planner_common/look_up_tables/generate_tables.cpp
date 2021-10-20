@@ -8,9 +8,9 @@ using namespace std;
 using namespace TiEV;
 
 string reeds_shepp_distance_table_file_name =
-    "~/tiev2020-code/src/cfg/reeds_shepp_distance_table";
+    "~/tiev2021/src/cfg/reeds_shepp_distance_table";
 string dubins_distance_table_file_name =
-    "~/tiev2020-code/src/cfg/dubins_distance_table";
+    "~/tiev2021/src/cfg/dubins_distance_table";
 
 int main() {
   ReedsSheppTableHelper::generate_distance_table_file(
