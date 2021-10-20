@@ -63,6 +63,14 @@ struct visLaneLine
     visPoint lane_line_points[lane_line_points_size];
 }
 
+struct visPriorityLane
+{
+    int32_t priority_points_size;
+    visPoint priority_points[priority_points_size];
+    int32_t origin_points_size;
+    visPoint origin_points[origin_points_size];
+}
+
 struct visVISUALIZATION
 {
     double safe_map[501][251];
@@ -78,8 +86,7 @@ struct visVISUALIZATION
     int32_t targets_size;
     visPoint targets[targets_size];
     visPoint start_point;
-    int32_t paths_size;
-    visPath paths[paths_size];
+    visPath planner_path;
     int32_t st_boundaries_size;
     visSTBoundary st_boundaries[st_boundaries_size];
     int32_t dp_speed_size;
@@ -91,4 +98,5 @@ struct visVISUALIZATION
     visSpline2 splines_speed_curve[splines_speed_curve_size];
     int32_t text_info_size;
     visText text_info[text_info_size];
+    visPriorityLane priority_lane;
 }

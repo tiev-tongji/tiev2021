@@ -1,7 +1,10 @@
+#include <opencv2/opencv.hpp>
+
 #include "collision_check.h"
 #include "log.h"
 #include "math.h"
 #include "path_planner.h"
+#include "tievlog.h"
 
 namespace TiEV {
 
@@ -23,71 +26,322 @@ namespace TiEV {
 
 constexpr double len(int a, int b) { return sqrt(a * a + b * b); }
 
-void PathPlanner::local_planning_map::prepare(const astate& _target,
-                                              double (*_safe_map)[MAX_COL],
-                                              bool _backward_enabled) {
-  target           = _target;
-  safe_map         = _safe_map;
-  backward_enabled = _backward_enabled;
+void PathPlanner::local_planning_map::prepare(
+    const DynamicObjList&          dynamic_obj_list,
+    const std::vector<HDMapPoint>& _ref_path, double (*_abs_safe_map)[MAX_COL],
+    double (*_lane_safe_map)[MAX_COL], bool _backward_enabled) {
+  is_planning_to_target = false;
+  ref_path              = _ref_path;
+  abs_safe_map          = _abs_safe_map;
+  lane_safe_map         = _lane_safe_map;
+  backward_enabled      = _backward_enabled;
 
-  time_t time_1 = getTimeStamp();
-  calculate_xya_distance_map();
-  time_t time_2 = getTimeStamp();
-  log_1("xya_distance_map calculated in ", (time_2 - time_1) / 1000, " ms");
-}
-
-bool PathPlanner::local_planning_map::is_crashed(int x, int y) const {
-  return safe_map[x][y] <= COLLISION_CIRCLE_SMALL_R / GRID_RESOLUTION;
-}
-
-bool PathPlanner::local_planning_map::is_crashed(const astate& state) const {
-  return collision(state.x, state.y, state.a, safe_map, 0.0);
-}
-
-bool PathPlanner::local_planning_map::is_crashed(primitive& prim) const {
-  const astate& start_state = prim.get_start_state();
-  int           ssr         = round(start_state.x);
-  int           ssc         = round(start_state.y);
-  double        sssafe      = get_maximum_safe_distance(ssr, ssc);
-  if (is_in_map(ssr, ssc) == false || prim.get_length() >= sssafe) {
-    double safe_s = start_state.s + sssafe;
-    for (const auto& state : prim.get_states()) {
-      if (state.s <= safe_s) continue;
-      int r = round(state.x), c = round(state.y);
-      if (is_in_map(r, c)) {
-        if (is_crashed(state))
-          return true;
-        else
-          safe_s = state.s + get_maximum_safe_distance(r, c);
-      }
+  // when there is no target
+  std::vector<Point2d> origin_lane_points;
+  // resize the ref_path to get the first one path
+  auto new_size = ref_path.size();
+  for (int i = 0; i < ref_path.size(); ++i) {
+    const auto& p = ref_path[i];
+    if (p.s < 0) continue;
+    if (p.s >= 120 || int(p.x) <= 2 || int(p.x) > MAX_ROW - 2 ||
+        int(p.y) <= 1 || int(p.y) >= MAX_COL - 2) {
+      new_size = i + 1;
+      break;
     }
+  }
+  ref_path.resize(new_size);
+  // calculate the ref path end arrival area
+  const auto& ref_end_p = ref_path.back();
+  // left bound and right bound point
+  left_bound_p = ref_end_p.getLateralPose(
+      ref_end_p.lane_width * (ref_end_p.lane_num - ref_end_p.lane_seq + 0.5));
+  right_bound_p = ref_end_p.getLateralPose(ref_end_p.lane_width *
+                                           (ref_end_p.lane_seq - 0.5));
+  // get the lane center for each ref path p
+  for (auto& p : ref_path) {
+    if (!p.neighbors.empty()) continue;
+    for (int i = 0; i < p.lane_num; ++i) {
+      p.neighbors.push_back(
+          p.getLateralPose(p.lane_width * (i - p.lane_seq + 1)));
+    }
+  }
+  // offset the center point to avoid bostacles
+  std::vector<std::pair<Point2d, double>> offset_list;
+
+  const auto& clash_with_dynamic = [&](const double x, const double y) {
+    try {
+      for (const auto& obj : dynamic_obj_list.dynamic_obj_list) {
+        Point2d o_p(x, y);
+        double  last_cross_val =
+            (obj.corners.back() - o_p).cross(obj.corners.front() - o_p);
+        for (int i = 0; i + 1 < obj.corners.size(); ++i) {
+          const auto& p0        = obj.corners[i];
+          const auto& p1        = obj.corners[i + 1];
+          const auto& cross_val = (p0 - o_p).cross(p1 - o_p);
+          if (cross_val * last_cross_val <= 0) return true;
+          last_cross_val = cross_val;
+        }
+      }
+      return false;
+    } catch (const std::exception& e) {
+      LOG(FATAL) << "maby the dynamic obj have no corners!";
+    }
+  };
+
+  constexpr double offset_decent = 0.0;  // m
+  for (auto it = ref_path.rbegin(); it != ref_path.rend(); it++) {
+    auto&                              ref_p = *it;
+    std::vector<pair<Point2d, double>> new_offset_list;
+    for (int i = 0; i < ref_p.neighbors.size(); ++i) {
+      auto&  pi         = ref_p.neighbors[i];
+      double offset_dis = 0.0;
+      origin_lane_points.emplace_back(pi.x, pi.y);
+      // find the closest pre point's offset
+      double min_dis = 1e8;
+      for (const auto& off_p : offset_list) {
+        const double dis =
+            sqrDistance(off_p.first.x, off_p.first.y, pi.x, pi.y);
+        if (dis < min_dis) {
+          min_dis    = dis;
+          offset_dis = off_p.second;
+        }
+      }
+      // offset this pi by decent offset_dis
+      const auto& offset_after_decent = [&](const double offdis) {
+        if (offdis > 0) {
+          return std::max(offdis - offset_decent, 0.0);
+        } else {
+          return std::min(offdis + offset_decent, 0.0);
+        }
+      };
+      offset_dis              = offset_after_decent(offset_dis);
+      const double pre_offset = offset_dis;
+
+      const auto& tmp_off_point = pi.getLateralPose(pre_offset);
+      // is this offset safe?
+      if (is_lane_crashed(tmp_off_point.x, tmp_off_point.y) ||
+          clash_with_dynamic(tmp_off_point.x, tmp_off_point.y)) {
+        // if the center_p is crash, can it offset to neibor?
+        offset_dis       = 1e8;
+        bool safe_offset = false;
+        // find the left closest obstatle free center
+        for (int j = i; j < ref_p.neighbors.size(); ++j) {
+          const auto& pj = ref_p.neighbors[j];
+          if (!is_lane_crashed(pj.x, pj.y) && !clash_with_dynamic(pj.x, pj.y)) {
+            offset_dis =
+                euclideanDistance(pj.x, pj.y, pi.x, pi.y) * GRID_RESOLUTION;
+            safe_offset = true;
+            break;
+          }
+        }
+        // find the right closest obstatle-free center
+        for (int j = i - 1; j >= 0; --j) {
+          const auto& pj = ref_p.neighbors[j];
+          if (!is_lane_crashed(pj.x, pj.y) && !clash_with_dynamic(pj.x, pj.y)) {
+            Point2d      pij_vec(pj.x - pi.x, pj.y - pi.y);
+            const double o_dis =
+                pi.getDirectionVec().cross(pij_vec) * GRID_RESOLUTION;
+            if (fabs(o_dis) < offset_dis) {
+              offset_dis  = o_dis;
+              safe_offset = true;
+              break;
+            }
+          }
+        }
+        // if the road is all crashed
+        if (!safe_offset) {
+          // first consider the closest obstacle free lane
+          if (!is_lane_crashed(tmp_off_point.x, tmp_off_point.y)) {
+            offset_dis  = pre_offset;
+            safe_offset = true;
+          } else {
+            // find the left closest obstatle free center
+            for (int j = i; j < ref_p.neighbors.size(); ++j) {
+              const auto& pj = ref_p.neighbors[j];
+              if (!is_lane_crashed(pj.x, pj.y)) {
+                offset_dis =
+                    euclideanDistance(pj.x, pj.y, pi.x, pi.y) * GRID_RESOLUTION;
+                safe_offset = true;
+                break;
+              }
+            }
+            // find the right closest obstatle-free center
+            for (int j = i - 1; j >= 0; --j) {
+              const auto& pj = ref_p.neighbors[j];
+              if (!is_lane_crashed(pj.x, pj.y) &&
+                  !clash_with_dynamic(pj.x, pj.y)) {
+                Point2d      pij_vec(pj.x - pi.x, pj.y - pi.y);
+                const double o_dis =
+                    pi.getDirectionVec().cross(pij_vec) * GRID_RESOLUTION;
+                if (fabs(o_dis) < offset_dis) {
+                  offset_dis  = o_dis;
+                  safe_offset = true;
+                  break;
+                }
+              }
+            }
+          }
+          if (!safe_offset) {
+            // is it safe outside the road?
+            const double left_outside_dis =
+                (ref_p.neighbors.back() - pi).len() * GRID_RESOLUTION +
+                ref_p.lane_width;
+            const double right_outside_dis = -(i + 1) * ref_p.lane_width;
+            const auto&  right_off_point = pi.getLateralPose(right_outside_dis);
+            const auto&  left_off_point  = pi.getLateralPose(left_outside_dis);
+            if (!is_lane_crashed(int(right_off_point.x),
+                                 int(right_off_point.y))) {
+              offset_dis = right_outside_dis;
+            } else if (!is_lane_crashed(int(left_off_point.x),
+                                        int(left_off_point.y))) {
+              offset_dis = left_outside_dis;
+            } else {
+              offset_dis = fabs(right_outside_dis) < fabs(left_outside_dis)
+                               ? right_outside_dis
+                               : left_outside_dis;
+            }
+          }
+        }
+      }
+      // offset the pi
+      pi.offset(offset_dis);
+      new_offset_list.push_back(
+          std::make_pair(origin_lane_points.back(), offset_dis));
+    }
+    offset_list = new_offset_list;
+    // LOG(WARNING) << "---at ref_p:" << ref_p.s << "---";
+    // for (const auto& p : offset_list) {
+    //   LOG(INFO) << p.first << " offset=" << p.second;
+    // }
+  }
+  // send to visualization center line offset
+  MessageManager::getInstance()->setPriorityLane(ref_path, origin_lane_points);
+}
+
+void PathPlanner::local_planning_map::prepare(const astate& _target,
+                                              double (*_abs_safe_map)[MAX_COL],
+                                              double (*_lane_safe_map)[MAX_COL],
+                                              bool _backward_enabled) {
+  is_planning_to_target = true;
+  target                = _target;
+  abs_safe_map          = _abs_safe_map;
+  lane_safe_map         = _lane_safe_map;
+  backward_enabled      = _backward_enabled;
+
+  calculate_2d_distance_map();
+}
+
+bool PathPlanner::local_planning_map::is_abs_crashed(int x, int y) const {
+  if (!is_in_map(x, y)) return false;
+  return abs_safe_map[x][y] <= COLLISION_CIRCLE_SMALL_R / GRID_RESOLUTION;
+}
+
+bool PathPlanner::local_planning_map::is_abs_crashed(
+    const astate& state) const {
+  return collision(state.x, state.y, state.a, abs_safe_map, 0.0);
+}
+
+bool PathPlanner::local_planning_map::is_abs_crashed(primitive& prim) const {
+  for (const auto& sta : prim.get_states()) {
+    if (is_abs_crashed(sta)) return true;
+  }
+  return false;
+}
+
+bool PathPlanner::local_planning_map::is_lane_crashed(int x, int y) const {
+  if (!is_in_map(x, y)) return false;
+  return lane_safe_map[x][y] <= COLLISION_CIRCLE_SMALL_R / GRID_RESOLUTION;
+}
+
+bool PathPlanner::local_planning_map::is_lane_crashed(
+    const astate& state) const {
+  return collision(state.x, state.y, state.a, lane_safe_map, 0.0);
+}
+
+bool PathPlanner::local_planning_map::is_lane_crashed(primitive& prim) const {
+  for (const auto& sta : prim.get_states()) {
+    if (is_lane_crashed(sta)) return true;
   }
   return false;
 }
 
 double PathPlanner::local_planning_map::get_heuristic(const astate& state,
                                                       bool can_reverse) const {
-  const int x_idx        = (int)round(state.x);
-  const int y_idx        = (int)round(state.y);
-  const int xya_idx_x    = x_idx >> XYA_MAP_SHIFT_FACTOR;
-  const int xya_idx_y    = y_idx >> XYA_MAP_SHIFT_FACTOR;
-  const int xya_idx_a    = get_angle_index(state.a);
-  double    xya_distance = xya_distance_map[xya_idx_x][xya_idx_y][xya_idx_a];
-  double    euclidean_distance =
-      euclideanDistance(state.x, state.y, target.x, target.y);
-  return max(xya_distance, euclidean_distance);
+  double heuristic = 0;
+  // along the ref_path, the heuristic is small
+  if (!is_planning_to_target) {
+    double      min_distance = 1e8;
+    HDMapPoint  ref_near_p;
+    double      end_s   = 0;
+    const auto& sqr_dis = [](const double x0, const double y0, const double x1,
+                             const double y1) {
+      return (x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1);
+    };
+    for (const auto& p : ref_path) {
+      double dis = sqr_dis(p.x, p.y, state.x, state.y);
+      if (dis < min_distance) {
+        min_distance = dis;
+        ref_near_p   = p;
+      }
+      end_s = p.s;
+    }
+    // calculate the ref_path heuristic for this state
+    heuristic += 2 * (end_s - ref_near_p.s);  // guide forward along the ref
+    // path guide close to ref path
+    // close to lane center
+    min_distance = 1e8;
+    for (const auto& p : ref_near_p.neighbors) {
+      double center_dis = sqr_dis(p.x, p.y, state.x, state.y);
+      if (center_dis < min_distance) min_distance = center_dis;
+    }
+    heuristic += 0.03 * (min_distance);
+    // guide heading close to ref path
+    heuristic += 10 * (1 - cos(fabs(state.a - ref_near_p.ang)));
+    // guide to away from obstacles
+    const double max_obstacle_affect_dis = 2.5;  // m
+    heuristic +=
+        std::pow(std::min<double>(lane_safe_map[int(state.x)][int(state.y)] *
+                                          GRID_RESOLUTION -
+                                      max_obstacle_affect_dis,
+                                  0.0),
+                 2);
+    return heuristic;
+  }
+  // calculate the target heuristic
+  const int x_idx              = (int)state.x;
+  const int y_idx              = (int)state.y;
+  double    astar_2d_distance  = astar_2d_distance_map[x_idx][y_idx];
+  double    rs_dubins_distance = 0;
+  double    q0[3]              = {state.x, state.y, state.a};
+  double    q1[3]              = {target.x, target.y, target.a};
+  if (can_reverse) {
+    rs_dubins_distance = getInstance()->distance_table_rs->getDistance(q0, q1);
+  } else {
+    rs_dubins_distance =
+        getInstance()->distance_table_dubins->getDistance(q0, q1);
+  }
+  // heuristic += 20 * astar_2d_distance;
+  heuristic += 20 * std::max(astar_2d_distance, rs_dubins_distance);
+  return heuristic;
 }
 
 int PathPlanner::local_planning_map::try_get_target_index(
     primitive& primitive) const {
-  const auto& start_state = primitive.get_start_state();
-  double      dis =
-      max(fabs(start_state.x - target.x), fabs(start_state.y - target.y));
-
-  if (dis <= primitive.get_length()) {
+  if (!is_planning_to_target) {
     const auto& states = primitive.get_states();
     for (int i = 0, size = states.size(); i < size; ++i)
       if (is_target(states[i])) return i;
+  } else {
+    const auto& start_state = primitive.get_start_state();
+    double      dis =
+        max(fabs(start_state.x - target.x), fabs(start_state.y - target.y)) *
+        GRID_RESOLUTION;
+
+    if (dis <= primitive.get_length()) {
+      const auto& states = primitive.get_states();
+      for (int i = 0, size = states.size(); i < size; ++i)
+        if (is_target(states[i])) return i;
+    }
   }
 
   return -1;
@@ -102,23 +356,21 @@ bool PathPlanner::local_planning_map::is_in_map(int row_idx,
   return row_idx >= 0 && row_idx < MAX_ROW && col_idx >= 0 && col_idx < MAX_COL;
 }
 
-void PathPlanner::local_planning_map::merge_xya_distance_map(
-    pair<double, double> (*output_map)[MAX_COL]) const {
-  for (int i = 0; i < MAX_ROW; ++i)
-    for (int j = 0; j < MAX_COL; ++j) {
-      output_map[i][j].first = 1e9;
-      const double* a_vec    = xya_distance_map[i >> XYA_MAP_SHIFT_FACTOR]
-                                            [j >> XYA_MAP_SHIFT_FACTOR];
-      for (int a = 0; a < XYA_MAP_DEPTH; ++a) {
-        if (a_vec[a] < output_map[i][j].first) {
-          output_map[i][j].first  = a_vec[a];
-          output_map[i][j].second = M_PI - (a + 0.5) * XYA_MAP_DELTA_A;
-        }
-      }
-    }
-}
-
 bool PathPlanner::local_planning_map::is_target(const astate& state) const {
+  // arrive the ref path end
+  if (!is_planning_to_target) {
+    constexpr double end_area_length = 5;  //  grid
+    bool             distance_arrive =
+        euclideanDistance(state.x, state.y, left_bound_p.x, left_bound_p.y) +
+            euclideanDistance(state.x, state.y, right_bound_p.x,
+                              right_bound_p.y) <
+        ref_path.back().lane_width / GRID_RESOLUTION *
+                ref_path.back().lane_num +
+            end_area_length;
+    bool heading_arrive = std::cos(ref_path.back().ang - state.a) > 0.71;
+    return distance_arrive && heading_arrive;
+  }
+  // arrive target
   constexpr double dx = 5;
   constexpr double dy = 5;
   constexpr double da = 15 / 180.0 * M_PI;
@@ -129,129 +381,43 @@ bool PathPlanner::local_planning_map::is_target(const astate& state) const {
   return dangle <= da;
 }
 
-int PathPlanner::local_planning_map::get_angle_index(double ang) {
-  return (int)(wrap_angle_0_2_PI(M_PI - ang) / XYA_MAP_DELTA_A) % XYA_MAP_DEPTH;
-}
+void PathPlanner::local_planning_map::calculate_2d_distance_map() {
+  const int    dx[]  = {0, 0, -1, 1, 1, 1, -1, -1};
+  const int    dy[]  = {-1, 1, 0, 0, 1, -1, 1, -1};
+  const double dis[] = {1, 1, 1, 1, 1.414, 1.414, 1.414, 1.414};
 
-void PathPlanner::local_planning_map::calculate_xya_distance_map() {
-  // calculate xya_safe_map by counting safe and unsafe small grid
-  // cells in each xya big grid cell. if safe cells are more then
-  // the big grid is considered safe.
-  memset(xya_safe_map, 0, sizeof(xya_safe_map));
-  for (int i = 0; i < XYA_MAP_ROWS - 1; ++i)
-    for (int j = 0; j < XYA_MAP_COLS - 1; ++j) {
-      int           idx         = (i << XYA_MAP_SHIFT_FACTOR);
-      int           jdx         = (j << XYA_MAP_SHIFT_FACTOR);
-      int           safe_factor = 0;
-      constexpr int xya_cell    = (1 << XYA_MAP_SHIFT_FACTOR);
-      int           max_idx     = idx + xya_cell;
-      int           max_jdx     = jdx + xya_cell;
-      // if the current cell exceed the map
-      if (max_idx >= MAX_ROW || max_jdx >= MAX_COL) continue;
-      for (; idx < max_idx; ++idx)
-        for (; jdx < max_jdx; ++jdx)
-          xya_safe_map[i][j] |= (!is_crashed(idx, jdx));
+  for (int r = 0; r < MAX_ROW; ++r) {
+    for (int c = 0; c < MAX_COL; ++c) {
+      astar_2d_distance_map[r][c] = 1e8;
     }
-
-#define vec(a, b)                                         \
-  {                                                       \
-    a *(XYA_MAP_COLS * XYA_MAP_DEPTH) + b *XYA_MAP_DEPTH, \
-        (1 << XYA_MAP_SHIFT_FACTOR) * len(a, b)           \
   }
-  constexpr pair<int, double> deltas[] = {vec(1, 0),   vec(1, -1), vec(0, -1),
-                                          vec(-1, -1), vec(-1, 0), vec(-1, 1),
-                                          vec(0, 1),   vec(1, 1)};
-#undef vec
-  constexpr int DELTAS_LENGTH    = sizeof(deltas) / sizeof(pair<int, double>);
-  constexpr int DEPTHS_PER_DELTA = XYA_MAP_DEPTH / DELTAS_LENGTH;
-// https://i.loli.net/2021/03/14/TKVI3kL6mtXcONv.png
-#define get_delta_idx(a_idx) \
-  (a_idx + (DEPTHS_PER_DELTA / 2)) % XYA_MAP_DEPTH / DEPTHS_PER_DELTA
-
-  // we embedded the x and y value as one integer
-  // and add it with deltas[i].first to do the translation
-  // this is far more faster than using x and y separately
-  double* flatten_map      = (double*)xya_distance_map;
-  bool*   flatten_safe_map = (bool*)xya_safe_map;
-  ring_buffer_xya.clear();
-  memset(is_in_buffer_xya, 0, sizeof(is_in_buffer_xya));
-  memset(xya_distance_map, 0x7f, sizeof(xya_distance_map));
-
-  int target_x_idx = (int)round(target.x) >> XYA_MAP_SHIFT_FACTOR;
-  int target_y_idx = (int)round(target.y) >> XYA_MAP_SHIFT_FACTOR;
-  int target_a_idx = get_angle_index(target.a);
-  int target_xya   = target_x_idx * (XYA_MAP_COLS * XYA_MAP_DEPTH) +
-                   target_y_idx * XYA_MAP_DEPTH + target_a_idx;
-
-  flatten_map[target_xya] = 0.0;
-  ring_buffer_xya.push_back(target_xya);
-  is_in_buffer_xya[target_xya] = true;
-
-  BINARY_BRANCH(backward_enabled, {
-    while (!ring_buffer_xya.empty()) {
-      int xya = ring_buffer_xya.front();
-      ring_buffer_xya.pop_front();
-      is_in_buffer_xya[xya] = false;
-      int    a              = xya % XYA_MAP_DEPTH;
-      int    xy0            = xya - a;
-      int    delta_idx      = get_delta_idx(a);
-      int    zw0_forward    = xy0 + deltas[delta_idx].first;
-      double new_dis        = flatten_map[xya] + deltas[delta_idx].second;
-#define UPDATE(_zw0_)                                                      \
-  MULTILINE(if (_zw0_ >= 0 && flatten_safe_map[_zw0_ / XYA_MAP_DEPTH]) {   \
-    for (int da = -1; da <= 1; ++da) {                                     \
-      double turning_punishment =                                          \
-          deltas[delta_idx].second * fabs(da) * TURNING_PUNISHMENT_FACTOR; \
-      int s   = (a + da + XYA_MAP_DEPTH) % XYA_MAP_DEPTH;                  \
-      int zws = _zw0_ + s;                                                 \
-      if (flatten_map[zws] > new_dis + turning_punishment) {               \
-        flatten_map[zws] = new_dis + turning_punishment;                   \
-        if (!is_in_buffer_xya[zws]) {                                      \
-          ring_buffer_xya.push_back(zws);                                  \
-          is_in_buffer_xya[zws] = true;                                    \
-        }                                                                  \
-      }                                                                    \
-    }                                                                      \
-  })
-      UPDATE(zw0_forward);
-      IF_FLAG_THEN({
-        int zw0_backward = xy0 - deltas[delta_idx].first;
-        new_dis          = flatten_map[xya] +
-                  deltas[delta_idx].second * BACKWARD_PUNISHMENT_FACTOR;
-        UPDATE(zw0_backward);
-      });
-    }
-  });
-
-  // if one cell in xya_distance_map is not safe, but
-  // a neighboor of it is safe, we simply copy the neighboor's
-  // distances to it. this ensures the search to get heuristic
-  // even at narrow places. this will not cause unsafe factor,
-  // since we only use xya_distance_map for heuristic, and still
-  // do collision check on the original safe map.
-  for (int i = 0; i < XYA_MAP_ROWS - 1; ++i)
-    for (int j = 0; j < XYA_MAP_COLS - 1; ++j) {
-      int ij = i * (XYA_MAP_COLS) + j;
-      if (flatten_safe_map[ij]) continue;
-      for (int k = 0; k < DELTAS_LENGTH; ++k) {
-        int ninj = ij + deltas[k].first / XYA_MAP_DEPTH;
-        if (ninj < 0) continue;
-        if (flatten_safe_map[ninj]) {
-          memcpy(flatten_map + ij * XYA_MAP_DEPTH,
-                 flatten_map + ninj * XYA_MAP_DEPTH,
-                 sizeof(double) * XYA_MAP_DEPTH);
-          break;
-        }
+  queue<pair<int, int>> obj_que;
+  obj_que.push(std::make_pair(int(target.x), int(target.y)));
+  astar_2d_distance_map[int(target.x)][int(target.y)] = 0.0;
+  while (!obj_que.empty()) {
+    const int x = obj_que.front().first;
+    const int y = obj_que.front().second;
+    obj_que.pop();
+    for (int i = 0; i < 8; ++i) {
+      const int tx = x + dx[i], ty = y + dy[i];
+      if (Point2d(tx, ty).in_map() && !is_lane_crashed(tx, ty) &&
+          astar_2d_distance_map[tx][ty] >
+              astar_2d_distance_map[x][y] + dis[i]) {
+        astar_2d_distance_map[tx][ty] = astar_2d_distance_map[x][y] + dis[i];
+        obj_que.push(make_pair(tx, ty));
       }
     }
-#undef get_delta_idx
-}
-
-double PathPlanner::local_planning_map::get_maximum_safe_distance(
-    int row_idx, int col_idx) const {
-  return max(safe_map[row_idx][col_idx] * M_SQRT1_2 - M_SQRT2 -
-                 COLLISION_CIRCLE_BIG_R / GRID_RESOLUTION,
-             0.0);
+  }
+  // cv::namedWindow("astar_dis_map");
+  // cv::Mat dis_img = cv::Mat(MAX_ROW, MAX_COL, CV_8UC3, {0, 0, 0});
+  // for (int r = 0; r < MAX_ROW; ++r) {
+  //   for (int c = 0; c < MAX_COL; ++c) {
+  //     dis_img.at<cv::Vec3b>(r, c) =
+  //         cv::Vec3b(0, 0, int(astar_2d_distance_map[r][c]) % 255);
+  //   }
+  // }
+  // cv::imshow("astar_dis_map", dis_img);
+  // cv::waitKey();
 }
 
 double

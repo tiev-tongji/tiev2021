@@ -1,12 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
 project(planner)
-set(CMAKE_BUILD_TYPE "Release")
-# if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-#     message("Building planner in Debug mode")
-# else()
-#     set(CMAKE_BUILD_TYPE "Release")
-#     message("Building planner in Release mode")
-# endif()
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")
@@ -21,26 +14,16 @@ set(CMAKE_CXX_COMPILER g++)
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
 if(COMPILER_SUPPORTS_CXX17)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread")
 else()
     message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++17 support. Please use a different C++ compiler.")
 endif()
 
 include_directories(
-    ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_SOURCE_DIR}/../../msg
-    ${PROJECT_SOURCE_DIR}/include/decision
-    ${PROJECT_SOURCE_DIR}/include/map_manager
-    ${PROJECT_SOURCE_DIR}/include/message_manager
-    ${PROJECT_SOURCE_DIR}/include/planner_common
-    ${PROJECT_SOURCE_DIR}/include/path_planner
-    ${PROJECT_SOURCE_DIR}/include/speed_planner
-    ${PROJECT_SOURCE_DIR}/src/search_based_speed_planner
-    ${PROJECT_SOURCE_DIR}/include/visualization_msg
-    ${PROJECT_SOURCE_DIR}/include/routing
+    ${PROJECT_SOURCE_DIR}/visualization_zcm
     ${PROJECT_SOURCE_DIR}/third_party
-    ${PROJECT_SOURCE_DIR}/src/protos
 )
 
+add_subdirectory(visualization_zcm)
 add_subdirectory(third_party/coordinate_converter)
 add_subdirectory(src)

@@ -5,7 +5,7 @@ target_sources(map_manager PRIVATE
 )
 
 target_include_directories(map_manager PUBLIC 
-    ${CMAKE_SOURCE_DIR}/include/map_manager
+    ./
 )
 
 target_link_libraries(map_manager PUBLIC 
