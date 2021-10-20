@@ -22,13 +22,6 @@ void runTiEVFSM() {
   // map managet initialization
   MapManager* mapm = MapManager::getInstance();
   if (cfg->enable_routing_by_file) mapm->readGlobalPathFile(cfg->roadmap_file);
-// Start a new thread for routing to update global path
-// #define routing
-#ifdef routing
-  thread routing_thread =
-      thread(&MapManager::runRouting, mapm, 10000000, false);
-  routing_thread.detach();
-#endif
   // FSM...
   // Context       context;
   // FSM::Instance machine{ context };
@@ -295,8 +288,8 @@ void requestGlobalPathFromMapServer() {
   vector<Task>    task_list;
   while (!Config::getInstance()->enable_routing_by_file) {
     msg_m->getNavInfo(nav_info);
-    if (getTimeStamp() - start_time < 2e6) {
-      usleep(2e6 + start_time - getTimeStamp());
+    if (getTimeStamp() - start_time < 20e6) {
+      usleep(20e6 + start_time - getTimeStamp());
     }
     start_time = getTimeStamp();
     if (Config::getInstance()->taxi_mode) {
@@ -329,11 +322,12 @@ void requestGlobalPathFromMapServer() {
     int cost = -1;
     if (task_list.size() > 1)
       cost = routing->findReferenceRoad(tmp_global_path, task_list, false);
-    cout << "Cost of global path: " << cost << endl;
+    LOG(INFO) << "Cost of global path: " << cost;
     if (cost == -1) continue;
-    cout << "global path size:" << tmp_global_path.size() << endl;
+    LOG(INFO) << "global path size:" << tmp_global_path.size();
     if (!tmp_global_path.empty()) {  // TODO: When to replace?
       map_m->setGlobalPath(tmp_global_path);
+      break;
     }
   }
 }

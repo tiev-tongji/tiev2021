@@ -5,6 +5,7 @@
 #include "Routing.h"
 #include "map_manager.h"
 #include "tiev_fsm.h"
+#include "tievlog.h"
 namespace TiEV {
 using namespace std;
 
@@ -23,16 +24,17 @@ void GlobalPlanning::update(FullControl& control) {
       map_manager->pushCurrentTask(next);
     }
   }
-  usleep(20 * 1000);
   // for test
   map_manager->updateRefPath();
-  Map& map = map_manager->getMap();
-  if (!map.nav_info.detected || map_manager->getForwardRefPath().empty())
+  const auto& map = map_manager->getMap();
+  if (!map.nav_info.detected || map_manager->getForwardRefPath().empty()) {
+    LOG(WARNING) << "no reference path...";
     return;
+  }
   ControlMode control_mode = Config::getInstance()->control_mode;
   if (control_mode == ControlMode::PlanningWithDebugMode ||
       control_mode == ControlMode::PlanningWithMapMode)
-    control.changeTo<TemporaryParkingPlanning>();
+    control.changeTo<NormalDriving>();
   else
     control.changeTo<Tracking>();
   // TODO: map_manager->runRouting();

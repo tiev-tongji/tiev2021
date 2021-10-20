@@ -28,7 +28,6 @@ void NormalDriving::update(FullControl& control) {
   // const auto targets    = map_manager->getLaneTargets();
   const auto& map = map_manager->getMap();
 
-  vector<SpeedPath> speed_path_list;
   const auto        start3 = getTimeStamp();
   std::vector<Pose> result_path;
   bool              back_ward = map.nav_info.current_speed < 3 ? true : false;
@@ -44,9 +43,10 @@ void NormalDriving::update(FullControl& control) {
     return;
   }
   map_manager->maintainPath(map.nav_info, result_path);
-  if (speed_path_list.empty() && duration_time() > limited_time) {
-    // control.changeTo<TemporaryParking>();
-  } else if (!speed_path_list.empty()) {
+  // when to parking
+  if (duration_time() > limited_time) {
+    control.changeTo<TemporaryParkingPlanning>();
+  } else {
     entry_time = getTimeStamp();
   }
 }
