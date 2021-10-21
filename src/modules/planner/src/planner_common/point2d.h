@@ -1,7 +1,9 @@
 #ifndef POINT2D_H
 #define POINT2D_H
 #include <math.h>
+
 #include <iostream>
+
 #include "const.h"
 namespace TiEV {
 struct Point2d {
@@ -12,17 +14,19 @@ struct Point2d {
   inline bool in_map() const {
     return !(x < 0 || x >= MAX_ROW || y < 0 || y >= MAX_COL);
   }
-  inline double dot(const Point2d other) const {
+  inline const double dot(const Point2d other) const {
     return x * other.x + y * other.y;
   };
-  inline double cross(const Point2d other) const {
+  inline const double cross(const Point2d other) const {
     return x * other.y - y * other.x;
   };
-  inline double len() const { return sqrt(sqrLen()); };
-  inline double sqrLen() const { return x * x + y * y; };
-  inline double getRad() const { return atan2(y, x); }
-  inline Point2d getDirection() const { return Point2d(x / len(), y / len()); }
-  inline Point2d operator*(const double k) const {
+  inline const double  len() const { return sqrt(sqrLen()); };
+  inline const double  sqrLen() const { return x * x + y * y; };
+  inline const double  getRad() const { return atan2(y, x); }
+  inline const Point2d getDirection() const {
+    return Point2d(x / len(), y / len());
+  }
+  inline const Point2d operator*(const double k) const {
     return Point2d(x * k, y * k);
   };
   inline Point2d operator/(const double k) const {
@@ -45,25 +49,25 @@ class Segment {
   Segment() = default;
   Segment(const Point2d& start, const Point2d& end) {
     start_ = start;
-    end_ = end;
-    x_ = end.x - start.x;
-    y_ = end.y - start.y;
+    end_   = end;
+    x_     = end.x - start.x;
+    y_     = end.y - start.y;
   }
   Segment(const double& x, const double& y) : x_(x), y_(y){};
 
-  const Point2d start() { return start_; }
-  const Point2d end() { return end_; }
-  const double x() const { return x_; }
-  const double y() const { return y_; }
+  const Point2d       start() { return start_; }
+  const Point2d       end() { return end_; }
+  const double        x() const { return x_; }
+  const double        y() const { return y_; }
   inline const double dot(const Segment& other) const {
     return x_ * other.x() + y_ * other.y();
   };
   inline double cross(const Segment& other) const {
     return x_ * other.y() - y_ * other.x();
   };
-  inline double len() const { return sqrt(sqrLen()); };
-  inline double sqrLen() const { return x_ * x_ + y_ * y_; };
-  inline double getRad() const { return atan2(y_, x_); }
+  inline double  len() const { return sqrt(sqrLen()); };
+  inline double  sqrLen() const { return x_ * x_ + y_ * y_; };
+  inline double  getRad() const { return atan2(y_, x_); }
   inline Point2d getDirection() const {
     return Point2d(x_ / len(), y_ / len());
   }
@@ -86,7 +90,7 @@ class Segment {
 
  private:
   Point2d start_, end_;
-  double x_, y_;
+  double  x_, y_;
 };
 
 }  // namespace TiEV

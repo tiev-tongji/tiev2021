@@ -52,14 +52,6 @@ PathPlanner::clothoid_base_primitive_set::clothoid_base_primitive_set() {
 void PathPlanner::clothoid_base_primitive_set::prepare(bool backward_enabled) {
   current_subset.clear();
   for (const auto& subset : all_k_sets) {
-    // LOG(WARNING) << "subset k:" << subset.current_k;
-    // for (const auto& primi : subset.primitives) {
-    //   LOG(INFO) << "----primitive----k_step="
-    //             << primi.get_end_curvature() - primi.get_begin_curvature();
-    //   for (const auto& st : primi.get_states()) {
-    //     LOG(INFO) << st;
-    //   }
-    // }
     if (subset.backward_enabled != backward_enabled) continue;
     current_subset.push_back(&subset);
   }
@@ -112,6 +104,63 @@ PathPlanner::clothoid_base_primitive_set::get_nexts(
 
 const vector<PathPlanner::base_primitive>
 PathPlanner::clothoid_base_primitive_set::get_nexts(
+    const primitive& primitive) const {
+  return get_nexts(primitive.get_end_state(), 0.0);
+}
+
+//--------------------------------------------
+//    Arc based primitives
+//--------------------------------------------
+
+void PathPlanner::arc_base_primitive_set::generate_arc_base_primitive_set(
+    double k, bool backward_enabled,
+    vector<arc_base_primitive>& out_primitives) {
+  out_primitives.clear();
+}
+
+PathPlanner::arc_base_primitive_set::arc_base_primitive_set() {
+  LOG(INFO) << "constructing " << nameof(arc_base_primitive_set);
+  // forward and backward primitives
+  primitives.clear();
+  primitives.reserve(2 * arc_k_list.size());
+  for (const auto& k : arc_k_list) {
+    primitives.emplace_back(k, primi_l, true);
+    primitives.emplace_back(k, primi_l, false);
+  }
+}
+
+const vector<PathPlanner::base_primitive>
+PathPlanner::arc_base_primitive_set::get_nexts(
+    const astate& state, const double current_speed) const {
+  // rotate and translate the primitives
+  const double cos_a = std::cos(state.a);
+  const double sin_a = std::sin(state.a);
+  const auto   rotate_and_translate =
+      [&](const PathPlanner::arc_base_primitive& primi) {
+        std::vector<astate> new_states;
+        new_states.reserve(primi.get_states().size());
+        for (const auto& sta : primi.get_states()) {
+          double new_x = sta.x * cos_a / GRID_RESOLUTION -
+                         sta.y * sin_a / GRID_RESOLUTION + state.x;
+          double new_y = sta.x * sin_a / GRID_RESOLUTION +
+                         sta.y * cos_a / GRID_RESOLUTION + state.y;
+          new_states.emplace_back(
+              new_x, new_y, PathPlanner::wrap_angle_0_2_PI(sta.a + state.a),
+              sta.s + state.s, sta.curvature, sta.is_backward);
+        }
+        return std::move(PathPlanner::base_primitive(new_states));
+      };
+  // the result
+  std::vector<PathPlanner::base_primitive> base;
+  base.reserve(primitives.size());
+  for (const auto& primi : primitives) {
+    base.push_back(rotate_and_translate(primi));
+  }
+  return base;
+}
+
+const vector<PathPlanner::base_primitive>
+PathPlanner::arc_base_primitive_set::get_nexts(
     const primitive& primitive) const {
   return get_nexts(primitive.get_end_state(), 0.0);
 }

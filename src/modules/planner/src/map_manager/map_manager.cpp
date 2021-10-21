@@ -109,13 +109,13 @@ void MapManager::readGlobalPathFile(const string& file_path) {
   }
   filtPoints();
   setGlobalPathDirection();
-  std::cout << "Map file already loaded!Enjoy!" << endl;
+  LOG(INFO) << "Map file already loaded!Enjoy!";
 }
 
 vector<Task> MapManager::getCurrentTasks() {
-  task_points_mutex.lock_shared();
-  vector<Task> res = this->map.current_task_points;
-  task_points_mutex.unlock_shared();
+  task_mutex.lock_shared();
+  vector<Task> res = this->map.current_tasks;
+  task_mutex.unlock_shared();
   return res;
 }
 
@@ -126,22 +126,22 @@ Task MapManager::getParkingTask() {
   return res;
 }
 void MapManager::popCurrentTask() {
-  if (this->map.current_task_points.empty()) return;
-  task_points_mutex.lock();
-  this->map.current_task_points.pop_back();
-  task_points_mutex.unlock();
+  if (this->map.current_tasks.empty()) return;
+  task_mutex.lock();
+  this->map.current_tasks.pop_back();
+  task_mutex.unlock();
 }
 
 void MapManager::pushCurrentTask(const Task& next_task) {
-  task_points_mutex.lock_shared();
-  this->map.current_task_points.push_back(next_task);
-  task_points_mutex.unlock_shared();
+  task_mutex.lock_shared();
+  this->map.current_tasks.push_back(next_task);
+  task_mutex.unlock_shared();
 }
 
 void MapManager::clearTask() {
-  task_points_mutex.lock();
-  this->map.current_task_points.clear();
-  task_points_mutex.unlock();
+  task_mutex.lock();
+  this->map.current_tasks.clear();
+  task_mutex.unlock();
 }
 
 void MapManager::setGlobalPath(const vector<HDMapPoint>& new_global_path) {
@@ -159,11 +159,11 @@ void MapManager::runRouting(int interval, bool blocked) {
     if (current_time - global_path_update_time > interval) {
       Routing*           routing = Routing::getInstance();
       vector<HDMapPoint> tmp_global_path;
-      task_points_mutex.lock_shared();
+      task_mutex.lock_shared();
       // int cost = routing->findReferenceRoad(tmp_global_path,
-      //                                       map.current_task_points,
+      //                                       map.current_tasks,
       //                                       blocked);
-      task_points_mutex.unlock_shared();
+      task_mutex.unlock_shared();
       if (true) {  // cost <
                    // &&sustitude(global_path,
                    // tmp_global_path)) {
@@ -1072,7 +1072,7 @@ Pose MapManager::getTemporaryParkingTarget() {
     if (parking_task.task_points.empty()) return target;
     current_tasks.push_back(parking_task);
   }
-  for (auto spot : current_tasks.back().task_points) {
+  for (const auto& spot : current_tasks.back().task_points) {
     Pose p;
     p.utm_position = spot;
     p.updateLocalCoordinate(map.nav_info.car_pose);
@@ -1085,7 +1085,8 @@ Pose MapManager::getTemporaryParkingTarget() {
 
 vector<Pose> MapManager::getTaskTarget() {
   vector<Pose> targets;
-  for (auto task_point : map.current_task_points.back().task_points) {
+  auto         current_tasks = this->getCurrentTasks();
+  for (auto task_point : current_tasks.back().task_points) {
     Pose task_pose;
     task_pose.utm_position = task_point;
     task_pose.updateLocalCoordinate(map.nav_info.car_pose);
@@ -1439,5 +1440,148 @@ void MapManager::selectBestPath(const vector<SpeedPath>& paths) {
   else
     map.best_path = SpeedPath();
 }
+
+bool MapManager::allowParking(const Pose&                    parking_spot,
+                              const std::vector<HDMapPoint>& ref_path) {
+  if (parking_spot.x == 0 && parking_spot.y == 0 && parking_spot.ang == 0) {
+    return false;
+  }
+  if (ref_path.empty()) return true;
+  double min_dis = std::numeric_limits<double>::max();
+  Pose   near_ref_p;
+  for (const auto& ref_p : ref_path) {
+    const double dis = (parking_spot - ref_p).sqrLen();
+    if (dis < min_dis) {
+      min_dis    = dis;
+      near_ref_p = ref_p;
+    }
+  }
+  // if parking spot is low than 20m in reference path, parking
+  if (near_ref_p.s < 20) return true;
+  return false;
+}
+
+const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
+    const Map& decision_map) {
+  auto ref_path = decision_map.ref_path;
+
+  // resize the ref_path to get the first one path
+  auto new_size = ref_path.size();
+  for (int i = 0; i < ref_path.size(); ++i) {
+    const auto& p = ref_path[i];
+    if (p.s < 0) continue;
+    if (p.s >= 120 || int(p.x) <= 2 || int(p.x) > MAX_ROW - 2 ||
+        int(p.y) <= 1 || int(p.y) >= MAX_COL - 2) {
+      new_size = i + 1;
+      break;
+    }
+  }
+  ref_path.resize(new_size);
+  // get the lane center for each ref path p
+  for (auto& p : ref_path) {
+    if (!p.neighbors.empty() /* || p.mode == CHANGE*/) continue;
+    for (int i = 0; i < p.lane_num; ++i) {
+      const auto& neighbor_p =
+          p.getLateralPose(p.lane_width * (i - p.lane_seq + 1));
+      p.neighbors.emplace_back(neighbor_p.x, neighbor_p.y, true, 0.0);
+    }
+    // maybe we could add a oppsite lane center with no priority
+  }
+  const auto& clash_with_dynamic = [&](const double x, const double y) {
+    try {
+      for (const auto& obj : decision_map.dynamic_obj_list.dynamic_obj_list) {
+        Point2d o_p(x, y);
+        double  last_cross_val =
+            (obj.corners.back() - o_p).cross(obj.corners.front() - o_p);
+        for (int i = 0; i + 1 < obj.corners.size(); ++i) {
+          const auto& p0        = obj.corners[i];
+          const auto& p1        = obj.corners[i + 1];
+          const auto& cross_val = (p0 - o_p).cross(p1 - o_p);
+          if (cross_val * last_cross_val <= 0) return false;
+          last_cross_val = cross_val;
+        }
+      }
+      return true;
+    } catch (const std::exception& e) {
+      LOG(FATAL) << "maby the dynamic obj have no corners!";
+    }
+  };
+  // set the center line priority to avoid bostacles
+  HDMapPoint       last_ref_p;
+  constexpr double max_effect_dis = 30;  // m
+  for (auto it = ref_path.rbegin(); it != ref_path.rend(); it++) {
+    auto& ref_p = *it;
+    LOG(WARNING) << "------ s=" << ref_p.s << " -------";
+    for (int i = 0; i < ref_p.neighbors.size(); ++i) {
+      auto& center_p = ref_p.neighbors[i];
+      // find the closest pre lane center point and set priority by pre
+      double          min_dis = std::numeric_limits<double>::max();
+      bool            have_near_center_point = false;
+      LaneCenterPoint pre_nearest_center_point;
+      for (const auto& last_center_p : last_ref_p.neighbors) {
+        const double dis = (last_center_p - center_p).len() * GRID_RESOLUTION;
+        if (dis < min_dis) {
+          min_dis                  = dis;
+          have_near_center_point   = true;
+          pre_nearest_center_point = last_center_p;
+        }
+      }
+      // decide the priority
+      // if the center have priority but crashed
+      LOG(INFO) << "collision with map:"
+                << collision(center_p.x, center_p.y,
+                             decision_map.planning_dis_map);
+      LOG(INFO) << "collision with dynamic:"
+                << clash_with_dynamic(center_p.x, center_p.y);
+      if (collision(center_p.x, center_p.y, decision_map.planning_dis_map) ||
+          clash_with_dynamic(center_p.x, center_p.y)) {
+        center_p.have_priority                = false;
+        center_p.accumulate_dis_with_priority = 0.0;
+      } else if (have_near_center_point) {
+        if (pre_nearest_center_point.accumulate_dis_with_priority <
+            max_effect_dis) {
+          center_p.have_priority = pre_nearest_center_point.have_priority;
+          center_p.accumulate_dis_with_priority =
+              pre_nearest_center_point.accumulate_dis_with_priority + min_dis;
+        }
+      }
+      LOG(INFO) << center_p;
+    }
+    // check if all the lane center have no priority
+    bool all_have_no_priority = !ref_p.neighbors.empty();
+    for (const auto& cp : ref_p.neighbors) {
+      if (cp.have_priority) {
+        all_have_no_priority = false;
+        break;
+      }
+    }
+    if (all_have_no_priority) {
+      // consider with lane center only clashed with dynamic
+      for (auto& center_p : ref_p.neighbors) {
+        if (!collision(center_p.x, center_p.y, decision_map.planning_dis_map)) {
+          center_p.have_priority = true;
+          all_have_no_priority   = false;
+        }
+      }
+    }
+    if (all_have_no_priority) {
+      // TODO:if still have no priority, consider the road outside?
+      // set all is ok
+      for (auto& center_p : ref_p.neighbors) {
+        center_p.have_priority = true;
+        all_have_no_priority   = false;
+      }
+    }
+    last_ref_p = ref_p;
+    // LOG(WARNING) << "---at ref_p:" << ref_p.s << "---";
+    // for (const auto& p : ref_p.neighbors) {
+    //   LOG(INFO) << p;
+    // }
+  }
+  // send to visualization center line offset
+  MessageManager::getInstance()->setPriorityLane(ref_path);
+  return ref_path;
+}  // namespace TiEV
+
 MapManager* MapManager::instance = new MapManager;
 }  // namespace TiEV

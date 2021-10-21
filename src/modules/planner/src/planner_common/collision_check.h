@@ -31,6 +31,8 @@ bool collision(const Pose& pose, const double dis_map[MAX_ROW][MAX_COL],
                double expansion_r = 0);
 bool collision(const std::vector<Pose>& path,
                const double dis_map[MAX_ROW][MAX_COL], double expansion_r = 0);
+bool collision(double x, double y, const double dis_map[MAX_ROW][MAX_COL],
+               double expansion_r = 0.0);
 
 }  // namespace TiEV
 

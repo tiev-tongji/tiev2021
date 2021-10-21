@@ -29,7 +29,7 @@ with open("task_points.txt", "r") as file:
         task["task"]["utm_x"] = float(result[orders[i] - 1][0][2])
         task["task"]["utm_y"] = float(result[orders[i] - 1][0][3])
         task["task"]["heading"] = float(result[orders[i] - 1][0][4])
-        task["task"]["on"] = (i + 1) % 2
+        task["task"]["on"] = i % 2
         task["task_points"] = list()
         for task_points in result[orders[i] - 1]:
             point = dict()

@@ -9,14 +9,15 @@ using namespace std;
 
 void TemporaryStop::enter(Control& control) {
   cout << "entry Temporary Stop..." << endl;
-  entry_time = getTimeStamp();
+  entry_time   = getTimeStamp();
+  limited_time = 5e6;
 }
 
 void TemporaryStop::update(FullControl& control) {
   cout << "Temporary Stop update..." << endl;
   MapManager* map_manager = MapManager::getInstance();
-  Map&        map         = map_manager->getMap();
-  if (!map.nav_info.detected || getTimeStamp() - entry_time < 5e6) return;
+  const auto  map         = map_manager->getMap();
+  if (!map.nav_info.detected || duration_time() < limited_time) return;
 
   map_manager->popCurrentTask();
   bool flag_parking  = false;
@@ -28,17 +29,11 @@ void TemporaryStop::update(FullControl& control) {
   vector<HDMapPoint> tmp_global_path;
   task_list.push_back(current_pos);
   Routing* routing = Routing::getInstance();
-  if (Config::getInstance()->taxi_mode) {
-    // 获取任务
-    Task next = routing->waitForNextTask();
-    map_manager->pushCurrentTask(next);
-    current_tasks = map_manager->getCurrentTasks();
-  }
-  if (current_tasks.empty())
+  if (current_tasks.empty()) {
     flag_parking = true;
-  else if (!current_tasks.back().on_or_off && current_tasks.size() > 1) {
+  } else if (current_tasks.back().get_on && current_tasks.size() > 1) {
     task_list.push_back(current_tasks.back());
-    task_list.push_back(current_tasks[current_tasks.size() - 2]);
+    task_list.push_back(current_tasks[int(current_tasks.size()) - 2]);
     task_list.push_back(map_manager->getParkingTask());
     int cost = routing->findReferenceRoad(
         tmp_global_path, task_list, false);  // TODO: *3 off-on-off-parking
@@ -50,13 +45,14 @@ void TemporaryStop::update(FullControl& control) {
       vector<Task> new_task_list;
       new_task_list.push_back(current_pos);
       new_task_list.push_back(current_tasks.back());
-      // int cost = routing->findReferenceRoad(tmp_global_path, new_task_list,
-      // false);  // TODO: *3 off-on-off-parking
+      int cost =
+          routing->findReferenceRoad(tmp_global_path, new_task_list,
+                                     false);  // TODO: *3 off-on-off-parking
       map_manager->setGlobalPath(tmp_global_path);
     }
   } else {
     task_list.push_back(current_tasks.back());
-    // int cost = routing->findReferenceRoad(tmp_global_path, task_list, false);
+    int cost = routing->findReferenceRoad(tmp_global_path, task_list, false);
     // // TODO: *3 off-on-off-parking
     map_manager->setGlobalPath(tmp_global_path);
   }
@@ -65,12 +61,11 @@ void TemporaryStop::update(FullControl& control) {
     vector<Task> new_task_list;
     new_task_list.push_back(current_pos);
     new_task_list.push_back(map_manager->getParkingTask());
-    // int cost = routing->findReferenceRoad(tmp_global_path, new_task_list,
-    // false);
+    int cost =
+        routing->findReferenceRoad(tmp_global_path, new_task_list, false);
     map_manager->setGlobalPath(tmp_global_path);
   }
-  time_t time_pass = getTimeStamp() - entry_time;
-  if (time_pass < 20e6) usleep(20e6 - time_pass);
-  control.changeTo<UTurn>();
+  if (duration_time() < 20e6) usleep(20e6 - duration_time());
+  control.changeTo<NormalDriving>();
 }
 }  // namespace TiEV

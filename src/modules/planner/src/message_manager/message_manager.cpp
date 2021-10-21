@@ -83,28 +83,25 @@ void MessageManager::setTextInfo() {
   }
 }
 
-void MessageManager::setPriorityLane(
-    const std::vector<HDMapPoint>& ref_path,
-    const std::vector<Point2d>&    origin_points) {
+void MessageManager::setPriorityLane(const std::vector<HDMapPoint>& ref_path) {
   auto& priority_lane = visualization.priority_lane;
   priority_lane.priority_points.clear();
+  priority_lane.origin_points.clear();
   priority_lane.priority_points_size = 0;
+  priority_lane.origin_points_size   = 0;
   for (const auto& ref_p : ref_path) {
     for (const auto& p : ref_p.neighbors) {
       visPoint vis_p;
       vis_p.x = p.x;
       vis_p.y = p.y;
-      priority_lane.priority_points_size += 1;
-      priority_lane.priority_points.push_back(vis_p);
+      if (p.have_priority) {
+        priority_lane.priority_points_size += 1;
+        priority_lane.priority_points.push_back(vis_p);
+      } else {
+        priority_lane.origin_points_size += 1;
+        priority_lane.origin_points.push_back(vis_p);
+      }
     }
-  }
-  priority_lane.origin_points.clear();
-  priority_lane.origin_points_size = origin_points.size();
-  for (const auto& p : origin_points) {
-    visPoint vis_p;
-    vis_p.x = p.x;
-    vis_p.y = p.y;
-    priority_lane.origin_points.push_back(vis_p);
   }
 }
 

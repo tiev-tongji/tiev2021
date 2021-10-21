@@ -273,13 +273,13 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
 
 void PathPlanner::TiEVPlanner::visit(const astate& state) {
   double a       = PathPlanner::wrap_angle_0_2_PI(state.a);
-  int    ang_idx = a / (2 * M_PI / ANGLE_NUM);
+  int    ang_idx = a / (2 * M_PI / ang_num);
   node_visited_map[lround(2 * state.x)][lround(2 * state.y)][ang_idx] = true;
 }
 
 bool PathPlanner::TiEVPlanner::is_visited(const astate& state) {
   double a       = PathPlanner::wrap_angle_0_2_PI(state.a);
-  int    ang_idx = a / (2 * M_PI / ANGLE_NUM);
+  int    ang_idx = a / (2 * M_PI / ang_num);
   return node_visited_map[lround(2 * state.x)][lround(2 * state.y)][ang_idx];
 }
 

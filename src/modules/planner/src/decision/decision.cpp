@@ -286,11 +286,10 @@ void requestGlobalPathFromMapServer() {
   Routing*        routing    = Routing::getInstance();
   NavInfo         nav_info;
   vector<Task>    task_list;
+  const time_t    time_limit    = 10 * 1e6;
+  const auto      duration_time = [&]() { return getTimeStamp() - start_time; };
   while (!Config::getInstance()->enable_routing_by_file) {
     msg_m->getNavInfo(nav_info);
-    if (getTimeStamp() - start_time < 20e6) {
-      usleep(20e6 + start_time - getTimeStamp());
-    }
     start_time = getTimeStamp();
     if (Config::getInstance()->taxi_mode) {
       routing->updateInfoToServer();
@@ -328,6 +327,9 @@ void requestGlobalPathFromMapServer() {
     if (!tmp_global_path.empty()) {  // TODO: When to replace?
       map_m->setGlobalPath(tmp_global_path);
       break;
+    }
+    if (duration_time() < time_limit) {
+      usleep(time_limit - duration_time());
     }
   }
 }

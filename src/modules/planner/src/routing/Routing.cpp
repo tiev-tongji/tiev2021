@@ -10,6 +10,8 @@
 
 #include "config.h"
 #include "tiev_class.h"
+#include "tiev_utils.h"
+#include "tievlog.h"
 
 // #include "angle.h"
 // #include "coordinate_converter/coordinate_converter.h"
@@ -53,6 +55,7 @@ int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path,
                                const std::vector<Task>& task_points,
                                bool                     blocked) {
   std::cout << "in Routing find reference road..." << std::endl;
+  const auto start_time = getTimeStamp();
   global_path.clear();
   if (task_points.size() < 2) {
     std::cerr << "not enough points" << std::endl;
@@ -90,6 +93,8 @@ int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path,
       p.lane_width = res_point.lane_width();
       global_path.push_back(p);
     }
+    LOG(WARNING) << "requst routing server time: "
+                 << (getTimeStamp() - start_time) * 1e-6 << "s";
     std::cout << "Build reference line file sucessfully which is " << output
               << std::endl;
     std::cout << "total points number: " << sum_points_num << std::endl;
@@ -157,7 +162,7 @@ Task Routing::waitForNextTask() {
     result.lon_lat_position.lat = res.lat();
     result.utm_position.utm_x   = res.utmx();
     result.utm_position.utm_y   = res.utmy();
-    result.on_or_off            = res.on_or_off();
+    result.get_on               = res.get_on();
     result.task_points.clear();
     result.task_points.push_back(
         UtmPosition(res.utmx(), res.utmy(), res.heading()));

@@ -42,7 +42,7 @@ struct Map {
                     lane_center_list;  //当前地图匹配好的车道线0.5m一个点
   std::vector<Pose> start_maintained_path;
   std::vector<Task>
-                    current_task_points;  // The task points that have not been finished yet
+                    current_tasks;  // The task points that have not been finished yet
   Task              parking_task;
   SpeedPath         best_path;
   SpeedPath         speed_maintained_path;
@@ -77,18 +77,23 @@ class MapManager {
                          ref_path);  // 对道路内且相隔一定距离内的行人进行避让
   void blockStopLine();  // 封闭停止线，红灯时使用
   enum LaneLineBlockType { NO_BLOCK, SEMI_BLOCK, ALL_BLOCK };
-  void         updatePlanningMap(LaneLineBlockType lane_line_block_type,
-                                 bool              history = false);
-  Map&         getMap();
-  void         visualization();
-  void         maintainParkingSpots();
+  void updatePlanningMap(LaneLineBlockType lane_line_block_type,
+                         bool              history = false);
+  Map& getMap();
+  void visualization();
+  void maintainParkingSpots();
+  Task getParkingTask();
+  void popCurrentTask();
+  void pushCurrentTask(const Task&);  //添加新任务
+  void clearTask();
+  bool carInRoad();
+  void setGlobalPath(const vector<HDMapPoint>& new_global_path);
+  bool allowParking(const Pose&                    parking_spot,
+                    const std::vector<HDMapPoint>& ref_path);
+
   vector<Task> getCurrentTasks();
-  Task         getParkingTask();
-  void         popCurrentTask();
-  void         pushCurrentTask(const Task&);  //添加新任务
-  void         clearTask();
-  bool         carInRoad();
-  void         setGlobalPath(const vector<HDMapPoint>& new_global_path);
+
+  const std::vector<HDMapPoint> getLaneCenterDecision(const Map& decision_map);
   //获取目标点
   std::vector<Pose> getLaneTargets();
   Pose              getBackTarget();
@@ -115,7 +120,7 @@ class MapManager {
     Config* config = Config::getInstance();
     //如果使用taxi模式，则在停车时从服务器获取任务
     if (!config->taxi_mode) {
-      this->map.current_task_points = config->tasks;
+      this->map.current_tasks = config->tasks;
     }
     //最终停车位置不变
     this->map.parking_task = config->parking_task;
@@ -132,7 +137,7 @@ class MapManager {
   std::shared_mutex       maintained_path_mutex;
   std::shared_mutex       ref_path_mutex;
   std::shared_mutex       global_path_mutex;
-  std::shared_mutex       task_points_mutex;
+  std::shared_mutex       task_mutex;
   std::shared_mutex       parking_task_mutex;
 
  private:

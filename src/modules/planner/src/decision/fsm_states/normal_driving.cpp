@@ -4,8 +4,6 @@
 #include "tiev_fsm.h"
 #include "tievlog.h"
 namespace TiEV {
-using namespace std;
-
 void NormalDriving::enter(Control& control) {
   LOG(INFO) << "entry Normal Driving...";
   entry_time   = getTimeStamp();
@@ -26,15 +24,16 @@ void NormalDriving::update(FullControl& control) {
 
   const auto start_path = map_manager->getStartMaintainedPath();
   // const auto targets    = map_manager->getLaneTargets();
-  const auto& map = map_manager->getMap();
+  const auto map = map_manager->getMap();
 
   const auto        start3 = getTimeStamp();
   std::vector<Pose> result_path;
   bool              back_ward = map.nav_info.current_speed < 3 ? true : false;
   PathPlanner::getInstance()->runPathPlanner(
-      map.nav_info, map.ref_path, map.dynamic_obj_list,
-      map_manager->getCurrentMapSpeed(), back_ward, map.lidar_dis_map,
-      map.planning_dis_map, start_path, Pose(0, 0, 0), &result_path);
+      map.nav_info, map_manager->getLaneCenterDecision(map),
+      map.dynamic_obj_list, map_manager->getCurrentMapSpeed(), back_ward,
+      map.lidar_dis_map, map.planning_dis_map, start_path, Pose(0, 0, 0),
+      &result_path);
   LOG(INFO) << "planning time:" << (getTimeStamp() - start3) * 1e-3 << "ms";
 
   const auto maintained_path = map_manager->getMaintainedPath(map.nav_info);
@@ -44,7 +43,8 @@ void NormalDriving::update(FullControl& control) {
   }
   map_manager->maintainPath(map.nav_info, result_path);
   // when to parking
-  if (duration_time() > limited_time) {
+  if (map_manager->allowParking(map_manager->getTemporaryParkingTarget(),
+                                map.ref_path)) {
     control.changeTo<TemporaryParkingPlanning>();
   } else {
     entry_time = getTimeStamp();

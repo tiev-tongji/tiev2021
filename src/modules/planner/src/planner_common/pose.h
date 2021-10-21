@@ -51,7 +51,7 @@ struct Pose : public Point2d {
   double      t;  // time second
   bool        backward;
   UtmPosition utm_position;
-  Pose(double x_ = -1, double y_ = -1, double ang_ = 0, double k_ = 0,
+  Pose(double x_ = 0, double y_ = 0, double ang_ = 0, double k_ = 0,
        double v_ = 0, double a_ = 0, double s_ = 0, double t_ = 0,
        bool backward_ = false)
       : Point2d(x_, y_),
@@ -116,9 +116,9 @@ struct Pose : public Point2d {
     utm_position.heading = hd;
   }
 
-  inline double cosDeltaAngle(const Pose& other_pose) {
-    double cross = (*this).dot(other_pose);
-    double cos   = cross / ((*this).len() * other_pose.len());
+  inline const double cosDeltaAngle(const Pose& other_pose) const {
+    double cross = this->dot(other_pose);
+    double cos   = cross / (this->len() * other_pose.len());
     return cos;
   }
 
@@ -182,6 +182,27 @@ enum BlockType {
   BlockLeft  = 2,
   BlockAll   = 3
 };  //二进制表示00，1表示封闭
+
+struct LaneCenterPoint : public Point2d {
+  // lane center with priority
+  bool   have_priority = true;
+  double accumulate_dis_with_priority;
+  LaneCenterPoint(const double x_ = 0, const double y_ = 0,
+                  const bool   have_priority_                = true,
+                  const double accumulate_dis_with_priority_ = 0.0)
+      : Point2d(x_, y_),
+        have_priority(have_priority_),
+        accumulate_dis_with_priority(accumulate_dis_with_priority_) {}
+
+  friend std::ostream& operator<<(std::ostream&          out,
+                                  const LaneCenterPoint& point) {
+    out << "LaneCenterPoint: {x=" << point.x << " y=" << point.y
+        << " priority=" << point.have_priority
+        << " accumu=" << point.accumulate_dis_with_priority;
+    return out;
+  }
+};
+
 struct HDMapPoint : public Pose {
   HDMapEvent    event;
   HDMapMode     mode;
@@ -192,7 +213,7 @@ struct HDMapPoint : public Pose {
   RoadDirection direction;
   BlockType     block_type;
   // for lateral lane center
-  std::vector<Pose> neighbors;
+  std::vector<LaneCenterPoint> neighbors;
   HDMapPoint(double utm_x_ = 0, double utm_y_ = 0, double heading_ = 0,
              double k_ = 0, HDMapMode mode_ = HDMapMode::NORMAL,
              HDMapSpeed speed_mode_ = HDMapSpeed::MIDDLE,

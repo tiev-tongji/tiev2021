@@ -35,21 +35,6 @@ void PathPlanner::local_planning_map::prepare(
   abs_safe_map          = _abs_safe_map;
   lane_safe_map         = _lane_safe_map;
   backward_enabled      = _backward_enabled;
-
-  // when there is no target
-  std::vector<Point2d> origin_lane_points;
-  // resize the ref_path to get the first one path
-  auto new_size = ref_path.size();
-  for (int i = 0; i < ref_path.size(); ++i) {
-    const auto& p = ref_path[i];
-    if (p.s < 0) continue;
-    if (p.s >= 120 || int(p.x) <= 2 || int(p.x) > MAX_ROW - 2 ||
-        int(p.y) <= 1 || int(p.y) >= MAX_COL - 2) {
-      new_size = i + 1;
-      break;
-    }
-  }
-  ref_path.resize(new_size);
   // calculate the ref path end arrival area
   const auto& ref_end_p = ref_path.back();
   // left bound and right bound point
@@ -57,165 +42,6 @@ void PathPlanner::local_planning_map::prepare(
       ref_end_p.lane_width * (ref_end_p.lane_num - ref_end_p.lane_seq + 0.5));
   right_bound_p = ref_end_p.getLateralPose(ref_end_p.lane_width *
                                            (ref_end_p.lane_seq - 0.5));
-  // get the lane center for each ref path p
-  for (auto& p : ref_path) {
-    if (!p.neighbors.empty()) continue;
-    for (int i = 0; i < p.lane_num; ++i) {
-      p.neighbors.push_back(
-          p.getLateralPose(p.lane_width * (i - p.lane_seq + 1)));
-    }
-  }
-  // offset the center point to avoid bostacles
-  std::vector<std::pair<Point2d, double>> offset_list;
-
-  const auto& clash_with_dynamic = [&](const double x, const double y) {
-    try {
-      for (const auto& obj : dynamic_obj_list.dynamic_obj_list) {
-        Point2d o_p(x, y);
-        double  last_cross_val =
-            (obj.corners.back() - o_p).cross(obj.corners.front() - o_p);
-        for (int i = 0; i + 1 < obj.corners.size(); ++i) {
-          const auto& p0        = obj.corners[i];
-          const auto& p1        = obj.corners[i + 1];
-          const auto& cross_val = (p0 - o_p).cross(p1 - o_p);
-          if (cross_val * last_cross_val <= 0) return true;
-          last_cross_val = cross_val;
-        }
-      }
-      return false;
-    } catch (const std::exception& e) {
-      LOG(FATAL) << "maby the dynamic obj have no corners!";
-    }
-  };
-
-  constexpr double offset_decent = 0.0;  // m
-  for (auto it = ref_path.rbegin(); it != ref_path.rend(); it++) {
-    auto&                              ref_p = *it;
-    std::vector<pair<Point2d, double>> new_offset_list;
-    for (int i = 0; i < ref_p.neighbors.size(); ++i) {
-      auto&  pi         = ref_p.neighbors[i];
-      double offset_dis = 0.0;
-      origin_lane_points.emplace_back(pi.x, pi.y);
-      // find the closest pre point's offset
-      double min_dis = 1e8;
-      for (const auto& off_p : offset_list) {
-        const double dis =
-            sqrDistance(off_p.first.x, off_p.first.y, pi.x, pi.y);
-        if (dis < min_dis) {
-          min_dis    = dis;
-          offset_dis = off_p.second;
-        }
-      }
-      // offset this pi by decent offset_dis
-      const auto& offset_after_decent = [&](const double offdis) {
-        if (offdis > 0) {
-          return std::max(offdis - offset_decent, 0.0);
-        } else {
-          return std::min(offdis + offset_decent, 0.0);
-        }
-      };
-      offset_dis              = offset_after_decent(offset_dis);
-      const double pre_offset = offset_dis;
-
-      const auto& tmp_off_point = pi.getLateralPose(pre_offset);
-      // is this offset safe?
-      if (is_lane_crashed(tmp_off_point.x, tmp_off_point.y) ||
-          clash_with_dynamic(tmp_off_point.x, tmp_off_point.y)) {
-        // if the center_p is crash, can it offset to neibor?
-        offset_dis       = 1e8;
-        bool safe_offset = false;
-        // find the left closest obstatle free center
-        for (int j = i; j < ref_p.neighbors.size(); ++j) {
-          const auto& pj = ref_p.neighbors[j];
-          if (!is_lane_crashed(pj.x, pj.y) && !clash_with_dynamic(pj.x, pj.y)) {
-            offset_dis =
-                euclideanDistance(pj.x, pj.y, pi.x, pi.y) * GRID_RESOLUTION;
-            safe_offset = true;
-            break;
-          }
-        }
-        // find the right closest obstatle-free center
-        for (int j = i - 1; j >= 0; --j) {
-          const auto& pj = ref_p.neighbors[j];
-          if (!is_lane_crashed(pj.x, pj.y) && !clash_with_dynamic(pj.x, pj.y)) {
-            Point2d      pij_vec(pj.x - pi.x, pj.y - pi.y);
-            const double o_dis =
-                pi.getDirectionVec().cross(pij_vec) * GRID_RESOLUTION;
-            if (fabs(o_dis) < offset_dis) {
-              offset_dis  = o_dis;
-              safe_offset = true;
-              break;
-            }
-          }
-        }
-        // if the road is all crashed
-        if (!safe_offset) {
-          // first consider the closest obstacle free lane
-          if (!is_lane_crashed(tmp_off_point.x, tmp_off_point.y)) {
-            offset_dis  = pre_offset;
-            safe_offset = true;
-          } else {
-            // find the left closest obstatle free center
-            for (int j = i; j < ref_p.neighbors.size(); ++j) {
-              const auto& pj = ref_p.neighbors[j];
-              if (!is_lane_crashed(pj.x, pj.y)) {
-                offset_dis =
-                    euclideanDistance(pj.x, pj.y, pi.x, pi.y) * GRID_RESOLUTION;
-                safe_offset = true;
-                break;
-              }
-            }
-            // find the right closest obstatle-free center
-            for (int j = i - 1; j >= 0; --j) {
-              const auto& pj = ref_p.neighbors[j];
-              if (!is_lane_crashed(pj.x, pj.y) &&
-                  !clash_with_dynamic(pj.x, pj.y)) {
-                Point2d      pij_vec(pj.x - pi.x, pj.y - pi.y);
-                const double o_dis =
-                    pi.getDirectionVec().cross(pij_vec) * GRID_RESOLUTION;
-                if (fabs(o_dis) < offset_dis) {
-                  offset_dis  = o_dis;
-                  safe_offset = true;
-                  break;
-                }
-              }
-            }
-          }
-          if (!safe_offset) {
-            // is it safe outside the road?
-            const double left_outside_dis =
-                (ref_p.neighbors.back() - pi).len() * GRID_RESOLUTION +
-                ref_p.lane_width;
-            const double right_outside_dis = -(i + 1) * ref_p.lane_width;
-            const auto&  right_off_point = pi.getLateralPose(right_outside_dis);
-            const auto&  left_off_point  = pi.getLateralPose(left_outside_dis);
-            if (!is_lane_crashed(int(right_off_point.x),
-                                 int(right_off_point.y))) {
-              offset_dis = right_outside_dis;
-            } else if (!is_lane_crashed(int(left_off_point.x),
-                                        int(left_off_point.y))) {
-              offset_dis = left_outside_dis;
-            } else {
-              offset_dis = fabs(right_outside_dis) < fabs(left_outside_dis)
-                               ? right_outside_dis
-                               : left_outside_dis;
-            }
-          }
-        }
-      }
-      // offset the pi
-      pi.offset(offset_dis);
-      new_offset_list.push_back(
-          std::make_pair(origin_lane_points.back(), offset_dis));
-    }
-    offset_list = new_offset_list;
-    // LOG(WARNING) << "---at ref_p:" << ref_p.s << "---";
-    // for (const auto& p : offset_list) {
-    //   LOG(INFO) << p.first << " offset=" << p.second;
-    // }
-  }
-  // send to visualization center line offset
-  MessageManager::getInstance()->setPriorityLane(ref_path, origin_lane_points);
 }
 
 void PathPlanner::local_planning_map::prepare(const astate& _target,
@@ -291,6 +117,7 @@ double PathPlanner::local_planning_map::get_heuristic(const astate& state,
     // close to lane center
     min_distance = 1e8;
     for (const auto& p : ref_near_p.neighbors) {
+      if (!p.have_priority) continue;
       double center_dis = sqr_dis(p.x, p.y, state.x, state.y);
       if (center_dis < min_distance) min_distance = center_dis;
     }

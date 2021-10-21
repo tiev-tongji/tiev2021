@@ -70,8 +70,7 @@ class MessageManager {
   void clearTextInfo();
   void addTextInfo(const string& name, const string& value);
   void setTextInfo();
-  void setPriorityLane(const std::vector<HDMapPoint>& ref_path,
-                       const std::vector<Point2d>&    origin_points);
+  void setPriorityLane(const std::vector<HDMapPoint>& ref_path);
 
  private:
   MessageManager(){};

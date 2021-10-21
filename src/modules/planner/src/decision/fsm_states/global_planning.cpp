@@ -28,7 +28,7 @@ void GlobalPlanning::update(FullControl& control) {
   map_manager->updateRefPath();
   const auto& map = map_manager->getMap();
   if (!map.nav_info.detected || map_manager->getForwardRefPath().empty()) {
-    LOG(WARNING) << "no reference path...";
+    // LOG(WARNING) << "no reference path...";
     return;
   }
   ControlMode control_mode = Config::getInstance()->control_mode;

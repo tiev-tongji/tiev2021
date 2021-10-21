@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+
 #include "pose.h"
 
 using namespace std;
@@ -25,15 +26,15 @@ enum ControlMode {
 enum ObjectType { CAR = 0, BYCICLE = 1, PEDESTRIAN = 2, UNKNOWN = 127 };
 
 struct Task {
-  UtmPosition utm_position;
-  LonLatPosition lon_lat_position;
+  UtmPosition         utm_position;
+  LonLatPosition      lon_lat_position;
   vector<UtmPosition> task_points;
-  bool on_or_off;  // 0 is on, 1 is off
+  bool                get_on;  // 1 is on, 0 is off
   Task(double utm_x_ = 0, double utm_y_ = 0, double lon_ = 0, double lat_ = 0,
-       double heading_ = 0, bool on_or_off_ = 0)
+       double heading_ = 0, bool get_on_ = 0)
       : utm_position(utm_x_, utm_y_, heading_),
         lon_lat_position(lon_, lat_, heading_),
-        on_or_off(on_or_off_){};
+        get_on(get_on_){};
 };
 
 static mutex config_mtx;
@@ -85,7 +86,7 @@ class Config {
   double a_star_curvature_changed_punishment;
   // NOTICE: READ-ONLY
   vector<Task> tasks;
-  Task parking_task;
+  Task         parking_task;
 
   // Configuration of routing
   string host;

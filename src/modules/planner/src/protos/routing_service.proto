@@ -76,7 +76,7 @@ message TaskRequest {
   Point point = 1;
   string id = 2;
   string map = 3;
-  bool on_or_off = 4;
+  bool get_on = 4;
 }
 
 message TaskPoint {
@@ -85,5 +85,5 @@ message TaskPoint {
   double utmx = 3;
   double utmy = 4 ;
   double heading = 5;
-  bool on_or_off = 6; // on即上车为false，off即下车为true
+  bool get_on = 6; // on即上车为true，off即下车为false
 }

@@ -37,7 +37,7 @@ static mutex path_planner_mtx;
 
 // the length of primitive
 const static double primi_l = 1.0;  // m
-
+// for generate clothoid arc
 const static std::vector<double> k_list      = {-CAR_MAX_K,
                                            -3.0 / 4.0 * CAR_MAX_K,
                                            -1.0 / 2.0 * CAR_MAX_K,
@@ -50,6 +50,10 @@ const static std::vector<double> k_list      = {-CAR_MAX_K,
 const static std::vector<double> k_step_list = {
     0.0, -1.0 / 4.0 * CAR_MAX_K, 1.0 / 4.0 * CAR_MAX_K, 1.0 / 2.0 * CAR_MAX_K,
     -1.0 / 2.0 * CAR_MAX_K};
+
+// for generate circle arc
+const static std::vector<double> arc_k_list = {
+    0.0, -1.0 / 2.0 * CAR_MAX_K, 1.0 / 2.0 * CAR_MAX_K, -CAR_MAX_K, CAR_MAX_K};
 
 class PathPlanner {
  public:
@@ -212,7 +216,7 @@ class PathPlanner {
     double get_maximum_curvature() const { return max_curvature; }
     double get_average_curvature() const { return average_curvature; }
     bool   get_is_backward() const { return is_backward; }
-    static constexpr double PRIMITIVE_SAMPLING_STEP = GRID_RESOLUTION;
+    static constexpr double PRIMITIVE_SAMPLING_STEP = 0.2;
 
    protected:
     static vector<astate> generate_line(double length, bool is_backward);
@@ -267,6 +271,24 @@ class PathPlanner {
         const primitive& primitive) const = 0;
     virtual void prepare(bool backward_enabled){};
   };
+
+  class arc_base_primitive_set : public base_primitive_set {
+   public:
+    arc_base_primitive_set();
+    virtual const vector<base_primitive> get_nexts(
+        const astate& state, const double current_speed) const;
+    virtual const vector<base_primitive> get_nexts(
+        const primitive& primitive) const;
+
+   private:
+    vector<arc_base_primitive> primitives;
+
+    static void generate_arc_base_primitive_set(
+        const double k, bool backward_enabled,
+        vector<arc_base_primitive>& out_primitives);
+  };
+
+  arc_base_primitive_set arc_base_primitives;
 
   class clothoid_base_primitive_set : public base_primitive_set {
    public:
@@ -471,7 +493,9 @@ class PathPlanner {
     double start_speed_m_s;
     bool   is_backward_enabled;
 
-    bool node_visited_map[2 * MAX_ROW][2 * MAX_COL][ANGLE_NUM];
+    static constexpr int ang_num = 360;
+
+    bool node_visited_map[2 * MAX_ROW][2 * MAX_COL][ang_num];
 
     static constexpr double BACKWARD_COST_FACTOR = 5.0;
 
