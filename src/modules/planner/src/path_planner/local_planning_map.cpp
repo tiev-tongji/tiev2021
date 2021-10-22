@@ -121,7 +121,7 @@ double PathPlanner::local_planning_map::get_heuristic(const astate& state,
       double center_dis = sqr_dis(p.x, p.y, state.x, state.y);
       if (center_dis < min_distance) min_distance = center_dis;
     }
-    heuristic += 0.03 * (min_distance);
+    heuristic += 0.015 * (min_distance);
     // guide heading close to ref path
     heuristic += 10 * (1 - cos(fabs(state.a - ref_near_p.ang)));
     // guide to away from obstacles

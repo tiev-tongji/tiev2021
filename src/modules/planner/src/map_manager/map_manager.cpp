@@ -1491,6 +1491,7 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
     try {
       for (const auto& obj : decision_map.dynamic_obj_list.dynamic_obj_list) {
         Point2d o_p(x, y);
+        /*
         double  last_cross_val =
             (obj.corners.back() - o_p).cross(obj.corners.front() - o_p);
         for (int i = 0; i + 1 < obj.corners.size(); ++i) {
@@ -1500,18 +1501,24 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
           if (cross_val * last_cross_val <= 0) return false;
           last_cross_val = cross_val;
         }
+        */
+        for (const auto& p : obj.corners) {
+          if ((p - o_p).len() * GRID_RESOLUTION < COLLISION_CIRCLE_SMALL_R)
+            return true;
+        }
       }
-      return true;
+      return false;
     } catch (const std::exception& e) {
       LOG(FATAL) << "maby the dynamic obj have no corners!";
     }
   };
   // set the center line priority to avoid bostacles
   HDMapPoint       last_ref_p;
-  constexpr double max_effect_dis = 30;  // m
+  constexpr double max_effect_dis = 50;  // m
+  // backward check the path
   for (auto it = ref_path.rbegin(); it != ref_path.rend(); it++) {
     auto& ref_p = *it;
-    LOG(WARNING) << "------ s=" << ref_p.s << " -------";
+    // LOG(WARNING) << "------ s=" << ref_p.s << " -------";
     for (int i = 0; i < ref_p.neighbors.size(); ++i) {
       auto& center_p = ref_p.neighbors[i];
       // find the closest pre lane center point and set priority by pre
@@ -1528,11 +1535,11 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
       }
       // decide the priority
       // if the center have priority but crashed
-      LOG(INFO) << "collision with map:"
-                << collision(center_p.x, center_p.y,
-                             decision_map.planning_dis_map);
-      LOG(INFO) << "collision with dynamic:"
-                << clash_with_dynamic(center_p.x, center_p.y);
+      // LOG(INFO) << "collision with map:"
+      //           << collision(center_p.x, center_p.y,
+      //                        decision_map.planning_dis_map);
+      // LOG(INFO) << "collision with dynamic:"
+      //           << clash_with_dynamic(center_p.x, center_p.y);
       if (collision(center_p.x, center_p.y, decision_map.planning_dis_map) ||
           clash_with_dynamic(center_p.x, center_p.y)) {
         center_p.have_priority                = false;
@@ -1545,7 +1552,79 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
               pre_nearest_center_point.accumulate_dis_with_priority + min_dis;
         }
       }
-      LOG(INFO) << center_p;
+      // LOG(INFO) << center_p;
+    }
+    // check if all the lane center have no priority
+    bool all_have_no_priority = !ref_p.neighbors.empty();
+    for (const auto& cp : ref_p.neighbors) {
+      if (cp.have_priority) {
+        all_have_no_priority = false;
+        break;
+      }
+    }
+    if (all_have_no_priority) {
+      // consider with lane center only clashed with dynamic
+      for (auto& center_p : ref_p.neighbors) {
+        if (!collision(center_p.x, center_p.y, decision_map.planning_dis_map)) {
+          center_p.have_priority = true;
+          all_have_no_priority   = false;
+        }
+      }
+    }
+    if (all_have_no_priority) {
+      // TODO:if still have no priority, consider the road outside?
+      // set all is ok
+      for (auto& center_p : ref_p.neighbors) {
+        center_p.have_priority = true;
+        all_have_no_priority   = false;
+      }
+    }
+    last_ref_p = ref_p;
+    // LOG(WARNING) << "---at ref_p:" << ref_p.s << "---";
+    // for (const auto& p : ref_p.neighbors) {
+    //   LOG(INFO) << p;
+    // }
+  }
+  // forward check the path
+  last_ref_p.neighbors.clear();
+  constexpr double max_forward_effect_dis = 50;  // m
+  for (auto it = ref_path.begin(); it != ref_path.end(); it++) {
+    auto& ref_p = *it;
+    // LOG(WARNING) << "------ s=" << ref_p.s << " -------";
+    for (int i = 0; i < ref_p.neighbors.size(); ++i) {
+      auto& center_p = ref_p.neighbors[i];
+      // find the closest pre lane center point and set priority by pre
+      double          min_dis = std::numeric_limits<double>::max();
+      bool            have_near_center_point = false;
+      LaneCenterPoint pre_nearest_center_point;
+      for (const auto& last_center_p : last_ref_p.neighbors) {
+        const double dis = (last_center_p - center_p).len() * GRID_RESOLUTION;
+        if (dis < min_dis) {
+          min_dis                  = dis;
+          have_near_center_point   = true;
+          pre_nearest_center_point = last_center_p;
+        }
+      }
+      // decide the priority
+      // if the center have priority but crashed
+      // LOG(INFO) << "collision with map:"
+      //           << collision(center_p.x, center_p.y,
+      //                        decision_map.planning_dis_map);
+      // LOG(INFO) << "collision with dynamic:"
+      //           << clash_with_dynamic(center_p.x, center_p.y);
+      if (collision(center_p.x, center_p.y, decision_map.planning_dis_map) ||
+          clash_with_dynamic(center_p.x, center_p.y)) {
+        center_p.have_priority                = false;
+        center_p.accumulate_dis_with_priority = 0.0;
+      } else if (have_near_center_point) {
+        if (pre_nearest_center_point.accumulate_dis_with_priority <
+            max_forward_effect_dis) {
+          center_p.have_priority = pre_nearest_center_point.have_priority;
+          center_p.accumulate_dis_with_priority =
+              pre_nearest_center_point.accumulate_dis_with_priority + min_dis;
+        }
+      }
+      // LOG(INFO) << center_p;
     }
     // check if all the lane center have no priority
     bool all_have_no_priority = !ref_p.neighbors.empty();
