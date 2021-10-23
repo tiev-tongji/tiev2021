@@ -76,8 +76,8 @@ const std::vector<PathPlanner::astate>& PathPlanner::AstarPlanner::plan(
 
   // push start_state to node pool
   node_pool.push(
-      {planning_map.get_heuristic(start_state, start_state.is_backward), 0.0,
-       0.0, 0.0, nullptr});
+      {planning_map.get_heuristic(start_state, start_state.is_backward, 0.0),
+       0.0, 0.0, 0.0, nullptr});
 
   bool target_reached = false;
   // last_primitive_ptr points to the last primitive
@@ -194,7 +194,7 @@ const std::vector<PathPlanner::astate>& PathPlanner::AstarPlanner::plan(
           // update end_state to history
           visit(end_state);
           double heuristic =
-              planning_map.get_heuristic(end_state, reverse_allowed);
+              planning_map.get_heuristic(end_state, reverse_allowed, 0.0);
           double cost_factor = get_cost_factor(current_state, end_state);
           double cost        = current.cost + base.get_length() * cost_factor;
           double dis_after_reverse =

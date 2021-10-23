@@ -103,6 +103,7 @@ struct SemiLaneFreeDriving : TiEVState {
 struct FreeDriving : TiEVState {
   void enter(Control& control);
   void update(FullControl& control);
+  Pose previous_pose;
 };
 
 struct GlobalReplanning : TiEVState {

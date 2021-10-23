@@ -62,7 +62,7 @@ class PathPlanner {
     return &inner_instance;
   }
 
-  void runPathPlanner(const NavInfo&                 nav_info,
+  bool runPathPlanner(const NavInfo&                 nav_info,
                       const std::vector<HDMapPoint>& ref_path,
                       const DynamicObjList&          dynamic_objs,
                       const double max_speed, const bool reverse,
@@ -89,7 +89,7 @@ class PathPlanner {
 
   void setVelocityLimit(const double speed);
 
-  void plan(std::vector<Pose>* result);
+  bool plan(std::vector<Pose>* result);
 
  private:
   PathPlanner();
@@ -441,7 +441,8 @@ class PathPlanner {
     double get_maximum_safe_distance(int row_idx, int col_idx) const;
     double get_minimum_distance_from_map_boundaries(const astate& state) const;
 
-    double get_heuristic(const astate& state, bool can_reverse) const;
+    double get_heuristic(const astate& state, const bool can_reverse,
+                         const double state_possible_speed) const;
     bool   is_target(const astate& state) const;
     int    try_get_target_index(primitive& primitive) const;
     bool   is_in_map(const astate& state) const;
@@ -476,7 +477,8 @@ class PathPlanner {
         const std::vector<HDMapPoint>& ref_path, const astate& start_state,
         double start_speed_m_s, bool is_backward_enabled,
         double (*abs_safe_map)[MAX_COL], double (*lane_safe_map)[MAX_COL],
-        time_t max_duration, const base_primitive_set* base_primitives);
+        time_t max_duration, const base_primitive_set* base_primitives,
+        bool* plan_in_time);
 
    private:
     void   visit(const astate& state);

@@ -14,10 +14,10 @@ void Exploration::update(FullControl& control) {
   cout << "Exploration update..." << endl;
   MapManager* map_manager = MapManager::getInstance();
   map_manager->updateRefPath();
-  map_manager->updatePlanningMap(MapManager::LaneLineBlockType::NO_BLOCK);
-  vector<Pose>      start_path   = map_manager->getStartMaintainedPath();
-  vector<Pose>      lane_targets = map_manager->getLaneTargets();
-  Map&              map          = map_manager->getMap();
+  map_manager->updatePlanningMap(MapManager::DynamicBlockType::NO_BLOCK);
+  vector<Pose>      start_path = map_manager->getStartMaintainedPath();
+  vector<Pose>      lane_targets;
+  Map&              map = map_manager->getMap();
   vector<SpeedPath> speed_path_list;
   // PathPlanner::getInstance()->runPathPlanner(
   //     map.ref_path, map.dynamic_obj_list, map_manager->getCurrentMapSpeed(),

@@ -15,7 +15,7 @@ void TemporaryParkingPlanning::update(FullControl& control) {
   cout << "Temporary Parking Planning update..." << endl;
   MapManager* map_manager = MapManager::getInstance();
   map_manager->updateRefPath();
-  map_manager->updatePlanningMap(MapManager::LaneLineBlockType::NO_BLOCK);
+  map_manager->updatePlanningMap(MapManager::DynamicBlockType::NO_BLOCK);
   auto&        map        = map_manager->getMap();
   vector<Pose> start_path = map_manager->getStartMaintainedPath();
   Pose         target     = map_manager->getTemporaryParkingTarget();

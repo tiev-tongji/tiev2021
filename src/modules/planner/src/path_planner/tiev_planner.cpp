@@ -27,7 +27,8 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
     const std::vector<HDMapPoint>& ref_path, const astate& _start_state,
     double current_speed, bool _is_backward_enabled,
     double (*_abs_safe_map)[MAX_COL], double (*_lane_safe_map)[MAX_COL],
-    time_t _max_duration, const base_primitive_set* _base_primitives) {
+    time_t _max_duration, const base_primitive_set* _base_primitives,
+    bool* plan_in_time) {
 #ifdef VIS_EXPANSION
   cv::namedWindow("expansion", cv::WINDOW_KEEPRATIO);
   cv::Mat expansion_img = cv::Mat(MAX_ROW, MAX_COL, CV_8UC3, {255, 255, 255});
@@ -71,18 +72,12 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
   cv::circle(expansion_img, cv::Point(int(target_state.y), int(target_state.x)),
              3, cv::Scalar(0, 0, 255), -1);
 #endif
-
-  // init random floating point number generator
-  std::mt19937 gen(
-      start_time);  // Standard mersenne_twister_engine seeded with rd()
-  std::uniform_real_distribution<> random_urd;
-
-  log_1("hybrid astar planner initialized");
+  LOG(INFO) << "TiEV Planner initialized";
 
   // push start_state to node pool
-  node_pool.push(
-      {planning_map.get_heuristic(start_state, start_state.is_backward),
-       start_speed_m_s, 0.0, 0.0, nullptr});
+  node_pool.push({planning_map.get_heuristic(
+                      start_state, start_state.is_backward, start_speed_m_s),
+                  start_speed_m_s, 0.0, 0.0, nullptr});
 
   bool target_reached = false;
   // last_primitive_ptr points to the last primitive
@@ -141,46 +136,14 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
     bases = base_primitives->get_nexts(current_state, state_possible_speed);
     // LOG(WARNING) << "current_state:" << current_state
     //              << " score=" << current.score;
-    // usleep(100 * 1000);
 
-    bool reverse_allowed =
-        is_backward_enabled && (current.minimum_speed == 0.0);
-    //(current.dis_after_reverse >= MIN_DISTANCE_BETWEEN_REVERSING);
-    // double maximum_curvature_allowed =
-    //     GRID_RESOLUTION *
-    //     max_curvature_under_velocity(current.minimum_speed);
-
-    // for each node we caculate the probability to
-    // perform analytic expansion from it.
-    // the probability depends on its heuristic x.
-    // double x                              = current.score - current.cost;
-    // double analytic_expansion_probability = 0.2402 * exp(-0.006 * x);
-    // if (iterations == -1 || random_urd(gen) <=
-    // analytic_expansion_probability) {
-    //   if (try_analytic_expansion(
-    //           current_state, reverse_allowed, maximum_curvature_allowed,
-    //           max_sigma_under_velocity(current.minimum_speed) *
-    //               GRID_RESOLUTION * GRID_RESOLUTION)) {
-    //     last_primitive_ptr = current.ptr;
-    //     if (last_primitive_ptr != NULL)
-    //       target_offset = last_primitive_ptr->get_states().size() - 1;
-    //     target_reached = true;
-    //     break;
-    //   }
-    // }
+    bool reverse_allowed = is_backward_enabled;
 
     for (const auto& base : bases) {
       // if this expansion changes the driving direction
       // (backward/forward)
       bool reversed_expansion =
           (base.get_states().front().is_backward != current_state.is_backward);
-      // check if the base primitive is legal now
-      // if ((reverse_allowed == false && reversed_expansion) ||
-      //     (fabs(base.get_maximum_curvature()) > maximum_curvature_allowed))
-      //   continue;
-      // create a new primitive from primitive pool expanded from
-      // current_state, based on primitive base, and linked to
-      // its parent primitive 'current.ptr'
       primitive& expansion = *(primitive_pool.make(base, current.ptr));
       if (current_speed < 3) {
         const double cos_with_ref =
@@ -229,8 +192,8 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
         else if (planning_map.is_in_map(end_state)) {
           // update end_state to history
           visit(end_state);
-          double heuristic =
-              planning_map.get_heuristic(end_state, reverse_allowed);
+          double heuristic = planning_map.get_heuristic(
+              end_state, reverse_allowed, state_possible_speed);
           double cost_factor = get_cost_factor(current_state, end_state);
           double cost        = current.cost + base.get_length() * cost_factor;
           double dis_after_reverse =
@@ -243,11 +206,13 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
     }
   }
 
-  log_1("end searching after ", iterations, " iterations");
-  log_1("searching duration: ", (getTimeStamp() - start_time) / 1000, " ms");
+  LOG(INFO) << "end searching after " << iterations << " iterations";
+  LOG(INFO) << "searching duration: " << (getTimeStamp() - start_time) / 1000
+            << " ms";
 
-  // if (target_reached) {
-  log_1("succ: collecting result");
+  if (target_reached) {
+    *plan_in_time = true;
+  }
   // path stores the reversed states list
   vector<astate> path;
 

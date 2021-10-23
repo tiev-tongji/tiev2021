@@ -15,10 +15,10 @@ void LaneFreeDriving::update(FullControl& control) {
   cout << "Lane Free Driving update..." << endl;
   MapManager* map_manager = MapManager::getInstance();
   map_manager->updateRefPath();
-  map_manager->updatePlanningMap(MapManager::LaneLineBlockType::ALL_BLOCK);
+  map_manager->updatePlanningMap(MapManager::DynamicBlockType::ALL_BLOCK);
   vector<Pose>      start_path = map_manager->getStartMaintainedPath();
-  vector<Pose>      targets    = map_manager->getLaneTargets();
-  Map&              map        = map_manager->getMap();
+  vector<Pose>      targets;
+  Map&              map = map_manager->getMap();
   vector<SpeedPath> speed_path_list;
 
   // PathPlanner::getInstance()->runPathPlanner(

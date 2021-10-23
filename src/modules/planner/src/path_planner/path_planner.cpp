@@ -23,7 +23,7 @@ PathPlanner::PathPlanner()
       config(Config::getInstance()),
       view_controller(MessageManager::getInstance()) {}
 
-void PathPlanner::runPathPlanner(const NavInfo&                 nav_info,
+bool PathPlanner::runPathPlanner(const NavInfo&                 nav_info,
                                  const std::vector<HDMapPoint>& ref_path,
                                  const DynamicObjList&          dynamic_objs,
                                  double max_speed, bool reverse,
@@ -41,7 +41,7 @@ void PathPlanner::runPathPlanner(const NavInfo&                 nav_info,
   setBackwardEnabled(reverse);
   setNavInfo(nav_info);
   setDynamicObjList(dynamic_objs);
-  plan(result);
+  return plan(result);
 }
 
 void PathPlanner::setStartMaintainedPath(
@@ -108,10 +108,12 @@ void PathPlanner::setDynamicObjList(const DynamicObjList& dynamic_obj_list) {
 
 void PathPlanner::setNavInfo(const NavInfo& nav_info_) { nav_info = nav_info_; }
 
-void PathPlanner::plan(std::vector<Pose>* result) {
+bool PathPlanner::plan(std::vector<Pose>* result) {
   bool planning_to_target = false;
   start_pose.v            = nav_info.current_speed;
   std::vector<astate> result_path;
+  // a flag stands for plan a path in time
+  bool plan_in_time = false;
   // chose a specific path planning algrithom
   astate start_state(start_pose.x, start_pose.y, start_pose.ang, start_pose.s,
                      start_pose.k, start_pose.backward);
@@ -119,10 +121,11 @@ void PathPlanner::plan(std::vector<Pose>* result) {
       target_pose.ang == 0) {
     clothoid_base_primitives.prepare(backward_enabled);
     // no target but have reference path
-    result_path = tiev_planner.plan(
-        dynamic_obj_list, ref_path, start_state, nav_info.current_speed,
-        backward_enabled, abs_safe_map, lane_safe_map,
-        config->plan_time_limit_ms * 1000, &clothoid_base_primitives);
+    result_path = tiev_planner.plan(dynamic_obj_list, ref_path, start_state,
+                                    nav_info.current_speed, backward_enabled,
+                                    abs_safe_map, lane_safe_map,
+                                    config->plan_time_limit_ms * 1000,
+                                    &clothoid_base_primitives, &plan_in_time);
   } else if (target_pose.x != 0 || target_pose.y != 0 || target_pose.ang != 0) {
     // planning to target
     astate target_state(target_pose.x, target_pose.y, target_pose.ang, 0,
@@ -135,7 +138,7 @@ void PathPlanner::plan(std::vector<Pose>* result) {
     view_controller->setPriorityLane({});
   } else {
     LOG(WARNING) << "No reference path and target! to plan";
-    return;
+    return false;
   }
   // contruct the whole path
   result->clear();
@@ -154,12 +157,16 @@ void PathPlanner::plan(std::vector<Pose>* result) {
     p.updateGlobalCoordinate(nav_info.car_pose);
     result->push_back(p);
   }
-  if (result_path.empty()) result->clear();
+  if (result_path.empty())
+    result->clear();
+  else
+    plan_in_time = true;
   // sen visualization data
   if (planning_to_target) view_controller->setTarget(target_pose);
   view_controller->setStartPoint(start_pose);
   view_controller->setSafeMap(lane_safe_map);
   view_controller->setPath(*result);
+  return plan_in_time;
 }
 
 }  // namespace TiEV

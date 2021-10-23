@@ -25,7 +25,7 @@ struct Map {
 
   unsigned char lidar_map[MAX_ROW][MAX_COL];         //激光雷达地图
   unsigned char static_lidar_map[MAX_ROW][MAX_COL];  //激光雷达地图
-  unsigned char line_block_map[MAX_ROW][MAX_COL];    //车道线封闭地图
+  unsigned char lane_block_map[MAX_ROW][MAX_COL];    //车道线封闭地图
   unsigned char dynamic_obs_map[MAX_ROW][MAX_COL];   //
   double        lidar_dis_map[MAX_ROW][MAX_COL];  //激光障碍物距离地图
   double        planning_dis_map[MAX_ROW][MAX_COL];  //规划距离地图
@@ -64,8 +64,6 @@ class MapManager {
   double        getCurrentMapSpeed();
   bool          requestGlobalPath(const NavInfo& nav_info);  //请求全局路
   void          readGlobalPathFile(const std::string& file_path);
-  void          runRouting(int  interval,
-                           bool blocked);  // Update global path in a new thread
   HDMapMode     getCurrentMapMode();
   RoadDirection getCurrentRoadDirection();
   HDMapPoint    getStopLine();
@@ -76,9 +74,9 @@ class MapManager {
                      const vector<HDMapPoint>&
                          ref_path);  // 对道路内且相隔一定距离内的行人进行避让
   void blockStopLine();  // 封闭停止线，红灯时使用
-  enum LaneLineBlockType { NO_BLOCK, SEMI_BLOCK, ALL_BLOCK };
-  void updatePlanningMap(LaneLineBlockType lane_line_block_type,
-                         bool              history = false);
+  enum DynamicBlockType { NO_BLOCK, ALL_BLOCK };
+  void updatePlanningMap(DynamicBlockType dynamic_block_type,
+                         bool             history = false);
   Map& getMap();
   void visualization();
   void maintainParkingSpots();
@@ -86,7 +84,6 @@ class MapManager {
   void popCurrentTask();
   void pushCurrentTask(const Task&);  //添加新任务
   void clearTask();
-  bool carInRoad();
   void setGlobalPath(const vector<HDMapPoint>& new_global_path);
   bool allowParking(const Pose&                    parking_spot,
                     const std::vector<HDMapPoint>& ref_path);
@@ -95,8 +92,6 @@ class MapManager {
 
   const std::vector<HDMapPoint> getLaneCenterDecision(const Map& decision_map);
   //获取目标点
-  std::vector<Pose> getLaneTargets();
-  Pose              getBackTarget();
   std::vector<Pose> getExplorationTargets();
   std::vector<Pose> getParkingSpotTarget();
   Pose              getTemporaryParkingTarget();
@@ -107,7 +102,6 @@ class MapManager {
   //------
   std::vector<Pose> getMaintainedPath(const NavInfo& nav_info);
   void              getSpeedMaintainedPath(NavInfo& nav_info);
-  void              predictDynamicObsInMap();
   std::vector<Pose> getStartMaintainedPath();
   void maintainPath(const NavInfo& nav_info, const vector<Pose>& path);
   void selectBestPath(const std::vector<SpeedPath>& paths);
@@ -144,19 +138,18 @@ class MapManager {
   //---------execute when update--------
   void handleLidarMap();  // 根据LidarMap lidar获取unsigned char lidar_map
   void adjustRefPathByVLaneLine();  //通过视觉车道线矫正参考路
-  void getLaneLineList();  //结果为map.lane_line_list和map.lane_center_list
-  void laneMatch();        // 车道线匹配
-  void getBoundaryLine();
+  void laneMatch();                 // 车道线匹配
+  void dynamicDecision(const DynamicBlockType dynamic_block_type);
+  void laneBlockDecision();
+  void mapDecision(bool history = false);
   void laneLineInterpolation();
-  void getPlanningDisMap(bool history = false);
   void getAccessibleMap();
   //--------tool----------------
-  int getCarLaneId();  //获取车辆当前所在车道序号
+  int       getCarLaneId();  //获取车辆当前所在车道序号
+  const int getGlobalPathNearestIndex(const int begin, const int end) const;
   bool vehicleIsOnRoad(Pose const& vehicle_pose);  // 判断车辆是否已回到车道
-  int  getGlobalPathNearestIndex(int begin, int end) const;
   void setGlobalPathDirection();  // 设置全局参考路中RoadDirection属性
   void filtPoints();
-  void updateMaintainedPath();
 };
 }  // namespace TiEV
 

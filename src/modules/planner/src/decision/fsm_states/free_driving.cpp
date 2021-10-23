@@ -7,41 +7,47 @@ namespace TiEV {
 using namespace std;
 
 void FreeDriving::enter(Control& control) {
-  entry_time = getTimeStamp();
+  // record the car position
+  NavInfo nav_info;
+  MessageManager::getInstance()->getNavInfo(nav_info);
+  previous_pose = nav_info.car_pose;
+  entry_time    = getTimeStamp();
+  limited_time  = 30e6;  // 30s
   cout << "entry Free Driving..." << endl;
 }
 
 void FreeDriving::update(FullControl& control) {
   cout << "Free Driving update..." << endl;
   MapManager* map_manager = MapManager::getInstance();
-  map_manager->updateRefPath();
-  map_manager->updatePlanningMap(MapManager::LaneLineBlockType::NO_BLOCK);
-  vector<Pose>      start_path = map_manager->getStartMaintainedPath();
-  vector<Pose>      targets    = map_manager->getLaneTargets();
-  Map&              map        = map_manager->getMap();
-  vector<SpeedPath> speed_path_list;
+  map_manager->updatePlanningMap(MapManager::DynamicBlockType::ALL_BLOCK);
+  vector<Pose> start_path = map_manager->getStartMaintainedPath();
+  Map&         map        = map_manager->getMap();
 
-  // PathPlanner::getInstance()->runPathPlanner(
-  //     map.ref_path, map.dynamic_obj_list, map_manager->getCurrentMapSpeed(),
-  //     true, map.lidar_dis_map, map.planning_dis_map, start_path, targets,
-  //     map.nav_info.current_speed, speed_path_list);
-  map_manager->selectBestPath(speed_path_list);
+  std::vector<Pose> result_path;
+
+  const bool plan_to_target = PathPlanner::getInstance()->runPathPlanner(
+      map.nav_info, map_manager->getLaneCenterDecision(map),
+      map.dynamic_obj_list, map_manager->getCurrentMapSpeed(), true,
+      map.lidar_dis_map, map.planning_dis_map, start_path, Pose(0, 0, 0),
+      &result_path);
+
   map_manager->maintainPath(map.nav_info, map.best_path.path);
-  bool flag = true;
-  for (const auto& p : map.best_path.path)
-    if (p.backward || !p.in_map() ||
-        point2LineDis(p, map.boundary_line[0]) < 0 ||
-        point2LineDis(p, map.boundary_line[1]) > 0) {
-      flag = false;
-      break;
-    }
-
-  if (flag && !speed_path_list.empty())
+  if (plan_to_target) {
     control.changeTo<NormalDriving>();
-  else if (speed_path_list.empty() && getTimeStamp() - entry_time > 3e6 &&
-           map_manager->getMaintainedPath(map.nav_info).size() < 10)
-    control.changeTo<Exploration>();
-  else if (getTimeStamp() - entry_time > 5e6)
-    control.changeTo<SemiLaneFreeDriving>();
+    return;
+  }
+  if (duration_time() > limited_time) {
+    // when timeout, is the car drive far more than 10m?
+    const double dx = previous_pose.utm_position.utm_x -
+                      map.nav_info.car_pose.utm_position.utm_x;
+    const double dy = previous_pose.utm_position.utm_y -
+                      map.nav_info.car_pose.utm_position.utm_y;
+    if (dx * dx + dy * dy < 10 * 10) {
+      control.changeTo<GlobalReplanning>();
+    } else {
+      previous_pose = map.nav_info.car_pose;
+      entry_time    = getTimeStamp();
+    }
+  }
 }
 }  // namespace TiEV

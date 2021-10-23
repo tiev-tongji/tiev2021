@@ -14,9 +14,10 @@ void UTurn::enter(Control& control) {
 
 void UTurn::update(FullControl& control) {
   cout << "UTurn update..." << endl;
+  /*
   MapManager* map_manager = MapManager::getInstance();
   map_manager->updateRefPath();
-  map_manager->updatePlanningMap(MapManager::LaneLineBlockType::NO_BLOCK);
+  map_manager->updatePlanningMap(MapManager::DynamicBlockType::NO_BLOCK);
   vector<Pose> start_path    = map_manager->getStartMaintainedPath();
   Map&         map           = map_manager->getMap();
   vector<Pose> uturn_targets = map_manager->getUTurnTargets();
@@ -34,5 +35,6 @@ void UTurn::update(FullControl& control) {
           cos(PI / 3))
     control.changeTo<NormalDriving>();
   if (getTimeStamp() - entry_time > 20e6) control.changeTo<FreeDriving>();
+  */
 }
 }  // namespace TiEV

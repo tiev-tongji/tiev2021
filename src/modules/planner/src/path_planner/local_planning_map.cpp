@@ -91,8 +91,9 @@ bool PathPlanner::local_planning_map::is_lane_crashed(primitive& prim) const {
   return false;
 }
 
-double PathPlanner::local_planning_map::get_heuristic(const astate& state,
-                                                      bool can_reverse) const {
+double PathPlanner::local_planning_map::get_heuristic(
+    const astate& state, const bool can_reverse,
+    const double state_possible_speed) const {
   double heuristic = 0;
   // along the ref_path, the heuristic is small
   if (!is_planning_to_target) {
@@ -111,19 +112,21 @@ double PathPlanner::local_planning_map::get_heuristic(const astate& state,
       }
       end_s = p.s;
     }
-    // calculate the ref_path heuristic for this state
+    // calculate the ref_path heuristic for this state(0-70)
     heuristic += 2 * (end_s - ref_near_p.s);  // guide forward along the ref
     // path guide close to ref path
-    // close to lane center
+    // close to lane center(0-inf)
     min_distance = 1e8;
     for (const auto& p : ref_near_p.neighbors) {
       if (!p.have_priority) continue;
       double center_dis = sqr_dis(p.x, p.y, state.x, state.y);
       if (center_dis < min_distance) min_distance = center_dis;
     }
-    heuristic += 0.015 * (min_distance);
-    // guide heading close to ref path
-    heuristic += 10 * (1 - cos(fabs(state.a - ref_near_p.ang)));
+    const double center_lane_dis_weight =
+        std::max(10 - state_possible_speed, 0.0) * 1e-3 * 4;
+    heuristic += (0.005 + center_lane_dis_weight) * (min_distance);
+    // guide heading close to ref path (0-2)
+    heuristic += 5 * (1 - cos(fabs(state.a - ref_near_p.ang)));
     // guide to away from obstacles
     const double max_obstacle_affect_dis = 2.5;  // m
     heuristic +=

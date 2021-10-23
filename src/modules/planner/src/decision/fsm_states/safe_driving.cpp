@@ -16,10 +16,9 @@ void SafeDriving::update(FullControl& control) {
   MapManager* map_manager = MapManager::getInstance();
   Map&        map         = map_manager->getMap();
   map_manager->updateRefPath();
-  map_manager->updatePlanningMap(MapManager::LaneLineBlockType::ALL_BLOCK,
-                                 true);
+  map_manager->updatePlanningMap(MapManager::DynamicBlockType::ALL_BLOCK, true);
   vector<Pose>      start_path = map_manager->getStartMaintainedPath();
-  vector<Pose>      targets    = map_manager->getLaneTargets();
+  vector<Pose>      targets;
   vector<SpeedPath> speed_path_list;
   // 红绿灯
   // RoadDirection direction =

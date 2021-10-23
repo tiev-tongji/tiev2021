@@ -13,7 +13,7 @@ void ParkingPlanning::update(FullControl& control) {
   cout << "Parking Planning update..." << endl;
   MapManager* map_manager = MapManager::getInstance();
   map_manager->updateRefPath();
-  map_manager->updatePlanningMap(MapManager::LaneLineBlockType::NO_BLOCK);
+  map_manager->updatePlanningMap(MapManager::DynamicBlockType::NO_BLOCK);
   vector<Pose> start_path = map_manager->getStartMaintainedPath();
   map_manager->maintainParkingSpots();
   vector<Pose>      targets = map_manager->getParkingSpotTarget();
