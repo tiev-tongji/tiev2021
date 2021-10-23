@@ -120,10 +120,6 @@ void sendPath() {
         road_mode == HDMapMode::PARKING) {
       max_speed = min(max_speed, mapm->getSpeedBySpeedMode(HDMapSpeed::LOW));
     }
-    if (mm->machine.isActive<SafeDriving>() ||
-        mm->machine.isActive<IntersectionFreeDriving>()) {
-      mapm->addPedestrian(dynamic, mapm->getForwardRefPath());
-    }
     if (mm->machine.isActive<TemporaryParkingFSM>())
       max_speed =
           min(max_speed, mapm->getSpeedBySpeedMode(HDMapSpeed::VERY_LOW));
@@ -263,8 +259,8 @@ void sendPath() {
       msgm->addTextInfo("FSM State", "SafeDriving");
     if (mm->machine.isActive<SeekParkingSpot>())
       msgm->addTextInfo("FSM State", "SeekParkingSpot");
-    if (mm->machine.isActive<SemiLaneFreeDriving>())
-      msgm->addTextInfo("FSM State", "SemiLaneFreeDriving");
+    if (mm->machine.isActive<OvertakeDriving>())
+      msgm->addTextInfo("FSM State", "OvertakeDriving");
     if (mm->machine.isActive<Stop>()) msgm->addTextInfo("FSM State", "Stop");
     if (mm->machine.isActive<TaskDecision>())
       msgm->addTextInfo("FSM State", "TaskDecision");

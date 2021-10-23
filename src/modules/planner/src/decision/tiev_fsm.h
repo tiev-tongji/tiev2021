@@ -34,14 +34,14 @@ using FSM = M::PeerRoot<
     // OnRoad Fsm
     M::Composite<S(OnRoadFSM),
                  // substates
-                 S(GlobalPlanning),       //
-                 S(NormalDriving),        //
-                 S(LaneFreeDriving),      //
-                 S(SemiLaneFreeDriving),  //
-                 S(FreeDriving),          //
-                 S(GlobalReplanning),     //
-                 S(Exploration),          //
-                 S(UTurn)                 //
+                 S(GlobalPlanning),    //
+                 S(NormalDriving),     //
+                 S(LaneFreeDriving),   //
+                 S(OvertakeDriving),   //
+                 S(FreeDriving),       //
+                 S(GlobalReplanning),  //
+                 S(Exploration),       //
+                 S(UTurn)              //
                  >,
     // Intersection Fsm
     M::Composite<S(IntersectionFSM),
@@ -95,9 +95,10 @@ struct LaneFreeDriving : TiEVState {
   void update(FullControl& control);
 };
 
-struct SemiLaneFreeDriving : TiEVState {
-  void enter(Control& control);
-  void update(FullControl& control);
+struct OvertakeDriving : TiEVState {
+  void                    enter(Control& control);
+  void                    update(FullControl& control);
+  std::vector<HDMapPoint> overtakeLaneDecision(const Map& decision_map);
 };
 
 struct FreeDriving : TiEVState {

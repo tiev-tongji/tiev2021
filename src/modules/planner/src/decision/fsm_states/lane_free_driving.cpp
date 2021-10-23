@@ -36,7 +36,7 @@ void LaneFreeDriving::update(FullControl& control) {
   if (flag && !speed_path_list.empty())
     control.changeTo<NormalDriving>();
   else if (speed_path_list.empty() && (getTimeStamp() - entry_time > 3e6))
-    control.changeTo<SemiLaneFreeDriving>();
+    control.changeTo<OvertakeDriving>();
   else if (!speed_path_list.empty())
     entry_time = getTimeStamp();
 }

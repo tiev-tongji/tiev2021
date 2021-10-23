@@ -124,7 +124,8 @@ double PathPlanner::local_planning_map::get_heuristic(
     }
     const double center_lane_dis_weight =
         std::max(10 - state_possible_speed, 0.0) * 1e-3 * 4;
-    heuristic += (0.005 + center_lane_dis_weight) * (min_distance);
+    // heuristic += (0.005 + center_lane_dis_weight) * (min_distance);
+    heuristic += 0.005 * (min_distance);
     // guide heading close to ref path (0-2)
     heuristic += 5 * (1 - cos(fabs(state.a - ref_near_p.ang)));
     // guide to away from obstacles
