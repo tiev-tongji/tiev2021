@@ -159,8 +159,9 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
   }
   if (result_path.empty())
     result->clear();
-  else
+  else if (planning_to_target) {
     plan_in_time = true;
+  }
   // sen visualization data
   if (planning_to_target) view_controller->setTarget(target_pose);
   view_controller->setStartPoint(start_pose);

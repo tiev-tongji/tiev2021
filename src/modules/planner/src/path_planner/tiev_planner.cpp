@@ -193,7 +193,7 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
           // update end_state to history
           visit(end_state);
           double heuristic = planning_map.get_heuristic(
-              end_state, reverse_allowed, state_possible_speed);
+              end_state, reverse_allowed, current_speed);
           double cost_factor = get_cost_factor(current_state, end_state);
           double cost        = current.cost + base.get_length() * cost_factor;
           double dis_after_reverse =

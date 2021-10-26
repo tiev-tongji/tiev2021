@@ -72,6 +72,15 @@ std::vector<HDMapPoint> OvertakeDriving::overtakeLaneDecision(
     if (ref_p.s < 0) continue;
     for (int i = 0; i < ref_p.neighbors.size(); ++i) {
       auto& center_p = ref_p.neighbors[i];
+      // if the center is far away with the car more than 1.5*lane_width
+      if (ref_p.s == 0) {
+        if ((center_p - Point2d(CAR_CEN_ROW, CAR_CEN_COL)).len() *
+                GRID_RESOLUTION >
+            1.5 * ref_p.lane_width) {
+          center_p.have_priority                = false;
+          center_p.accumulate_dis_with_priority = 0.0;
+        }
+      }
       // find the closest pre lane center point and set priority by pre
       LaneCenterPoint pre_nearest_center_point;
       double          min_dis = std::numeric_limits<double>::max();

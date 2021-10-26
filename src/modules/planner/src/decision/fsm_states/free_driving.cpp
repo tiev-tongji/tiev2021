@@ -3,6 +3,7 @@
 #include "collision_check.h"
 #include "map_manager.h"
 #include "tiev_fsm.h"
+#include "tievlog.h"
 namespace TiEV {
 using namespace std;
 
@@ -31,7 +32,8 @@ void FreeDriving::update(FullControl& control) {
       map.lidar_dis_map, map.planning_dis_map, start_path, Pose(0, 0, 0),
       &result_path);
 
-  map_manager->maintainPath(map.nav_info, map.best_path.path);
+  // LOG(INFO) << "Plan to target:" << plan_to_target;
+  map_manager->maintainPath(map.nav_info, result_path);
   if (plan_to_target) {
     control.changeTo<NormalDriving>();
     return;

@@ -143,8 +143,8 @@ void sendPath() {
       auto& point = maintained_path[i];
       // get average k for near 5 points to smooth the k
       double average_k = 0.0;
-      int    begin_idx = std::max(i - 5, 0);
-      int    end_idx   = std::min(i + 5, int(maintained_path.size()) - 1);
+      int    begin_idx = std::max(i - 10, 0);
+      int    end_idx   = std::min(i + 10, int(maintained_path.size()) - 1);
       for (int j = begin_idx; j < end_idx; ++j) {
         average_k += maintained_path[j].k / (end_idx - begin_idx);
       }
@@ -152,8 +152,9 @@ void sendPath() {
         max_speed = min(2.0, max_speed);
         point.ang = M_PI + point.ang;
       }
-      // LOG(INFO) << "idx=" << count++ << " s=" << point.s << " \tk=" <<
-      // point.k
+      // LOG(INFO) << "hhhhhhhh"
+      //           << "idx=" << count++ << " s=" << point.s << " \tk=" <<
+      //           point.k
       //           << " \tave_k" << average_k
       //           << " \tv_by_k=" << max_velocity_for_curvature(average_k);
 

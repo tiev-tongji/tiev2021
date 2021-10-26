@@ -41,7 +41,7 @@ void PathPlanner::local_planning_map::prepare(
   left_bound_p = ref_end_p.getLateralPose(
       ref_end_p.lane_width * (ref_end_p.lane_num - ref_end_p.lane_seq + 0.5));
   right_bound_p = ref_end_p.getLateralPose(ref_end_p.lane_width *
-                                           (ref_end_p.lane_seq - 0.5));
+                                           (1 - ref_end_p.lane_seq - 0.5));
 }
 
 void PathPlanner::local_planning_map::prepare(const astate& _target,
@@ -119,13 +119,13 @@ double PathPlanner::local_planning_map::get_heuristic(
     min_distance = 1e8;
     for (const auto& p : ref_near_p.neighbors) {
       if (!p.have_priority) continue;
-      double center_dis = sqr_dis(p.x, p.y, state.x, state.y);
+      double center_dis = std::sqrt(sqr_dis(p.x, p.y, state.x, state.y));
       if (center_dis < min_distance) min_distance = center_dis;
     }
     const double center_lane_dis_weight =
-        std::max(10 - state_possible_speed, 0.0) * 1e-3 * 4;
+        std::max(10 - state_possible_speed, 0.0) * 1e-3 * 5;
     // heuristic += (0.005 + center_lane_dis_weight) * (min_distance);
-    heuristic += 0.005 * (min_distance);
+    heuristic += 0.2 * (min_distance);
     // guide heading close to ref path (0-2)
     heuristic += 5 * (1 - cos(fabs(state.a - ref_near_p.ang)));
     // guide to away from obstacles

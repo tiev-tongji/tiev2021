@@ -7,7 +7,7 @@ namespace TiEV {
 void NormalDriving::enter(Control& control) {
   LOG(INFO) << "entry Normal Driving...";
   entry_time   = getTimeStamp();
-  limited_time = 30e6;
+  limited_time = 5e6;
 }
 
 void NormalDriving::update(FullControl& control) {
