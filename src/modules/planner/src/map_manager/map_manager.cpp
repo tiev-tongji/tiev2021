@@ -1032,9 +1032,24 @@ void MapManager::dynamicDecision(const DynamicBlockType dynamic_block_type) {
       if (now.in_map()) map.dynamic_obs_map[(int)now.x][(int)now.y] = 1;
     }
   };
+  /*
   if (dynamic_block_type == DynamicBlockType::ALL_BLOCK) {
     // block all the dynamic
     for (const auto& obstacle : map.dynamic_obj_list.dynamic_obj_list) {
+      for (int i = 0; i < obstacle.corners.size(); ++i) {
+        const auto& start = obstacle.corners[i];
+        const auto& end =
+            obstacle.corners[(i + 1) % (int)obstacle.corners.size()];
+        add_obs_between(start, end);
+      }
+    }
+  } else*/
+  {
+    // block the dynamic speed under 0.1m/s
+    for (const auto& obstacle : map.dynamic_obj_list.dynamic_obj_list) {
+      if (obstacle.path.size() < 2) continue;
+      const double speed = (obstacle.path[1] - obstacle.path[0]).len();
+      if (speed > 0.1) continue;
       for (int i = 0; i < obstacle.corners.size(); ++i) {
         const auto& start = obstacle.corners[i];
         const auto& end =

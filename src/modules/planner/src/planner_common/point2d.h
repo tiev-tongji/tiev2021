@@ -9,35 +9,44 @@ namespace TiEV {
 struct Point2d {
   double x;
   double y;
-  Point2d(double x_ = 0, double y_ = 0) : x(x_), y(y_){};
+  Point2d(double x_ = 0, double y_ = 0) : x(x_), y(y_) {}
 
   inline bool in_map() const {
     return !(x < 0 || x >= MAX_ROW || y < 0 || y >= MAX_COL);
   }
   inline const double dot(const Point2d other) const {
     return x * other.x + y * other.y;
-  };
+  }
   inline const double cross(const Point2d other) const {
     return x * other.y - y * other.x;
-  };
-  inline const double  len() const { return sqrt(sqrLen()); };
-  inline const double  sqrLen() const { return x * x + y * y; };
+  }
+  inline Point2d ort(const Point2d& b) {
+    Point2d a(this->x, this->y);
+    Point2d c;
+    if (b.len() == 0) return c;
+    c = a - b * a.dot(b) / b.sqrLen();
+    return c;
+  }
+  inline const double  len() const { return sqrt(sqrLen()); }
+  inline const double  sqrLen() const { return x * x + y * y; }
   inline const double  getRad() const { return atan2(y, x); }
   inline const Point2d getDirection() const {
     return Point2d(x / len(), y / len());
   }
-  inline const Point2d operator*(const double k) const {
+  inline Point2d operator*(const double k) const {
     return Point2d(x * k, y * k);
-  };
+  }
+  friend Point2d operator*(const double k, const Point2d& p) { return p * k; }
   inline Point2d operator/(const double k) const {
     return Point2d(x / k, y / k);
   }
   inline Point2d operator+(const Point2d other) const {
     return Point2d(x + other.x, y + other.y);
-  };
+  }
   inline Point2d operator-(const Point2d other) const {
     return Point2d(x - other.x, y - other.y);
-  };
+  }
+  inline Point2d       operator-() const { return Point2d(-x, -y); }
   friend std::ostream& operator<<(std::ostream& out, const Point2d& point) {
     out << "Point2d:{x=" << point.x << " y=" << point.y << "}";
     return out;

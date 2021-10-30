@@ -34,7 +34,7 @@ void FreeDriving::update(FullControl& control) {
 
   // LOG(INFO) << "Plan to target:" << plan_to_target;
   map_manager->maintainPath(map.nav_info, result_path);
-  if (plan_to_target) {
+  if (plan_to_target && duration_time() > limited_time) {
     control.changeTo<NormalDriving>();
     return;
   }

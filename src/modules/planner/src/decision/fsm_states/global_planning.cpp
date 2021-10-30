@@ -35,6 +35,7 @@ void GlobalPlanning::update(FullControl& control) {
   if (control_mode == ControlMode::PlanningWithDebugMode ||
       control_mode == ControlMode::PlanningWithMapMode)
     control.changeTo<NormalDriving>();
+  // control.changeTo<OvertakeDriving>();
   else
     control.changeTo<Tracking>();
 }

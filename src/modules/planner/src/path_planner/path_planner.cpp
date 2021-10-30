@@ -7,6 +7,8 @@
 #include "log.h"
 #include "look_up_tables/dubins_table/dubins.h"
 #include "look_up_tables/reeds_shepp_table/reeds_shepp.h"
+#include "opencv2/opencv.hpp"
+#include "path_smoother.h"
 #include "splines/Splines.h"
 #include "tiev_utils.h"
 #include "tievlog.h"
@@ -137,7 +139,7 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
         &arc_base_primitives);
     view_controller->setPriorityLane({});
   } else {
-    LOG(WARNING) << "No reference path and target! to plan";
+    LOG(WARNING) << "No reference path and target to plan !";
     return false;
   }
   // contruct the whole path
@@ -145,6 +147,85 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
   result->reserve(start_maintained_path.size() + result_path.size());
   result->insert(result->end(), start_maintained_path.begin(),
                  start_maintained_path.end());
+
+  // only smooth path that is long enough
+  if (result_path.size() > 5) {
+    // smooth the path
+    vector<Point2d> path_before_smooth;
+    path_before_smooth.reserve(result_path.size());
+    for (auto it = result_path.begin(); it != result_path.end(); ++it) {
+      path_before_smooth.emplace_back(it->x, it->y);
+    }
+    PathSmoother ps;
+    // make sure the size of path_after_smooth and result_path is equal
+    vector<Point2d> path_after_smooth = ps.smoothPath(path_before_smooth);
+    // if collision happen, don't substitute the original path
+    Point2d p, pp;
+    double  ang_tmp;
+    bool    smooth_path_crash = false;
+    for (int i = 0; i + 1 < path_after_smooth.size(); ++i) {
+      p       = path_after_smooth[i];
+      pp      = path_after_smooth[i + 1];
+      ang_tmp = std::atan2(pp.y - p.y, pp.x - p.x);
+      if (collision(p.x, p.y, ang_tmp, lane_safe_map, 0.0)) {
+        smooth_path_crash = true;
+        break;
+      }
+    }
+    if (!smooth_path_crash) {
+      Point2d xim1, xi, xip1;
+      double  total_s = 0;
+      for (int i = 1; i + 1 < path_after_smooth.size(); ++i) {
+        xim1 = path_after_smooth[i - 1];
+        xi   = path_after_smooth[i];
+        xip1 = path_after_smooth[i + 1];
+        total_s += (xi - xim1).len() * GRID_RESOLUTION;
+        result_path[i].x         = path_after_smooth[i].x;
+        result_path[i].y         = path_after_smooth[i].y;
+        result_path[i].a         = std::atan2(xi.y - xim1.y, xi.x - xim1.x);
+        result_path[i].curvature = ps.getCurvature(xim1, xi, xip1);
+        result_path[i].s         = result_path[0].s + total_s;
+      }
+      if (result_path.size() > 1) {
+        astate p, pp;
+        pp                   = result_path[1];
+        p                    = result_path[0];
+        result_path[0].a     = std::atan2(pp.y - p.y, pp.x - p.x);
+        int length           = result_path.size();
+        pp                   = result_path[length - 1];
+        p                    = result_path[length - 2];
+        result_path.back().a = std::atan2(pp.y - p.y, pp.x - p.x);
+      }
+    }
+  }
+  // for (int i = 1; i + 1 < result_path.size(); ++i) {
+  //   cout << "original k: " << result_path[i].curvature << "\tsmoothed k: "
+  //        << ps.getCurvature(path_after_smooth[i - 1], path_after_smooth[i],
+  //                           path_after_smooth[i + 1])
+  //        << endl;
+  // }
+
+// #define VIS_SMOOTHED_PATH
+#ifdef VIS_SMOOTHED_PATH
+  cv::namedWindow("smoothed_path", cv::WINDOW_KEEPRATIO);
+  cv::Mat img = cv::Mat(MAX_ROW, MAX_COL, CV_8UC3, {255, 255, 255});
+  for (int r = 0; r < MAX_ROW; ++r) {
+    for (int c = 0; c < MAX_COL; ++c) {
+      if (lane_safe_map[r][c] == 0) {
+        img.at<cv::Vec3b>(r, c) = cv::Vec3b(0, 0, 0);
+      }
+    }
+  }
+  for (const auto& p : path_before_smooth) {
+    img.at<cv::Vec3b>(lround(p.x), lround(p.y)) = cv::Vec3b(0, 255, 0);
+  }
+  for (const auto& p : path_after_smooth) {
+    img.at<cv::Vec3b>(lround(p.x), lround(p.y)) = cv::Vec3b(0, 0, 255);
+  }
+  cv::imshow("smoothed_path", img);
+  cv::waitKey(0);
+#endif
+
   for (const auto& state : result_path) {
     Pose p;
     p.x        = state.x;
