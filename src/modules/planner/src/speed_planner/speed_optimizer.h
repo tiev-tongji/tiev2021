@@ -48,7 +48,7 @@ class SpeedOptimizer {
       const std::vector<DynamicObj>&                obstacle_list,
       std::vector<Pose>&                            trajectory,
       const std::vector<std::pair<double, double>>& speed_limit,
-      double                                        total_path_length);
+      double total_path_length, double current_speed = 0);
 
   SpeedOptimizer() = delete;
 
@@ -80,7 +80,8 @@ class SpeedOptimizer {
   SpeedOptimizer(std::vector<Obstacle>&                        obstacle_list,
                  std::vector<Pose>&                            trajectory,
                  const std::vector<std::pair<double, double>>& speed_limit,
-                 double s_start, double s_end, double t_start, double t_end);
+                 double s_start, double s_end, double t_start, double t_end,
+                 double current_speed = 0);
 
   /**
    * @brief Run DP speed optimizer.

@@ -9,7 +9,7 @@ namespace TiEV {
 SpeedPath SpeedOptimizer::RunSpeedOptimizer(
     const std::vector<DynamicObj>& obstacle_list, std::vector<Pose>& trajectory,
     const std::vector<std::pair<double, double>>& speed_limit,
-    double                                        total_path_length) {
+    double total_path_length, double current_speed) {
   // double                                 max_acceleration = 2.5;
   double                                 max_deceleration = -1.0;
   double                                 init_v = trajectory.front().v;
@@ -43,7 +43,8 @@ SpeedPath SpeedOptimizer::RunSpeedOptimizer(
   }
   const double   TOTAL_TIME = 5.0;
   SpeedOptimizer speed_optimizer(obj_list, trajectory, modified_speed_limit, 0,
-                                 total_path_length, 0, TOTAL_TIME);
+                                 total_path_length, 0, TOTAL_TIME,
+                                 current_speed);
   if (speed_optimizer.Process(speed_path)) {
     speed_path.success = true;
   } else {
@@ -59,10 +60,11 @@ SpeedPath SpeedOptimizer::RunSpeedOptimizer(
 SpeedOptimizer::SpeedOptimizer(
     std::vector<Obstacle>& obstacle_list, std::vector<Pose>& trajectory,
     const std::vector<std::pair<double, double>>& speed_limit, double s_start,
-    double s_end, double t_start, double t_end)
-    : st_data_(obstacle_list, trajectory, s_start, s_end, t_start, t_end),
+    double s_end, double t_start, double t_end, double current_speed)
+    : st_data_(obstacle_list, trajectory, s_start, s_end, t_start, t_end,
+               current_speed),
       gridded_path_time_graph_(st_data_, obstacle_list, trajectory.front(),
-                               SpeedLimit(speed_limit)),
+                               SpeedLimit(speed_limit), current_speed),
       obstacle_list_(obstacle_list),
       trajectory_(trajectory),
       path_range_(s_start, s_end),

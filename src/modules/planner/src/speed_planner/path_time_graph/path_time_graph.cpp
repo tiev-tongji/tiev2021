@@ -9,18 +9,19 @@
 #include "path_matcher.h"
 #include "st_point.h"
 #include "tievlog.h"
-
 namespace TiEV {
 PathTimeGraph::PathTimeGraph(std::vector<Obstacle>&   obstacles,
                              const std::vector<Pose>& path,
                              const double s_start, const double s_end,
-                             const double t_start, const double t_end) {
+                             const double t_start, const double t_end,
+                             double current_speed) {
   path_range_.first  = s_start;
   path_range_.second = s_end;
   time_range_.first  = t_start;
   time_range_.second = t_end;
   path_length_       = s_end - s_start;
   total_time_        = t_end - t_start;
+  current_speed_     = current_speed;
   SetupObstacles(obstacles, path);
 }
 
@@ -65,7 +66,7 @@ SLBoundary PathTimeGraph::ComputeObstacleSLBoundary(
     // LOG(INFO) << "vertice:[" << point.x() << " " << point.y()
     //           << "] sl_point: s=" << sl_point.first << " l=" <<
     //           sl_point.second;
-
+    std::cout << "sl result: " << sl_point.second << std::endl;
     start_s = std::fmin(start_s, sl_point.first);
     end_s   = std::fmax(end_s, sl_point.first);
     start_l = std::fmin(start_l, sl_point.second);
@@ -95,13 +96,22 @@ void PathTimeGraph::SetupObstacles(std::vector<Obstacle>&   obstacles,
 void PathTimeGraph::SetStaticObstacle(Obstacle&                obstacle,
                                       const std::vector<Pose>& path) {
   const Box box = GetStaticBoundingBox(obstacle);
+  std::cout << "obstacle details: " << obstacle.path.front().x << ' '
+            << obstacle.path.front().y << ' ' << obstacle.length << ' '
+            << obstacle.width << ' ' << obstacle.path.front().ang << std::endl;
+  std::cout << current_speed_ << std::endl;
+  for (const auto& i : box.corners()) {
+    std::cout << i.x() << ' ' << i.y() << std::endl;
+  }
   // LOG(INFO) << "Static Obstacle";
 
   SLBoundary sl_boundary = ComputeObstacleSLBoundary(box.corners(), path);
-
-  double left_width  = Default_Path_Width_ * 0.5;
-  double right_width = Default_Path_Width_ * 0.5;
-
+  double     left_width  = Default_Path_Width_ * 0.6 + current_speed_ * 0.1;
+  double     right_width = Default_Path_Width_ * 0.6 + current_speed_ * 0.1;
+  std::cout << "finally: " << sl_boundary.start_s() << ' '
+            << sl_boundary.end_s() << ' ' << sl_boundary.start_l() << ' '
+            << sl_boundary.end_l() << ' ' << path_range_.first << ' '
+            << path_range_.second << std::endl;
   // Out of path range
   if (sl_boundary.start_s() > path_range_.second ||
       sl_boundary.end_s() < path_range_.first ||
@@ -111,7 +121,7 @@ void PathTimeGraph::SetStaticObstacle(Obstacle&                obstacle,
       sl_boundary.end_l() - sl_boundary.start_l() > 10) {
     return;
   }
-
+  std::cout << "stop!" << std::endl;
   STPoint blp(sl_boundary.start_s(), 0);
   STPoint brp(sl_boundary.start_s(), total_time_);
   STPoint ulp(sl_boundary.end_s(), 0);
@@ -176,4 +186,5 @@ void PathTimeGraph::SetDynamicObstacle(Obstacle&                obstacle,
     obstacle.set_st_boundary(st_boundary);
   }
 }
+
 }  // namespace TiEV

@@ -1011,7 +1011,7 @@ void MapManager::getSpeedMaintainedPath(NavInfo& nav_info) {
   }
   map.speed_maintained_path = SpeedOptimizer::RunSpeedOptimizer(
       map.dynamic_obj_list.dynamic_obj_list, result_path, speed_limits,
-      result_path.back().s);
+      result_path.back().s, nav_info.current_speed);
 
   // anti-conversion
   for (auto& point : map.speed_maintained_path.path) {

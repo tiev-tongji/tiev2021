@@ -14,7 +14,6 @@ namespace TiEV {
 class PathSmoother {
  public:
   PathSmoother();
-
   // api
   vector<Point2d> smoothPath(const vector<Point2d>& path);
 
@@ -53,7 +52,7 @@ class PathSmoother {
   /// maximum possible curvature of the non-holonomic vehicle
   double kappaMax;  // unit 1/m
   /// maximum distance to obstacles that is penalized
-  double obsDMax;  // unit m
+  double obsDMax;  // unit obstacles that is penalized
 
   double alpha;
   /// weight for the obstacle term

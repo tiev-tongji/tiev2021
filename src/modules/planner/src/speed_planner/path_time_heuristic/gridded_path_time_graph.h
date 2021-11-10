@@ -40,11 +40,13 @@ class GriddedPathTimeGraph {
 
   // speed limit on path
   SpeedLimit speed_limit_;
+  double     current_speed_;
 
  public:
   GriddedPathTimeGraph(PathTimeGraph&               st_data,
                        const std::vector<Obstacle>& obstacles,
-                       const Pose& init_point, const SpeedLimit& speed_limit)
+                       const Pose& init_point, const SpeedLimit& speed_limit,
+                       double current_speed = 0)
       : st_data_(st_data),
         obstacles_(obstacles),
         init_point_(init_point),
@@ -54,7 +56,8 @@ class GriddedPathTimeGraph {
         unit_t_(st_data_.total_time() /
                 (dp_st_config_.matrix_dimension_t() - 1)),
         dp_st_cost_(dp_st_config_, obstacles, unit_t_),
-        speed_limit_(speed_limit) {}
+        speed_limit_(speed_limit),
+        current_speed_(current_speed) {}
 
   /**
    * @brief Dynamic programming search

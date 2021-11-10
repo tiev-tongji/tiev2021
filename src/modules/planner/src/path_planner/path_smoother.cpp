@@ -172,10 +172,8 @@ Point2d PathSmoother::curvatureTerm(const Point2d& xim1, const Point2d& xi,
       Point2d zeros(0., 0.);
       return zeros;
     } else {
-      // Dolgov D, Thrun S, Montemerlo M, et al. Practical search techniques in
-      // path planning for
-      //  autonomous driving[J]. Ann Arbor, 2008, 1001(48105): 18-80.
-      // And we fix some bugs in the formula part.
+      // reference: enhanced path smoothing based on conjugate
+      // gradient descent for firefighting robots in petrochmical complexes
       double absDxi1Inv     = 1 / absDxi;
       double PDphi_PcosDphi = -1 / std::sqrt(1 - std::pow(std::cos(Dphi), 2));
       double u              = absDxi1Inv * PDphi_PcosDphi;

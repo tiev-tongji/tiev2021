@@ -49,6 +49,10 @@ bool PathPlanner::runPathPlanner(const NavInfo&                 nav_info,
 void PathPlanner::setStartMaintainedPath(
     const vector<Pose>& start_maintained_path) {
   this->start_maintained_path.clear();
+  if (start_maintained_path.empty()) {
+    start_pose = Pose(CAR_CEN_ROW, CAR_CEN_COL, PI);
+    return;
+  }
   int start_idx = -1;
   for (int i = start_maintained_path.size() - 1; i >= 0; --i) {
     const auto& p = start_maintained_path[i];
@@ -148,12 +152,38 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
   result->insert(result->end(), start_maintained_path.begin(),
                  start_maintained_path.end());
 
-  // only smooth path that is long enough
-  if (result_path.size() > 5) {
+  for (const auto& state : result_path) {
+    Pose p;
+    p.x        = state.x;
+    p.y        = state.y;
+    p.ang      = state.a;
+    p.s        = state.s;
+    p.k        = state.curvature;
+    p.backward = state.is_backward;
+    p.v        = velocity_limit;
+    p.updateGlobalCoordinate(nav_info.car_pose);
+    result->push_back(p);
+  }
+  if (result_path.empty())
+    result->clear();
+  else if (planning_to_target) {
+    plan_in_time = true;
+  }
+
+  // ***************path smoothing**********************//
+  // only smooth path that has no backward path and is long enough
+  bool have_backward_path = false;
+  for (auto it = result->begin(); it != result->end(); ++it) {
+    if (it->backward) {
+      have_backward_path = true;
+      break;
+    }
+  }
+  if (result->size() > 5 && !have_backward_path) {
     // smooth the path
     vector<Point2d> path_before_smooth;
-    path_before_smooth.reserve(result_path.size());
-    for (auto it = result_path.begin(); it != result_path.end(); ++it) {
+    path_before_smooth.reserve(result->size());
+    for (auto it = result->begin(); it != result->end(); ++it) {
       path_before_smooth.emplace_back(it->x, it->y);
     }
     PathSmoother ps;
@@ -174,28 +204,35 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
     }
     if (!smooth_path_crash) {
       Point2d xim1, xi, xip1;
-      double  total_s = 0;
+      double  total_s   = 0;
+      int     left_turn = 1;
       for (int i = 1; i + 1 < path_after_smooth.size(); ++i) {
         xim1 = path_after_smooth[i - 1];
         xi   = path_after_smooth[i];
         xip1 = path_after_smooth[i + 1];
         total_s += (xi - xim1).len() * GRID_RESOLUTION;
-        result_path[i].x         = path_after_smooth[i].x;
-        result_path[i].y         = path_after_smooth[i].y;
-        result_path[i].a         = std::atan2(xi.y - xim1.y, xi.x - xim1.x);
-        result_path[i].curvature = ps.getCurvature(xim1, xi, xip1);
-        result_path[i].s         = result_path[0].s + total_s;
+        (*result)[i].x   = path_after_smooth[i].x;
+        (*result)[i].y   = path_after_smooth[i].y;
+        (*result)[i].ang = std::atan2(xi.y - xim1.y, xi.x - xim1.x);
+        if ((*result)[i].ang > (*result)[i - 1].ang)
+          left_turn = 1;
+        else
+          left_turn = -1;
+        // curvature sign: left_turn positive
+        (*result)[i].k = left_turn * ps.getCurvature(xim1, xi, xip1);
+        (*result)[i].s = (*result)[0].s + total_s;
+        (*result)[i].updateGlobalCoordinate(nav_info.car_pose);
       }
-      if (result_path.size() > 1) {
-        astate p, pp;
-        pp                   = result_path[1];
-        p                    = result_path[0];
-        result_path[0].a     = std::atan2(pp.y - p.y, pp.x - p.x);
-        int length           = result_path.size();
-        pp                   = result_path[length - 1];
-        p                    = result_path[length - 2];
-        result_path.back().a = std::atan2(pp.y - p.y, pp.x - p.x);
-      }
+      Pose p, pp;
+      pp                      = (*result)[1];
+      p                       = (*result)[0];
+      (*result)[0].ang        = std::atan2(pp.y - p.y, pp.x - p.x);
+      (*result)[0].k          = (*result)[1].k;
+      int length              = result->size();
+      pp                      = (*result)[length - 1];
+      p                       = (*result)[length - 2];
+      result->back().ang      = std::atan2(pp.y - p.y, pp.x - p.x);
+      (*result)[length - 1].k = (*result)[length - 2].k;
     }
   }
   // for (int i = 1; i + 1 < result_path.size(); ++i) {
@@ -226,23 +263,6 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
   cv::waitKey(0);
 #endif
 
-  for (const auto& state : result_path) {
-    Pose p;
-    p.x        = state.x;
-    p.y        = state.y;
-    p.ang      = state.a;
-    p.s        = state.s;
-    p.k        = state.curvature;
-    p.backward = state.is_backward;
-    p.v        = velocity_limit;
-    p.updateGlobalCoordinate(nav_info.car_pose);
-    result->push_back(p);
-  }
-  if (result_path.empty())
-    result->clear();
-  else if (planning_to_target) {
-    plan_in_time = true;
-  }
   // sen visualization data
   if (planning_to_target) view_controller->setTarget(target_pose);
   view_controller->setStartPoint(start_pose);
