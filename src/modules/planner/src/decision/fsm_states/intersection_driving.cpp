@@ -2,19 +2,22 @@
 
 #include "map_manager.h"
 #include "tiev_fsm.h"
-#include "tievlog.h"
+// #include "tievlog.h"
+#include "opencv2/opencv.hpp"
+#include "const.h"
+
 namespace TiEV {
 using namespace std;
 
-void SafeDriving::enter(Control& control) {
+void IntersectionDriving::enter(Control& control) {
   expired_time = getTimeStamp() + 10 * 1000 * 1000;
   entry_time   = getTimeStamp() + 10 * 1000 * 1000;
   last_block_time = getTimeStamp();
-  cout << "entry Safe Driving..." << endl;
+  cout << "entry Intersection Driving..." << endl;
 }
 
-void SafeDriving::update(FullControl& control) {
-  LOG(INFO) << "Safe Driving update...";
+void IntersectionDriving::update(FullControl& control) {
+  // LOG(INFO) << "Intersection Driving update...";
   MapManager* map_manager = MapManager::getInstance();
   // remove the dynamic object
   map_manager->updatePlanningMap(MapManager::DynamicBlockType::NO_BLOCK);
@@ -34,6 +37,9 @@ void SafeDriving::update(FullControl& control) {
     }
   }
   
+  // parameters for constructing crosswalk
+  constexpr double crosswalk_width = 4 / GRID_RESOLUTION;
+  
   HDMapPoint stop_point, crosswalk_end_point;
   for (int i=0; i<map.forward_ref_path.size(); ++i) {
     const HDMapPoint& p = map.forward_ref_path[i];
@@ -46,7 +52,12 @@ void SafeDriving::update(FullControl& control) {
        if(end - start <= 0) break;
        double sum_ang = 0;
        for(int j=start; j<=end; ++j){
-         sum_ang += map.forward_ref_path[j].ang;
+         if (map.forward_ref_path[j].ang < 0){
+          // convert (-pi,pi) to (0,2pi)
+          sum_ang += map.forward_ref_path[j].ang + 2*PI;
+         } else {
+          sum_ang += map.forward_ref_path[j].ang;
+         }
        }
        stop_point.ang = sum_ang / (end - start + 1);
        break;
@@ -61,7 +72,6 @@ void SafeDriving::update(FullControl& control) {
     // regard stop_point as origin 
     // regard stop_point.ang direction as x axis
     // rotate (crosswalk_width, 0) from stop_point frame to grid map frame
-    double crosswalk_width = 4 / GRID_RESOLUTION;
     crosswalk_end_point = stop_point;
     crosswalk_end_point.x = stop_point.x + crosswalk_width * cos(rotate_ang);
     crosswalk_end_point.y = stop_point.y - crosswalk_width * sin(rotate_ang);
@@ -112,12 +122,52 @@ void SafeDriving::update(FullControl& control) {
     if(!block_stop_line) free_time = getTimeStamp() - last_block_time;
     else last_block_time = getTimeStamp(); // update last_block_time
 
-    if (free_time < 1e6) map_manager->blockStopLine();
-  }
+    if (free_time < 1e6) {
+      map_manager->blockStopLine();
+      std::cout << "block stop line succeed !" << std::endl;
+    }
+    std::cout << "block stop line: " << block_stop_line << std::endl;
+    std::cout << "free time: " << (free_time)/1e6 << "s" << std::endl;
 
-  // // TODO: Pedestrian
-  // map_manager->addPedestrian(map.dynamic_obj_list,
-  //                            map_manager->getForwardRefPath());
+// #define VIS_CROSSWALK
+#ifdef VIS_CROSSWALK
+    cv::namedWindow("crosswalk", cv::WINDOW_KEEPRATIO);
+    cv::Mat img = cv::Mat(MAX_ROW, MAX_COL, CV_8UC3, {255, 255, 255});
+    const cv::Vec3b HALF_BOX_COLOR = cv::Vec3b(0x00, 0x00, 0xff);
+    const cv::Vec3b WHOLE_BOX_COLOR = cv::Vec3b(0x00, 0xff, 0x00);
+    const cv::Vec3b STOP_COLOR = cv::Vec3b(0xff, 0x00, 0x00);
+    const cv::Vec3b MAP_COLOR = cv::Vec3b(0x00, 0x00, 0x00);
+    for (int r = 0; r < MAX_ROW; ++r) {
+      for (int c = 0; c < MAX_COL; ++c) {
+        if (map.planning_dis_map[r][c] == 0) {
+          img.at<cv::Vec3b>(r, c) = MAP_COLOR;
+        }
+      }
+    }
+    for(int i=0; i < box_half_crosswalk.size(); ++i){
+      const auto& p = box_half_crosswalk[i];
+      const auto& pp = box_half_crosswalk[(int)((i+1)%box_half_crosswalk.size())];
+      img.at<cv::Vec3b>((int)p.x, (int)p.y) = HALF_BOX_COLOR;
+      cv::line(img, cv::Point2d((int)p.y, (int)p.x), cv::Point2d((int)pp.y, (int)pp.x), HALF_BOX_COLOR, 1);
+    }
+    for(int i=0; i < box_whole_crosswalk.size(); ++i){
+      const auto& p = box_whole_crosswalk[i];
+      const auto& pp = box_whole_crosswalk[(int)((i+1)%box_whole_crosswalk.size())];
+      img.at<cv::Vec3b>((int)p.x, (int)p.y) = WHOLE_BOX_COLOR;
+      cv::line(img, cv::Point2d((int)p.y, (int)p.x), cv::Point2d((int)pp.y, (int)pp.x), WHOLE_BOX_COLOR, 1);
+    }
+    img.at<cv::Vec3b>((int)stop_point.x, (int)stop_point.y) = STOP_COLOR;
+    img.at<cv::Vec3b>(CAR_CEN_ROW, CAR_CEN_COL) = cv::Vec3b(0x00, 0x00, 0x00);
+    for(const auto& obj : map.dynamic_obj_list.dynamic_obj_list){
+      if(obj.type != ObjectType::PEDESTRIAN) continue;
+      if(obj.path.empty()) continue;
+      img.at<cv::Vec3b>((int)obj.path.front().x, (int)obj.path.front().y) = cv::Vec3b(0x00, 0x00, 0x00);
+    }  
+    cv::imshow("crosswalk", img);
+    cv::waitKey(10);
+#endif
+
+  }
 
   std::vector<Pose> result_path;
   PathPlanner::getInstance()->runPathPlanner(

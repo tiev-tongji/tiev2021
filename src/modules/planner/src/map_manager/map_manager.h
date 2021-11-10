@@ -1,5 +1,5 @@
-#ifndef _MAP_MANAGER_H
-#define _MAP_MANAGER_H
+#ifndef MAP_MANAGER
+#define MAP_MANAGER
 
 #include <mutex>
 #include <shared_mutex>
@@ -73,6 +73,7 @@ class MapManager {
   void addPedestrian(DynamicObjList& dynamic_obj_list,
                      const vector<HDMapPoint>&
                          ref_path);  // 对道路内且相隔一定距离内的行人进行避让
+  void addPedestrian(DynamicObjList& dynamic_obj_list);
   void blockStopLine();  // 封闭停止线，红灯时使用
   enum DynamicBlockType { NO_BLOCK, ALL_BLOCK };
   void updatePlanningMap(DynamicBlockType dynamic_block_type,
@@ -87,6 +88,7 @@ class MapManager {
   void setGlobalPath(const vector<HDMapPoint>& new_global_path);
   bool allowParking(const Pose&                    parking_spot,
                     const std::vector<HDMapPoint>& ref_path);
+  bool pnbox(const Pose& point, const vector<Pose>& box);
 
   vector<Task> getCurrentTasks();
 
@@ -153,4 +155,4 @@ class MapManager {
 };
 }  // namespace TiEV
 
-#endif
+#endif /* MAP_MANAGER */

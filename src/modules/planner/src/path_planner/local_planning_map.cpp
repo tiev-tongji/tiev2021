@@ -40,8 +40,8 @@ void PathPlanner::local_planning_map::prepare(
   // left bound and right bound point
   left_bound_p = ref_end_p.getLateralPose(
       ref_end_p.lane_width * (ref_end_p.lane_num - ref_end_p.lane_seq + 0.5));
-  right_bound_p = ref_end_p.getLateralPose(ref_end_p.lane_width *
-                                           (1 - ref_end_p.lane_seq - 0.5));
+  right_bound_p = ref_end_p.getLateralPose( - ref_end_p.lane_width *
+                                           (ref_end_p.lane_seq - 0.5));
 }
 
 void PathPlanner::local_planning_map::prepare(const astate& _target,

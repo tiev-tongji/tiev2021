@@ -71,6 +71,44 @@ void runTiEVFSM() {
       msgm->addTextInfo("FSM State", "Tracking");
     if (mm->machine.isActive<UTurn>()) msgm->addTextInfo("FSM State", "UTurn");
     msgm->addTextInfo("Time cost", to_string(time_cost));
+    if (mm->machine.isActive<NormalDriving>())
+      msgm->addTextInfo("FSM State", "NormalDriving");
+    if (mm->machine.isActive<BackTracking>())
+      msgm->addTextInfo("FSM State", "BackTracking");
+    if (mm->machine.isActive<Exploration>())
+      msgm->addTextInfo("FSM State", "Exploration");
+    if (mm->machine.isActive<FreeDriving>())
+      msgm->addTextInfo("FSM State", "FreeDriving");
+    if (mm->machine.isActive<GlobalPlanning>())
+      msgm->addTextInfo("FSM State", "GlobalPlanning");
+    if (mm->machine.isActive<GlobalReplanning>())
+      msgm->addTextInfo("FSM State", "GlobalReplanning");
+    if (mm->machine.isActive<IntersectionFreeDriving>())
+      msgm->addTextInfo("FSM State", "IntersectionFreeDriving");
+    if (mm->machine.isActive<LaneFreeDriving>())
+      msgm->addTextInfo("FSM State", "LaneFreeDriving");
+    if (mm->machine.isActive<ParkingPlanning>())
+      msgm->addTextInfo("FSM State", "ParkingPlanning");
+    if (mm->machine.isActive<ReplaceParkingPath>())
+      msgm->addTextInfo("FSM State", "ReplaceParkingPath");
+    if (mm->machine.isActive<SafeDriving>())
+      msgm->addTextInfo("FSM State", "SafeDriving");
+    if (mm->machine.isActive<IntersectionDriving>())
+      msgm->addTextInfo("FSM State", "IntersectionDriving");
+    if (mm->machine.isActive<SeekParkingSpot>())
+      msgm->addTextInfo("FSM State", "SeekParkingSpot");
+    if (mm->machine.isActive<OvertakeDriving>())
+      msgm->addTextInfo("FSM State", "OvertakeDriving");
+    if (mm->machine.isActive<Stop>()) msgm->addTextInfo("FSM State", "Stop");
+    if (mm->machine.isActive<TaskDecision>())
+      msgm->addTextInfo("FSM State", "TaskDecision");
+    if (mm->machine.isActive<TemporaryParkingPlanning>())
+      msgm->addTextInfo("FSM State", "TemporaryParkingPlanning");
+    if (mm->machine.isActive<TemporaryStop>())
+      msgm->addTextInfo("FSM State", "TemporaryStop");
+    if (mm->machine.isActive<Tracking>())
+      msgm->addTextInfo("FSM State", "Tracking");
+    if (mm->machine.isActive<UTurn>()) msgm->addTextInfo("FSM State", "UTurn");
     mapm->visualization();
   }
 }

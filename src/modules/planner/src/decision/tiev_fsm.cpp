@@ -43,8 +43,7 @@ void OnRoadFSM::update(FullControl& control) {
   }
   auto mode = map_manager->getCurrentMapMode();
   if (mode == HDMapMode::INTERSECTION_SOLID || mode == HDMapMode::INTERSECTION)
-    // control.changeTo<SafeDriving>();
-    ;
+    control.changeTo<IntersectionDriving>();
   else if (mode == HDMapMode::PARKING)
     control.changeTo<SeekParkingSpot>();
 }
@@ -59,7 +58,8 @@ void IntersectionFSM::update(FullControl& control) {
   cout << "Intersection FSM update!" << endl;
   MapManager* map_manager = MapManager::getInstance();
   auto        mode        = map_manager->getCurrentMapMode();
-  if (mode == HDMapMode::NORMAL) control.changeTo<NormalDriving>();
+  if (mode != HDMapMode::INTERSECTION_SOLID && mode != HDMapMode::INTERSECTION)
+    control.changeTo<NormalDriving>();
 }
 //----------------Intersection Fsm--------------------
 

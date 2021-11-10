@@ -234,14 +234,7 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
       result->back().ang      = std::atan2(pp.y - p.y, pp.x - p.x);
       (*result)[length - 1].k = (*result)[length - 2].k;
     }
-  }
-  // for (int i = 1; i + 1 < result_path.size(); ++i) {
-  //   cout << "original k: " << result_path[i].curvature << "\tsmoothed k: "
-  //        << ps.getCurvature(path_after_smooth[i - 1], path_after_smooth[i],
-  //                           path_after_smooth[i + 1])
-  //        << endl;
-  // }
-
+    
 // #define VIS_SMOOTHED_PATH
 #ifdef VIS_SMOOTHED_PATH
   cv::namedWindow("smoothed_path", cv::WINDOW_KEEPRATIO);
@@ -262,6 +255,8 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
   cv::imshow("smoothed_path", img);
   cv::waitKey(0);
 #endif
+
+  }
 
   // sen visualization data
   if (planning_to_target) view_controller->setTarget(target_pose);

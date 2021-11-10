@@ -46,6 +46,7 @@ using FSM = M::PeerRoot<
     // Intersection Fsm
     M::Composite<S(IntersectionFSM),
                  // substates
+                 S(IntersectionDriving),             //
                  S(SafeDriving),             //
                  S(IntersectionFreeDriving)  //
                  >,                          //
@@ -128,9 +129,17 @@ struct IntersectionFSM : TiEVState {
   void update(FullControl& control);
 };
 
+struct IntersectionDriving : TiEVState {
+  void   enter(Control& control);
+  void   update(FullControl& control);
+  time_t last_block_time;
+  time_t expired_time;
+};
+
 struct SafeDriving : TiEVState {
   void   enter(Control& control);
   void   update(FullControl& control);
+  time_t last_block_time;
   time_t expired_time;
 };
 

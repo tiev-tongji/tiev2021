@@ -392,6 +392,26 @@ void MapManager::updateRefPath(bool need_opposite) {
   // laneMatch();
 }
 
+void MapManager::addPedestrian(DynamicObjList& dynamic) {
+  global_path_mutex.lock_shared();
+  const auto forward_ref_path = map.forward_ref_path;
+  global_path_mutex.unlock_shared();
+  for (const auto& p : forward_ref_path) {
+    if (p.event != HDMapEvent::ENTRY_INTERSECTION &&
+        p.event != HDMapEvent::EXIT_INTERSECTION) continue;
+    int        x = p.x;
+    int        y = p.y;
+    DynamicObj dummy_obj;
+    dummy_obj.width  = 10;
+    dummy_obj.length = 1.5;
+    dummy_obj.path.emplace_back(x, y, p.ang, 0, 0, 0);
+    dynamic.dynamic_obj_list.emplace_back(dummy_obj);
+    std::cout << "block stop line in decision.cpp " << std::endl;
+    break;
+  }
+
+}
+
 void MapManager::addPedestrian(DynamicObjList&           dynamic_obj_list,
                                const vector<HDMapPoint>& ref_path) {
   const int tmp_inf = 1e8;
@@ -435,13 +455,14 @@ void MapManager::addPedestrian(DynamicObjList&           dynamic_obj_list,
 
 void MapManager::blockStopLine() {
   for (const auto& p : map.forward_ref_path) {
-    if (p.event != HDMapEvent::ENTRY_INTERSECTION) continue;
+    if (p.event != HDMapEvent::ENTRY_INTERSECTION &&
+        p.event != HDMapEvent::EXIT_INTERSECTION) continue;
     int        x = p.x;
     int        y = p.y;
     DynamicObj dummy_obj;
     dummy_obj.width  = 1.5;
     dummy_obj.length = 10;
-    dummy_obj.path.emplace_back(x, y, PI, 0, 0, 0);
+    dummy_obj.path.emplace_back(x, y, p.ang, 0, 0, 0);
     map.dynamic_obj_list.dynamic_obj_list.emplace_back(dummy_obj);
     break;
   }
@@ -1034,8 +1055,18 @@ void MapManager::dynamicDecision(const DynamicBlockType dynamic_block_type) {
   };
   /*
   if (dynamic_block_type == DynamicBlockType::ALL_BLOCK) {
-    // block all the dynamic
+    // // block all the dynamic
+    // for (const auto& obstacle : map.dynamic_obj_list.dynamic_obj_list) {
+    //   for (int i = 0; i < obstacle.corners.size(); ++i) {
+    //     const auto& start = obstacle.corners[i];
+    //     const auto& end =
+    //         obstacle.corners[(i + 1) % (int)obstacle.corners.size()];
+    //     add_obs_between(start, end);
+    //   }
+    // }
+    // block static objects
     for (const auto& obstacle : map.dynamic_obj_list.dynamic_obj_list) {
+      if (!obstacle.path.empty() && obstacle.path[0].v > 1) continue;
       for (int i = 0; i < obstacle.corners.size(); ++i) {
         const auto& start = obstacle.corners[i];
         const auto& end =
@@ -1370,7 +1401,42 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
   // send to visualization center line offset
   MessageManager::getInstance()->setPriorityLane(ref_path);
   return ref_path;
-}  // namespace TiEV
+} 
+
+// This uses the ray-casting algorithm to decide whether the point is inside
+// the given polygon. See https://en.wikipedia.org/wiki/Point_in_polygon#Ray_casting_algorithm
+bool MapManager::pnbox(const Pose& point, const vector<Pose>& box)
+{
+    if(box.size() < 3) return false;
+    double x = point.x;
+    double y = point.y;
+    // If we never cross any lines we're inside.
+    bool inside = false;
+    // Loop through all the edges.
+    for (int i = 0; i < box.size(); ++i) {
+        // i is the index of the first vertex, j is the next one.
+        // The original code uses a too-clever trick for this.
+        int j = (i + 1) % box.size();
+        // The vertices of the edge we are checking.
+        double xp0 = box[i].x;
+        double yp0 = box[i].y;
+        double xp1 = box[j].x;
+        double yp1 = box[j].y;
+        // Check whether the edge intersects a line from (-inf,y) to (x,y).
+        // First check if the line crosses the horizontal line at y in either direction.
+        if ((yp0 <= y) && (yp1 > y) || (yp1 <= y) && (yp0 > y)) {
+            // If so, get the point where it crosses that line. This is a simple solution
+            // to a linear equation. Note that we can't get a division by zero here -
+            // if yp1 == yp0 then the above if be false.
+            double cross = (xp1 - xp0) * (y - yp0) / (yp1 - yp0) + xp0;
+            // Finally check if it crosses to the left of our test point. You could equally
+            // do right and it should give the same result.
+            if (cross < x) inside = !inside;
+        }
+    }
+    if(inside) return true;
+    return false;
+}
 
 MapManager* MapManager::instance = new MapManager;
 }  // namespace TiEV

@@ -51,6 +51,12 @@ struct Point2d {
     out << "Point2d:{x=" << point.x << " y=" << point.y << "}";
     return out;
   }
+  inline const double cosDeltaAngle(const Point2d& other_point) const {
+    double cross = this->dot(other_point);
+    if (this->len() == 0 || other_point.len() == 0) return 0;
+    double cos   = cross / (this->len() * other_point.len());
+    return cos;
+  }
 };
 
 class Segment {
