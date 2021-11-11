@@ -1,6 +1,7 @@
 add_subdirectory(protos)
 add_subdirectory(planner_common)
 add_subdirectory(message_manager)
+add_subdirectory(planner_context)
 add_subdirectory(map_manager)
 add_subdirectory(speed_planner)
 add_subdirectory(path_planner)
@@ -17,6 +18,7 @@ target_link_libraries(planner PUBLIC
     search_based_speed_planner 
     speed_planner 
     map_manager 
+    planner_context
     message_manager 
     routing 
     planner_common 

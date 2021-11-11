@@ -7,6 +7,7 @@
 #include "Routing.h"
 #include "collision_check.h"
 #include "config.h"
+#include "decision_context.h"
 #include "map_manager.h"
 #include "tiev_utils.h"
 #include "tievlog.h"
@@ -112,8 +113,44 @@ void runTiEVFSM() {
     mapm->visualization();
   }
 }
-
+/* Before send the path to the trajectory controller, we must do the speed
+ * planner for the path with some decison results:
+ * 1.retrive the path, find if there is collion on the path
+ * 2.add the pedestrian decision result
+ * 3.add the traffic light decision result
+ * the above decision results are transformed to virtual dynamic obj
+ */
 void sendPath() {
+  // get the decison context
+  const auto& decision_context = DecisionContext::getInstance();
+  while (true) {
+    const auto static_obstacle_virtual_dymanic =
+        decision_context.getStaticObsDecision();
+    const auto pedestrian_virtual_dymanic =
+        decision_context.getPedestrianDecision();
+    const auto traffic_light_virtual_dymanic =
+        decision_context.getTrafficLightDecision();
+    // add the above virtual dynamic objs to dynamic_list
+    auto dynamic_list = decision_context.getDynamicList();
+    dynamic_list.insert(dynamic_list.end(),
+                        static_obstacle_virtual_dymanic.begin(),
+                        static_obstacle_virtual_dymanic.end());
+    dynamic_list.insert(dynamic_list.end(), pedestrian_virtual_dymanic.begin(),
+                        pedestrian_virtual_dymanic.end());
+    dynamic_list.insert(dynamic_list.end(),
+                        traffic_light_virtual_dymanic.begin(),
+                        traffic_light_virtual_dymanic.end());
+    // do the speed plan for the maintained path
+    const auto maintained_path = decision_context.getMaintainedPath();
+    if (maintained_path.empty()) {
+      // send a control path to stop
+      // TODO
+    } else {
+      // do speed plan
+      vector<pair<double, double>> speed_limits;
+    }
+  }
+  //---old---
   MachineManager* mm   = MachineManager::getInstance();
   MapManager*     mapm = MapManager::getInstance();
   MessageManager* msgm = MessageManager::getInstance();
