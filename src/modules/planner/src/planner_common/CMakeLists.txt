@@ -1,4 +1,6 @@
 add_subdirectory(look_up_tables)
+add_subdirectory(math)
+add_subdirectory(path_time_graph)
 
 add_library(planner_common SHARED "")
 

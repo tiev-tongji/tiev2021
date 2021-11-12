@@ -98,5 +98,13 @@ class PathTimeGraph {
   void SetDynamicObstacle(Obstacle& obstacle, const std::vector<Pose>& path);
 
   void SetStaticObstacle(Obstacle& obstacle, const std::vector<Pose>& path);
+
+  // TODO
+  std::vector<std::vector<std::pair<double, double>>> GetPathBlockingIntervals(
+      double start_time, double end_time, double trajectory_time_resolution);
+
+  std::vector<std::pair<double, double>> GetPathBlockingIntervals(
+    const double t) const;
 };
+
 }  // namespace TiEV

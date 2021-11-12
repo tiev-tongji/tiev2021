@@ -7,6 +7,3 @@ target_sources(math PRIVATE
 target_include_directories(math PUBLIC 
     ./
 )
-target_link_libraries(math PUBLIC
-    planner_common
-)

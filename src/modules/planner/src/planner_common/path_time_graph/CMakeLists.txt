@@ -8,7 +8,3 @@ target_sources(path_time_graph PRIVATE
 target_include_directories(path_time_graph PUBLIC 
     ./
 )
-target_link_libraries(path_time_graph PUBLIC
-    planner_common
-    math
-)

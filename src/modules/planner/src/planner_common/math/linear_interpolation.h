@@ -6,7 +6,7 @@
 
 namespace TiEV {
 
-double NormalizeAngle(const double angle);
+    double NormalizeAngle(const double angle);
 
 /**
 * @brief Linear interpolation between two points of type T

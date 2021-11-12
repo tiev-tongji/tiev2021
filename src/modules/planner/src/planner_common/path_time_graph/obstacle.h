@@ -7,7 +7,7 @@
 namespace TiEV {
 /**
  *@file
- *@brief class Obstacle definition for temporary use in speed planning
+ *@brief class Obstacle definition for temporary use in speed planning and lattice planning
  **/
 
 class Obstacle : public DynamicObj {

@@ -187,4 +187,39 @@ void PathTimeGraph::SetDynamicObstacle(Obstacle&                obstacle,
   }
 }
 
+std::vector<std::pair<double, double>> PathTimeGraph::GetPathBlockingIntervals(
+    const double t) const {
+  // ACHECK(time_range_.first <= t && t <= time_range_.second);
+  std::vector<std::pair<double, double>> intervals;
+  for (const auto& pt_obstacle : st_boundaries_) {
+    std::cout << "not sure if path_time obstacles_ is st_boundries " << std::endl;
+    if (t > pt_obstacle.max_t() || t < pt_obstacle.min_t()) {
+      continue;
+    }
+    double s_upper = lerp(pt_obstacle.upper_left_point().s(),
+                          pt_obstacle.upper_left_point().t(),
+                          pt_obstacle.upper_right_point().s(),
+                          pt_obstacle.upper_right_point().t(), t);
+
+    double s_lower = lerp(pt_obstacle.bottom_left_point().s(),
+                          pt_obstacle.bottom_left_point().t(),
+                          pt_obstacle.bottom_right_point().s(),
+                          pt_obstacle.bottom_right_point().t(), t);
+
+    intervals.emplace_back(s_lower, s_upper);
+  }
+  return intervals;
+}
+
+std::vector<std::vector<std::pair<double, double>>>
+PathTimeGraph::GetPathBlockingIntervals(const double t_start,
+                                        const double t_end,
+                                        const double t_resolution) {
+  std::vector<std::vector<std::pair<double, double>>> intervals;
+  for (double t = t_start; t <= t_end; t += t_resolution) {
+    intervals.push_back(GetPathBlockingIntervals(t));
+  }
+  return intervals;
+}
+
 }  // namespace TiEV

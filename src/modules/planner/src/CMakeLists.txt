@@ -9,6 +9,7 @@ add_subdirectory(test)
 add_subdirectory(visualization)
 add_subdirectory(routing)
 add_subdirectory(search_based_speed_planner)
+add_subdirectory(lattice_planner)
 
 add_executable(planner main.cpp)
 target_link_libraries(planner PUBLIC 
