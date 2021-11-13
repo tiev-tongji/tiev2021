@@ -38,7 +38,7 @@
 #define FLAGS_weight_lat_comfort 1
 #define FLAGS_trajectory_time_length 1
 #define FLAGS_trajectory_time_resolution 1.1
-#define FLAGS_speed_lon_decision_horizon 1
+#define FLAGS_speed_lon_decision_horizon 1.1
 #define FLAGS_weight_target_speed 1
 #define FLAGS_weight_dist_travelled 1
 #define FLAGS_lattice_stop_buffer 1
@@ -57,6 +57,8 @@
 #define FLAGS_comfort_acceleration_factor 1
 #define FLAGS_longitudinal_acceleration_lower_bound 1
 #define FLAGS_comfort_acceleration_factor 1
+#define FLAGS_longitudinal_jerk_upper_bound 1.1
+#define FLAGS_lon_collision_cost_std 1.1
 
 namespace TiEV {
 
@@ -110,7 +112,7 @@ TrajectoryEvaluator::TrajectoryEvaluator(
                           cost);
     }
   }
-  ADEBUG << "Number of valid 1d trajectory pairs: " << cost_queue_.size();
+  // ADEBUG << "Number of valid 1d trajectory pairs: " << cost_queue_.size();
 }
 
 bool TrajectoryEvaluator::has_more_trajectory_pairs() const {
@@ -300,9 +302,9 @@ double TrajectoryEvaluator::CentripetalAccelerationCost(
        t += FLAGS_trajectory_time_resolution) {
     double s = lon_trajectory->Evaluate(0, t);
     double v = lon_trajectory->Evaluate(1, t);
-    PathPoint ref_point = PathMatcher::MatchToPath(*reference_line_, s);
+    Pose ref_point = PathMatcher::MatchToPath(*reference_line_, s);
     // ACHECK(ref_point.has_kappa());
-    double centripetal_acc = v * v * ref_point.kappa();
+    double centripetal_acc = v * v * ref_point.k;
     centripetal_acc_sum += std::fabs(centripetal_acc);
     centripetal_acc_sqr_sum += centripetal_acc * centripetal_acc;
   }
@@ -327,7 +329,7 @@ std::vector<double> TrajectoryEvaluator::ComputeLongitudinalGuideVelocity(
       reference_s_dot.emplace_back(lon_traj.Evaluate(1, t));
     }
   } else {
-    double dist_s = planning_target.stop_point().s() - init_s_[0];
+    double dist_s = planning_target.stop_point().s - init_s_[0];
     if (dist_s < FLAGS_numerical_epsilon) {
       PiecewiseAccelerationTrajectory1d lon_traj(init_s_[0], 0.0);
       lon_traj.AppendSegment(
@@ -347,7 +349,7 @@ std::vector<double> TrajectoryEvaluator::ComputeLongitudinalGuideVelocity(
 
     std::shared_ptr<Trajectory1d> lon_ref_trajectory =
         PiecewiseBrakingTrajectoryGenerator::Generate(
-            planning_target.stop_point().s(), init_s_[0],
+            planning_target.stop_point().s, init_s_[0],
             planning_target.cruise_speed(), init_s_[1], a_comfort, d_comfort,
             FLAGS_trajectory_time_length + FLAGS_numerical_epsilon);
 

@@ -20,10 +20,9 @@
 
 #pragma once
 
-#include "modules/planning/math/curve1d/curve1d.h"
+#include "curve1d.h"
 
 namespace TiEV {
-
 
 class PolynomialCurve1d : public Curve1d {
  public:
@@ -36,6 +35,5 @@ class PolynomialCurve1d : public Curve1d {
  protected:
   double param_ = 0.0;
 };
-
 
 }  // namespace TiEV

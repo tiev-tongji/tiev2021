@@ -36,14 +36,28 @@
 
 namespace TiEV {
 
-// using apollo::canbus::Chassis;
-// using apollo::common::EngageAdvice;
-// using apollo::common::TrajectoryPoint;
-// using apollo::common::VehicleConfigHelper;
-// using apollo::common::VehicleSignal;
-// using apollo::common::math::Box2d;
-// using apollo::common::math::Vec2d;
-// using apollo::common::util::PointFactory;
+bool PlanningTarget::has_stop_point() const { return has_stop_point_; }
+Pose PlanningTarget::stop_point() const {return stop_point_;}
+double PlanningTarget::cruise_speed() const {return cruise_speed_;}
+void PlanningTarget::set_cruise_speed(double speed) {cruise_speed_ = speed;}
+
+
+ReferenceLineInfo::ReferenceLineInfo(std::vector<HDMapPoint> reference_line) {
+  std::cout << "ReferenceLineInfo constructor not implemented " << std::endl;
+}
+
+void ReferenceLineInfo::SetLatticeCruiseSpeed(double speed) {
+  planning_target_.set_cruise_speed(speed);
+}
+
+double ReferenceLineInfo::GetCruiseSpeed() const {
+  return cruise_speed_ > 0.0 ? cruise_speed_ : FLAGS_default_cruise_speed;
+}
+
+void ReferenceLineInfo::SetDrivable(bool drivable) { is_drivable_ = drivable; }
+
+bool ReferenceLineInfo::IsDrivable() const { return is_drivable_; }
+
 
 
 // bool ReferenceLineInfo::Init(const std::vector<const Obstacle*>& obstacles) {
@@ -108,16 +122,5 @@ namespace TiEV {
 
 
 
-void ReferenceLineInfo::SetLatticeCruiseSpeed(double speed) {
-  planning_target_.set_cruise_speed(speed);
-}
-
-double ReferenceLineInfo::GetCruiseSpeed() const {
-  return cruise_speed_ > 0.0 ? cruise_speed_ : FLAGS_default_cruise_speed;
-}
-
-void ReferenceLineInfo::SetDrivable(bool drivable) { is_drivable_ = drivable; }
-
-bool ReferenceLineInfo::IsDrivable() const { return is_drivable_; }
 
 }  // namespace TiEV

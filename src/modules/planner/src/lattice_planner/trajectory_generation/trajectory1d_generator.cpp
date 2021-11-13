@@ -18,15 +18,15 @@
  * @file
  **/
 
-#include "modules/planning/lattice/trajectory_generation/trajectory1d_generator.h"
+#include "trajectory1d_generator.h"
 
-#include "cyber/common/log.h"
-#include "modules/planning/common/planning_gflags.h"
-#include "modules/planning/common/trajectory1d/constant_deceleration_trajectory1d.h"
-#include "modules/planning/common/trajectory1d/piecewise_jerk_trajectory1d.h"
-#include "modules/planning/common/trajectory1d/standing_still_trajectory1d.h"
-#include "modules/planning/lattice/trajectory_generation/lateral_osqp_optimizer.h"
-#include "modules/planning/lattice/trajectory_generation/lateral_qp_optimizer.h"
+// #include "cyber/common/log.h"
+// #include "modules/planning/common/planning_gflags.h"
+// #include "constant_deceleration_trajectory1d.h"
+// #include "piecewise_jerk_trajectory1d.h"
+// #include "standing_still_trajectory1d.h"
+// #include "lateral_osqp_optimizer.h"
+// #include "lateral_qp_optimizer.h"
 
 namespace TiEV {
 
@@ -110,7 +110,7 @@ void Trajectory1dGenerator::GenerateLongitudinalTrajectoryBundle(
   // GenerateSpeedProfilesForPathTimeObstacles(ptr_lon_trajectory_bundle);
 
   if (planning_target.has_stop_point()) {
-    GenerateSpeedProfilesForStopping(planning_target.stop_point().s(),
+    GenerateSpeedProfilesForStopping(planning_target.stop_point().s,
                                      ptr_lon_trajectory_bundle);
   }
 }

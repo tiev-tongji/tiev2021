@@ -18,4 +18,6 @@ target_include_directories(planner_common PUBLIC
 
 target_link_libraries(planner_common PUBLIC
     distance_table
+    math
+    path_time_graph
 )

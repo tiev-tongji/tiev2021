@@ -18,12 +18,12 @@
  * @file quintic_polynomial_curve1d.cc
  **/
 
-#include "modules/planning/math/curve1d/quintic_polynomial_curve1d.h"
+#include "quintic_polynomial_curve1d.h"
 
-#include "absl/strings/str_cat.h"
-#include "absl/strings/str_join.h"
+// #include "absl/strings/str_cat.h"
+// #include "absl/strings/str_join.h"
 
-#include "cyber/common/log.h"
+// #include "cyber/common/log.h"
 
 namespace TiEV {
 
@@ -97,7 +97,7 @@ void QuinticPolynomialCurve1d::SetParam(const double x0, const double dx0,
 
 void QuinticPolynomialCurve1d::IntegratedFromQuarticCurve(
     const PolynomialCurve1d& other, const double init_value) {
-  CHECK_EQ(other.Order(), 4U);
+  // CHECK_EQ(other.Order(), 4U);
   param_ = other.ParamLength();
   coef_[0] = init_value;
   for (size_t i = 0; i < 5; ++i) {
@@ -108,7 +108,7 @@ void QuinticPolynomialCurve1d::IntegratedFromQuarticCurve(
 void QuinticPolynomialCurve1d::ComputeCoefficients(
     const double x0, const double dx0, const double ddx0, const double x1,
     const double dx1, const double ddx1, const double p) {
-  CHECK_GT(p, 0.0);
+  // CHECK_GT(p, 0.0);
 
   coef_[0] = x0;
   coef_[1] = dx0;
@@ -128,12 +128,12 @@ void QuinticPolynomialCurve1d::ComputeCoefficients(
   coef_[5] = (6.0 * c0 - 3.0 * c1 + 0.5 * c2) / p2;
 }
 
-std::string QuinticPolynomialCurve1d::ToString() const {
-  return absl::StrCat(absl::StrJoin(coef_, "\t"), param_, "\n");
-}
+// std::string QuinticPolynomialCurve1d::ToString() const {
+//   return absl::StrCat(absl::StrJoin(coef_, "\t"), param_, "\n");
+// }
 
 double QuinticPolynomialCurve1d::Coef(const size_t order) const {
-  CHECK_GT(6U, order);
+  // CHECK_GT(6U, order);
   return coef_[order];
 }
 

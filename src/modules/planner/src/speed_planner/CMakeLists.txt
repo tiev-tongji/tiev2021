@@ -2,8 +2,6 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(osqp REQUIRED)
 add_subdirectory(path_time_heuristic)
 add_subdirectory(speed)
-add_subdirectory(path_time_graph)
-add_subdirectory(math)
 add_subdirectory(qp_spline_speed_optimizer)
 add_subdirectory(splines)
 
@@ -17,8 +15,7 @@ target_include_directories(speed_planner PUBLIC
 target_link_libraries(speed_planner PUBLIC 
     path_time_heuristic 
     qp_spline_speed_optimizer 
-    path_time_graph 
     speed 
-    math 
     splines
+    planner_common
 )

@@ -1,3 +1,4 @@
+#pragma once
 /******************************************************************************
  * Copyright 2017 The Apollo Authors. All Rights Reserved.
  *
@@ -18,46 +19,38 @@
  * @file
  **/
 
-#pragma once
 
 #include <memory>
 #include <string>
+#include <vector>
 
-#include "modules/common/status/status.h"
-#include "modules/planning/common/frame.h"
-#include "modules/planning/common/reference_line_info.h"
-#include "modules/planning/planner/planner.h"
-#include "modules/planning/proto/planning_config.pb.h"
+// #include "status.h"
+// #include "modules/planning/common/frame.h"
+#include "reference_line_info.h"
+// #include "modules/planning/planner/planner.h"
+// #include "modules/planning/proto/planning_config.pb.h"
+#include "pose.h"
+#include "tiev_class.h"
+#include "path_time_graph.h"
 
 namespace TiEV {
 
 
-class LatticePlanner : public PlannerWithReferenceLine {
+class LatticePlanner {
  public:
   LatticePlanner() = delete;
 
-  explicit LatticePlanner(const std::shared_ptr<DependencyInjector>& injector)
-      : PlannerWithReferenceLine(injector) {}
-
-  virtual ~LatticePlanner() = default;
-
-  std::string Name() override { return "LATTICE"; }
-
-  common::Status Init(const PlanningConfig& config) override {
-    return common::Status::OK();
-  }
-
-  void Stop() override {}
+  ~LatticePlanner() = default;
 
   /**
    * @brief Override function Plan in parent class Planner.
    * @param planning_init_point The trajectory point where planning starts.
    * @param frame Current planning frame.
-   * @return OK if planning succeeds; error otherwise.
+   * @return true if planning succeeds; false otherwise.
    */
-  common::Status Plan(const common::TrajectoryPoint& planning_init_point,
-                      Frame* frame,
-                      ADCTrajectory* ptr_computed_trajectory) override;
+  bool Plan(const Pose& planning_init_point,
+            const std::vector<DynamicObj>& dynamic_obj_list, 
+            const std::vector<std::vector<HDMapPoint>>& reference_line_list);
 
   /**
    * @brief Override function Plan in parent class Planner.
@@ -66,9 +59,9 @@ class LatticePlanner : public PlannerWithReferenceLine {
    * @param reference_line_info The computed reference line.
    * @return OK if planning succeeds; error otherwise.
    */
-  common::Status PlanOnReferenceLine(
-      const common::TrajectoryPoint& planning_init_point, Frame* frame,
-      ReferenceLineInfo* reference_line_info) override;
+  bool PlanOnReferenceLine(const Pose& planning_init_point,
+            std::vector<Obstacle>& obstacle_list,
+            ReferenceLineInfo* reference_line_info);
 };
 
 

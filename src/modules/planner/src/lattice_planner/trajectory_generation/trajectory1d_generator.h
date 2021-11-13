@@ -24,14 +24,15 @@
 #include <utility>
 #include <vector>
 
-#include "modules/planning/lattice/behavior/path_time_graph.h"
-#include "modules/planning/lattice/behavior/prediction_querier.h"
-#include "modules/planning/lattice/trajectory_generation/end_condition_sampler.h"
-#include "modules/planning/lattice/trajectory_generation/lattice_trajectory1d.h"
-#include "modules/planning/math/curve1d/curve1d.h"
-#include "modules/planning/math/curve1d/quartic_polynomial_curve1d.h"
-#include "modules/planning/math/curve1d/quintic_polynomial_curve1d.h"
-#include "modules/planning/proto/lattice_structure.pb.h"
+#include "path_time_graph.h"
+#include "prediction_querier.h"
+#include "end_condition_sampler.h"
+#include "lattice_trajectory1d.h"
+#include "curve1d/curve1d.h"
+#include "quartic_polynomial_curve1d.h"
+#include "quintic_polynomial_curve1d.h"
+#include "reference_line_info.h"
+// #include "lattice_structure.pb.h"
 
 namespace TiEV {
 
@@ -92,8 +93,8 @@ inline void Trajectory1dGenerator::GenerateTrajectory1DBundle<4>(
     const std::array<double, 3>& init_state,
     const std::vector<std::pair<std::array<double, 3>, double>>& end_conditions,
     std::vector<std::shared_ptr<Curve1d>>* ptr_trajectory_bundle) const {
-  CHECK_NOTNULL(ptr_trajectory_bundle);
-  ACHECK(!end_conditions.empty());
+//   CHECK_NOTNULL(ptr_trajectory_bundle);
+//   ACHECK(!end_conditions.empty());
 
   ptr_trajectory_bundle->reserve(ptr_trajectory_bundle->size() +
                                  end_conditions.size());
@@ -114,8 +115,8 @@ inline void Trajectory1dGenerator::GenerateTrajectory1DBundle<5>(
     const std::array<double, 3>& init_state,
     const std::vector<std::pair<std::array<double, 3>, double>>& end_conditions,
     std::vector<std::shared_ptr<Curve1d>>* ptr_trajectory_bundle) const {
-  CHECK_NOTNULL(ptr_trajectory_bundle);
-  ACHECK(!end_conditions.empty());
+//   CHECK_NOTNULL(ptr_trajectory_bundle);
+//   ACHECK(!end_conditions.empty());
 
   ptr_trajectory_bundle->reserve(ptr_trajectory_bundle->size() +
                                  end_conditions.size());

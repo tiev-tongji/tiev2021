@@ -27,10 +27,10 @@
 namespace TiEV {
 
 PredictionQuerier::PredictionQuerier(
-    const std::vector<const Obstacle*>& obstacles,
+    const std::vector<Obstacle>& obstacles,
     const std::shared_ptr<std::vector<Pose>>& ptr_reference_line)
     : ptr_reference_line_(ptr_reference_line) {
-  for (const auto ptr_obstacle : obstacles) {
+  for (const auto obstacle : obstacles) {
     // if (common::util::InsertIfNotPresent(&id_obstacle_map_, ptr_obstacle->Id(),
     //                                      ptr_obstacle)) {
     //   obstacles_.push_back(ptr_obstacle);
@@ -39,7 +39,7 @@ PredictionQuerier::PredictionQuerier(
     // }
     if (true) {
       std::cout << "PredictionQuerier not implemented " << std::endl;
-      obstacles_.push_back(ptr_obstacle);
+      // obstacles_.push_back(&obstacle);
     }
   }
 }

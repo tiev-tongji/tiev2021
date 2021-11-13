@@ -23,7 +23,7 @@
 #include <array>
 #include <string>
 
-#include "modules/planning/math/curve1d/polynomial_curve1d.h"
+#include "polynomial_curve1d.h"
 
 namespace TiEV {
 

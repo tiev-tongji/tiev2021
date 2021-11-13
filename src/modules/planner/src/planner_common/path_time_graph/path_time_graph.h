@@ -85,6 +85,11 @@ class PathTimeGraph {
   SLBoundary ComputeObstacleSLBoundary(const std::vector<Vec>&  vertices,
                                        const std::vector<Pose>& path);
 
+  std::vector<std::vector<std::pair<double, double>>> GetPathBlockingIntervals(
+      double start_time, double end_time, double trajectory_time_resolution);
+
+  std::vector<std::pair<double, double>> GetPathBlockingIntervals(
+    const double t) const;
  private:
   /**
    * @brief Set up obstacles on the s-t graph and get a series of st_boundaries.
@@ -99,12 +104,6 @@ class PathTimeGraph {
 
   void SetStaticObstacle(Obstacle& obstacle, const std::vector<Pose>& path);
 
-  // TODO
-  std::vector<std::vector<std::pair<double, double>>> GetPathBlockingIntervals(
-      double start_time, double end_time, double trajectory_time_resolution);
-
-  std::vector<std::pair<double, double>> GetPathBlockingIntervals(
-    const double t) const;
 };
 
 }  // namespace TiEV

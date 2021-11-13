@@ -18,12 +18,12 @@
  * @file quartic_polynomial_curve1d.cc
  **/
 
-#include "modules/planning/math/curve1d/quartic_polynomial_curve1d.h"
+#include "quartic_polynomial_curve1d.h"
 
-#include "absl/strings/str_cat.h"
-#include "absl/strings/str_join.h"
+// #include "absl/strings/str_cat.h"
+// #include "absl/strings/str_join.h"
 
-#include "cyber/common/log.h"
+// #include "cyber/common/log.h"
 
 namespace TiEV {
 
@@ -80,7 +80,7 @@ double QuarticPolynomialCurve1d::Evaluate(const std::uint32_t order,
 QuarticPolynomialCurve1d& QuarticPolynomialCurve1d::FitWithEndPointFirstOrder(
     const double x0, const double dx0, const double ddx0, const double x1,
     const double dx1, const double p) {
-  CHECK_GT(p, 0.0);
+  // CHECK_GT(p, 0.0);
 
   param_ = p;
 
@@ -105,7 +105,7 @@ QuarticPolynomialCurve1d& QuarticPolynomialCurve1d::FitWithEndPointFirstOrder(
 QuarticPolynomialCurve1d& QuarticPolynomialCurve1d::FitWithEndPointSecondOrder(
     const double x0, const double dx0, const double x1, const double dx1,
     const double ddx1, const double p) {
-  CHECK_GT(p, 0.0);
+  // CHECK_GT(p, 0.0);
 
   param_ = p;
 
@@ -131,7 +131,7 @@ QuarticPolynomialCurve1d& QuarticPolynomialCurve1d::FitWithEndPointSecondOrder(
 
 QuarticPolynomialCurve1d& QuarticPolynomialCurve1d::IntegratedFromCubicCurve(
     const PolynomialCurve1d& other, const double init_value) {
-  CHECK_EQ(other.Order(), 3U);
+  // CHECK_EQ(other.Order(), 3U);
   param_ = other.ParamLength();
   coef_[0] = init_value;
   for (size_t i = 0; i < 4; ++i) {
@@ -142,7 +142,7 @@ QuarticPolynomialCurve1d& QuarticPolynomialCurve1d::IntegratedFromCubicCurve(
 
 QuarticPolynomialCurve1d& QuarticPolynomialCurve1d::DerivedFromQuinticCurve(
     const PolynomialCurve1d& other) {
-  CHECK_EQ(other.Order(), 5U);
+  // CHECK_EQ(other.Order(), 5U);
   param_ = other.ParamLength();
   for (size_t i = 1; i < 6; ++i) {
     coef_[i - 1] = other.Coef(i) * static_cast<double>(i);
@@ -153,7 +153,7 @@ QuarticPolynomialCurve1d& QuarticPolynomialCurve1d::DerivedFromQuinticCurve(
 void QuarticPolynomialCurve1d::ComputeCoefficients(
     const double x0, const double dx0, const double ddx0, const double dx1,
     const double ddx1, const double p) {
-  CHECK_GT(p, 0.0);
+  // CHECK_GT(p, 0.0);
 
   coef_[0] = x0;
   coef_[1] = dx0;
@@ -169,12 +169,12 @@ void QuarticPolynomialCurve1d::ComputeCoefficients(
   coef_[4] = (-2 * b0 + b1 * p) / (4 * p3);
 }
 
-std::string QuarticPolynomialCurve1d::ToString() const {
-  return absl::StrCat(absl::StrJoin(coef_, "\t"), param_, "\n");
-}
+// std::string QuarticPolynomialCurve1d::ToString() const {
+//   return absl::StrCat(absl::StrJoin(coef_, "\t"), param_, "\n");
+// }
 
 double QuarticPolynomialCurve1d::Coef(const size_t order) const {
-  CHECK_GT(5U, order);
+  // CHECK_GT(5U, order);
   return coef_[order];
 }
 

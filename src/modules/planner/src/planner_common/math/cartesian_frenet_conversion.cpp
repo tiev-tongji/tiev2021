@@ -20,8 +20,6 @@
 #include <cmath>
 
 namespace TiEV {
-namespace common {
-namespace math {
 
 void CartesianFrenetConverter::cartesian_to_frenet(
     const double rs, const double rx, const double ry, const double rtheta,
@@ -178,6 +176,4 @@ double CartesianFrenetConverter::CalculateSecondOrderLateralDerivative(
   return res;
 }
 
-}  // namespace math
-}  // namespace common
 }  // namespace TiEV

@@ -32,7 +32,7 @@ namespace TiEV {
 
 class PredictionQuerier {
  public:
-  PredictionQuerier(const std::vector<const Obstacle*>& obstacles,
+  PredictionQuerier(const std::vector<Obstacle>& obstacles,
                     const std::shared_ptr<std::vector<Pose>>&
                         ptr_reference_line);
 
