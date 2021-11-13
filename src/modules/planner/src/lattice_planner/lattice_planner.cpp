@@ -38,14 +38,13 @@
 #include "trajectory_evaluator.h"
 
 #define FLAGS_speed_lon_decision_horizon 10
-#define FLAGS_trajectory_time_length 10
+#define FLAGS_trajectory_time_length     10
 
 namespace TiEV {
 
-
 std::vector<Pose> ToDiscretizedReferenceLine(
     const std::vector<HDMapPoint>& ref_points) {
-  double s = 0.0;
+  double            s = 0.0;
   std::vector<Pose> path_points;
   for (const auto& ref_point : ref_points) {
     Pose path_point;
@@ -66,33 +65,33 @@ std::vector<Pose> ToDiscretizedReferenceLine(
   return path_points;
 }
 
-void ComputeInitFrenetState(const Pose& matched_point,
-                            const Pose& cartesian_state,
+void ComputeInitFrenetState(const Pose&            matched_point,
+                            const Pose&            cartesian_state,
                             std::array<double, 3>* ptr_s,
                             std::array<double, 3>* ptr_d) {
   CartesianFrenetConverter::cartesian_to_frenet(
-      matched_point.s, matched_point.x, matched_point.y,
-      matched_point.ang, matched_point.k, matched_point.dk,
-      cartesian_state.x, cartesian_state.y,
-      cartesian_state.v, cartesian_state.a,
-      cartesian_state.ang,
+      matched_point.s, matched_point.x, matched_point.y, matched_point.ang,
+      matched_point.k, matched_point.dk, cartesian_state.x, cartesian_state.y,
+      cartesian_state.v, cartesian_state.a, cartesian_state.ang,
       cartesian_state.k, ptr_s, ptr_d);
 }
 
-
-bool LatticePlanner::Plan(const Pose& planning_init_point,
-          const std::vector<DynamicObj>& dynamic_obj_list, 
-          const std::vector<std::vector<HDMapPoint>>& reference_line_list) {
-  size_t success_line_count = 0;
-  size_t index = 0;
+bool LatticePlanner::Plan(
+    const Pose&                                 planning_init_point,
+    const std::vector<DynamicObj>&              dynamic_obj_list,
+    const std::vector<std::vector<HDMapPoint>>& reference_line_list) {
+  size_t                         success_line_count = 0;
+  size_t                         index              = 0;
   std::vector<ReferenceLineInfo> reference_line_info_list;
   for (const auto& reference_line : reference_line_list) {
     reference_line_info_list.emplace_back(reference_line);
   }
-  std::vector<Obstacle> obstacle_list; 
+  std::vector<Obstacle> obstacle_list;
+  std::cout << "obstacle_list in LatticePlanner::Plan not implemented "
+            << std::endl;
   for (auto& reference_line_info : reference_line_info_list) {
-    auto status =
-        PlanOnReferenceLine(planning_init_point, obstacle_list, &reference_line_info);
+    auto status = PlanOnReferenceLine(planning_init_point, obstacle_list,
+                                      &reference_line_info);
 
     if (status) {
       success_line_count++;
@@ -106,42 +105,39 @@ bool LatticePlanner::Plan(const Pose& planning_init_point,
   return false;
 }
 
-bool LatticePlanner::PlanOnReferenceLine(const Pose& planning_init_point,
-          std::vector<Obstacle>& obstacle_list,
-          ReferenceLineInfo* reference_line_info) {
-  static size_t num_planning_cycles = 0;
+bool LatticePlanner::PlanOnReferenceLine(
+    const Pose& planning_init_point, std::vector<Obstacle>& obstacle_list,
+    ReferenceLineInfo* reference_line_info) {
+  static size_t num_planning_cycles           = 0;
   static size_t num_planning_succeeded_cycles = 0;
 
   ++num_planning_cycles;
 
   reference_line_info->set_is_on_reference_line();
   // 1. obtain a reference line and transform it to the Pose format.
-  auto ptr_reference_line =
-      std::make_shared<std::vector<Pose>>(ToDiscretizedReferenceLine(
-          reference_line_info->reference_line()));
+  auto ptr_reference_line = std::make_shared<std::vector<Pose>>(
+      ToDiscretizedReferenceLine(reference_line_info->reference_line()));
 
   // 2. compute the matched point of the init planning point on the reference
   // line.
   Pose matched_point = PathMatcher::MatchToPath(
-      *ptr_reference_line, planning_init_point.x,
-      planning_init_point.y);
+      *ptr_reference_line, planning_init_point.x, planning_init_point.y);
 
   // 3. according to the matched point, compute the init state in Frenet frame.
   std::array<double, 3> init_s;
   std::array<double, 3> init_d;
   ComputeInitFrenetState(matched_point, planning_init_point, &init_s, &init_d);
 
-  auto ptr_prediction_querier = std::make_shared<PredictionQuerier>(
-      obstacle_list, ptr_reference_line);
+  auto ptr_prediction_querier =
+      std::make_shared<PredictionQuerier>(obstacle_list, ptr_reference_line);
 
   // 4. parse the decision and get the planning target.
   auto ptr_path_time_graph = std::make_shared<PathTimeGraph>(
-      obstacle_list, *ptr_reference_line,
-      init_s[0], init_s[0] + FLAGS_speed_lon_decision_horizon, 
-      0.0, FLAGS_trajectory_time_length);
+      obstacle_list, *ptr_reference_line, init_s[0],
+      init_s[0] + FLAGS_speed_lon_decision_horizon, 0.0,
+      FLAGS_trajectory_time_length);
 
-  double speed_limit =
-      reference_line_info->GetSpeedLimitFromS(init_s[0]);
+  double speed_limit = reference_line_info->GetSpeedLimitFromS(init_s[0]);
   reference_line_info->SetLatticeCruiseSpeed(speed_limit);
 
   PlanningTarget planning_target = reference_line_info->planning_target();
@@ -162,24 +158,24 @@ bool LatticePlanner::PlanOnReferenceLine(const Pose& planning_init_point,
       init_s, planning_target, lon_trajectory1d_bundle, lat_trajectory1d_bundle,
       ptr_path_time_graph, ptr_reference_line);
 
-
   // Get instance of collision checker and constraint checker
   // CollisionChecker collision_checker(obstacles, init_s[0], init_d[0],
-  //                                    *ptr_reference_line, reference_line_info,
+  //                                    *ptr_reference_line,
+  //                                    reference_line_info,
   //                                    ptr_path_time_graph);
 
   // 7. always get the best pair of trajectories to combine; return the first
   // collision-free trajectory.
-  size_t constraint_failure_count = 0;
-  size_t collision_failure_count = 0;
+  size_t constraint_failure_count          = 0;
+  size_t collision_failure_count           = 0;
   size_t combined_constraint_failure_count = 0;
 
-  size_t lon_vel_failure_count = 0;
-  size_t lon_acc_failure_count = 0;
-  size_t lon_jerk_failure_count = 0;
+  size_t lon_vel_failure_count   = 0;
+  size_t lon_acc_failure_count   = 0;
+  size_t lon_jerk_failure_count  = 0;
   size_t curvature_failure_count = 0;
-  size_t lat_acc_failure_count = 0;
-  size_t lat_jerk_failure_count = 0;
+  size_t lat_acc_failure_count   = 0;
+  size_t lat_jerk_failure_count  = 0;
 
   size_t num_lattice_traj = 0;
 
@@ -189,8 +185,9 @@ bool LatticePlanner::PlanOnReferenceLine(const Pose& planning_init_point,
     auto trajectory_pair = trajectory_evaluator.next_top_trajectory_pair();
 
     // combine two 1d trajectories to one 2d trajectory
-    auto combined_trajectory = TrajectoryCombiner::Combine(
-        *ptr_reference_line, *trajectory_pair.first, *trajectory_pair.second, 0);
+    auto combined_trajectory =
+        TrajectoryCombiner::Combine(*ptr_reference_line, *trajectory_pair.first,
+                                    *trajectory_pair.second, 0);
 
     // check longitudinal and lateral acceleration
     auto result = ConstraintChecker::ValidTrajectory(combined_trajectory);
@@ -242,8 +239,11 @@ bool LatticePlanner::PlanOnReferenceLine(const Pose& planning_init_point,
     num_planning_succeeded_cycles += 1;
     reference_line_info->SetDrivable(true);
     return true;
-  } 
-  
+  } else {
+    std::cout << "lattice planner failed " << std::endl;
+    return false;
+  }
+
   // don't consider backup_trajectory for now
   // else {
   //   if (FLAGS_enable_backup_trajectory) {

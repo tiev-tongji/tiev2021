@@ -48,18 +48,20 @@
 namespace TiEV {
 
 class PlanningTarget {
-public:
-  bool has_stop_point() const;
-  Pose stop_point() const;
-  double cruise_speed() const; 
-  void set_cruise_speed(double speed); 
+ public:
+  bool has_stop_point() const {
+    std::cout << "has_stop_point not implemented " << std::endl;
+    return false;
+  }
+  Pose   stop_point() const { return stop_point_; }
+  double cruise_speed() const { return cruise_speed_; }
+  void   set_cruise_speed(double speed) { cruise_speed_ = speed; }
 
-private:
+ private:
   double cruise_speed_;
-  Pose stop_point_;
-  bool has_stop_point_;
+  Pose   stop_point_;
+  bool   has_stop_point_;
 };
-
 
 /**
  * @class ReferenceLineInfo
@@ -70,44 +72,42 @@ class ReferenceLineInfo {
   enum class LaneType { LeftForward, LeftReverse, RightForward, RightReverse };
   ReferenceLineInfo() = default;
   ReferenceLineInfo(std::vector<HDMapPoint> reference_line);
-  
+
+  double GetSpeedLimitFromS(double s);
+
   void set_is_on_reference_line() { is_on_reference_line_ = true; }
-  const std::vector<HDMapPoint>& reference_line() const {return reference_line_;};
+
+  const std::vector<HDMapPoint>& reference_line() const {
+    return reference_line_;
+  };
 
   // For lattice planner'speed planning target
-  void SetLatticeCruiseSpeed(double speed);
+  void SetLatticeCruiseSpeed(double speed) {
+    planning_target_.set_cruise_speed(speed);
+  };
 
-  double Cost() const { return cost_; }
-  void AddCost(double cost) { cost_ += cost; }
-  void SetCost(double cost) { cost_ = cost; }
-  double PriorityCost() const { return priority_cost_; }
-  void SetPriorityCost(double cost) { priority_cost_ = cost; }
+  double                Cost() const { return cost_; }
+  void                  AddCost(double cost) { cost_ += cost; }
+  void                  SetCost(double cost) { cost_ = cost; }
+  double                PriorityCost() const { return priority_cost_; }
+  void                  SetPriorityCost(double cost) { priority_cost_ = cost; }
   const PlanningTarget& planning_target() { return planning_target_; }
 
-  void SetCruiseSpeed(double speed) { cruise_speed_ = speed; }
-  double GetCruiseSpeed() const;
+  void   SetCruiseSpeed(double speed) { cruise_speed_ = speed; }
+  double GetCruiseSpeed() const { return cruise_speed_; };
 
-  bool IsChangeLanePath() const;
-
-  void SetDrivable(bool drivable);
-  bool IsDrivable() const;
-
-  double GetSpeedLimitFromS(double s) {
-    std::cout << "GetSpeedLimitFromS not implemented " << std::endl;
-    return 0;
-  }
+  void SetDrivable(bool drivable) { is_drivable_ = drivable; };
+  bool IsDrivable() const { return is_drivable_; };
 
   void SetTrajectory(const std::vector<Pose>& trajectory) {
     discretized_trajectory_ = trajectory;
   }
-  std::vector<Pose>& trajectory() {
-    return discretized_trajectory_;
-  }
+  std::vector<Pose>& trajectory() { return discretized_trajectory_; }
 
  private:
   std::vector<HDMapPoint> reference_line_;
-  std::vector<Pose> discretized_trajectory_;
-  double cost_ = 0.0;
+  std::vector<Pose>       discretized_trajectory_;
+  double                  cost_ = 0.0;
 
   bool is_drivable_ = true;
 
@@ -123,6 +123,5 @@ class ReferenceLineInfo {
 
   double cruise_speed_ = 0.0;
 };
-
 
 }  // namespace TiEV

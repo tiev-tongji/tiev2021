@@ -19,7 +19,6 @@
  * @file
  **/
 
-
 #include <memory>
 #include <string>
 #include <vector>
@@ -29,16 +28,15 @@
 #include "reference_line_info.h"
 // #include "modules/planning/planner/planner.h"
 // #include "modules/planning/proto/planning_config.pb.h"
+#include "path_time_graph.h"
 #include "pose.h"
 #include "tiev_class.h"
-#include "path_time_graph.h"
 
 namespace TiEV {
 
-
 class LatticePlanner {
  public:
-  LatticePlanner() = delete;
+  LatticePlanner() = default;
 
   ~LatticePlanner() = default;
 
@@ -48,8 +46,8 @@ class LatticePlanner {
    * @param frame Current planning frame.
    * @return true if planning succeeds; false otherwise.
    */
-  bool Plan(const Pose& planning_init_point,
-            const std::vector<DynamicObj>& dynamic_obj_list, 
+  bool Plan(const Pose&                                 planning_init_point,
+            const std::vector<DynamicObj>&              dynamic_obj_list,
             const std::vector<std::vector<HDMapPoint>>& reference_line_list);
 
   /**
@@ -59,10 +57,9 @@ class LatticePlanner {
    * @param reference_line_info The computed reference line.
    * @return OK if planning succeeds; error otherwise.
    */
-  bool PlanOnReferenceLine(const Pose& planning_init_point,
-            std::vector<Obstacle>& obstacle_list,
-            ReferenceLineInfo* reference_line_info);
+  bool PlanOnReferenceLine(const Pose&            planning_init_point,
+                           std::vector<Obstacle>& obstacle_list,
+                           ReferenceLineInfo*     reference_line_info);
 };
-
 
 }  // namespace TiEV

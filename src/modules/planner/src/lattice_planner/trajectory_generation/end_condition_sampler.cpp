@@ -25,21 +25,19 @@
 // #include "cyber/common/log.h"
 // #include "modules/planning/common/planning_gflags.h"
 
-#define FLAGS_trajectory_time_length 10
+#define FLAGS_trajectory_time_length   10
 #define FLAGS_polynomial_minimal_param 10
-#define FLAGS_num_velocity_sample 10
-#define FLAGS_min_velocity_sample_gap 1
-
+#define FLAGS_num_velocity_sample      10
+#define FLAGS_min_velocity_sample_gap  1
 
 namespace TiEV {
 
-
-using State = std::array<double, 3>;
+using State     = std::array<double, 3>;
 using Condition = std::pair<State, double>;
 
 EndConditionSampler::EndConditionSampler(
     const State& init_s, const State& init_d,
-    std::shared_ptr<PathTimeGraph> ptr_path_time_graph,
+    std::shared_ptr<PathTimeGraph>     ptr_path_time_graph,
     std::shared_ptr<PredictionQuerier> ptr_prediction_querier)
     : init_s_(init_s),
       init_d_(init_d),
@@ -49,8 +47,8 @@ EndConditionSampler::EndConditionSampler(
 
 std::vector<Condition> EndConditionSampler::SampleLatEndConditions() const {
   std::vector<Condition> end_d_conditions;
-  std::array<double, 3> end_d_candidates = {0.0, -0.5, 0.5};
-  std::array<double, 4> end_s_candidates = {10.0, 20.0, 40.0, 80.0};
+  std::array<double, 3>  end_d_candidates = {0.0, -0.5, 0.5};
+  std::array<double, 4>  end_s_candidates = {10.0, 20.0, 40.0, 80.0};
 
   for (const auto& s : end_s_candidates) {
     for (const auto& d : end_d_candidates) {
@@ -66,7 +64,7 @@ std::vector<Condition> EndConditionSampler::SampleLonEndConditionsForCruising(
   // CHECK_GT(FLAGS_num_velocity_sample, 1U);
 
   // time interval is one second plus the last one 0.01
-  static constexpr size_t num_of_time_samples = 9;
+  static constexpr size_t                 num_of_time_samples = 9;
   std::array<double, num_of_time_samples> time_samples;
   for (size_t i = 1; i < num_of_time_samples; ++i) {
     auto ratio =
@@ -80,8 +78,8 @@ std::vector<Condition> EndConditionSampler::SampleLonEndConditionsForCruising(
     std::cout << "V_upper, V_lower not implemented " << std::endl;
     double v_upper = 50;
     double v_lower = 0;
-    // double v_upper = std::min(feasible_region_.VUpper(time), ref_cruise_speed);
-    // double v_lower = feasible_region_.VLower(time);
+    // double v_upper = std::min(feasible_region_.VUpper(time),
+    // ref_cruise_speed); double v_lower = feasible_region_.VLower(time);
 
     State lower_end_s = {0.0, v_lower, 0.0};
     end_s_conditions.emplace_back(lower_end_s, time);
@@ -111,7 +109,7 @@ std::vector<Condition> EndConditionSampler::SampleLonEndConditionsForCruising(
 std::vector<Condition> EndConditionSampler::SampleLonEndConditionsForStopping(
     const double ref_stop_point) const {
   // time interval is one second plus the last one 0.01
-  static constexpr size_t num_of_time_samples = 9;
+  static constexpr size_t                 num_of_time_samples = 9;
   std::array<double, num_of_time_samples> time_samples;
   for (size_t i = 1; i < num_of_time_samples; ++i) {
     auto ratio =
@@ -132,15 +130,17 @@ std::vector<Condition> EndConditionSampler::SampleLonEndConditionsForStopping(
 // EndConditionSampler::SampleLonEndConditionsForPathTimePoints() const {
 //   std::vector<Condition> end_s_conditions;
 
-//   std::vector<SamplePoint> sample_points = QueryPathTimeObstacleSamplePoints();
-//   for (const SamplePoint& sample_point : sample_points) {
+//   std::vector<SamplePoint> sample_points =
+//   QueryPathTimeObstacleSamplePoints(); for (const SamplePoint& sample_point :
+//   sample_points) {
 //     if (sample_point.path_time_point.t() < FLAGS_polynomial_minimal_param) {
 //       continue;
 //     }
 //     double s = sample_point.path_time_point.s();
 //     double v = sample_point.ref_v;
 //     double t = sample_point.path_time_point.t();
-//     // if (s > feasible_region_.SUpper(t) || s < feasible_region_.SLower(t)) {
+//     // if (s > feasible_region_.SUpper(t) || s < feasible_region_.SLower(t))
+//     {
 //     //   continue;
 //     // }
 //     State end_state = {s, v, 0.0};
@@ -164,8 +164,8 @@ std::vector<Condition> EndConditionSampler::SampleLonEndConditionsForStopping(
 // }
 
 // void EndConditionSampler::QueryFollowPathTimePoints(
-//     const common::VehicleConfig& vehicle_config, const std::string& obstacle_id,
-//     std::vector<SamplePoint>* const sample_points) const {
+//     const common::VehicleConfig& vehicle_config, const std::string&
+//     obstacle_id, std::vector<SamplePoint>* const sample_points) const {
 //   std::vector<STPoint> follow_path_time_points =
 //       ptr_path_time_graph_->GetObstacleSurroundingPoints(
 //           obstacle_id, -FLAGS_numerical_epsilon, FLAGS_time_min_density);
@@ -193,8 +193,8 @@ std::vector<Condition> EndConditionSampler::SampleLonEndConditionsForStopping(
 // }
 
 // void EndConditionSampler::QueryOvertakePathTimePoints(
-//     const common::VehicleConfig& vehicle_config, const std::string& obstacle_id,
-//     std::vector<SamplePoint>* sample_points) const {
+//     const common::VehicleConfig& vehicle_config, const std::string&
+//     obstacle_id, std::vector<SamplePoint>* sample_points) const {
 //   std::vector<STPoint> overtake_path_time_points =
 //       ptr_path_time_graph_->GetObstacleSurroundingPoints(
 //           obstacle_id, FLAGS_numerical_epsilon, FLAGS_time_min_density);
@@ -210,6 +210,5 @@ std::vector<Condition> EndConditionSampler::SampleLonEndConditionsForStopping(
 //     sample_points->push_back(std::move(sample_point));
 //   }
 // }
-
 
 }  // namespace TiEV

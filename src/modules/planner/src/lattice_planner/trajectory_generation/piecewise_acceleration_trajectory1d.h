@@ -28,7 +28,6 @@
 
 namespace TiEV {
 
-
 class PiecewiseAccelerationTrajectory1d : public Curve1d {
  public:
   PiecewiseAccelerationTrajectory1d(const double start_s, const double start_v);
@@ -41,7 +40,7 @@ class PiecewiseAccelerationTrajectory1d : public Curve1d {
 
   double ParamLength() const override;
 
-  std::string ToString() const override;
+  std::string ToString() const { return "piecewise_acceleration"; };
 
   double Evaluate(const std::uint32_t order, const double param) const override;
 
@@ -67,6 +66,5 @@ class PiecewiseAccelerationTrajectory1d : public Curve1d {
 
   std::vector<double> a_;
 };
-
 
 }  // namespace TiEV

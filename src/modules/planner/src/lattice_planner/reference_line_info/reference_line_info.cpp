@@ -22,6 +22,8 @@
 
 #include <algorithm>
 
+#include "map_manager.h"
+
 #define FLAGS_default_cruise_speed 1.1
 
 // #include "absl/strings/str_cat.h"
@@ -36,91 +38,14 @@
 
 namespace TiEV {
 
-bool PlanningTarget::has_stop_point() const { return has_stop_point_; }
-Pose PlanningTarget::stop_point() const {return stop_point_;}
-double PlanningTarget::cruise_speed() const {return cruise_speed_;}
-void PlanningTarget::set_cruise_speed(double speed) {cruise_speed_ = speed;}
-
-
-ReferenceLineInfo::ReferenceLineInfo(std::vector<HDMapPoint> reference_line) {
+ReferenceLineInfo::ReferenceLineInfo(std::vector<HDMapPoint> reference_line)
+    : reference_line_(reference_line) {
   std::cout << "ReferenceLineInfo constructor not implemented " << std::endl;
 }
 
-void ReferenceLineInfo::SetLatticeCruiseSpeed(double speed) {
-  planning_target_.set_cruise_speed(speed);
+double ReferenceLineInfo::GetSpeedLimitFromS(double s) {
+  std::cout << "GetSpeedLimitFromS is not implemented " << std::endl;
+  return 20;
 }
-
-double ReferenceLineInfo::GetCruiseSpeed() const {
-  return cruise_speed_ > 0.0 ? cruise_speed_ : FLAGS_default_cruise_speed;
-}
-
-void ReferenceLineInfo::SetDrivable(bool drivable) { is_drivable_ = drivable; }
-
-bool ReferenceLineInfo::IsDrivable() const { return is_drivable_; }
-
-
-
-// bool ReferenceLineInfo::Init(const std::vector<const Obstacle*>& obstacles) {
-//   const auto& param = VehicleConfigHelper::GetConfig().vehicle_param();
-//   // stitching point
-//   const auto& path_point = adc_planning_point_.path_point();
-//   Vec2d position(path_point.x(), path_point.y());
-//   Vec2d vec_to_center(
-//       (param.front_edge_to_center() - param.back_edge_to_center()) / 2.0,
-//       (param.left_edge_to_center() - param.right_edge_to_center()) / 2.0);
-//   Vec2d center(position + vec_to_center.rotate(path_point.theta()));
-//   Box2d box(center, path_point.theta(), param.length(), param.width());
-//   // realtime vehicle position
-//   Vec2d vehicle_position(vehicle_state_.x(), vehicle_state_.y());
-//   Vec2d vehicle_center(vehicle_position +
-//                        vec_to_center.rotate(vehicle_state_.heading()));
-//   Box2d vehicle_box(vehicle_center, vehicle_state_.heading(), param.length(),
-//                     param.width());
-
-//   if (!reference_line_.GetSLBoundary(box, &adc_sl_boundary_)) {
-//     AERROR << "Failed to get ADC boundary from box: " << box.DebugString();
-//     return false;
-//   }
-
-//   InitFirstOverlaps();
-
-//   if (adc_sl_boundary_.end_s() < 0 ||
-//       adc_sl_boundary_.start_s() > reference_line_.Length()) {
-//     AWARN << "Vehicle SL " << adc_sl_boundary_.ShortDebugString()
-//           << " is not on reference line:[0, " << reference_line_.Length()
-//           << "]";
-//   }
-//   static constexpr double kOutOfReferenceLineL = 10.0;  // in meters
-//   if (adc_sl_boundary_.start_l() > kOutOfReferenceLineL ||
-//       adc_sl_boundary_.end_l() < -kOutOfReferenceLineL) {
-//     AERROR << "Ego vehicle is too far away from reference line.";
-//     return false;
-//   }
-//   is_on_reference_line_ = reference_line_.IsOnLane(adc_sl_boundary_);
-//   if (!AddObstacles(obstacles)) {
-//     AERROR << "Failed to add obstacles to reference line";
-//     return false;
-//   }
-
-//   const auto& map_path = reference_line_.map_path();
-//   for (const auto& speed_bump : map_path.speed_bump_overlaps()) {
-//     // -1 and + 1.0 are added to make sure it can be sampled.
-//     reference_line_.AddSpeedLimit(speed_bump.start_s - 1.0,
-//                                   speed_bump.end_s + 1.0,
-//                                   FLAGS_speed_bump_speed_limit);
-//   }
-
-//   SetCruiseSpeed(FLAGS_default_cruise_speed);
-
-//   // set lattice planning target speed limit;
-//   SetLatticeCruiseSpeed(FLAGS_default_cruise_speed);
-
-//   vehicle_signal_.Clear();
-
-//   return true;
-// }
-
-
-
 
 }  // namespace TiEV

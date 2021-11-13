@@ -27,7 +27,6 @@
 
 namespace TiEV {
 
-
 // 1D quartic polynomial curve: (x0, dx0, ddx0) -- [0, param] --> (dx1, ddx1)
 class QuarticPolynomialCurve1d : public PolynomialCurve1d {
  public:
@@ -35,7 +34,7 @@ class QuarticPolynomialCurve1d : public PolynomialCurve1d {
 
   QuarticPolynomialCurve1d(const std::array<double, 3>& start,
                            const std::array<double, 2>& end,
-                           const double param);
+                           const double                 param);
 
   QuarticPolynomialCurve1d(const double x0, const double dx0, const double ddx0,
                            const double dx1, const double ddx1,
@@ -95,10 +94,9 @@ class QuarticPolynomialCurve1d : public PolynomialCurve1d {
                            const double dx1, const double ddx1,
                            const double param);
 
-  std::array<double, 5> coef_ = {{0.0, 0.0, 0.0, 0.0, 0.0}};
+  std::array<double, 5> coef_            = {{0.0, 0.0, 0.0, 0.0, 0.0}};
   std::array<double, 3> start_condition_ = {{0.0, 0.0, 0.0}};
-  std::array<double, 2> end_condition_ = {{0.0, 0.0}};
+  std::array<double, 2> end_condition_   = {{0.0, 0.0}};
 };
-
 
 }  // namespace TiEV

@@ -27,7 +27,6 @@
 
 namespace TiEV {
 
-
 QuinticPolynomialCurve1d::QuinticPolynomialCurve1d(
     const std::array<double, 3>& start, const std::array<double, 3>& end,
     const double param)
@@ -41,20 +40,20 @@ QuinticPolynomialCurve1d::QuinticPolynomialCurve1d(
   start_condition_[0] = x0;
   start_condition_[1] = dx0;
   start_condition_[2] = ddx0;
-  end_condition_[0] = x1;
-  end_condition_[1] = dx1;
-  end_condition_[2] = ddx1;
-  param_ = param;
+  end_condition_[0]   = x1;
+  end_condition_[1]   = dx1;
+  end_condition_[2]   = ddx1;
+  param_              = param;
 }
 
 QuinticPolynomialCurve1d::QuinticPolynomialCurve1d(
     const QuinticPolynomialCurve1d& other) {
   param_ = other.param_;
-  coef_ = other.coef_;
+  coef_  = other.coef_;
 }
 
 double QuinticPolynomialCurve1d::Evaluate(const uint32_t order,
-                                          const double p) const {
+                                          const double   p) const {
   switch (order) {
     case 0: {
       return ((((coef_[5] * p + coef_[4]) * p + coef_[3]) * p + coef_[2]) * p +
@@ -98,7 +97,7 @@ void QuinticPolynomialCurve1d::SetParam(const double x0, const double dx0,
 void QuinticPolynomialCurve1d::IntegratedFromQuarticCurve(
     const PolynomialCurve1d& other, const double init_value) {
   // CHECK_EQ(other.Order(), 4U);
-  param_ = other.ParamLength();
+  param_   = other.ParamLength();
   coef_[0] = init_value;
   for (size_t i = 0; i < 5; ++i) {
     coef_[i + 1] = other.Coef(i) / (static_cast<double>(i) + 1);
@@ -128,9 +127,7 @@ void QuinticPolynomialCurve1d::ComputeCoefficients(
   coef_[5] = (6.0 * c0 - 3.0 * c1 + 0.5 * c2) / p2;
 }
 
-// std::string QuinticPolynomialCurve1d::ToString() const {
-//   return absl::StrCat(absl::StrJoin(coef_, "\t"), param_, "\n");
-// }
+std::string QuinticPolynomialCurve1d::ToString() const { return "quntic"; }
 
 double QuinticPolynomialCurve1d::Coef(const size_t order) const {
   // CHECK_GT(6U, order);

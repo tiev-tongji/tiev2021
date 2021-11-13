@@ -26,43 +26,43 @@
 // #include "cyber/common/log.h"
 #include "path_matcher.h"
 // #include "planning_gflags.h"
-#include "piecewise_acceleration_trajectory1d.h"
 #include "constraint_checker1d.h"
+#include "piecewise_acceleration_trajectory1d.h"
 #include "piecewise_braking_trajectory_generator.h"
 
-#define FLAGS_weight_lon_objective 1
-#define FLAGS_weight_lon_jerk 1
-#define FLAGS_weight_lon_collision 1
-#define FLAGS_weight_centripetal_acceleration 1
-#define FLAGS_weight_lat_offset 1
-#define FLAGS_weight_lat_comfort 1
-#define FLAGS_trajectory_time_length 1
-#define FLAGS_trajectory_time_resolution 1.1
-#define FLAGS_speed_lon_decision_horizon 1.1
-#define FLAGS_weight_target_speed 1
-#define FLAGS_weight_dist_travelled 1
-#define FLAGS_lattice_stop_buffer 1
-#define FLAGS_trajectory_space_resolution 1
-#define FLAGS_lat_offset_bound 1
-#define FLAGS_weight_opposite_side_offset 1
-#define FLAGS_weight_opposite_side_offset 1
-#define FLAGS_weight_same_side_offset 1
-#define FLAGS_weight_same_side_offset 1
-#define FLAGS_numerical_epsilon 1
-#define FLAGS_lon_collision_yield_buffer 1
-#define FLAGS_lon_collision_yield_buffer 1
-#define FLAGS_lon_collision_overtake_buffer 1
-#define FLAGS_lon_collision_overtake_buffer 1
+#define FLAGS_weight_lon_objective                  1
+#define FLAGS_weight_lon_jerk                       1
+#define FLAGS_weight_lon_collision                  1
+#define FLAGS_weight_centripetal_acceleration       1
+#define FLAGS_weight_lat_offset                     1
+#define FLAGS_weight_lat_comfort                    1
+#define FLAGS_trajectory_time_length                1
+#define FLAGS_trajectory_time_resolution            1.1
+#define FLAGS_speed_lon_decision_horizon            1.1
+#define FLAGS_weight_target_speed                   1
+#define FLAGS_weight_dist_travelled                 1
+#define FLAGS_lattice_stop_buffer                   1
+#define FLAGS_trajectory_space_resolution           1
+#define FLAGS_lat_offset_bound                      1
+#define FLAGS_weight_opposite_side_offset           1
+#define FLAGS_weight_opposite_side_offset           1
+#define FLAGS_weight_same_side_offset               1
+#define FLAGS_weight_same_side_offset               1
+#define FLAGS_numerical_epsilon                     1
+#define FLAGS_lon_collision_yield_buffer            1
+#define FLAGS_lon_collision_yield_buffer            1
+#define FLAGS_lon_collision_overtake_buffer         1
+#define FLAGS_lon_collision_overtake_buffer         1
 #define FLAGS_longitudinal_acceleration_upper_bound 1
-#define FLAGS_comfort_acceleration_factor 1
+#define FLAGS_comfort_acceleration_factor           1
 #define FLAGS_longitudinal_acceleration_lower_bound 1
-#define FLAGS_comfort_acceleration_factor 1
-#define FLAGS_longitudinal_jerk_upper_bound 1.1
-#define FLAGS_lon_collision_cost_std 1.1
+#define FLAGS_comfort_acceleration_factor           1
+#define FLAGS_longitudinal_jerk_upper_bound         1.1
+#define FLAGS_lon_collision_cost_std                1.1
 
 namespace TiEV {
 
-using Trajectory1d = Curve1d;
+using Trajectory1d    = Curve1d;
 using PtrTrajectory1d = std::shared_ptr<Trajectory1d>;
 using Trajectory1dPair =
     std::pair<std::shared_ptr<Curve1d>, std::shared_ptr<Curve1d>>;
@@ -71,14 +71,14 @@ TrajectoryEvaluator::TrajectoryEvaluator(
     const std::array<double, 3>& init_s, const PlanningTarget& planning_target,
     const std::vector<PtrTrajectory1d>& lon_trajectories,
     const std::vector<PtrTrajectory1d>& lat_trajectories,
-    std::shared_ptr<PathTimeGraph> path_time_graph,
-    std::shared_ptr<std::vector<Pose>> reference_line)
+    std::shared_ptr<PathTimeGraph>      path_time_graph,
+    std::shared_ptr<std::vector<Pose>>  reference_line)
     : path_time_graph_(path_time_graph),
       reference_line_(reference_line),
       init_s_(init_s) {
   const double start_time = 0.0;
-  const double end_time = FLAGS_trajectory_time_length;
-  path_time_intervals_ = path_time_graph_->GetPathBlockingIntervals(
+  const double end_time   = FLAGS_trajectory_time_length;
+  path_time_intervals_    = path_time_graph_->GetPathBlockingIntervals(
       start_time, end_time, FLAGS_trajectory_time_resolution);
 
   reference_s_dot_ = ComputeLongitudinalGuideVelocity(planning_target);
@@ -91,14 +91,15 @@ TrajectoryEvaluator::TrajectoryEvaluator(
   }
   for (const auto& lon_trajectory : lon_trajectories) {
     double lon_end_s = lon_trajectory->Evaluate(0, end_time);
-    if (init_s[0] < stop_point &&
-        lon_end_s + FLAGS_lattice_stop_buffer > stop_point) {
-      continue;
-    }
+    // if (init_s[0] < stop_point &&
+    //     lon_end_s + FLAGS_lattice_stop_buffer > stop_point) {
+    //   continue;
+    // }
 
-    if (!ConstraintChecker1d::IsValidLongitudinalTrajectory(*lon_trajectory)) {
-      continue;
-    }
+    // if (!ConstraintChecker1d::IsValidLongitudinalTrajectory(*lon_trajectory))
+    // {
+    //   continue;
+    // }
     for (const auto& lat_trajectory : lat_trajectories) {
       /**
        * The validity of the code needs to be verified.
@@ -135,10 +136,10 @@ double TrajectoryEvaluator::top_trajectory_pair_cost() const {
 }
 
 double TrajectoryEvaluator::Evaluate(
-    const PlanningTarget& planning_target,
+    const PlanningTarget&  planning_target,
     const PtrTrajectory1d& lon_trajectory,
     const PtrTrajectory1d& lat_trajectory,
-    std::vector<double>* cost_components) const {
+    std::vector<double>*   cost_components) const {
   // Costs:
   // 1. Cost of missing the objective, e.g., cruise, stop, etc.
   // 2. Cost of longitudinal jerk
@@ -187,14 +188,14 @@ double TrajectoryEvaluator::Evaluate(
 }
 
 double TrajectoryEvaluator::LatOffsetCost(
-    const PtrTrajectory1d& lat_trajectory,
+    const PtrTrajectory1d&     lat_trajectory,
     const std::vector<double>& s_values) const {
   double lat_offset_start = lat_trajectory->Evaluate(0, 0.0);
-  double cost_sqr_sum = 0.0;
-  double cost_abs_sum = 0.0;
+  double cost_sqr_sum     = 0.0;
+  double cost_abs_sum     = 0.0;
   for (const auto& s : s_values) {
     double lat_offset = lat_trajectory->Evaluate(0, s);
-    double cost = lat_offset / FLAGS_lat_offset_bound;
+    double cost       = lat_offset / FLAGS_lat_offset_bound;
     if (lat_offset * lat_offset_start < 0.0) {
       cost_sqr_sum += cost * cost * FLAGS_weight_opposite_side_offset;
       cost_abs_sum += std::fabs(cost) * FLAGS_weight_opposite_side_offset;
@@ -212,15 +213,15 @@ double TrajectoryEvaluator::LatComfortCost(
   double max_cost = 0.0;
   for (double t = 0.0; t < FLAGS_trajectory_time_length;
        t += FLAGS_trajectory_time_resolution) {
-    double s = lon_trajectory->Evaluate(0, t);
-    double s_dot = lon_trajectory->Evaluate(1, t);
+    double s        = lon_trajectory->Evaluate(0, t);
+    double s_dot    = lon_trajectory->Evaluate(1, t);
     double s_dotdot = lon_trajectory->Evaluate(2, t);
 
-    double relative_s = s - init_s_[0];
-    double l_prime = lat_trajectory->Evaluate(1, relative_s);
+    double relative_s   = s - init_s_[0];
+    double l_prime      = lat_trajectory->Evaluate(1, relative_s);
     double l_primeprime = lat_trajectory->Evaluate(2, relative_s);
-    double cost = l_primeprime * s_dot * s_dot + l_prime * s_dotdot;
-    max_cost = std::max(max_cost, std::fabs(cost));
+    double cost         = l_primeprime * s_dot * s_dot + l_prime * s_dotdot;
+    max_cost            = std::max(max_cost, std::fabs(cost));
   }
   return max_cost;
 }
@@ -240,17 +241,17 @@ double TrajectoryEvaluator::LonComfortCost(
 }
 
 double TrajectoryEvaluator::LonObjectiveCost(
-    const PtrTrajectory1d& lon_trajectory,
-    const PlanningTarget& planning_target,
+    const PtrTrajectory1d&     lon_trajectory,
+    const PlanningTarget&      planning_target,
     const std::vector<double>& ref_s_dots) const {
   double t_max = lon_trajectory->ParamLength();
   double dist_s =
       lon_trajectory->Evaluate(0, t_max) - lon_trajectory->Evaluate(0, 0.0);
 
-  double speed_cost_sqr_sum = 0.0;
+  double speed_cost_sqr_sum    = 0.0;
   double speed_cost_weight_sum = 0.0;
   for (size_t i = 0; i < ref_s_dots.size(); ++i) {
-    double t = static_cast<double>(i) * FLAGS_trajectory_time_resolution;
+    double t    = static_cast<double>(i) * FLAGS_trajectory_time_resolution;
     double cost = ref_s_dots[i] - lon_trajectory->Evaluate(1, t);
     speed_cost_sqr_sum += t * t * std::fabs(cost);
     speed_cost_weight_sum += t * t;
@@ -274,9 +275,9 @@ double TrajectoryEvaluator::LonCollisionCost(
     if (pt_interval.empty()) {
       continue;
     }
-    double t = static_cast<double>(i) * FLAGS_trajectory_time_resolution;
+    double t      = static_cast<double>(i) * FLAGS_trajectory_time_resolution;
     double traj_s = lon_trajectory->Evaluate(0, t);
-    double sigma = FLAGS_lon_collision_cost_std;
+    double sigma  = FLAGS_lon_collision_cost_std;
     for (const auto& m : pt_interval) {
       double dist = 0.0;
       if (traj_s < m.first - FLAGS_lon_collision_yield_buffer) {
@@ -296,13 +297,13 @@ double TrajectoryEvaluator::LonCollisionCost(
 double TrajectoryEvaluator::CentripetalAccelerationCost(
     const PtrTrajectory1d& lon_trajectory) const {
   // Assumes the vehicle is not obviously deviate from the reference line.
-  double centripetal_acc_sum = 0.0;
+  double centripetal_acc_sum     = 0.0;
   double centripetal_acc_sqr_sum = 0.0;
   for (double t = 0.0; t < FLAGS_trajectory_time_length;
        t += FLAGS_trajectory_time_resolution) {
-    double s = lon_trajectory->Evaluate(0, t);
-    double v = lon_trajectory->Evaluate(1, t);
-    Pose ref_point = PathMatcher::MatchToPath(*reference_line_, s);
+    double s         = lon_trajectory->Evaluate(0, t);
+    double v         = lon_trajectory->Evaluate(1, t);
+    Pose   ref_point = PathMatcher::MatchToPath(*reference_line_, s);
     // ACHECK(ref_point.has_kappa());
     double centripetal_acc = v * v * ref_point.k;
     centripetal_acc_sum += std::fabs(centripetal_acc);
@@ -362,7 +363,8 @@ std::vector<double> TrajectoryEvaluator::ComputeLongitudinalGuideVelocity(
 }
 
 // bool TrajectoryEvaluator::InterpolateDenseStPoints(
-//     const std::vector<SpeedPoint>& st_points, double t, double* traj_s) const {
+//     const std::vector<SpeedPoint>& st_points, double t, double* traj_s) const
+//     {
 //   CHECK_GT(st_points.size(), 1U);
 //   if (t < st_points[0].t() || t > st_points[st_points.size() - 1].t()) {
 //     AERROR << "AutoTuning InterpolateDenseStPoints Error";
@@ -376,6 +378,5 @@ std::vector<double> TrajectoryEvaluator::ComputeLongitudinalGuideVelocity(
 //   }
 //   return false;
 // }
-
 
 }  // namespace TiEV

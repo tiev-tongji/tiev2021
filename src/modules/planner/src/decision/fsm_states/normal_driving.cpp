@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "lattice_planner.h"
 #include "map_manager.h"
 #include "tiev_fsm.h"
 #include "tievlog.h"
@@ -16,6 +17,13 @@ void NormalDriving::update(FullControl& control) {
   // remove the dynamic object
   map_manager->updatePlanningMap(MapManager::DynamicBlockType::NO_BLOCK);
   const auto map = map_manager->getMap();
+
+  LatticePlanner                       lp;
+  std::vector<std::vector<HDMapPoint>> ref_path_list;
+  ref_path_list.push_back(map.ref_path);
+  lp.Plan(map.nav_info.car_pose, map.dynamic_obj_list.dynamic_obj_list,
+          ref_path_list);
+  return;
 
   bool       back_ward  = map.nav_info.current_speed < 3 ? true : false;
   const auto start_path = map_manager->getStartMaintainedPath();

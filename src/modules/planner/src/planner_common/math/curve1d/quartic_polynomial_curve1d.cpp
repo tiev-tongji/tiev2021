@@ -27,7 +27,6 @@
 
 namespace TiEV {
 
-
 QuarticPolynomialCurve1d::QuarticPolynomialCurve1d(
     const std::array<double, 3>& start, const std::array<double, 2>& end,
     const double param)
@@ -37,23 +36,23 @@ QuarticPolynomialCurve1d::QuarticPolynomialCurve1d(
 QuarticPolynomialCurve1d::QuarticPolynomialCurve1d(
     const double x0, const double dx0, const double ddx0, const double dx1,
     const double ddx1, const double param) {
-  param_ = param;
+  param_              = param;
   start_condition_[0] = x0;
   start_condition_[1] = dx0;
   start_condition_[2] = ddx0;
-  end_condition_[0] = dx1;
-  end_condition_[1] = ddx1;
+  end_condition_[0]   = dx1;
+  end_condition_[1]   = ddx1;
   ComputeCoefficients(x0, dx0, ddx0, dx1, ddx1, param);
 }
 
 QuarticPolynomialCurve1d::QuarticPolynomialCurve1d(
     const QuarticPolynomialCurve1d& other) {
   param_ = other.param_;
-  coef_ = other.coef_;
+  coef_  = other.coef_;
 }
 
 double QuarticPolynomialCurve1d::Evaluate(const std::uint32_t order,
-                                          const double p) const {
+                                          const double        p) const {
   switch (order) {
     case 0: {
       return (((coef_[4] * p + coef_[3]) * p + coef_[2]) * p + coef_[1]) * p +
@@ -132,7 +131,7 @@ QuarticPolynomialCurve1d& QuarticPolynomialCurve1d::FitWithEndPointSecondOrder(
 QuarticPolynomialCurve1d& QuarticPolynomialCurve1d::IntegratedFromCubicCurve(
     const PolynomialCurve1d& other, const double init_value) {
   // CHECK_EQ(other.Order(), 3U);
-  param_ = other.ParamLength();
+  param_   = other.ParamLength();
   coef_[0] = init_value;
   for (size_t i = 0; i < 4; ++i) {
     coef_[i + 1] = other.Coef(i) / (static_cast<double>(i) + 1);
@@ -169,14 +168,11 @@ void QuarticPolynomialCurve1d::ComputeCoefficients(
   coef_[4] = (-2 * b0 + b1 * p) / (4 * p3);
 }
 
-// std::string QuarticPolynomialCurve1d::ToString() const {
-//   return absl::StrCat(absl::StrJoin(coef_, "\t"), param_, "\n");
-// }
+std::string QuarticPolynomialCurve1d::ToString() const { return "quartic"; }
 
 double QuarticPolynomialCurve1d::Coef(const size_t order) const {
   // CHECK_GT(5U, order);
   return coef_[order];
 }
-
 
 }  // namespace TiEV
