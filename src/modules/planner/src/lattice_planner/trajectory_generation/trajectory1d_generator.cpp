@@ -39,12 +39,13 @@ typedef std::vector<std::shared_ptr<Curve1d>> Trajectory1DBundle;
 Trajectory1dGenerator::Trajectory1dGenerator(
     const State& lon_init_state, const State& lat_init_state,
     std::shared_ptr<PathTimeGraph>     ptr_path_time_graph,
-    std::shared_ptr<PredictionQuerier> ptr_prediction_querier)
+    std::shared_ptr<std::vector<Pose>> ptr_reference_line)
     : init_lon_state_(lon_init_state),
       init_lat_state_(lat_init_state),
       end_condition_sampler_(lon_init_state, lat_init_state,
-                             ptr_path_time_graph, ptr_prediction_querier),
-      ptr_path_time_graph_(ptr_path_time_graph) {}
+                             ptr_path_time_graph),
+      ptr_path_time_graph_(ptr_path_time_graph),
+      ptr_reference_line_(ptr_reference_line) {}
 
 void Trajectory1dGenerator::GenerateTrajectoryBundles(
     const PlanningTarget& planning_target,
@@ -91,15 +92,16 @@ void Trajectory1dGenerator::GenerateSpeedProfilesForPathTimeObstacles(
   std::cout << "GenerateSpeedProfilesForPathTimeObstacles not implemented "
             << std::endl;
   return;
-  // auto end_conditions =
-  //     end_condition_sampler_.SampleLonEndConditionsForPathTimePoints();
-  // if (end_conditions.empty()) {
-  //   return;
-  // }
+  auto end_conditions =
+      end_condition_sampler_.SampleLonEndConditionsForPathTimePoints(
+          *ptr_reference_line_);
+  if (end_conditions.empty()) {
+    return;
+  }
 
   // Use the common function to generate trajectory bundles.
-  // GenerateTrajectory1DBundle<5>(init_lon_state_, end_conditions,
-  //                               ptr_lon_trajectory_bundle);
+  GenerateTrajectory1DBundle<5>(init_lon_state_, end_conditions,
+                                ptr_lon_trajectory_bundle);
 }
 
 void Trajectory1dGenerator::GenerateLongitudinalTrajectoryBundle(
@@ -109,12 +111,12 @@ void Trajectory1dGenerator::GenerateLongitudinalTrajectoryBundle(
   GenerateSpeedProfilesForCruising(planning_target.cruise_speed(),
                                    ptr_lon_trajectory_bundle);
 
-  GenerateSpeedProfilesForPathTimeObstacles(ptr_lon_trajectory_bundle);
+  // GenerateSpeedProfilesForPathTimeObstacles(ptr_lon_trajectory_bundle);
 
-  if (planning_target.has_stop_point()) {
-    GenerateSpeedProfilesForStopping(planning_target.stop_point().s,
-                                     ptr_lon_trajectory_bundle);
-  }
+  // if (planning_target.has_stop_point()) {
+  //   GenerateSpeedProfilesForStopping(planning_target.stop_point().s,
+  //                                    ptr_lon_trajectory_bundle);
+  // }
 }
 
 void Trajectory1dGenerator::GenerateLateralTrajectoryBundle(

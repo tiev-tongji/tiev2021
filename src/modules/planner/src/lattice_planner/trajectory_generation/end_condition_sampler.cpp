@@ -22,13 +22,11 @@
 
 #include <algorithm>
 
+#include "lattice_planner_params.h"
+#include "path_matcher.h"
+
 // #include "cyber/common/log.h"
 // #include "modules/planning/common/planning_gflags.h"
-
-#define FLAGS_trajectory_time_length   10
-#define FLAGS_polynomial_minimal_param 10
-#define FLAGS_num_velocity_sample      10
-#define FLAGS_min_velocity_sample_gap  1
 
 namespace TiEV {
 
@@ -37,21 +35,16 @@ using Condition = std::pair<State, double>;
 
 EndConditionSampler::EndConditionSampler(
     const State& init_s, const State& init_d,
-    std::shared_ptr<PathTimeGraph>     ptr_path_time_graph,
-    std::shared_ptr<PredictionQuerier> ptr_prediction_querier)
+    std::shared_ptr<PathTimeGraph> ptr_path_time_graph)
     : init_s_(init_s),
       init_d_(init_d),
       // feasible_region_(init_s),
-      ptr_path_time_graph_(std::move(ptr_path_time_graph)),
-      ptr_prediction_querier_(std::move(ptr_prediction_querier)) {}
+      ptr_path_time_graph_(ptr_path_time_graph) {}
 
 std::vector<Condition> EndConditionSampler::SampleLatEndConditions() const {
   std::vector<Condition> end_d_conditions;
-  std::array<double, 3>  end_d_candidates = {0.0, -0.5, 0.5};
-  std::array<double, 4>  end_s_candidates = {10.0, 20.0, 40.0, 80.0};
-
-  for (const auto& s : end_s_candidates) {
-    for (const auto& d : end_d_candidates) {
+  for (const auto& s : FLAGS_end_s_candidates) {
+    for (const auto& d : FLAGS_end_d_candidates) {
       State end_d_state = {d, 0.0, 0.0};
       end_d_conditions.emplace_back(end_d_state, s);
     }
@@ -64,20 +57,19 @@ std::vector<Condition> EndConditionSampler::SampleLonEndConditionsForCruising(
   // CHECK_GT(FLAGS_num_velocity_sample, 1U);
 
   // time interval is one second plus the last one 0.01
-  static constexpr size_t                 num_of_time_samples = 9;
-  std::array<double, num_of_time_samples> time_samples;
-  for (size_t i = 1; i < num_of_time_samples; ++i) {
-    auto ratio =
-        static_cast<double>(i) / static_cast<double>(num_of_time_samples - 1);
-    time_samples[i] = FLAGS_trajectory_time_length * ratio;
+  std::array<double, FLAGS_num_of_time_samples> time_samples;
+  for (size_t i = 1; i < FLAGS_num_of_time_samples; ++i) {
+    auto ratio = static_cast<double>(i) /
+                 static_cast<double>(FLAGS_num_of_time_samples - 1);
+    time_samples[i] = FLAGS_trajectory_time_horizon * ratio;
   }
-  time_samples[0] = FLAGS_polynomial_minimal_param;
+  time_samples[0] = FLAGS_minimal_time;
 
   std::vector<Condition> end_s_conditions;
   for (const auto& time : time_samples) {
     std::cout << "V_upper, V_lower not implemented " << std::endl;
     double v_upper = 50;
-    double v_lower = 0;
+    double v_lower = 50;
     // double v_upper = std::min(feasible_region_.VUpper(time),
     // ref_cruise_speed); double v_lower = feasible_region_.VLower(time);
 
@@ -109,14 +101,13 @@ std::vector<Condition> EndConditionSampler::SampleLonEndConditionsForCruising(
 std::vector<Condition> EndConditionSampler::SampleLonEndConditionsForStopping(
     const double ref_stop_point) const {
   // time interval is one second plus the last one 0.01
-  static constexpr size_t                 num_of_time_samples = 9;
-  std::array<double, num_of_time_samples> time_samples;
-  for (size_t i = 1; i < num_of_time_samples; ++i) {
-    auto ratio =
-        static_cast<double>(i) / static_cast<double>(num_of_time_samples - 1);
-    time_samples[i] = FLAGS_trajectory_time_length * ratio;
+  std::array<double, FLAGS_num_of_time_samples> time_samples;
+  for (size_t i = 1; i < FLAGS_num_of_time_samples; ++i) {
+    auto ratio = static_cast<double>(i) /
+                 static_cast<double>(FLAGS_num_of_time_samples - 1);
+    time_samples[i] = FLAGS_trajectory_time_horizon * ratio;
   }
-  time_samples[0] = FLAGS_polynomial_minimal_param;
+  time_samples[0] = FLAGS_minimal_time;
 
   std::vector<Condition> end_s_conditions;
   for (const auto& time : time_samples) {
@@ -126,89 +117,122 @@ std::vector<Condition> EndConditionSampler::SampleLonEndConditionsForStopping(
   return end_s_conditions;
 }
 
-// std::vector<Condition>
-// EndConditionSampler::SampleLonEndConditionsForPathTimePoints() const {
-//   std::vector<Condition> end_s_conditions;
+std::vector<Condition>
+EndConditionSampler::SampleLonEndConditionsForPathTimePoints(
+    const std::vector<Pose>& reference_line) const {
+  std::vector<Condition> end_s_conditions;
 
-//   std::vector<SamplePoint> sample_points =
-//   QueryPathTimeObstacleSamplePoints(); for (const SamplePoint& sample_point :
-//   sample_points) {
-//     if (sample_point.path_time_point.t() < FLAGS_polynomial_minimal_param) {
-//       continue;
-//     }
-//     double s = sample_point.path_time_point.s();
-//     double v = sample_point.ref_v;
-//     double t = sample_point.path_time_point.t();
-//     // if (s > feasible_region_.SUpper(t) || s < feasible_region_.SLower(t))
-//     {
-//     //   continue;
-//     // }
-//     State end_state = {s, v, 0.0};
-//     end_s_conditions.emplace_back(end_state, t);
-//   }
-//   return end_s_conditions;
-// }
+  std::vector<SamplePoint> sample_points =
+      QueryPathTimeObstacleSamplePoints(reference_line);
+  for (const SamplePoint& sample_point : sample_points) {
+    if (sample_point.path_time_point.t() < FLAGS_minimal_time) {
+      continue;
+    }
+    double s = sample_point.path_time_point.s();
+    double v = sample_point.ref_v;
+    double t = sample_point.path_time_point.t();
+    // if (s > feasible_region_.SUpper(t) || s <
+    // feasible_region_.SLower(t))
+    // {
+    //   continue;
+    // }
+    State end_state = {s, v, 0.0};
+    end_s_conditions.emplace_back(end_state, t);
+  }
+  return end_s_conditions;
+}
 
-// std::vector<SamplePoint>
-// EndConditionSampler::QueryPathTimeObstacleSamplePoints() const {
-//   const auto& vehicle_config =
-//       common::VehicleConfigHelper::Instance()->GetConfig();
-//   std::vector<SamplePoint> sample_points;
-//   for (const auto& path_time_obstacle :
-//        ptr_path_time_graph_->GetPathTimeObstacles()) {
-//     std::string obstacle_id = path_time_obstacle.id();
-//     QueryFollowPathTimePoints(vehicle_config, obstacle_id, &sample_points);
-//     QueryOvertakePathTimePoints(vehicle_config, obstacle_id, &sample_points);
-//   }
-//   return sample_points;
-// }
+std::vector<SamplePoint> EndConditionSampler::QueryPathTimeObstacleSamplePoints(
+    const std::vector<Pose>& reference_line) const {
+  std::vector<SamplePoint> sample_points;
+  for (const auto& path_time_obstacle :
+       ptr_path_time_graph_->GetPathTimeObstacles()) {
+    const int obstacle_id = path_time_obstacle.id();
+    QueryFollowPathTimePoints(obstacle_id, &sample_points, reference_line);
+    QueryOvertakePathTimePoints(obstacle_id, &sample_points, reference_line);
+  }
+  return sample_points;
+}
 
-// void EndConditionSampler::QueryFollowPathTimePoints(
-//     const common::VehicleConfig& vehicle_config, const std::string&
-//     obstacle_id, std::vector<SamplePoint>* const sample_points) const {
-//   std::vector<STPoint> follow_path_time_points =
-//       ptr_path_time_graph_->GetObstacleSurroundingPoints(
-//           obstacle_id, -FLAGS_numerical_epsilon, FLAGS_time_min_density);
+void EndConditionSampler::QueryFollowPathTimePoints(
+    const int obstacle_id, std::vector<SamplePoint>* const sample_points,
+    const std::vector<Pose>& reference_line) const {
+  std::vector<STPoint> follow_path_time_points =
+      ptr_path_time_graph_->GetObstacleSurroundingPoints(
+          obstacle_id, -FLAGS_numerical_epsilon, FLAGS_time_min_gap);
 
-//   for (const auto& path_time_point : follow_path_time_points) {
-//     double v = ptr_prediction_querier_->ProjectVelocityAlongReferenceLine(
-//         obstacle_id, path_time_point.s(), path_time_point.t());
-//     // Generate candidate s
-//     double s_upper = path_time_point.s() -
-//                      vehicle_config.vehicle_param().front_edge_to_center();
-//     double s_lower = s_upper - FLAGS_default_lon_buffer;
-//     CHECK_GE(FLAGS_num_sample_follow_per_timestamp, 2U);
-//     double s_gap =
-//         FLAGS_default_lon_buffer /
-//         static_cast<double>(FLAGS_num_sample_follow_per_timestamp - 1);
-//     for (size_t i = 0; i < FLAGS_num_sample_follow_per_timestamp; ++i) {
-//       double s = s_lower + s_gap * static_cast<double>(i);
-//       SamplePoint sample_point;
-//       sample_point.path_time_point = path_time_point;
-//       sample_point.path_time_point.set_s(s);
-//       sample_point.ref_v = v;
-//       sample_points->push_back(std::move(sample_point));
-//     }
-//   }
-// }
+  for (const auto& path_time_point : follow_path_time_points) {
+    double v = ProjectVelocityAlongReferenceLine(
+        obstacle_id, path_time_point.s(), path_time_point.t(), reference_line);
+    // Generate candidate s
+    double s_upper = path_time_point.s() - FLAGS_vehicle_front_to_center_dist;
+    double s_lower = s_upper - FLAGS_follow_overtake_lon_buffer;
+    // CHECK_GE(FLAGS_num_sample_follow_per_timestamp, 2U);
+    double s_gap = FLAGS_follow_overtake_lon_buffer /
+                   static_cast<double>(FLAGS_num_follow_samples - 1);
+    for (size_t i = 0; i < FLAGS_num_follow_samples; ++i) {
+      double      s = s_lower + s_gap * static_cast<double>(i);
+      SamplePoint sample_point;
+      sample_point.path_time_point = path_time_point;
+      sample_point.path_time_point.set_s(s);
+      sample_point.ref_v = v;
+      sample_points->push_back(std::move(sample_point));
+    }
+  }
+}
 
-// void EndConditionSampler::QueryOvertakePathTimePoints(
-//     const common::VehicleConfig& vehicle_config, const std::string&
-//     obstacle_id, std::vector<SamplePoint>* sample_points) const {
-//   std::vector<STPoint> overtake_path_time_points =
-//       ptr_path_time_graph_->GetObstacleSurroundingPoints(
-//           obstacle_id, FLAGS_numerical_epsilon, FLAGS_time_min_density);
+void EndConditionSampler::QueryOvertakePathTimePoints(
+    const int obstacle_id, std::vector<SamplePoint>* sample_points,
+    const std::vector<Pose>& reference_line) const {
+  std::vector<STPoint> overtake_path_time_points =
+      ptr_path_time_graph_->GetObstacleSurroundingPoints(
+          obstacle_id, FLAGS_numerical_epsilon, FLAGS_time_min_gap);
 
-//   for (const auto& path_time_point : overtake_path_time_points) {
-//     double v = ptr_prediction_querier_->ProjectVelocityAlongReferenceLine(
-//         obstacle_id, path_time_point.s(), path_time_point.t());
-//     SamplePoint sample_point;
-//     sample_point.path_time_point = path_time_point;
-//     sample_point.path_time_point.set_s(path_time_point.s() +
-//                                        FLAGS_default_lon_buffer);
-//     sample_point.ref_v = v;
-//     sample_points->push_back(std::move(sample_point));
-//   }
-// }
+  for (const auto& path_time_point : overtake_path_time_points) {
+    double v = ProjectVelocityAlongReferenceLine(
+        obstacle_id, path_time_point.s(), path_time_point.t(), reference_line);
+    SamplePoint sample_point;
+    sample_point.path_time_point = path_time_point;
+    sample_point.path_time_point.set_s(path_time_point.s() +
+                                       FLAGS_follow_overtake_lon_buffer);
+    sample_point.ref_v = v;
+    sample_points->push_back(std::move(sample_point));
+  }
+}
+
+double EndConditionSampler::ProjectVelocityAlongReferenceLine(
+    const int obstacle_id, const double s, const double t,
+    const std::vector<Pose>& reference_line) const {
+  if (ptr_path_time_graph_->GetPathTimeObstacles().empty()) return 0;
+
+  for (const auto& obstacle : ptr_path_time_graph_->GetObstacles()) {
+    if (obstacle.id != obstacle_id) continue;
+    const std::vector<Pose>& trajectory     = obstacle.path;
+    int                      num_traj_point = trajectory.size();
+    if (num_traj_point < 2) {
+      return 0.0;
+    }
+
+    if (t < trajectory.front().t || t > trajectory.back().t) {
+      return 0.0;
+    }
+
+    auto matched_pose =
+        std::lower_bound(trajectory.begin(), trajectory.end(), t,
+                         [](const Pose& p, const double t) { return p.t < t; });
+
+    double v     = matched_pose->v;
+    double theta = matched_pose->ang;
+    double v_x   = v * std::cos(theta);
+    double v_y   = v * std::sin(theta);
+
+    Pose obstacle_point_on_ref_line =
+        PathMatcher::MatchToPath(reference_line, s);
+    auto ref_theta = obstacle_point_on_ref_line.ang;
+
+    return std::cos(ref_theta) * v_x + std::sin(ref_theta) * v_y;
+  }
+  return 0;
+}
 
 }  // namespace TiEV

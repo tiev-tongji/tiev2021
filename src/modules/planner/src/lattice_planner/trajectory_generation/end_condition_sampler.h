@@ -29,7 +29,6 @@
 #include "st_point.h"
 // #include "modules/planning/lattice/behavior/feasible_region.h"
 #include "path_time_graph.h"
-#include "prediction_querier.h"
 
 namespace TiEV {
 
@@ -42,10 +41,9 @@ struct SamplePoint {
 // Output: sampled ending 1 dimensional states with corresponding time duration.
 class EndConditionSampler {
  public:
-  EndConditionSampler(
-      const std::array<double, 3>& init_s, const std::array<double, 3>& init_d,
-      std::shared_ptr<PathTimeGraph>     ptr_path_time_graph,
-      std::shared_ptr<PredictionQuerier> ptr_prediction_querier);
+  EndConditionSampler(const std::array<double, 3>&   init_s,
+                      const std::array<double, 3>&   init_d,
+                      std::shared_ptr<PathTimeGraph> ptr_path_time_graph);
 
   virtual ~EndConditionSampler() = default;
 
@@ -58,29 +56,31 @@ class EndConditionSampler {
   std::vector<std::pair<std::array<double, 3>, double>>
   SampleLonEndConditionsForStopping(const double ref_stop_point) const;
 
-  // std::vector<std::pair<std::array<double, 3>, double>>
-  // SampleLonEndConditionsForPathTimePoints() const;
+  std::vector<std::pair<std::array<double, 3>, double>>
+  SampleLonEndConditionsForPathTimePoints(
+      const std::vector<Pose>& reference_line) const;
 
  private:
-  // don't consider follow/overtake for now
-  //   std::vector<SamplePoint> QueryPathTimeObstacleSamplePoints() const;
+  std::vector<SamplePoint> QueryPathTimeObstacleSamplePoints(
+      const std::vector<Pose>& reference_line) const;
 
-  //   void QueryFollowPathTimePoints(
-  //       const apollo::common::VehicleConfig& vehicle_config,
-  //       const std::string& obstacle_id,
-  //       std::vector<SamplePoint>* sample_points) const;
+  void QueryFollowPathTimePoints(const int                 obstacle_id,
+                                 std::vector<SamplePoint>* sample_points,
+                                 const std::vector<Pose>& reference_line) const;
 
-  //   void QueryOvertakePathTimePoints(
-  //       const apollo::common::VehicleConfig& vehicle_config,
-  //       const std::string& obstacle_id,
-  //       std::vector<SamplePoint>* sample_points) const;
+  void QueryOvertakePathTimePoints(
+      const int obstacle_id, std::vector<SamplePoint>* sample_points,
+      const std::vector<Pose>& reference_line) const;
+
+  double ProjectVelocityAlongReferenceLine(
+      const int obstacle_id, const double s, const double t,
+      const std::vector<Pose>& reference_line) const;
 
  private:
   std::array<double, 3> init_s_;
   std::array<double, 3> init_d_;
   //   FeasibleRegion feasible_region_;
-  std::shared_ptr<PathTimeGraph>     ptr_path_time_graph_;
-  std::shared_ptr<PredictionQuerier> ptr_prediction_querier_;
+  std::shared_ptr<PathTimeGraph> ptr_path_time_graph_;
 };
 
 }  // namespace TiEV

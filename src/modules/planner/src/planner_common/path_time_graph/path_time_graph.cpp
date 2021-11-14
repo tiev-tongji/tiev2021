@@ -14,7 +14,8 @@ PathTimeGraph::PathTimeGraph(std::vector<Obstacle>&   obstacles,
                              const std::vector<Pose>& path,
                              const double s_start, const double s_end,
                              const double t_start, const double t_end,
-                             double current_speed) {
+                             double current_speed)
+    : obstacles_(obstacles) {
   path_range_.first  = s_start;
   path_range_.second = s_end;
   time_range_.first  = t_start;
@@ -129,6 +130,7 @@ void PathTimeGraph::SetStaticObstacle(Obstacle&                obstacle,
 
   STBoundary st_boundary(blp, brp, ulp, urp);
   st_boundary.obs_type = obstacle.type;
+  st_boundary.set_id(obstacle.id);
   st_boundaries_.emplace_back(st_boundary);
   obstacle.set_st_boundary(st_boundary);
 }
@@ -182,6 +184,7 @@ void PathTimeGraph::SetDynamicObstacle(Obstacle&                obstacle,
   if (left_edge_set) {
     STBoundary st_boundary(bottom_left, bottom_right, upper_left, upper_right);
     st_boundary.obs_type = obstacle.type;
+    st_boundary.set_id(obstacle.id);
     st_boundaries_.emplace_back(st_boundary);
     obstacle.set_st_boundary(st_boundary);
   }
@@ -192,7 +195,8 @@ std::vector<std::pair<double, double>> PathTimeGraph::GetPathBlockingIntervals(
   // ACHECK(time_range_.first <= t && t <= time_range_.second);
   std::vector<std::pair<double, double>> intervals;
   for (const auto& pt_obstacle : st_boundaries_) {
-    std::cout << "not sure if path_time obstacles_ is st_boundries " << std::endl;
+    std::cout << "not sure if path_time obstacles_ is st_boundries "
+              << std::endl;
     if (t > pt_obstacle.max_t() || t < pt_obstacle.min_t()) {
       continue;
     }
@@ -220,6 +224,54 @@ PathTimeGraph::GetPathBlockingIntervals(const double t_start,
     intervals.push_back(GetPathBlockingIntervals(t));
   }
   return intervals;
+}
+
+std::vector<STPoint> PathTimeGraph::GetObstacleSurroundingPoints(
+    const int& obstacle_id, const double s_dist,
+    const double t_min_density) const {
+  // ACHECK(t_min_density > 0.0);
+  std::vector<STPoint> pt_pairs;
+  if (st_boundaries_.empty()) return pt_pairs;
+
+  const auto& pt_obstacle = st_boundaries_[obstacle_id];
+
+  double s0 = 0.0;
+  double s1 = 0.0;
+
+  double t0 = 0.0;
+  double t1 = 0.0;
+  if (s_dist > 0.0) {
+    s0 = pt_obstacle.upper_left_point().s();
+    s1 = pt_obstacle.upper_right_point().s();
+
+    t0 = pt_obstacle.upper_left_point().t();
+    t1 = pt_obstacle.upper_right_point().t();
+  } else {
+    s0 = pt_obstacle.bottom_left_point().s();
+    s1 = pt_obstacle.bottom_right_point().s();
+
+    t0 = pt_obstacle.bottom_left_point().t();
+    t1 = pt_obstacle.bottom_right_point().t();
+  }
+
+  double time_gap = t1 - t0;
+  // ACHECK(time_gap > -FLAGS_numerical_epsilon);
+  time_gap = std::fabs(time_gap);
+
+  size_t num_sections = static_cast<size_t>(time_gap / t_min_density + 1);
+  double t_interval   = time_gap / static_cast<double>(num_sections);
+
+  for (size_t i = 0; i <= num_sections; ++i) {
+    double t = t_interval * static_cast<double>(i) + t0;
+    double s = lerp(s0, t0, s1, t1, t) + s_dist;
+
+    STPoint ptt;
+    ptt.set_t(t);
+    ptt.set_s(s);
+    pt_pairs.push_back(std::move(ptt));
+  }
+
+  return pt_pairs;
 }
 
 }  // namespace TiEV

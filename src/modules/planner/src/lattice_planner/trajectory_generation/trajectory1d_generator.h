@@ -24,11 +24,10 @@
 #include <utility>
 #include <vector>
 
-#include "path_time_graph.h"
-#include "prediction_querier.h"
+#include "curve1d/curve1d.h"
 #include "end_condition_sampler.h"
 #include "lattice_trajectory1d.h"
-#include "curve1d/curve1d.h"
+#include "path_time_graph.h"
 #include "quartic_polynomial_curve1d.h"
 #include "quintic_polynomial_curve1d.h"
 #include "reference_line_info.h"
@@ -36,19 +35,17 @@
 
 namespace TiEV {
 
-
 class Trajectory1dGenerator {
  public:
-  Trajectory1dGenerator(
-      const std::array<double, 3>& lon_init_state,
-      const std::array<double, 3>& lat_init_state,
-      std::shared_ptr<PathTimeGraph> ptr_path_time_graph,
-      std::shared_ptr<PredictionQuerier> ptr_prediction_querier);
+  Trajectory1dGenerator(const std::array<double, 3>&       lon_init_state,
+                        const std::array<double, 3>&       lat_init_state,
+                        std::shared_ptr<PathTimeGraph>     ptr_path_time_graph,
+                        std::shared_ptr<std::vector<Pose>> ptr_reference_line);
 
   virtual ~Trajectory1dGenerator() = default;
 
   void GenerateTrajectoryBundles(
-      const PlanningTarget& planning_target,
+      const PlanningTarget&                  planning_target,
       std::vector<std::shared_ptr<Curve1d>>* ptr_lon_trajectory_bundle,
       std::vector<std::shared_ptr<Curve1d>>* ptr_lat_trajectory_bundle);
 
@@ -57,25 +54,25 @@ class Trajectory1dGenerator {
 
  private:
   void GenerateSpeedProfilesForCruising(
-      const double target_speed,
+      const double                           target_speed,
       std::vector<std::shared_ptr<Curve1d>>* ptr_lon_trajectory_bundle) const;
 
   void GenerateSpeedProfilesForStopping(
-      const double stop_point,
+      const double                           stop_point,
       std::vector<std::shared_ptr<Curve1d>>* ptr_lon_trajectory_bundle) const;
 
   void GenerateSpeedProfilesForPathTimeObstacles(
       std::vector<std::shared_ptr<Curve1d>>* ptr_lon_trajectory_bundle) const;
 
   void GenerateLongitudinalTrajectoryBundle(
-      const PlanningTarget& planning_target,
+      const PlanningTarget&                  planning_target,
       std::vector<std::shared_ptr<Curve1d>>* ptr_lon_trajectory_bundle) const;
 
   template <size_t N>
   void GenerateTrajectory1DBundle(
       const std::array<double, 3>& init_state,
       const std::vector<std::pair<std::array<double, 3>, double>>&
-          end_conditions,
+                                             end_conditions,
       std::vector<std::shared_ptr<Curve1d>>* ptr_trajectory_bundle) const;
 
  private:
@@ -86,15 +83,17 @@ class Trajectory1dGenerator {
   EndConditionSampler end_condition_sampler_;
 
   std::shared_ptr<PathTimeGraph> ptr_path_time_graph_;
+
+  std::shared_ptr<std::vector<Pose>> ptr_reference_line_;
 };
 
 template <>
 inline void Trajectory1dGenerator::GenerateTrajectory1DBundle<4>(
-    const std::array<double, 3>& init_state,
+    const std::array<double, 3>&                                 init_state,
     const std::vector<std::pair<std::array<double, 3>, double>>& end_conditions,
     std::vector<std::shared_ptr<Curve1d>>* ptr_trajectory_bundle) const {
-//   CHECK_NOTNULL(ptr_trajectory_bundle);
-//   ACHECK(!end_conditions.empty());
+  //   CHECK_NOTNULL(ptr_trajectory_bundle);
+  //   ACHECK(!end_conditions.empty());
 
   ptr_trajectory_bundle->reserve(ptr_trajectory_bundle->size() +
                                  end_conditions.size());
@@ -112,11 +111,11 @@ inline void Trajectory1dGenerator::GenerateTrajectory1DBundle<4>(
 
 template <>
 inline void Trajectory1dGenerator::GenerateTrajectory1DBundle<5>(
-    const std::array<double, 3>& init_state,
+    const std::array<double, 3>&                                 init_state,
     const std::vector<std::pair<std::array<double, 3>, double>>& end_conditions,
     std::vector<std::shared_ptr<Curve1d>>* ptr_trajectory_bundle) const {
-//   CHECK_NOTNULL(ptr_trajectory_bundle);
-//   ACHECK(!end_conditions.empty());
+  //   CHECK_NOTNULL(ptr_trajectory_bundle);
+  //   ACHECK(!end_conditions.empty());
 
   ptr_trajectory_bundle->reserve(ptr_trajectory_bundle->size() +
                                  end_conditions.size());
@@ -131,6 +130,5 @@ inline void Trajectory1dGenerator::GenerateTrajectory1DBundle<5>(
     ptr_trajectory_bundle->push_back(ptr_trajectory1d);
   }
 }
-
 
 }  // namespace TiEV

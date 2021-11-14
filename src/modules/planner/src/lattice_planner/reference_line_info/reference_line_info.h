@@ -56,9 +56,10 @@ class PlanningTarget {
   Pose   stop_point() const { return stop_point_; }
   double cruise_speed() const { return cruise_speed_; }
   void   set_cruise_speed(double speed) { cruise_speed_ = speed; }
+  void   set_stop_point(Pose stop_point) { stop_point_ = stop_point; }
 
  private:
-  double cruise_speed_;
+  double cruise_speed_;  // cruise_speed_ here is actually speed_limit
   Pose   stop_point_;
   bool   has_stop_point_;
 };
@@ -71,7 +72,7 @@ class ReferenceLineInfo {
  public:
   enum class LaneType { LeftForward, LeftReverse, RightForward, RightReverse };
   ReferenceLineInfo() = default;
-  ReferenceLineInfo(std::vector<HDMapPoint> reference_line);
+  ReferenceLineInfo(std::vector<HDMapPoint> reference_line, Pose stop_point);
 
   double GetSpeedLimitFromS(double s);
 
@@ -92,9 +93,6 @@ class ReferenceLineInfo {
   double                PriorityCost() const { return priority_cost_; }
   void                  SetPriorityCost(double cost) { priority_cost_ = cost; }
   const PlanningTarget& planning_target() { return planning_target_; }
-
-  void   SetCruiseSpeed(double speed) { cruise_speed_ = speed; }
-  double GetCruiseSpeed() const { return cruise_speed_; };
 
   void SetDrivable(bool drivable) { is_drivable_ = drivable; };
   bool IsDrivable() const { return is_drivable_; };
@@ -120,8 +118,6 @@ class ReferenceLineInfo {
   double priority_cost_ = 0.0;
 
   PlanningTarget planning_target_;
-
-  double cruise_speed_ = 0.0;
 };
 
 }  // namespace TiEV

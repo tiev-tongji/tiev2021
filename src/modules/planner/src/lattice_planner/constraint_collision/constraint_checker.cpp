@@ -23,16 +23,16 @@
 // #include "cyber/common/log.h"
 // #include "modules/planning/common/planning_gflags.h"
 
-#define FLAGS_trajectory_time_length 1.1
-#define FLAGS_speed_lower_bound 1.1
-#define FLAGS_speed_upper_bound 1.1
+#define FLAGS_trajectory_time_horizon               1.1
+#define FLAGS_speed_lower_bound                     1.1
+#define FLAGS_speed_upper_bound                     1.1
 #define FLAGS_longitudinal_acceleration_lower_bound 1.1
 #define FLAGS_longitudinal_acceleration_upper_bound 1.1
-#define FLAGS_kappa_bound 1.1
-#define FLAGS_longitudinal_jerk_lower_bound 1.1
-#define FLAGS_longitudinal_jerk_upper_bound 1.1
-#define FLAGS_lateral_acceleration_bound 1.1
-#define FLAGS_lateral_jerk_bound 1.1
+#define FLAGS_kappa_bound                           1.1
+#define FLAGS_longitudinal_jerk_lower_bound         1.1
+#define FLAGS_longitudinal_jerk_upper_bound         1.1
+#define FLAGS_lateral_acceleration_bound            1.1
+#define FLAGS_lateral_jerk_bound                    1.1
 
 namespace TiEV {
 
@@ -43,7 +43,7 @@ inline bool WithinRange(const T v, const T lower, const T upper) {
 
 ConstraintChecker::Result ConstraintChecker::ValidTrajectory(
     const std::vector<Pose>& trajectory) {
-  const double kMaxCheckRelativeTime = FLAGS_trajectory_time_length;
+  const double kMaxCheckRelativeTime = FLAGS_trajectory_time_horizon;
   for (const auto& p : trajectory) {
     double t = p.t;
     if (t > kMaxCheckRelativeTime) {
@@ -52,9 +52,9 @@ ConstraintChecker::Result ConstraintChecker::ValidTrajectory(
     double lon_v = p.v;
     if (!WithinRange(lon_v, FLAGS_speed_lower_bound, FLAGS_speed_upper_bound)) {
       std::cout << "Velocity at relative time " << t
-             << " exceeds bound, value: " << lon_v << ", bound ["
-             << FLAGS_speed_lower_bound << ", " << FLAGS_speed_upper_bound
-             << "].";
+                << " exceeds bound, value: " << lon_v << ", bound ["
+                << FLAGS_speed_lower_bound << ", " << FLAGS_speed_upper_bound
+                << "].";
       return Result::LON_VELOCITY_OUT_OF_BOUND;
     }
 
@@ -62,23 +62,23 @@ ConstraintChecker::Result ConstraintChecker::ValidTrajectory(
     if (!WithinRange(lon_a, FLAGS_longitudinal_acceleration_lower_bound,
                      FLAGS_longitudinal_acceleration_upper_bound)) {
       std::cout << "Longitudinal acceleration at relative time " << t
-             << " exceeds bound, value: " << lon_a << ", bound ["
-             << FLAGS_longitudinal_acceleration_lower_bound << ", "
-             << FLAGS_longitudinal_acceleration_upper_bound << "].";
+                << " exceeds bound, value: " << lon_a << ", bound ["
+                << FLAGS_longitudinal_acceleration_lower_bound << ", "
+                << FLAGS_longitudinal_acceleration_upper_bound << "].";
       return Result::LON_ACCELERATION_OUT_OF_BOUND;
     }
 
     double kappa = p.k;
     if (!WithinRange(kappa, -FLAGS_kappa_bound, FLAGS_kappa_bound)) {
       std::cout << "Kappa at relative time " << t
-             << " exceeds bound, value: " << kappa << ", bound ["
-             << -FLAGS_kappa_bound << ", " << FLAGS_kappa_bound << "].";
+                << " exceeds bound, value: " << kappa << ", bound ["
+                << -FLAGS_kappa_bound << ", " << FLAGS_kappa_bound << "].";
       return Result::CURVATURE_OUT_OF_BOUND;
     }
   }
 
   for (size_t i = 1; i < trajectory.size(); ++i) {
-    const auto& p0 = trajectory[i-1];
+    const auto& p0 = trajectory[i - 1];
     const auto& p1 = trajectory[i];
 
     if (p1.t > kMaxCheckRelativeTime) {
@@ -87,15 +87,15 @@ ConstraintChecker::Result ConstraintChecker::ValidTrajectory(
 
     double t = p0.t;
 
-    double dt = p1.t - p0.t;
-    double d_lon_a = p1.a - p0.a;
+    double dt       = p1.t - p0.t;
+    double d_lon_a  = p1.a - p0.a;
     double lon_jerk = d_lon_a / dt;
     if (!WithinRange(lon_jerk, FLAGS_longitudinal_jerk_lower_bound,
                      FLAGS_longitudinal_jerk_upper_bound)) {
       std::cout << "Longitudinal jerk at relative time " << t
-             << " exceeds bound, value: " << lon_jerk << ", bound ["
-             << FLAGS_longitudinal_jerk_lower_bound << ", "
-             << FLAGS_longitudinal_jerk_upper_bound << "].";
+                << " exceeds bound, value: " << lon_jerk << ", bound ["
+                << FLAGS_longitudinal_jerk_lower_bound << ", "
+                << FLAGS_longitudinal_jerk_upper_bound << "].";
       return Result::LON_JERK_OUT_OF_BOUND;
     }
 
@@ -103,9 +103,9 @@ ConstraintChecker::Result ConstraintChecker::ValidTrajectory(
     if (!WithinRange(lat_a, -FLAGS_lateral_acceleration_bound,
                      FLAGS_lateral_acceleration_bound)) {
       std::cout << "Lateral acceleration at relative time " << t
-             << " exceeds bound, value: " << lat_a << ", bound ["
-             << -FLAGS_lateral_acceleration_bound << ", "
-             << FLAGS_lateral_acceleration_bound << "].";
+                << " exceeds bound, value: " << lat_a << ", bound ["
+                << -FLAGS_lateral_acceleration_bound << ", "
+                << FLAGS_lateral_acceleration_bound << "].";
       return Result::LAT_ACCELERATION_OUT_OF_BOUND;
     }
 
@@ -128,6 +128,5 @@ ConstraintChecker::Result ConstraintChecker::ValidTrajectory(
 
   return Result::VALID;
 }
-
 
 }  // namespace TiEV

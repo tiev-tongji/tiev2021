@@ -20,10 +20,10 @@
 
 #pragma once
 
+#include <iostream>
 #include <string>
 
 namespace TiEV {
-
 
 // Base type for various types of 1-dimensional curves
 
@@ -34,12 +34,22 @@ class Curve1d {
   virtual ~Curve1d() = default;
 
   virtual double Evaluate(const std::uint32_t order,
-                          const double param) const = 0;
+                          const double        param) const = 0;
 
   virtual double ParamLength() const = 0;
 
   virtual std::string ToString() const = 0;
-};
 
+  friend std::ostream& operator<<(std::ostream& out, const Curve1d* curve) {
+    if (curve->ParamLength() <= 0) return out;
+    double gap = curve->ParamLength() / 10;
+    for (double x = 0; x < curve->ParamLength(); x += gap) {
+      out << "x: " << x << "\ty: " << curve->Evaluate(0, x)
+          << "\tdy: " << curve->Evaluate(1, x)
+          << "\tddy: " << curve->Evaluate(2, x) << "\n";
+    }
+    return out;
+  }
+};
 
 }  // namespace TiEV

@@ -1,4 +1,5 @@
 add_library(map_manager STATIC "")
+find_package(OpenCV REQUIRED)
 
 target_sources(map_manager PRIVATE 
     map_manager.cpp

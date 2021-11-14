@@ -12,6 +12,7 @@ target_sources(trajectory_generation PRIVATE
 
 target_include_directories(trajectory_generation PUBLIC
     ./
+    ../
 )
 
 target_link_libraries(trajectory_generation PUBLIC 

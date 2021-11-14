@@ -22,6 +22,7 @@ class PathTimeGraph {
   std::pair<double, double> time_range_;
   std::pair<double, double> path_range_;
   std::vector<STBoundary>   st_boundaries_;
+  std::vector<Obstacle>     obstacles_;
 
   double path_length_;
   double total_time_;
@@ -89,7 +90,18 @@ class PathTimeGraph {
       double start_time, double end_time, double trajectory_time_resolution);
 
   std::vector<std::pair<double, double>> GetPathBlockingIntervals(
-    const double t) const;
+      const double t) const;
+
+  const std::vector<STBoundary>& GetPathTimeObstacles() const {
+    return st_boundaries_;
+  }
+
+  std::vector<STPoint> GetObstacleSurroundingPoints(
+      const int& obstacle_id, const double s_dist,
+      const double t_density) const;
+  
+  const std::vector<Obstacle>& GetObstacles() {return obstacles_;}
+
  private:
   /**
    * @brief Set up obstacles on the s-t graph and get a series of st_boundaries.
@@ -103,7 +115,6 @@ class PathTimeGraph {
   void SetDynamicObstacle(Obstacle& obstacle, const std::vector<Pose>& path);
 
   void SetStaticObstacle(Obstacle& obstacle, const std::vector<Pose>& path);
-
 };
 
 }  // namespace TiEV

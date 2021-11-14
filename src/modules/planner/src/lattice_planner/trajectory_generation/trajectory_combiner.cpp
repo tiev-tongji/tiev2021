@@ -19,29 +19,24 @@
 #include <algorithm>
 
 #include "cartesian_frenet_conversion.h"
+#include "lattice_planner_params.h"
 #include "path_matcher.h"
-// #include "planning_gflags.h"
-
-#define FLAGS_numerical_epsilon 1.1
-#define FLAGS_trajectory_time_length 1
-#define FLAGS_trajectory_time_resolution 1
 
 namespace TiEV {
-
 
 std::vector<Pose> TrajectoryCombiner::Combine(
     const std::vector<Pose>& reference_line, const Curve1d& lon_trajectory,
     const Curve1d& lat_trajectory, const double init_relative_time) {
   std::vector<Pose> combined_trajectory;
 
-  double s0 = lon_trajectory.Evaluate(0, 0.0);
-  double s_ref_max = reference_line.back().s;
+  double s0                       = lon_trajectory.Evaluate(0, 0.0);
+  double s_ref_max                = reference_line.back().s;
   double accumulated_trajectory_s = 0.0;
-  Pose prev_trajectory_point;
+  Pose   prev_trajectory_point;
 
-  double last_s = -FLAGS_numerical_epsilon;
+  double last_s  = -FLAGS_numerical_epsilon;
   double t_param = 0.0;
-  while (t_param < FLAGS_trajectory_time_length) {
+  while (t_param < FLAGS_trajectory_time_horizon) {
     // linear extrapolation is handled internally in LatticeTrajectory1d;
     // no worry about t_param > lon_trajectory.ParamLength() situation
     double s = lon_trajectory.Evaluate(0, t_param);
@@ -50,6 +45,7 @@ std::vector<Pose> TrajectoryCombiner::Combine(
     }
     last_s = s;
 
+    // backup driving is not allowed
     double s_dot =
         std::max(FLAGS_numerical_epsilon, lon_trajectory.Evaluate(1, t_param));
     double s_ddot = lon_trajectory.Evaluate(2, t_param);
@@ -60,24 +56,24 @@ std::vector<Pose> TrajectoryCombiner::Combine(
     double relative_s = s - s0;
     // linear extrapolation is handled internally in LatticeTrajectory1d;
     // no worry about s_param > lat_trajectory.ParamLength() situation
-    double d = lat_trajectory.Evaluate(0, relative_s);
-    double d_prime = lat_trajectory.Evaluate(1, relative_s);
+    double d        = lat_trajectory.Evaluate(0, relative_s);
+    double d_prime  = lat_trajectory.Evaluate(1, relative_s);
     double d_pprime = lat_trajectory.Evaluate(2, relative_s);
 
     Pose matched_ref_point = PathMatcher::MatchToPath(reference_line, s);
 
-    double x = 0.0;
-    double y = 0.0;
+    double x     = 0.0;
+    double y     = 0.0;
     double theta = 0.0;
     double kappa = 0.0;
-    double v = 0.0;
-    double a = 0.0;
+    double v     = 0.0;
+    double a     = 0.0;
 
-    const double rs = matched_ref_point.s;
-    const double rx = matched_ref_point.x;
-    const double ry = matched_ref_point.y;
-    const double rtheta = matched_ref_point.ang;
-    const double rkappa = matched_ref_point.k;
+    const double rs      = matched_ref_point.s;
+    const double rx      = matched_ref_point.x;
+    const double ry      = matched_ref_point.y;
+    const double rtheta  = matched_ref_point.ang;
+    const double rkappa  = matched_ref_point.k;
     const double rdkappa = matched_ref_point.dk;
 
     std::array<double, 3> s_conditions = {rs, s_dot, s_ddot};
@@ -111,6 +107,5 @@ std::vector<Pose> TrajectoryCombiner::Combine(
   }
   return combined_trajectory;
 }
-
 
 }  // namespace TiEV

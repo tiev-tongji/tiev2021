@@ -7,6 +7,7 @@ target_sources(constraint_collision PRIVATE
 
 target_include_directories(constraint_collision PUBLIC
     ./
+    ../
 )
 
 target_link_libraries(constraint_collision PUBLIC 

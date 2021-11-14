@@ -15,12 +15,14 @@
  *****************************************************************************/
 
 #include "cartesian_frenet_conversion.h"
-#include "linear_interpolation.h"
 
 #include <cmath>
 
+#include "linear_interpolation.h"
+
 namespace TiEV {
 
+// apollo didn't consider zero division problem. don't know why
 void CartesianFrenetConverter::cartesian_to_frenet(
     const double rs, const double rx, const double ry, const double rtheta,
     const double rkappa, const double rdkappa, const double x, const double y,
@@ -37,12 +39,12 @@ void CartesianFrenetConverter::cartesian_to_frenet(
   ptr_d_condition->at(0) =
       std::copysign(std::sqrt(dx * dx + dy * dy), cross_rd_nd);
 
-  const double delta_theta = theta - rtheta;
+  const double delta_theta     = theta - rtheta;
   const double tan_delta_theta = std::tan(delta_theta);
   const double cos_delta_theta = std::cos(delta_theta);
 
   const double one_minus_kappa_r_d = 1 - rkappa * ptr_d_condition->at(0);
-  ptr_d_condition->at(1) = one_minus_kappa_r_d * tan_delta_theta;
+  ptr_d_condition->at(1)           = one_minus_kappa_r_d * tan_delta_theta;
 
   const double kappa_r_d_prime =
       rdkappa * ptr_d_condition->at(0) + rkappa * ptr_d_condition->at(1);
@@ -112,7 +114,7 @@ void CartesianFrenetConverter::frenet_to_cartesian(
                cos_delta_theta / (one_minus_kappa_r_d);
 
   const double d_dot = d_condition[1] * s_condition[1];
-  *ptr_v = std::sqrt(one_minus_kappa_r_d * one_minus_kappa_r_d *
+  *ptr_v             = std::sqrt(one_minus_kappa_r_d * one_minus_kappa_r_d *
                          s_condition[1] * s_condition[1] +
                      d_dot * d_dot);
 
@@ -139,7 +141,7 @@ double CartesianFrenetConverter::CalculateKappa(const double rkappa,
   if (std::fabs(denominator) < 1e-8) {
     return 0.0;
   }
-  denominator = std::pow(denominator, 1.5);
+  denominator            = std::pow(denominator, 1.5);
   const double numerator = rkappa + ddl - 2 * l * rkappa * rkappa -
                            l * ddl * rkappa + l * l * rkappa * rkappa * rkappa +
                            l * dl * rdkappa + 2 * dl * dl * rkappa;
@@ -165,7 +167,7 @@ double CartesianFrenetConverter::CalculateSecondOrderLateralDerivative(
     const double rtheta, const double theta, const double rkappa,
     const double kappa, const double rdkappa, const double l) {
   const double dl = CalculateLateralDerivative(rtheta, theta, l, rkappa);
-  const double theta_diff = theta - rtheta;
+  const double theta_diff     = theta - rtheta;
   const double cos_theta_diff = std::cos(theta_diff);
   const double res = -(rdkappa * l + rkappa * dl) * std::tan(theta - rtheta) +
                      (1 - rkappa * l) / (cos_theta_diff * cos_theta_diff) *
