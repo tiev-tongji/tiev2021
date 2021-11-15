@@ -78,14 +78,16 @@ std::vector<Pose> LatticePlanner::Plan(
   size_t                         success_line_count = 0;
   size_t                         index              = 0;
   std::vector<ReferenceLineInfo> reference_line_info_list;
-  // convert planning_init_point information to local coordinate
+  // convert reference line to reference line info
   Pose planning_init_point = init_point;
   planning_init_point.v /= GRID_RESOLUTION;
   planning_init_point.a = 0;  // don't consider acc for now
   reference_line_info_list.emplace_back(reference_line, planning_init_point);
-  for (int i = 1; i < reference_line.front().lane_num; ++i) {
+  int original_ref_line_id = reference_line[0].lane_seq;
+  for (int i = 1; i <= reference_line.front().lane_num; ++i) {
+    if (i == original_ref_line_id) continue;
     ReferenceLineInfo new_ref_line_info = reference_line_info_list.front();
-    new_ref_line_info.ShiftRefLine(i);
+    new_ref_line_info.ShiftRefLine(original_ref_line_id, i);
     reference_line_info_list.push_back(new_ref_line_info);
   }
   // convert dynamic_obj information to local coordinate
@@ -93,7 +95,7 @@ std::vector<Pose> LatticePlanner::Plan(
   for (const auto& obj : dynamic_obj_list) {
     Obstacle obs(obj, "lattice_planner");
     if (obs.path.empty() || obs.corners.empty()) continue;
-    // width and length is processed in path_time_graph
+    // width and length is processed in box.cpp
     // obs.width /= GRID_RESOLUTION;
     // obs.length /= GRID_RESOLUTION;
     for (auto& p : obs.corners) {
@@ -108,10 +110,39 @@ std::vector<Pose> LatticePlanner::Plan(
     std::cout << "obstacle: \n" << obs << std::endl;
     obstacle_list.push_back(obs);
   }
+  // punish lane change
+  double min_distance_to_refline = std::numeric_limits<double>::max();
+  int    lane_seq_car_in         = -1;
+  for (int i = 0; i < reference_line_info_list.size(); ++i) {
+    Pose matched_point =
+        PathMatcher::MatchToPath(reference_line_info_list[i].reference_line(),
+                                 planning_init_point.x, planning_init_point.y);
+    std::array<double, 3> init_s;
+    std::array<double, 3> init_d;
+    ComputeInitFrenetState(matched_point, planning_init_point, &init_s,
+                           &init_d);
+    if (fabs(init_d[0]) < min_distance_to_refline) {
+      min_distance_to_refline = fabs(init_d[0]);
+      lane_seq_car_in =
+          reference_line_info_list[i].reference_line()[0].lane_seq;
+    }
+  }
+  for (int i = 0; i < reference_line_info_list.size(); ++i) {
+    int cur_lane_seq = reference_line_info_list[i].reference_line()[0].lane_seq;
+    if (fabs(cur_lane_seq - lane_seq_car_in) > 1) {
+      reference_line_info_list[i].SetPriorityCost(
+          100);  // only allow to change to next lane
+    } else {
+      reference_line_info_list[i].SetPriorityCost(
+          fabs(cur_lane_seq - lane_seq_car_in) * 3);
+    }
+  }
+  // plan for each reference_line
   int    best_line_id = -1;
   double min_cost     = std::numeric_limits<double>::max();
   for (int i = 0; i < reference_line_info_list.size(); ++i) {
-    LOG(INFO) << "REFERENCE_LINE_PLANNING: " << i << std::endl;
+    std::cout << "REFERENCE_LINE_PLANNING-------------------------------- " << i
+              << std::endl;
     auto& reference_line_info = reference_line_info_list[i];
     bool  status = PlanOnReferenceLine(planning_init_point, obstacle_list,
                                       &reference_line_info);
@@ -124,8 +155,8 @@ std::vector<Pose> LatticePlanner::Plan(
       }
     }
   }
-
-  if (success_line_count > 0) {
+  // convert unit grid to unit m
+  if (success_line_count > 0 && best_line_id >= 0) {
     std::cout << "multi lane cost: " << std::endl;
     for (const auto& line_info : reference_line_info_list) {
       std::cout << line_info.Cost() << std::endl;
@@ -175,17 +206,8 @@ bool LatticePlanner::PlanOnReferenceLine(
       FLAGS_trajectory_time_horizon, 0, "lattice_planner");
 
   auto st_boundaries = ptr_path_time_graph->GetPathTimeObstacles();
-  std::cout << "st_boundaries: " << std::endl;
-  for (const auto& boundary : st_boundaries) {
-    std::cout << boundary << std::endl;
-  }
 
   auto pt_pairs = ptr_path_time_graph->GetPathBlockingIntervals(0, 20, 0.2);
-  if (!pt_pairs.empty() && !pt_pairs[0].empty()) {
-    std::cout << "path_time_interval: " << std::endl;
-    std::cout << pt_pairs[0][0].first << ", " << pt_pairs[0][0].second
-              << std::endl;
-  }
 
   double speed_limit = reference_line_info->GetSpeedLimitFromS(init_s[0]);
   reference_line_info->SetLatticeCruiseSpeed(speed_limit);

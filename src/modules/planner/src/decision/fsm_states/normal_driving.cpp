@@ -34,7 +34,17 @@ void NormalDriving::update(FullControl& control) {
   // for (size_t i = 0; i < 10; ++i) {
   //   std::cout << result_traj[i] << std::endl;
   // }
-  map_manager->maintainPath(map_manager->getMap().nav_info, result_traj);
+  std::vector<Pose> path_to_maintain;
+  double            last_s = -5;
+  for (const auto& p : result_traj) {
+    if (p.s - last_s > 0.2) {
+      path_to_maintain.push_back(p);
+      last_s = p.s;
+    }
+  }
+  if (!path_to_maintain.empty()) {
+    map_manager->maintainPath(map_manager->getMap().nav_info, path_to_maintain);
+  }
   return;
 
   bool       back_ward  = map.nav_info.current_speed < 3 ? true : false;

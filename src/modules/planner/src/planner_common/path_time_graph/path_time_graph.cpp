@@ -5,12 +5,33 @@
 #include <iostream>
 #include <limits>
 
+#include "cartesian_frenet_conversion.h"
 #include "lattice_planner_params.h"
 #include "linear_interpolation.h"
 #include "path_matcher.h"
 #include "st_point.h"
 #include "tievlog.h"
+
 namespace TiEV {
+PathTimeGraph::PathTimeGraph(std::vector<Obstacle>&   obstacles,
+                             const std::vector<Pose>& path,
+                             const double s_start, const double s_end,
+                             const double t_start, const double t_end,
+                             double current_speed, std::string type)
+    : obstacles_(obstacles) {
+  path_range_.first          = s_start;
+  path_range_.second         = s_end;
+  time_range_.first          = t_start;
+  time_range_.second         = t_end;
+  path_length_               = s_end - s_start;
+  total_time_                = t_end - t_start;
+  current_speed_             = current_speed;
+  Default_Path_Width_        = 1.0 * CAR_WIDTH / GRID_RESOLUTION;  // unit grid
+  Trajectory_Time_Resolution = 0.05;  // Temporarily set
+  type_                      = type;
+  SetupObstacles(obstacles, path);
+}
+
 PathTimeGraph::PathTimeGraph(std::vector<Obstacle>&   obstacles,
                              const std::vector<Pose>& path,
                              const double s_start, const double s_end,
@@ -24,27 +45,9 @@ PathTimeGraph::PathTimeGraph(std::vector<Obstacle>&   obstacles,
   path_length_               = s_end - s_start;
   total_time_                = t_end - t_start;
   current_speed_             = current_speed;
-  Default_Path_Width_        = 1.0 * CAR_WIDTH;  // m
+  Default_Path_Width_        = 1.0 * CAR_WIDTH;  // unit m
   Trajectory_Time_Resolution = 0.05;             // Temporarily set
-  SetupObstacles(obstacles, path);
-}
-
-PathTimeGraph::PathTimeGraph(std::vector<Obstacle>&   obstacles,
-                             const std::vector<Pose>& path,
-                             const double s_start, const double s_end,
-                             const double t_start, const double t_end,
-                             double current_speed, std::string type)
-    : obstacles_(obstacles) {
-  path_range_.first   = s_start;
-  path_range_.second  = s_end;
-  time_range_.first   = t_start;
-  time_range_.second  = t_end;
-  path_length_        = s_end - s_start;
-  total_time_         = t_end - t_start;
-  current_speed_      = current_speed;
-  Default_Path_Width_ = 1.0 * CAR_WIDTH / GRID_RESOLUTION;  // unit grid
-  Trajectory_Time_Resolution =
-      FLAGS_trajectory_time_resolution;  // Temporarily set
+  type_                      = "speed_planner";
   SetupObstacles(obstacles, path);
 }
 
@@ -84,8 +87,45 @@ SLBoundary PathTimeGraph::ComputeObstacleSLBoundary(
 
   // LOG(WARNING) << "----Obstale----";
   for (const auto& point : vertices) {
-    std::pair<double, double> sl_point =
-        PathMatcher::GetPathFrenetCoordinate(path, point.x(), point.y());
+    std::pair<double, double> sl_point;
+    if (type_ == "speed_planner") {
+      sl_point =
+          PathMatcher::GetPathFrenetCoordinate(path, point.x(), point.y());
+    } else {
+      Pose   matched_point;
+      double x = point.x(), y = point.y();
+      auto   func_dis_square = [](const Pose& point, const double x,
+                                const double y) {
+        double dx = point.x - x;
+        double dy = point.y - y;
+        return dx * dx + dy * dy;
+      };
+
+      double      dis_min = func_dis_square(path.front(), x, y);
+      std::size_t idx_min = 0;
+
+      for (std::size_t i = 1; i < path.size(); i++) {
+        double dis_tmp = func_dis_square(path[i], x, y);
+        if (dis_tmp < dis_min) {
+          dis_min = dis_tmp;
+          idx_min = i;
+        }
+      }
+
+      std::size_t idx_start = (idx_min == 0) ? idx_min : idx_min - 1;
+      std::size_t idx_end =
+          (idx_min + 1 == path.size()) ? idx_min : idx_min + 1;
+
+      // a rough estimation. don't interpolate for now
+      matched_point = path[idx_start];
+      double s_val, d_val;
+      CartesianFrenetConverter::cartesian_to_frenet(
+          matched_point.s, matched_point.x, matched_point.y, matched_point.ang,
+          point.x(), point.y(), &s_val, &d_val);
+      sl_point.first  = s_val;
+      sl_point.second = d_val;
+    }
+
     // LOG(INFO) << "vertice:[" << point.x() << " " << point.y()
     //           << "] sl_point: s=" << sl_point.first << " l=" <<
     //           sl_point.second;
@@ -118,8 +158,8 @@ void PathTimeGraph::SetupObstacles(std::vector<Obstacle>&   obstacles,
 void PathTimeGraph::SetStaticObstacle(Obstacle&                obstacle,
                                       const std::vector<Pose>& path) {
   const Box box = GetStaticBoundingBox(obstacle);
-  std::cout << "box: " << std::endl;
-  std::cout << box << std::endl;
+  // std::cout << "box: " << std::endl;
+  // std::cout << box << std::endl;
   SLBoundary sl_boundary = ComputeObstacleSLBoundary(box.corners(), path);
   double     left_width  = Default_Path_Width_ * 0.6 + current_speed_ * 0.1;
   double     right_width = Default_Path_Width_ * 0.6 + current_speed_ * 0.1;

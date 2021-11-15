@@ -26,6 +26,9 @@ class PathMatcher {
   static Pose MatchToPath(const std::vector<Pose>& path, const double x,
                           const double y);
 
+  static Pose MatchToPath(const std::vector<HDMapPoint>& path, const double x,
+                          const double y);
+
   /**
    * @brief Match given s to a given path
    * @param path

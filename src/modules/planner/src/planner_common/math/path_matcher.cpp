@@ -57,6 +57,31 @@ Pose PathMatcher::MatchToPath(const std::vector<Pose>& path, const double x,
   //   y);
 }
 
+Pose PathMatcher::MatchToPath(const std::vector<HDMapPoint>& path,
+                              const double x, const double y) {
+  auto func_dis_square = [](const Pose& point, const double x, const double y) {
+    double dx = point.x - x;
+    double dy = point.y - y;
+    return dx * dx + dy * dy;
+  };
+
+  double      dis_min = func_dis_square(path.front(), x, y);
+  std::size_t idx_min = 0;
+
+  for (std::size_t i = 1; i < path.size(); i++) {
+    double dis_tmp = func_dis_square(path[i], x, y);
+    if (dis_tmp < dis_min) {
+      dis_min = dis_tmp;
+      idx_min = i;
+    }
+  }
+
+  std::size_t idx_start = (idx_min == 0) ? idx_min : idx_min - 1;
+  std::size_t idx_end   = (idx_min + 1 == path.size()) ? idx_min : idx_min + 1;
+
+  return path[idx_start];
+}
+
 Pose PathMatcher::MatchToPath(const std::vector<Pose>& path, const double s) {
   auto comp = [](const Pose& point, const double s) { return point.s < s; };
 
@@ -109,4 +134,5 @@ std::pair<double, double> PathMatcher::GetPathFrenetCoordinate(
   coord.second = std::copysign(std::hypot(dis_x, dis_y), side);
   return coord;
 }
+
 }  // namespace TiEV

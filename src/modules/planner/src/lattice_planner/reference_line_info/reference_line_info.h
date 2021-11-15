@@ -100,7 +100,7 @@ class ReferenceLineInfo {
   }
   std::vector<Pose>& trajectory() { return discretized_trajectory_; }
 
-  void ShiftRefLine(const int shift_left_lane_num);
+  void ShiftRefLine(const int src_lane_seq, const int dest_lane_seq);
 
  private:
   std::vector<HDMapPoint> reference_line_;

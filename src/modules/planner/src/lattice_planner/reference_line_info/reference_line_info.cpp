@@ -76,6 +76,13 @@ ReferenceLineInfo::ReferenceLineInfo(std::vector<HDMapPoint> reference_line,
     hdmap_point.y          = smoothed_path[i].y;
     hdmap_point.lane_num   = reference_line[in_ref_line_id].lane_num;
     hdmap_point.lane_width = reference_line[in_ref_line_id].lane_width;
+    hdmap_point.event      = reference_line[in_ref_line_id].event;
+    hdmap_point.mode       = reference_line[in_ref_line_id].mode;
+    hdmap_point.speed_mode = reference_line[in_ref_line_id].speed_mode;
+    // following lane_seq, direction, block_type need to be updated
+    hdmap_point.lane_seq   = reference_line[in_ref_line_id].lane_seq;
+    hdmap_point.direction  = reference_line[in_ref_line_id].direction;
+    hdmap_point.block_type = reference_line[in_ref_line_id].block_type;
     reference_line_.push_back(hdmap_point);
   }
   Point2d xim1, xi, xip1, vec;
@@ -106,15 +113,19 @@ double ReferenceLineInfo::GetSpeedLimitFromS(double s) {
   return 20;
 }
 
-void ReferenceLineInfo::ShiftRefLine(const int shift_left_lane_num) {
+// shift x,y cooridnate and update lane_seq
+void ReferenceLineInfo::ShiftRefLine(const int src_lane_seq,
+                                     const int dest_lane_seq) {
   auto offset = [](HDMapPoint& map_point, const double shift_dist) {
     auto        normal_vec = Point2d(-sin(map_point.ang), cos(map_point.ang));
     const auto& offset_vec = normal_vec * shift_dist;
     map_point.x += offset_vec.x;
     map_point.y += offset_vec.y;
   };
+  int shift_left_lane_num = dest_lane_seq - src_lane_seq;
   for (int i = 0; i < reference_line_.size(); ++i) {
-    auto& p = reference_line_[i];
+    auto& p    = reference_line_[i];
+    p.lane_seq = dest_lane_seq;
     if ((shift_left_lane_num + 1) > p.lane_num) {
       reference_line_.resize(i);
       break;

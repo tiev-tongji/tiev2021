@@ -23,6 +23,7 @@ class PathTimeGraph {
   std::pair<double, double> path_range_;
   std::vector<STBoundary>   st_boundaries_;
   std::vector<Obstacle>     obstacles_;
+  std::string               type_;
 
   double path_length_;
   double total_time_;
