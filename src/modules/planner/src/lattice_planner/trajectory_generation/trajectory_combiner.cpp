@@ -100,9 +100,12 @@ std::vector<Pose> TrajectoryCombiner::Combine(
     trajectory_point.set_t(t_param + init_relative_time);
 
     combined_trajectory.push_back(trajectory_point);
-
-    t_param = t_param + FLAGS_trajectory_time_resolution;
-
+    // if (v <= 0) {
+    //   t_param = t_param + FLAGS_trajectory_time_resolution;
+    // } else {
+    //   t_param = t_param + 5 / v;  // 0.2m for one point
+    // }
+    t_param               = t_param + 0.05;
     prev_trajectory_point = trajectory_point;
   }
   return combined_trajectory;

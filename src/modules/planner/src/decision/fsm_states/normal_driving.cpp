@@ -20,9 +20,21 @@ void NormalDriving::update(FullControl& control) {
 
   LatticePlanner                       lp;
   std::vector<std::vector<HDMapPoint>> ref_path_list;
+
   ref_path_list.push_back(map.ref_path);
-  lp.Plan(map.nav_info.car_pose, map.dynamic_obj_list.dynamic_obj_list,
-          ref_path_list);
+  std::vector<Pose> result_traj;
+  NavInfo           car_nav_info = map.nav_info;
+  Pose              planning_init_point;
+  planning_init_point   = car_nav_info.car_pose;
+  planning_init_point.v = car_nav_info.current_speed;
+  result_traj           = lp.Plan(planning_init_point,
+                        map.dynamic_obj_list.dynamic_obj_list, map.ref_path);
+  int show_points       = std::min(10, static_cast<int>(result_traj.size()));
+  // std::cout << "before maintain: \n";
+  // for (size_t i = 0; i < 10; ++i) {
+  //   std::cout << result_traj[i] << std::endl;
+  // }
+  map_manager->maintainPath(map_manager->getMap().nav_info, result_traj);
   return;
 
   bool       back_ward  = map.nav_info.current_speed < 3 ? true : false;

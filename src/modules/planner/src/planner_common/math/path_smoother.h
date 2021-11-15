@@ -7,6 +7,7 @@
 #include "const.h"
 #include "opencv2/opencv.hpp"
 #include "point2d.h"
+#include "pose.h"
 using std::vector;
 
 namespace TiEV {
@@ -15,7 +16,14 @@ class PathSmoother {
  public:
   PathSmoother();
   // api
-  vector<Point2d> smoothPath(const vector<Point2d>& path);
+  vector<Point2d> smoothPath(const vector<Point2d>& path, const int gap = 5);
+
+  // smoothPath for lattice planner
+  vector<Point2d> smoothPath(const vector<HDMapPoint>& path, const int gap,
+                             std::string type);
+
+  template <typename T>
+  vector<Point2d> convert2Point2d(const vector<T>& original_path);
 
   // linear interpolate n points between original path points
   vector<Point2d> interpolatePath(const vector<Point2d>& path, const int n);

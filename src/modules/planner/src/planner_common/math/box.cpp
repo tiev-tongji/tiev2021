@@ -22,14 +22,11 @@ void Box::InitCorners() {
   const double dy2 = -width_ / 2.0 * cos_heading_ / GRID_RESOLUTION;
 
   corners_.clear();
-  // corners_.emplace_back(center_.x() + dx1 + dx2, center_.y() + dy1 + dy2);
-  // corners_.emplace_back(center_.x() + dx1 - dx2, center_.y() + dy1 - dy2);
-  // corners_.emplace_back(center_.x() - dx1 - dx2, center_.y() - dy1 - dy2);
-  // corners_.emplace_back(center_.x() - dx1 + dx2, center_.y() - dy1 + dy2);
-  corners_.emplace_back(center_.x() + dx1 + dx2, center_.y() + dy1 + dy2);
-  corners_.emplace_back(center_.x() + dx1 - dx2, center_.y() + dy1 - dy2);
-  corners_.emplace_back(center_.x() - dx1 - dx2, center_.y() - dy1 - dy2);
-  corners_.emplace_back(center_.x() - dx1 + dx2, center_.y() - dy1 + dy2);
+  corners_.emplace_back(center_.x() + dx1 + dx2,
+                        center_.y() + dy1 + dy2);  // ur -- upper right
+  corners_.emplace_back(center_.x() + dx1 - dx2, center_.y() + dy1 - dy2);  // lr
+  corners_.emplace_back(center_.x() - dx1 - dx2, center_.y() - dy1 - dy2);  // ll
+  corners_.emplace_back(center_.x() - dx1 + dx2, center_.y() - dy1 + dy2);  // ul
   for (auto& corner : corners_) {
     max_x_ = std::fmax(corner.x(), max_x_);
     min_x_ = std::fmin(corner.x(), min_x_);

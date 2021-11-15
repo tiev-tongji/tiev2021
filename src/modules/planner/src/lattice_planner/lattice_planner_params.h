@@ -10,18 +10,19 @@ constexpr double FLAGS_trajectory_time_resolution = 0.2;
 
 // in end_condition_sampler
 // sample parameter for lon trajectory of cruising
-constexpr size_t FLAGS_num_of_time_samples     = 2;
-constexpr size_t FLAGS_num_velocity_sample     = 2;
+constexpr size_t FLAGS_num_of_time_samples     = 1;
+constexpr size_t FLAGS_num_velocity_sample     = 1;
 constexpr double FLAGS_min_velocity_sample_gap = 10;
+constexpr double FLAGS_default_cruise_speed    = 50;
 // minimum length of x axis required for polynomial generation
 constexpr double FLAGS_minimal_time = 5;
 // sample parameter for lon trajectory of follow and overtake driving
-constexpr double FLAGS_time_min_gap             = 1;  // unit s
-constexpr double FLAGS_vehicle_front_to_center_dist = 5;  // unit grid
-constexpr double FLAGS_follow_overtake_lon_buffer   = 5;  // unit grid
-constexpr double FLAGS_num_follow_samples           = 3;
+constexpr double FLAGS_vehicle_front_to_center_dist = 5;   // unit grid
+constexpr double FLAGS_follow_overtake_lon_buffer   = 15;  // unit grid
+constexpr double FLAGS_num_follow_samples_s         = 1;
+constexpr double FLAGS_num_follow_samples_t         = 1;
 // sample parameter for lat trajectory
-constexpr std::array<double, 1> FLAGS_end_s_candidates = {350};
+constexpr std::array<double, 1> FLAGS_end_s_candidates = {100};
 constexpr std::array<double, 1> FLAGS_end_d_candidates = {0};
 
 // in trajectory_evaluater
@@ -38,6 +39,7 @@ constexpr double FLAGS_weight_dist_travelled = 1;
 constexpr double FLAGS_lon_collision_yield_buffer    = 5;  // unit grid
 constexpr double FLAGS_lon_collision_overtake_buffer = 5;  // unit grid
 constexpr double FLAGS_lon_collision_cost_std        = 1;
+constexpr double FLAGS_lon_collision_cost            = 10;
 // lat_offset
 constexpr double FLAGS_lat_offset_bound            = 10;  // unit grid
 constexpr double FLAGS_trajectory_space_resolution = 5;   // unit grid

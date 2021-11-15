@@ -70,11 +70,12 @@ class MapManager {
   vector<HDMapPoint> getForwardRefPath();
   HDMapSpeed         getCurrentSpeedMode();
   void updateRefPath(bool need_opposite = false);  //获取局部参考路
-  void addPedestrian(DynamicObjList& dynamic_obj_list,
-                     const vector<HDMapPoint>&
-                         ref_path);  // 对道路内且相隔一定距离内的行人进行避让
-  void addPedestrian(DynamicObjList& dynamic_obj_list);
-  void blockStopLine();  // 封闭停止线，红灯时使用
+  vector<HDMapPoint> getRefPath();
+  void               addPedestrian(DynamicObjList& dynamic_obj_list,
+                                   const vector<HDMapPoint>&
+                                       ref_path);  // 对道路内且相隔一定距离内的行人进行避让
+  void               addPedestrian(DynamicObjList& dynamic_obj_list);
+  void               blockStopLine();  // 封闭停止线，红灯时使用
   enum DynamicBlockType { NO_BLOCK, ALL_BLOCK };
   void updatePlanningMap(DynamicBlockType dynamic_block_type,
                          bool             history = false);
@@ -105,8 +106,8 @@ class MapManager {
   std::vector<Pose> getMaintainedPath(const NavInfo& nav_info);
   void              getSpeedMaintainedPath(NavInfo& nav_info);
   std::vector<Pose> getStartMaintainedPath();
-  void maintainPath(const NavInfo& nav_info, const vector<Pose>& path);
-  void selectBestPath(const std::vector<SpeedPath>& paths);
+  void              maintainPath(const NavInfo& nav_info, vector<Pose>& path);
+  void              selectBestPath(const std::vector<SpeedPath>& paths);
 
  public:
   static MapManager* getInstance() { return instance; };

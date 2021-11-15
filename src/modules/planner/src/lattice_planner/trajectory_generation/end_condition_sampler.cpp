@@ -68,13 +68,10 @@ std::vector<Condition> EndConditionSampler::SampleLonEndConditionsForCruising(
   std::vector<Condition> end_s_conditions;
   for (const auto& time : time_samples) {
     std::cout << "V_upper, V_lower not implemented " << std::endl;
-    double v_upper = 50;
-    double v_lower = 50;
+    double v_upper = FLAGS_default_cruise_speed;
+    double v_lower = 0;
     // double v_upper = std::min(feasible_region_.VUpper(time),
     // ref_cruise_speed); double v_lower = feasible_region_.VLower(time);
-
-    State lower_end_s = {0.0, v_lower, 0.0};
-    end_s_conditions.emplace_back(lower_end_s, time);
 
     State upper_end_s = {0.0, v_upper, 0.0};
     end_s_conditions.emplace_back(upper_end_s, time);
@@ -82,7 +79,7 @@ std::vector<Condition> EndConditionSampler::SampleLonEndConditionsForCruising(
     double v_range = v_upper - v_lower;
     // Number of sample velocities
     size_t num_of_mid_points =
-        std::min(static_cast<size_t>(FLAGS_num_velocity_sample - 2),
+        std::min(static_cast<size_t>(FLAGS_num_velocity_sample - 1),
                  static_cast<size_t>(v_range / FLAGS_min_velocity_sample_gap));
 
     if (num_of_mid_points > 0) {
@@ -149,7 +146,7 @@ std::vector<SamplePoint> EndConditionSampler::QueryPathTimeObstacleSamplePoints(
        ptr_path_time_graph_->GetPathTimeObstacles()) {
     const int obstacle_id = path_time_obstacle.id();
     QueryFollowPathTimePoints(obstacle_id, &sample_points, reference_line);
-    QueryOvertakePathTimePoints(obstacle_id, &sample_points, reference_line);
+    // QueryOvertakePathTimePoints(obstacle_id, &sample_points, reference_line);
   }
   return sample_points;
 }
@@ -159,7 +156,7 @@ void EndConditionSampler::QueryFollowPathTimePoints(
     const std::vector<Pose>& reference_line) const {
   std::vector<STPoint> follow_path_time_points =
       ptr_path_time_graph_->GetObstacleSurroundingPoints(
-          obstacle_id, -FLAGS_numerical_epsilon, FLAGS_time_min_gap);
+          obstacle_id, -FLAGS_numerical_epsilon);
 
   for (const auto& path_time_point : follow_path_time_points) {
     double v = ProjectVelocityAlongReferenceLine(
@@ -168,9 +165,10 @@ void EndConditionSampler::QueryFollowPathTimePoints(
     double s_upper = path_time_point.s() - FLAGS_vehicle_front_to_center_dist;
     double s_lower = s_upper - FLAGS_follow_overtake_lon_buffer;
     // CHECK_GE(FLAGS_num_sample_follow_per_timestamp, 2U);
+    if (FLAGS_num_follow_samples_s <= 0) break;
     double s_gap = FLAGS_follow_overtake_lon_buffer /
-                   static_cast<double>(FLAGS_num_follow_samples - 1);
-    for (size_t i = 0; i < FLAGS_num_follow_samples; ++i) {
+                   static_cast<double>(FLAGS_num_follow_samples_s);
+    for (size_t i = 0; i < FLAGS_num_follow_samples_s; ++i) {
       double      s = s_lower + s_gap * static_cast<double>(i);
       SamplePoint sample_point;
       sample_point.path_time_point = path_time_point;
@@ -186,7 +184,7 @@ void EndConditionSampler::QueryOvertakePathTimePoints(
     const std::vector<Pose>& reference_line) const {
   std::vector<STPoint> overtake_path_time_points =
       ptr_path_time_graph_->GetObstacleSurroundingPoints(
-          obstacle_id, FLAGS_numerical_epsilon, FLAGS_time_min_gap);
+          obstacle_id, FLAGS_numerical_epsilon);
 
   for (const auto& path_time_point : overtake_path_time_points) {
     double v = ProjectVelocityAlongReferenceLine(

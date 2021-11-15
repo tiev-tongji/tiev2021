@@ -49,10 +49,8 @@ namespace TiEV {
 
 class PlanningTarget {
  public:
-  bool has_stop_point() const {
-    std::cout << "has_stop_point not implemented " << std::endl;
-    return false;
-  }
+  PlanningTarget() : cruise_speed_(0), has_stop_point_(false) {}
+  bool   has_stop_point() const { return has_stop_point_; }
   Pose   stop_point() const { return stop_point_; }
   double cruise_speed() const { return cruise_speed_; }
   void   set_cruise_speed(double speed) { cruise_speed_ = speed; }
@@ -101,6 +99,8 @@ class ReferenceLineInfo {
     discretized_trajectory_ = trajectory;
   }
   std::vector<Pose>& trajectory() { return discretized_trajectory_; }
+
+  void ShiftRefLine(const int shift_left_lane_num);
 
  private:
   std::vector<HDMapPoint> reference_line_;

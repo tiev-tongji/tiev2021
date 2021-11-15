@@ -8,6 +8,7 @@ target_sources(math PRIVATE
     box.cpp
     cartesian_frenet_conversion.cpp
     vec.cpp
+    path_smoother.cpp
 )
 
 target_include_directories(math PUBLIC 

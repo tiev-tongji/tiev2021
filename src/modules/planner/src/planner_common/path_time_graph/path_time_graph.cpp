@@ -5,6 +5,7 @@
 #include <iostream>
 #include <limits>
 
+#include "lattice_planner_params.h"
 #include "linear_interpolation.h"
 #include "path_matcher.h"
 #include "st_point.h"
@@ -16,13 +17,34 @@ PathTimeGraph::PathTimeGraph(std::vector<Obstacle>&   obstacles,
                              const double t_start, const double t_end,
                              double current_speed)
     : obstacles_(obstacles) {
-  path_range_.first  = s_start;
-  path_range_.second = s_end;
-  time_range_.first  = t_start;
-  time_range_.second = t_end;
-  path_length_       = s_end - s_start;
-  total_time_        = t_end - t_start;
-  current_speed_     = current_speed;
+  path_range_.first          = s_start;
+  path_range_.second         = s_end;
+  time_range_.first          = t_start;
+  time_range_.second         = t_end;
+  path_length_               = s_end - s_start;
+  total_time_                = t_end - t_start;
+  current_speed_             = current_speed;
+  Default_Path_Width_        = 1.0 * CAR_WIDTH;  // m
+  Trajectory_Time_Resolution = 0.05;             // Temporarily set
+  SetupObstacles(obstacles, path);
+}
+
+PathTimeGraph::PathTimeGraph(std::vector<Obstacle>&   obstacles,
+                             const std::vector<Pose>& path,
+                             const double s_start, const double s_end,
+                             const double t_start, const double t_end,
+                             double current_speed, std::string type)
+    : obstacles_(obstacles) {
+  path_range_.first   = s_start;
+  path_range_.second  = s_end;
+  time_range_.first   = t_start;
+  time_range_.second  = t_end;
+  path_length_        = s_end - s_start;
+  total_time_         = t_end - t_start;
+  current_speed_      = current_speed;
+  Default_Path_Width_ = 1.0 * CAR_WIDTH / GRID_RESOLUTION;  // unit grid
+  Trajectory_Time_Resolution =
+      FLAGS_trajectory_time_resolution;  // Temporarily set
   SetupObstacles(obstacles, path);
 }
 
@@ -67,7 +89,6 @@ SLBoundary PathTimeGraph::ComputeObstacleSLBoundary(
     // LOG(INFO) << "vertice:[" << point.x() << " " << point.y()
     //           << "] sl_point: s=" << sl_point.first << " l=" <<
     //           sl_point.second;
-    std::cout << "sl result: " << sl_point.second << std::endl;
     start_s = std::fmin(start_s, sl_point.first);
     end_s   = std::fmax(end_s, sl_point.first);
     start_l = std::fmin(start_l, sl_point.second);
@@ -97,32 +118,18 @@ void PathTimeGraph::SetupObstacles(std::vector<Obstacle>&   obstacles,
 void PathTimeGraph::SetStaticObstacle(Obstacle&                obstacle,
                                       const std::vector<Pose>& path) {
   const Box box = GetStaticBoundingBox(obstacle);
-  std::cout << "obstacle details: " << obstacle.path.front().x << ' '
-            << obstacle.path.front().y << ' ' << obstacle.length << ' '
-            << obstacle.width << ' ' << obstacle.path.front().ang << std::endl;
-  std::cout << current_speed_ << std::endl;
-  for (const auto& i : box.corners()) {
-    std::cout << i.x() << ' ' << i.y() << std::endl;
-  }
-  // LOG(INFO) << "Static Obstacle";
-
+  std::cout << "box: " << std::endl;
+  std::cout << box << std::endl;
   SLBoundary sl_boundary = ComputeObstacleSLBoundary(box.corners(), path);
   double     left_width  = Default_Path_Width_ * 0.6 + current_speed_ * 0.1;
   double     right_width = Default_Path_Width_ * 0.6 + current_speed_ * 0.1;
-  std::cout << "finally: " << sl_boundary.start_s() << ' '
-            << sl_boundary.end_s() << ' ' << sl_boundary.start_l() << ' '
-            << sl_boundary.end_l() << ' ' << path_range_.first << ' '
-            << path_range_.second << std::endl;
-  // Out of path range
+  // Out of lane
   if (sl_boundary.start_s() > path_range_.second ||
       sl_boundary.end_s() < path_range_.first ||
       sl_boundary.start_l() > left_width ||
-      sl_boundary.end_l() < -right_width ||
-      sl_boundary.end_s() - sl_boundary.start_s() > 10 ||
-      sl_boundary.end_l() - sl_boundary.start_l() > 10) {
+      sl_boundary.end_l() < -right_width) {
     return;
   }
-  std::cout << "stop!" << std::endl;
   STPoint blp(sl_boundary.start_s(), 0);
   STPoint brp(sl_boundary.start_s(), total_time_);
   STPoint ulp(sl_boundary.end_s(), 0);
@@ -195,8 +202,8 @@ std::vector<std::pair<double, double>> PathTimeGraph::GetPathBlockingIntervals(
   // ACHECK(time_range_.first <= t && t <= time_range_.second);
   std::vector<std::pair<double, double>> intervals;
   for (const auto& pt_obstacle : st_boundaries_) {
-    std::cout << "not sure if path_time obstacles_ is st_boundries "
-              << std::endl;
+    // std::cout << "not sure if path_time obstacles_ is st_boundries "
+    //           << std::endl;
     if (t > pt_obstacle.max_t() || t < pt_obstacle.min_t()) {
       continue;
     }
@@ -227,13 +234,20 @@ PathTimeGraph::GetPathBlockingIntervals(const double t_start,
 }
 
 std::vector<STPoint> PathTimeGraph::GetObstacleSurroundingPoints(
-    const int& obstacle_id, const double s_dist,
-    const double t_min_density) const {
+    const int& obstacle_id, const double s_dist) const {
   // ACHECK(t_min_density > 0.0);
   std::vector<STPoint> pt_pairs;
   if (st_boundaries_.empty()) return pt_pairs;
 
-  const auto& pt_obstacle = st_boundaries_[obstacle_id];
+  STBoundary pt_obstacle;
+  bool       found_obs = false;
+  for (const auto& obs : st_boundaries_) {
+    if (obs.id() == obstacle_id) {
+      pt_obstacle = obs;
+      found_obs   = true;
+    }
+  }
+  if (!found_obs || FLAGS_num_follow_samples_t <= 0) return pt_pairs;
 
   double s0 = 0.0;
   double s1 = 0.0;
@@ -254,15 +268,16 @@ std::vector<STPoint> PathTimeGraph::GetObstacleSurroundingPoints(
     t1 = pt_obstacle.bottom_right_point().t();
   }
 
-  double time_gap = t1 - t0;
+  double time_origin = (t0 + t1) / 2;
+  double time_gap    = t1 - t0;
   // ACHECK(time_gap > -FLAGS_numerical_epsilon);
   time_gap = std::fabs(time_gap);
 
-  size_t num_sections = static_cast<size_t>(time_gap / t_min_density + 1);
+  size_t num_sections = FLAGS_num_follow_samples_t;
   double t_interval   = time_gap / static_cast<double>(num_sections);
 
-  for (size_t i = 0; i <= num_sections; ++i) {
-    double t = t_interval * static_cast<double>(i) + t0;
+  for (size_t i = 0; i < num_sections; ++i) {
+    double t = t_interval * static_cast<double>(i) + time_origin;
     double s = lerp(s0, t0, s1, t1, t) + s_dist;
 
     STPoint ptt;

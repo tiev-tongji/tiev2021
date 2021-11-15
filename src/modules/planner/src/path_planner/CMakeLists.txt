@@ -8,7 +8,6 @@ target_sources(path_planner PRIVATE
     primitive_sets.cpp
     primitives.cpp
     path_planner.cpp
-    path_smoother.cpp
 )
 
 find_library(G1FITTING_LIBRARY Clothoid)

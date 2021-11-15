@@ -109,6 +109,7 @@ void MessageManager::addTextInfo(const string& name, const string& value) {
   text_info[name] = value;
 }
 
+// dynamic_obj coordinate: x point right, y point forward
 bool MessageManager::getDynamicObjList(DynamicObjList& dynamic_obj_list) {
   inner_handler.objects_mtx.lock_shared();
   time_t current_time_us = getTimeStamp();
@@ -131,7 +132,7 @@ bool MessageManager::getDynamicObjList(DynamicObjList& dynamic_obj_list) {
         new_obj.type    = (ObjectType)obj.obj_type;
         new_obj.width   = obj.width;
         new_obj.length  = obj.length;
-        new_obj.heading = obj.theta;  // + PI / 2;
+        new_obj.heading = obj.theta + PI / 2;
         normalizeAngle(new_obj.heading);
         new_obj.corners.resize(4);
 #define copy_point(a, b)                                    \

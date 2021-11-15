@@ -27,9 +27,9 @@ class PathTimeGraph {
   double path_length_;
   double total_time_;
 
-  const double Default_Path_Width_        = 1.0 * CAR_WIDTH;  // m
-  const double Trajectory_Time_Resolution = 0.05;             // Temporarily set
-  double       current_speed_;
+  double Default_Path_Width_        = 1.0 * CAR_WIDTH;  // m
+  double Trajectory_Time_Resolution = 0.05;             // Temporarily set
+  double current_speed_;
 
  public:
   PathTimeGraph() {
@@ -53,6 +53,10 @@ class PathTimeGraph {
   PathTimeGraph(std::vector<Obstacle>& obstacles, const std::vector<Pose>& path,
                 double s_start, double s_end, double t_start, double t_end,
                 double current_speed = 0);
+
+  PathTimeGraph(std::vector<Obstacle>& obstacles, const std::vector<Pose>& path,
+                double s_start, double s_end, double t_start, double t_end,
+                double current_speed, std::string type);
 
   /**
    * @brief Get the location(PathPoint) of obstacle at time t
@@ -96,11 +100,10 @@ class PathTimeGraph {
     return st_boundaries_;
   }
 
-  std::vector<STPoint> GetObstacleSurroundingPoints(
-      const int& obstacle_id, const double s_dist,
-      const double t_density) const;
-  
-  const std::vector<Obstacle>& GetObstacles() {return obstacles_;}
+  std::vector<STPoint> GetObstacleSurroundingPoints(const int&   obstacle_id,
+                                                    const double s_dist) const;
+
+  const std::vector<Obstacle>& GetObstacles() { return obstacles_; }
 
  private:
   /**

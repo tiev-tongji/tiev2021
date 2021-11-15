@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <limits>
 #include <vector>
 
@@ -84,5 +85,15 @@ class STBoundary {
 
   bool GetUnblockSRange(const double curr_time, const double total_path_length,
                         double* s_upper, double* s_lower) const;
+
+  friend std::ostream& operator<<(std::ostream&     out,
+                                  const STBoundary& st_boundary) {
+    out << "id=" << st_boundary.id()
+        << "\nbl= " << st_boundary.bottom_left_point()
+        << "\nbr= " << st_boundary.bottom_right_point()
+        << "\nur= " << st_boundary.upper_right_point()
+        << "\nul= " << st_boundary.upper_left_point();
+    return out;
+  }
 };
 }  // namespace TiEV

@@ -185,6 +185,60 @@ void sendPath() {
     }
     // get maintained path
     vector<Pose> maintained_path = mapm->getMaintainedPath(nav_info);
+    // send control trojectory
+    control_path.points.clear();
+    SpeedPath speed_path;
+    speed_path.path         = maintained_path;
+    speed_path.success      = true;
+    control_path.num_points = speed_path.path.size();
+    // std::cout << "control path: " << std::endl;
+    double last_s = 0;
+    for (const auto& p : speed_path.path) {
+      if (p.s - last_s <= 0.2) continue;
+      TrajectoryPoint tp;
+      tp.x     = (CAR_CEN_ROW - p.x) * GRID_RESOLUTION;
+      tp.y     = (CAR_CEN_COL - p.y) * GRID_RESOLUTION;
+      tp.theta = p.ang - PI;
+      while (tp.theta > PI) tp.theta -= 2 * PI;
+      while (tp.theta <= -PI) tp.theta += 2 * PI;
+      tp.a   = p.a;
+      tp.k   = p.k;
+      tp.t   = p.t;
+      tp.v   = p.v;
+      last_s = p.s;
+      // std::cout << "(x,y,theta,v): " << tp.x << ", " << tp.y << ", " <<
+      // tp.theta
+      //           << ", " << tp.v << std::endl;
+      control_path.points.push_back(tp);
+    }
+    if (control_path.points.empty()) {
+      control_path.num_points = 10;
+      for (int i = 0; i < 10; ++i) {
+        TrajectoryPoint tp;
+        tp.x     = 0.1 * i;
+        tp.y     = 0.0;
+        tp.theta = 0;
+        tp.a     = 0;
+        tp.k     = 0;
+        tp.t     = 0.1 * i;
+        tp.v     = 0;
+        control_path.points.push_back(tp);
+      }
+    }
+    msgm->publishPath(control_path);
+
+    // visual maintained path
+    visVISUALIZATION& vis = msgm->visualization;
+    vis.maintained_path.clear();
+    vis.maintained_path_size = maintained_path.size();
+    for (const auto& p : maintained_path) {
+      visPoint vp;
+      vp.x = p.x;
+      vp.y = p.y;
+      vis.maintained_path.push_back(vp);
+    }
+    msgm->setSpeedPath(speed_path);
+    continue;
 
     for (auto& p : maintained_path) {
       p.v = 0;
@@ -244,7 +298,6 @@ void sendPath() {
     }
     if (!maintained_path.empty())
       maintained_path.front().v = fabs(nav_info.current_speed);
-    SpeedPath speed_path;
     // for(const auto &p:speed_limits)
     // cout << "speed limit:" << p.first << " "<<  p.second << endl;
     // if(!maintained_path.empty()) cout << "pid maintained path size:" <<
@@ -263,6 +316,7 @@ void sendPath() {
     }
     // send control trojectory
     control_path.points.clear();
+    // SpeedPath speed_path;
     control_path.num_points = speed_path.path.size();
     for (const auto& p : speed_path.path) {
       TrajectoryPoint tp;
@@ -307,7 +361,7 @@ void sendPath() {
     msgm->publishPath(control_path);
 
     // visual maintained path
-    visVISUALIZATION& vis = msgm->visualization;
+    // visVISUALIZATION& vis = msgm->visualization;
     vis.maintained_path.clear();
     vis.maintained_path_size = maintained_path.size();
     for (const auto& p : maintained_path) {

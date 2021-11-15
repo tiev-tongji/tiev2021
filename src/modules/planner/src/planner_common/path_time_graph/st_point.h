@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 
 namespace TiEV {
 
@@ -7,23 +8,28 @@ namespace TiEV {
  * @brief point on the S-T graph
  */
 class STPoint {
-private:
-    double s_;
-    double t_;
+ private:
+  double s_;
+  double t_;
 
-public:
-    STPoint();
+ public:
+  STPoint();
 
-    STPoint(double s, double t);
+  STPoint(double s, double t);
 
-    STPoint& operator=(const STPoint& st_point) = default;
+  STPoint& operator=(const STPoint& st_point) = default;
 
-    void set_s(double s);
+  void set_s(double s);
 
-    void set_t(double t);
+  void set_t(double t);
 
-    double s() const;
+  double s() const;
 
-    double t() const;
+  double t() const;
+
+  friend std::ostream& operator<<(std::ostream& out, const STPoint& p) {
+    out << "s=" << p.s() << " t=" << p.t();
+    return out;
+  }
 };
-}
+}  // namespace TiEV

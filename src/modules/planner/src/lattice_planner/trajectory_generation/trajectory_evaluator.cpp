@@ -71,6 +71,16 @@ TrajectoryEvaluator::TrajectoryEvaluator(
     // {
     //   continue;
     // }
+    double speed_tmp = 0;
+    bool   is_valid  = true;
+    for (double t = 0; t < lon_trajectory->ParamLength(); t += 0.2) {
+      speed_tmp = lon_trajectory->Evaluate(1, t);
+      if (speed_tmp < 0) {
+        is_valid = false;
+        break;
+      }
+    }
+    if (!is_valid) continue;
     for (const auto& lat_trajectory : lat_trajectories) {
       /**
        * The validity of the code needs to be verified.
@@ -150,6 +160,10 @@ double TrajectoryEvaluator::Evaluate(
     cost_components->emplace_back(lat_offset_cost);
   }
 
+  std::cout << "cost: " << std::endl;
+  std::cout << "lon_objective: " << lon_objective_cost << std::endl;
+  std::cout << "lon_collision: " << lon_collision_cost << std::endl;
+  std::cout << "lat_offset   : " << lat_offset_cost << std::endl;
   return lon_objective_cost * FLAGS_weight_lon_objective +
          //  lon_jerk_cost * FLAGS_weight_lon_jerk +
          lon_collision_cost * FLAGS_weight_lon_collision +
@@ -251,10 +265,12 @@ double TrajectoryEvaluator::LonCollisionCost(
     double sigma  = FLAGS_lon_collision_cost_std;
     for (const auto& m : pt_interval) {
       double dist = 0.0;
-      if (traj_s < m.first - FLAGS_lon_collision_yield_buffer) {
-        dist = m.first - FLAGS_lon_collision_yield_buffer - traj_s;
-      } else if (traj_s > m.second + FLAGS_lon_collision_overtake_buffer) {
-        dist = traj_s - m.second - FLAGS_lon_collision_overtake_buffer;
+      if (traj_s < m.first) {
+        dist = m.first - traj_s;
+      } else if (traj_s > m.second) {
+        dist = traj_s - m.second;
+      } else {
+        return FLAGS_lon_collision_cost;
       }
       double cost = std::exp(-dist * dist / (2.0 * sigma * sigma));
 

@@ -392,6 +392,12 @@ void MapManager::updateRefPath(bool need_opposite) {
   // laneMatch();
 }
 
+std::vector<HDMapPoint> MapManager::getRefPath() {
+  ref_path_mutex.lock_shared();
+  return map.ref_path;
+  ref_path_mutex.unlock_shared();
+}
+
 void MapManager::addPedestrian(DynamicObjList& dynamic) {
   global_path_mutex.lock_shared();
   const auto forward_ref_path = map.forward_ref_path;
@@ -1149,15 +1155,14 @@ void MapManager::laneBlockDecision() {
   }
 }
 
-void MapManager::maintainPath(const NavInfo&      nav_info,
-                              const vector<Pose>& path) {
+void MapManager::maintainPath(const NavInfo& nav_info, vector<Pose>& path) {
   if (path.empty()) return;
   maintained_path_mutex.lock();
   maintained_path.clear();
   maintained_path.reserve(path.size());
-  for (const auto& p : path) {
+  for (auto& p : path) {
     // the point have been updated in path planner
-    // p.updateGlobalCoordinate(nav_info.car_pose);
+    p.updateGlobalCoordinate(nav_info.car_pose);
     maintained_path.push_back(p);
   }
   maintained_path_mutex.unlock();

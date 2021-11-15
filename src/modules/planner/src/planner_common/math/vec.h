@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <string>
 
 namespace TiEV {
@@ -9,22 +10,30 @@ namespace TiEV {
  * @brief vector in Cartesian coordinate system
  */
 class Vec {
-private:
-    double x_;
-    double y_;
+ private:
+  double x_;
+  double y_;
 
-public:
-    Vec() = default;
+ public:
+  Vec() = default;
 
-    Vec(double x, double y) { x_ = x; y_ = y; }
+  Vec(double x, double y) {
+    x_ = x;
+    y_ = y;
+  }
 
-    void set_x(double x) { x_ = x; }
+  void set_x(double x) { x_ = x; }
 
-    void set_y(double y) { y_ = y; }
+  void set_y(double y) { y_ = y; }
 
-    double x() const { return x_; }
+  double x() const { return x_; }
 
-    double y() const { return y_; }
+  double y() const { return y_; }
+
+  friend std::ostream &operator<<(std::ostream &out, const Vec &v) {
+    out << "x= " << v.x() << " y=" << v.y();
+    return out;
+  }
 };
 
 class Vec2d {
@@ -118,4 +127,4 @@ class Vec2d {
 //! Multiplies the given Vec2d by a given scalar
 Vec2d operator*(const double ratio, const Vec2d &vec);
 
-} // namespace TiEV
+}  // namespace TiEV

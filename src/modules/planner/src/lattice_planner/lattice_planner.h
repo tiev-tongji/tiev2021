@@ -46,9 +46,9 @@ class LatticePlanner {
    * @param frame Current planning frame.
    * @return true if planning succeeds; false otherwise.
    */
-  bool Plan(const Pose&                                 planning_init_point,
-            const std::vector<DynamicObj>&              dynamic_obj_list,
-            const std::vector<std::vector<HDMapPoint>>& reference_line_list);
+  std::vector<Pose> Plan(const Pose&                    planning_init_point,
+                         const std::vector<DynamicObj>& dynamic_obj_list,
+                         const std::vector<HDMapPoint>& reference_line);
 
   /**
    * @brief Override function Plan in parent class Planner.
