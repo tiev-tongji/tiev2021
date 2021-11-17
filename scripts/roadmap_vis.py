@@ -1,5 +1,6 @@
 import sys
 import math
+import copy
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -59,24 +60,19 @@ if len(sys.argv) != 2:
 filename = sys.argv[1]
 try:
     road_data = np.loadtxt(filename, skiprows=1, dtype=float)
+    print("load from txt: ", road_data.shape)
 except:
     data_fram = pd.read_csv(filename, skiprows=1, dtype=float)
     data_fram = data_fram.iloc[:,1:]
     road_data = data_fram.to_numpy()
-    print(road_data.shape)
+    print("lode from csv: ", road_data.shape)
     
 
 path = []
+ori_utm_x = road_data[0][3]
+ori_utm_y = road_data[0][4]
 for p in road_data:
-    path.append(point(p[3], p[4], p[5], p[11], p[12], p[13]))
-all_lane_line = []
-for p in path:
-    lane_lane_point_of_refpoint = []
-    if p.lane_num == 0:
-        continue
-    for i in range(int(p.lane_num)+1):
-        lane_lane_point_of_refpoint.append(p.lateral_point(p.lane_width * (i - p.lane_seq + 0.5)))
-    all_lane_line.append(lane_lane_point_of_refpoint)
+    path.append(point(p[3] - ori_utm_x, p[4] - ori_utm_y, p[5], p[11], p[12], p[13]))
 # draw lane line
 ori_x = ori_y = 0
 def mouse_call_back(event):
@@ -100,28 +96,39 @@ def mouse_call_back(event):
         fig.canvas.draw_idle()
     except:
         pass
-path_utmxs = []
-path_utmys = []
-path_utmx = []
-path_utmy = []
+path_segments = []
+path_seg = []
+all_lane_lines = []
+lane_lines = []
+now_lane_num = -1
+now_lane_seq = -1
 for i in range(len(path)-1):
     pre_p = path[i]
     next_p = path[i+1]
-    path_utmx.append(pre_p.x)
-    path_utmy.append(pre_p.y)
+    path_seg.append(pre_p)
+    if pre_p.lane_num != now_lane_num or pre_p.lane_seq != now_lane_seq:
+        now_lane_num = pre_p.lane_num
+        now_lane_seq = pre_p.lane_seq
+        if len(lane_lines) > 0:
+            all_lane_lines.append(copy.deepcopy(lane_lines))
+        lane_lines = []
+        for j in range(int(pre_p.lane_num)+1):
+            if pre_p.lane_num < 1: break
+            lane_p = pre_p.lateral_point(pre_p.lane_width * (j - pre_p.lane_seq + 0.5))
+            lane_lines.append([lane_p])
+    for j in range(int(pre_p.lane_num)+1):
+        if pre_p.lane_num < 1: break
+        lane_p = pre_p.lateral_point(pre_p.lane_width * (j - pre_p.lane_seq + 0.5))
+        lane_lines[j].append(lane_p)
     if (vec2d(next_p.x, next_p.y) - vec2d(pre_p.x, pre_p.y)).sqr_norm() > 100:
-        path_utmxs.append(path_utmx)
-        path_utmys.append(path_utmy)
-        path_utmx = []
-        path_utmy = []
-lane_utmx = []
-lane_utmy = []
-for p in all_lane_line:
-    if len(p) == 0:
-        continue
-    for pp in p:
-        lane_utmx.append(pp.x)
-        lane_utmy.append(pp.y)
+        path_segments.append(copy.deepcopy(path_seg))
+        path_seg = []
+        now_lane_num = -1
+        now_lane_seq = -1
+if len(path_seg) > 0:
+    path_segments.append(path_seg)
+if len(lane_lines) > 0:
+    all_lane_lines.append(lane_lines)
 try:
     fig = plt.figure()
     fig.canvas.mpl_connect('scroll_event', mouse_call_back)
@@ -129,10 +136,22 @@ try:
     fig.canvas.mpl_connect('button_release_event', mouse_call_back)
     fig.canvas.mpl_connect('motion_notify_event', mouse_call_back)
     ax = fig.add_subplot(111)
-    ax.set(title = "Road Map", ylabel = "Utm-Y", xlabel = "Utm-X")
-    for i in range(len(path_utmxs)):
-        ax.plot(path_utmxs[i], path_utmys[i], linewidth=1, color='green')
-    ax.scatter(lane_utmx, lane_utmy, linewidths=0.1, color='violet')
+    ax.set(title = "Road Map", ylabel = "Y", xlabel = "X")
+    for seg in path_segments:
+        path_xs = []
+        path_ys = []
+        for p in seg:
+            path_xs.append(p.x)
+            path_ys.append(p.y)
+        ax.plot(path_xs, path_ys, linewidth=1, color='green')
+    for lane_lines in all_lane_lines:
+        for line in lane_lines:
+            line_xs = []
+            line_ys = []
+            for p in line:
+                line_xs.append(p.x)
+                line_ys.append(p.y)
+            ax.plot(line_xs, line_ys, linewidth=1, color='violet')
     plt.gca().set_aspect('equal', adjustable='box')
     plt.show()
 except:
