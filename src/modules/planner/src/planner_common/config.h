@@ -5,7 +5,6 @@
 #include <cstring>
 #include <iostream>
 #include <map>
-#include <mutex>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -36,8 +35,6 @@ struct Task {
         lon_lat_position(lon_, lat_, heading_),
         get_on(get_on_){};
 };
-
-static mutex config_mtx;
 
 class Config {
  public:
@@ -97,11 +94,13 @@ class Config {
   string topo_name;
   string output;
 
-  static Config* getInstance() {
-    config_mtx.lock();
-    static Config inner_instance;
-    config_mtx.unlock();
-    return &inner_instance;
+ public:
+  Config(const Config&) = delete;
+  Config& operator=(const Config&) = delete;
+
+  static const Config& getInstance() {
+    static Config instance;
+    return instance;
   }
 
  private:

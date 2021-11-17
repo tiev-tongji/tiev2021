@@ -12,15 +12,15 @@ using namespace std;
 void Visualization::init() {
   cout << "initialize visualization" << endl;
   string TiEV_cfg_pics_path =
-      Config::getInstance()->TiEV_CONFIG_DIRECT + "pics/";
+      Config::getInstance().TiEV_CONFIG_DIRECT + "pics/";
   string TiEV_logo_path =
-      Config::getInstance()->TiEV_CONFIG_DIRECT + "pics/TiEV_logo.png";
+      Config::getInstance().TiEV_CONFIG_DIRECT + "pics/TiEV_logo.png";
   string TiEV_car_jpg_path =
-      Config::getInstance()->TiEV_CONFIG_DIRECT + "pics/TiEV_car.jpg";
+      Config::getInstance().TiEV_CONFIG_DIRECT + "pics/TiEV_car.jpg";
   string TiEV_car_png_path =
-      Config::getInstance()->TiEV_CONFIG_DIRECT + "pics/TiEV_car.png";
+      Config::getInstance().TiEV_CONFIG_DIRECT + "pics/TiEV_car.png";
   string TiEV_traffic_light_path =
-      Config::getInstance()->TiEV_CONFIG_DIRECT + "pics/traffic_light/";
+      Config::getInstance().TiEV_CONFIG_DIRECT + "pics/traffic_light/";
 
   main_window = cv::Mat(900, 1100, CV_8UC3, TiEV_BLACK);
 

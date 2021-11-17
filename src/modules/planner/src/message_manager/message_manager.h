@@ -20,13 +20,6 @@ namespace TiEV {
 static mutex msg_manager_mtx;
 class MessageManager {
  public:
-  static MessageManager* getInstance() {
-    msg_manager_mtx.lock();
-    static MessageManager instance;
-    msg_manager_mtx.unlock();
-    return &instance;
-  }
-
   const static std::time_t NAV_INFO_TIMEOUT_US      = 1e6;
   const static std::time_t LIDAR_MAP_TIMEOUT_US     = 1e6;
   const static std::time_t LANE_TIMEOUT_US          = 2e5;
@@ -73,9 +66,6 @@ class MessageManager {
   void setPriorityLane(const std::vector<HDMapPoint>& ref_path);
 
  private:
-  MessageManager(){};
-  ~MessageManager(){};
-
   class Handler {
    public:
     void handleNAVINFO(const zcm::ReceiveBuffer* rbuf, const std::string& chan,
@@ -128,6 +118,19 @@ class MessageManager {
   Handler  inner_handler;
   zcm::ZCM zcm_ipc{"ipc"};
   zcm::ZCM zcm_udp{""};
+
+ public:
+  MessageManager(const MessageManager&) = delete;
+  MessageManager& operator=(const MessageManager&) = delete;
+
+  static MessageManager& getInstance() {
+    static MessageManager instance;
+    return instance;
+  }
+
+ private:
+  MessageManager(){};
+  ~MessageManager(){};
 };
 }  // namespace TiEV
 

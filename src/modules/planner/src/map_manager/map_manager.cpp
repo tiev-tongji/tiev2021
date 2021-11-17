@@ -13,42 +13,42 @@ namespace TiEV {
 using namespace std;
 
 void MapManager::update() {
-  MessageManager* message_manager = MessageManager::getInstance();
-  message_manager->getNavInfo(map.nav_info);
-  message_manager->getSlamInfo(map.slam_info);
-  message_manager->getTrafficLight(map.traffic_light);
-  message_manager->getDynamicObjList(map.dynamic_obj_list);
-  message_manager->getParkingLotList(map.parking_lot_list);
-  message_manager->getLaneList(map.lane_list);
-  message_manager->getRainSignal(map.rain_signal);
-  message_manager->getMap(map.lidar);
+  MessageManager& message_manager = MessageManager::getInstance();
+  message_manager.getNavInfo(map.nav_info);
+  message_manager.getSlamInfo(map.slam_info);
+  message_manager.getTrafficLight(map.traffic_light);
+  message_manager.getDynamicObjList(map.dynamic_obj_list);
+  message_manager.getParkingLotList(map.parking_lot_list);
+  message_manager.getLaneList(map.lane_list);
+  message_manager.getRainSignal(map.rain_signal);
+  message_manager.getMap(map.lidar);
   //-------
   updateRefPath();
   handleLidarMap();
 }
 
 double MapManager::getSpeedBySpeedMode(int speed_mode) {
-  Config* cfg = Config::getInstance();
-  if (cfg->control_mode == ControlMode::PlanningWithDebugMode ||
-      cfg->control_mode == ControlMode::TrakingWithDebugMode)
-    speed_mode = cfg->debug_speed_mode;
+  const auto& cfg = Config::getInstance();
+  if (cfg.control_mode == ControlMode::PlanningWithDebugMode ||
+      cfg.control_mode == ControlMode::TrakingWithDebugMode)
+    speed_mode = cfg.debug_speed_mode;
   switch (speed_mode) {
     case 0:
-      return cfg->back_speed / 3.6;
+      return cfg.back_speed / 3.6;
     case 1:
-      return cfg->stop_speed / 3.6;
+      return cfg.stop_speed / 3.6;
     case 2:
-      return cfg->very_low_speed / 3.6;
+      return cfg.very_low_speed / 3.6;
     case 3:
-      return cfg->low_speed / 3.6;
+      return cfg.low_speed / 3.6;
     case 4:
-      return cfg->mid_speed / 3.6;
+      return cfg.mid_speed / 3.6;
     case 5:
-      return cfg->high_speed / 3.6;
+      return cfg.high_speed / 3.6;
     case 6:
-      return cfg->very_high_speed / 3.6;
+      return cfg.very_high_speed / 3.6;
     default:
-      return cfg->stop_speed / 3.6;
+      return cfg.stop_speed / 3.6;
   }
 }
 
@@ -398,7 +398,8 @@ void MapManager::addPedestrian(DynamicObjList& dynamic) {
   global_path_mutex.unlock_shared();
   for (const auto& p : forward_ref_path) {
     if (p.event != HDMapEvent::ENTRY_INTERSECTION &&
-        p.event != HDMapEvent::EXIT_INTERSECTION) continue;
+        p.event != HDMapEvent::EXIT_INTERSECTION)
+      continue;
     int        x = p.x;
     int        y = p.y;
     DynamicObj dummy_obj;
@@ -409,7 +410,6 @@ void MapManager::addPedestrian(DynamicObjList& dynamic) {
     std::cout << "block stop line in decision.cpp " << std::endl;
     break;
   }
-
 }
 
 void MapManager::addPedestrian(DynamicObjList&           dynamic_obj_list,
@@ -456,7 +456,8 @@ void MapManager::addPedestrian(DynamicObjList&           dynamic_obj_list,
 void MapManager::blockStopLine() {
   for (const auto& p : map.forward_ref_path) {
     if (p.event != HDMapEvent::ENTRY_INTERSECTION &&
-        p.event != HDMapEvent::EXIT_INTERSECTION) continue;
+        p.event != HDMapEvent::EXIT_INTERSECTION)
+      continue;
     int        x = p.x;
     int        y = p.y;
     DynamicObj dummy_obj;
@@ -869,9 +870,9 @@ void MapManager::laneLineInterpolation() {
 }
 
 void MapManager::visualization() {
-  MessageManager*   msgm = MessageManager::getInstance();
-  visVISUALIZATION& vis  = msgm->visualization;
-  msgm->setTextInfo();
+  MessageManager&   msgm = MessageManager::getInstance();
+  visVISUALIZATION& vis  = msgm.visualization;
+  msgm.setTextInfo();
   // reference path
   vis.reference_path.clear();
   vis.reference_path_size = map.forward_ref_path.size();
@@ -901,7 +902,7 @@ void MapManager::visualization() {
   }
   vis.lanes.push_back(vll);
   // speed planner
-  msgm->publishVisualization();
+  msgm.publishVisualization();
 }
 
 vector<Pose> MapManager::getStartMaintainedPath() {
@@ -1399,43 +1400,44 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
   }
   */
   // send to visualization center line offset
-  MessageManager::getInstance()->setPriorityLane(ref_path);
+  MessageManager::getInstance().setPriorityLane(ref_path);
   return ref_path;
-} 
+}
 
 // This uses the ray-casting algorithm to decide whether the point is inside
-// the given polygon. See https://en.wikipedia.org/wiki/Point_in_polygon#Ray_casting_algorithm
-bool MapManager::pnbox(const Pose& point, const vector<Pose>& box)
-{
-    if(box.size() < 3) return false;
-    double x = point.x;
-    double y = point.y;
-    // If we never cross any lines we're inside.
-    bool inside = false;
-    // Loop through all the edges.
-    for (int i = 0; i < box.size(); ++i) {
-        // i is the index of the first vertex, j is the next one.
-        // The original code uses a too-clever trick for this.
-        int j = (i + 1) % box.size();
-        // The vertices of the edge we are checking.
-        double xp0 = box[i].x;
-        double yp0 = box[i].y;
-        double xp1 = box[j].x;
-        double yp1 = box[j].y;
-        // Check whether the edge intersects a line from (-inf,y) to (x,y).
-        // First check if the line crosses the horizontal line at y in either direction.
-        if ((yp0 <= y) && (yp1 > y) || (yp1 <= y) && (yp0 > y)) {
-            // If so, get the point where it crosses that line. This is a simple solution
-            // to a linear equation. Note that we can't get a division by zero here -
-            // if yp1 == yp0 then the above if be false.
-            double cross = (xp1 - xp0) * (y - yp0) / (yp1 - yp0) + xp0;
-            // Finally check if it crosses to the left of our test point. You could equally
-            // do right and it should give the same result.
-            if (cross < x) inside = !inside;
-        }
+// the given polygon. See
+// https://en.wikipedia.org/wiki/Point_in_polygon#Ray_casting_algorithm
+bool MapManager::pnbox(const Pose& point, const vector<Pose>& box) {
+  if (box.size() < 3) return false;
+  double x = point.x;
+  double y = point.y;
+  // If we never cross any lines we're inside.
+  bool inside = false;
+  // Loop through all the edges.
+  for (int i = 0; i < box.size(); ++i) {
+    // i is the index of the first vertex, j is the next one.
+    // The original code uses a too-clever trick for this.
+    int j = (i + 1) % box.size();
+    // The vertices of the edge we are checking.
+    double xp0 = box[i].x;
+    double yp0 = box[i].y;
+    double xp1 = box[j].x;
+    double yp1 = box[j].y;
+    // Check whether the edge intersects a line from (-inf,y) to (x,y).
+    // First check if the line crosses the horizontal line at y in either
+    // direction.
+    if ((yp0 <= y) && (yp1 > y) || (yp1 <= y) && (yp0 > y)) {
+      // If so, get the point where it crosses that line. This is a simple
+      // solution to a linear equation. Note that we can't get a division by
+      // zero here - if yp1 == yp0 then the above if be false.
+      double cross = (xp1 - xp0) * (y - yp0) / (yp1 - yp0) + xp0;
+      // Finally check if it crosses to the left of our test point. You could
+      // equally do right and it should give the same result.
+      if (cross < x) inside = !inside;
     }
-    if(inside) return true;
-    return false;
+  }
+  if (inside) return true;
+  return false;
 }
 
 MapManager* MapManager::instance = new MapManager;

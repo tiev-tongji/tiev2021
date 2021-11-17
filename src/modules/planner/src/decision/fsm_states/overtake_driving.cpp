@@ -13,19 +13,21 @@ void OvertakeDriving::enter(Control& control) {
 
 void OvertakeDriving::update(FullControl& control) {
   cout << "Overtake Driving update..." << endl;
-  MapManager* map_manager = MapManager::getInstance();
-  map_manager->updatePlanningMap(MapManager::DynamicBlockType::NO_BLOCK);
-  vector<Pose> start_path = map_manager->getStartMaintainedPath();
-  const auto   map        = map_manager->getMap();
+  MapManager& map_manager      = MapManager::getInstance();
+  auto&       decision_context = DecisionContext::getInstance();
+  decision_context.setSpeedLimitMPS(map_manager.getCurrentMapSpeed());
+  map_manager.updatePlanningMap(MapManager::DynamicBlockType::NO_BLOCK);
+  vector<Pose> start_path = map_manager.getStartMaintainedPath();
+  const auto   map        = map_manager.getMap();
 
   std::vector<Pose> result_path;
-  PathPlanner::getInstance()->runPathPlanner(
+  PathPlanner::getInstance().runPathPlanner(
       map.nav_info, overtakeLaneDecision(map), map.dynamic_obj_list,
-      map_manager->getCurrentMapSpeed(), false, map.lidar_dis_map,
+      map_manager.getCurrentMapSpeed(), false, map.lidar_dis_map,
       map.planning_dis_map, start_path, Pose(0, 0, 0), &result_path);
 
-  const auto maintained_path = map_manager->getMaintainedPath(map.nav_info);
-  map_manager->maintainPath(map.nav_info, result_path);
+  const auto maintained_path = decision_context.getMaintainedPath();
+  decision_context.setMaintainedPath(result_path);
 }
 
 std::vector<HDMapPoint> OvertakeDriving::overtakeLaneDecision(
@@ -168,7 +170,7 @@ std::vector<HDMapPoint> OvertakeDriving::overtakeLaneDecision(
     }
     last_ref_p_it = it;
   }
-  MessageManager::getInstance()->setPriorityLane(ref_path);
+  MessageManager::getInstance().setPriorityLane(ref_path);
   return ref_path;
 }
 }  // namespace TiEV

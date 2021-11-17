@@ -8,9 +8,11 @@
 using namespace TiEV;
 int main(int argc, char** argv) {
   // start message receiver
-  MessageManager* msg_manager = MessageManager::getInstance();
-  thread msg_receiver_ipc = thread(&MessageManager::msgReceiveIpc, msg_manager);
-  thread msg_receiver_udp = thread(&MessageManager::msgReceiveUdp, msg_manager);
+  MessageManager& msg_manager = MessageManager::getInstance();
+  thread          msg_receiver_ipc =
+      thread(&MessageManager::msgReceiveIpc, &msg_manager);
+  thread msg_receiver_udp =
+      thread(&MessageManager::msgReceiveUdp, &msg_manager);
   // start send controller path thread
   thread send_traj = thread(sendPath);
   // start routing thread

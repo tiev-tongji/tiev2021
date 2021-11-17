@@ -4,17 +4,19 @@
 namespace TiEV {
 
 class MachineManager {
-public:
-    Context                context;
-    FSM::Instance          machine{ context };
-    static MachineManager* getInstance() {
-        static MachineManager instance;
-        return &instance;
-    }
+ public:
+  MachineManager(const MachineManager&) = delete;
+  MachineManager&        operator=(const MachineManager&) = delete;
+  Context                context;
+  FSM::Instance          machine{context};
+  static MachineManager& getInstance() {
+    static MachineManager instance;
+    return instance;
+  }
 
-private:
-    MachineManager() {}
-    ~MachineManager() {}
+ private:
+  MachineManager() {}
+  ~MachineManager() {}
 };
 void runTiEVFSM();
 void sendPath();

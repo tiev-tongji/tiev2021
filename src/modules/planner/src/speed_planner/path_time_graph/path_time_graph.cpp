@@ -66,7 +66,7 @@ SLBoundary PathTimeGraph::ComputeObstacleSLBoundary(
     // LOG(INFO) << "vertice:[" << point.x() << " " << point.y()
     //           << "] sl_point: s=" << sl_point.first << " l=" <<
     //           sl_point.second;
-    std::cout << "sl result: " << sl_point.second << std::endl;
+    // std::cout << "sl result: " << sl_point.second << std::endl;
     start_s = std::fmin(start_s, sl_point.first);
     end_s   = std::fmax(end_s, sl_point.first);
     start_l = std::fmin(start_l, sl_point.second);

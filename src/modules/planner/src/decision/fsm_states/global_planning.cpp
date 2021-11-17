@@ -14,28 +14,28 @@ void GlobalPlanning::enter(Control& control) {
 }
 
 void GlobalPlanning::update(FullControl& control) {
-  MapManager* map_manager = MapManager::getInstance();
-  if (Config::getInstance()->taxi_mode) {
+  MapManager& map_manager = MapManager::getInstance();
+  if (Config::getInstance().taxi_mode) {
     // 获取任务
-    Routing* routing = Routing::getInstance();
-    routing->updateInfoToServer();
-    if (map_manager->getCurrentTasks().size() == 0) {
-      Task next = routing->waitForNextTask();
-      map_manager->pushCurrentTask(next);
+    Routing& routing = Routing::getInstance();
+    routing.updateInfoToServer();
+    if (map_manager.getCurrentTasks().size() == 0) {
+      Task next = routing.waitForNextTask();
+      map_manager.pushCurrentTask(next);
     }
   }
   // for test
-  map_manager->updateRefPath();
-  const auto& map = map_manager->getMap();
-  if (!map.nav_info.detected || map_manager->getForwardRefPath().empty()) {
+  map_manager.updateRefPath();
+  const auto& map = map_manager.getMap();
+  if (!map.nav_info.detected || map_manager.getForwardRefPath().empty()) {
     // LOG(WARNING) << "no reference path...";
     return;
   }
-  ControlMode control_mode = Config::getInstance()->control_mode;
+  ControlMode control_mode = Config::getInstance().control_mode;
   if (control_mode == ControlMode::PlanningWithDebugMode ||
       control_mode == ControlMode::PlanningWithMapMode)
-    control.changeTo<NormalDriving>();
-    // control.changeTo<OvertakeDriving>();
+    // control.changeTo<NormalDriving>();
+    control.changeTo<OvertakeDriving>();
   else
     control.changeTo<Tracking>();
 }

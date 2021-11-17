@@ -57,9 +57,9 @@ const static std::vector<double> arc_k_list = {
 
 class PathPlanner {
  public:
-  static PathPlanner* getInstance() {
+  static PathPlanner& getInstance() {
     static PathPlanner inner_instance;
-    return &inner_instance;
+    return inner_instance;
   }
 
   bool runPathPlanner(const NavInfo&                 nav_info,
@@ -98,8 +98,8 @@ class PathPlanner {
   // lookup distance table for rs and dubins curve
   const DistanceTable* distance_table_rs;
   const DistanceTable* distance_table_dubins;
-  const Config*        config;
-  MessageManager*      view_controller;
+  const Config&        config;
+  MessageManager&      view_controller;
 
   // is_planning
   bool is_planning = false;

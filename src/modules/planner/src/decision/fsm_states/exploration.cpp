@@ -12,34 +12,34 @@ void Exploration::enter(Control& control) {
 
 void Exploration::update(FullControl& control) {
   cout << "Exploration update..." << endl;
-  MapManager* map_manager = MapManager::getInstance();
-  map_manager->updateRefPath();
-  map_manager->updatePlanningMap(MapManager::DynamicBlockType::NO_BLOCK);
-  vector<Pose>      start_path = map_manager->getStartMaintainedPath();
+  MapManager& map_manager = MapManager::getInstance();
+  map_manager.updateRefPath();
+  map_manager.updatePlanningMap(MapManager::DynamicBlockType::NO_BLOCK);
+  vector<Pose>      start_path = map_manager.getStartMaintainedPath();
   vector<Pose>      lane_targets;
-  Map&              map = map_manager->getMap();
+  Map&              map = map_manager.getMap();
   vector<SpeedPath> speed_path_list;
-  // PathPlanner::getInstance()->runPathPlanner(
-  //     map.ref_path, map.dynamic_obj_list, map_manager->getCurrentMapSpeed(),
+  // PathPlanner::getInstance().runPathPlanner(
+  //     map.ref_path, map.dynamic_obj_list, map_manager.getCurrentMapSpeed(),
   //     true, map.lidar_dis_map, map.planning_dis_map, start_path,
   //     lane_targets, map.nav_info.current_speed, speed_path_list);
-  map_manager->selectBestPath(speed_path_list);
-  map_manager->maintainPath(map.nav_info, map.best_path.path);
+  map_manager.selectBestPath(speed_path_list);
+  map_manager.maintainPath(map.nav_info, map.best_path.path);
 
   if (!speed_path_list.empty())
     control.changeTo<FreeDriving>();
   else {
-    vector<Pose> explore_targets = map_manager->getExplorationTargets();
-    if (!Config::getInstance()->enable_routing_by_file &&
+    vector<Pose> explore_targets = map_manager.getExplorationTargets();
+    if (!Config::getInstance().enable_routing_by_file &&
         (explore_targets.empty() || getTimeStamp() - entry_time > 30e6))
       control.changeTo<GlobalReplanning>();
-    // PathPlanner::getInstance()->runPathPlanner(
+    // PathPlanner::getInstance().runPathPlanner(
     //     map.ref_path, map.dynamic_obj_list,
-    //     map_manager->getCurrentMapSpeed(), true, map.lidar_dis_map,
+    //     map_manager.getCurrentMapSpeed(), true, map.lidar_dis_map,
     //     map.planning_dis_map, start_path, explore_targets,
     //     map.nav_info.current_speed, speed_path_list);
-    map_manager->selectBestPath(speed_path_list);
-    map_manager->maintainPath(map.nav_info, map.best_path.path);
+    map_manager.selectBestPath(speed_path_list);
+    map_manager.maintainPath(map.nav_info, map.best_path.path);
   }
 }
 }  // namespace TiEV

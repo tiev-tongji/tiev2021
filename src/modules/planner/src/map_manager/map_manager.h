@@ -8,6 +8,7 @@
 
 #include "Routing.h"
 #include "const.h"
+#include "decision_context.h"
 #include "message_manager.h"
 #include "pose.h"
 
@@ -109,18 +110,25 @@ class MapManager {
   void selectBestPath(const std::vector<SpeedPath>& paths);
 
  public:
-  static MapManager* getInstance() { return instance; };
+  MapManager(const MapManager&) = delete;
+  MapManager& operator=(const MapManager&) = delete;
 
- protected:
+  static MapManager& getInstance() {
+    static MapManager instance;
+    return instance;
+  }
+
+ private:
   MapManager() {
-    Config* config = Config::getInstance();
+    const auto& config = Config::getInstance();
     //如果使用taxi模式，则在停车时从服务器获取任务
-    if (!config->taxi_mode) {
-      this->map.current_tasks = config->tasks;
+    if (!config.taxi_mode) {
+      this->map.current_tasks = config.tasks;
     }
     //最终停车位置不变
-    this->map.parking_task = config->parking_task;
+    this->map.parking_task = config.parking_task;
   };
+  ~MapManager(){};
 
  private:
   Map    map;

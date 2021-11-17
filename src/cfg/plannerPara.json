@@ -22,10 +22,10 @@
 		"BACK": -3,
 		"STOP": 0,
 		"VERYLOW": 8,
-		"LOW": 20,
+		"LOW": 40,
 		"MID": 40,
 		"HIGH": 40,
-		"VERYHIGH": 80
+		"VERYHIGH": 40
 	},
 	"max_acceleration": 1.0,
 	"max_deceleration": -1.0,

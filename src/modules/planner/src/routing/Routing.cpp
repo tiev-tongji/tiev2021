@@ -31,15 +31,15 @@ using routing_service::RoutingService;
 using routing_service::TaskPoint;
 using routing_service::TaskPoints;
 Routing::Routing() {
-  host        = Config::getInstance()->host;
-  port        = Config::getInstance()->port;
-  dbname      = Config::getInstance()->dbname;
-  user        = Config::getInstance()->user;
-  password    = Config::getInstance()->password;
+  host        = Config::getInstance().host;
+  port        = Config::getInstance().port;
+  dbname      = Config::getInstance().dbname;
+  user        = Config::getInstance().user;
+  password    = Config::getInstance().password;
   connect_sql = "dbname=" + dbname + " user=" + user + " password=" + password +
                 " hostaddr=" + host + " port=" + port;
-  output    = Config::getInstance()->output;
-  topo_name = Config::getInstance()->topo_name;
+  output    = Config::getInstance().output;
+  topo_name = Config::getInstance().topo_name;
   std::cout << "target url: " << host + ":" + port << std::endl;
   shared_ptr<Channel> channel = grpc::CreateChannel(
       host + ":" + port, grpc::InsecureChannelCredentials());

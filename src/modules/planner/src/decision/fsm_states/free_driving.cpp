@@ -10,7 +10,7 @@ using namespace std;
 void FreeDriving::enter(Control& control) {
   // record the car position
   NavInfo nav_info;
-  MessageManager::getInstance()->getNavInfo(nav_info);
+  MessageManager::getInstance().getNavInfo(nav_info);
   previous_pose = nav_info.car_pose;
   entry_time    = getTimeStamp();
   limited_time  = 30e6;  // 30s
@@ -19,21 +19,21 @@ void FreeDriving::enter(Control& control) {
 
 void FreeDriving::update(FullControl& control) {
   cout << "Free Driving update..." << endl;
-  MapManager* map_manager = MapManager::getInstance();
-  map_manager->updatePlanningMap(MapManager::DynamicBlockType::ALL_BLOCK);
-  vector<Pose> start_path = map_manager->getStartMaintainedPath();
-  Map&         map        = map_manager->getMap();
+  MapManager& map_manager = MapManager::getInstance();
+  map_manager.updatePlanningMap(MapManager::DynamicBlockType::ALL_BLOCK);
+  vector<Pose> start_path = map_manager.getStartMaintainedPath();
+  Map&         map        = map_manager.getMap();
 
   std::vector<Pose> result_path;
 
-  const bool plan_to_target = PathPlanner::getInstance()->runPathPlanner(
-      map.nav_info, map_manager->getLaneCenterDecision(map),
-      map.dynamic_obj_list, map_manager->getCurrentMapSpeed(), true,
+  const bool plan_to_target = PathPlanner::getInstance().runPathPlanner(
+      map.nav_info, map_manager.getLaneCenterDecision(map),
+      map.dynamic_obj_list, map_manager.getCurrentMapSpeed(), true,
       map.lidar_dis_map, map.planning_dis_map, start_path, Pose(0, 0, 0),
       &result_path);
 
   // LOG(INFO) << "Plan to target:" << plan_to_target;
-  map_manager->maintainPath(map.nav_info, result_path);
+  map_manager.maintainPath(map.nav_info, result_path);
   if (plan_to_target && duration_time() > limited_time) {
     control.changeTo<NormalDriving>();
     return;

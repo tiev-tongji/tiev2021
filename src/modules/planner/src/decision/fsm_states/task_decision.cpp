@@ -10,6 +10,6 @@ void TaskDecision::enter(Control& control) {
 }
 
 void TaskDecision::update(FullControl& control) {
-  // MapManager* map_manager = MapManager::getInstance();
+  // MapManager& map_manager = MapManager::getInstance();
 }
 }  // namespace TiEV

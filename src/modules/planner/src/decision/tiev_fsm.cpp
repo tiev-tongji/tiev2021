@@ -2,15 +2,15 @@
 namespace TiEV {
 using namespace std;
 void Context::update() {
-  MessageManager* msgm = MessageManager::getInstance();
+  MessageManager& msgm = MessageManager::getInstance();
   /*
-  msgm->getNavInfo(nav_info);
-  msgm->getSlamInfo(slam_info);
-  msgm->getTrafficLight(traffic_light);
-  msgm->getDynamicObjList(dynamic_obj_list);
-  msgm->getWarningObjList(warning_obj_list);
-  msgm->getParkingLotList(parking_lot_list);
-  msgm->getLaneList(lane_list);
+  msgm.getNavInfo(nav_info);
+  msgm.getSlamInfo(slam_info);
+  msgm.getTrafficLight(traffic_light);
+  msgm.getDynamicObjList(dynamic_obj_list);
+  msgm.getWarningObjList(warning_obj_list);
+  msgm.getParkingLotList(parking_lot_list);
+  msgm.getLaneList(lane_list);
   */
   // cout << "context information update!" << endl;
 }
@@ -22,11 +22,11 @@ void OnRoadFSM::enter(Control& control) {
 
 void OnRoadFSM::update(FullControl& control) {
   // cout << "OnRoad Fsm update!" << endl;
-  MapManager* map_manager   = MapManager::getInstance();
-  Map&        map           = map_manager->getMap();
+  MapManager& map_manager   = MapManager::getInstance();
+  Map&        map           = map_manager.getMap();
   Pose        car_pose      = map.nav_info.car_pose;
-  auto        current_tasks = map_manager->getCurrentTasks();
-  auto        parking_task  = map_manager->getParkingTask();
+  auto        current_tasks = map_manager.getCurrentTasks();
+  auto        parking_task  = map_manager.getParkingTask();
   double      sqr_dis       = 1e9;
   if (!control.isActive<TemporaryParkingPlanning>() &&
       (!current_tasks.empty() || !parking_task.task_points.empty())) {
@@ -41,7 +41,7 @@ void OnRoadFSM::update(FullControl& control) {
     // cout << "The task: " << task_pose << " car pose:" <<
     // map.nav_info.car_pose << endl;
   }
-  auto mode = map_manager->getCurrentMapMode();
+  auto mode = map_manager.getCurrentMapMode();
   if (mode == HDMapMode::INTERSECTION_SOLID || mode == HDMapMode::INTERSECTION)
     control.changeTo<IntersectionDriving>();
   else if (mode == HDMapMode::PARKING)
@@ -56,8 +56,8 @@ void IntersectionFSM::enter(Control& control) {
 
 void IntersectionFSM::update(FullControl& control) {
   cout << "Intersection FSM update!" << endl;
-  MapManager* map_manager = MapManager::getInstance();
-  auto        mode        = map_manager->getCurrentMapMode();
+  MapManager& map_manager = MapManager::getInstance();
+  auto        mode        = map_manager.getCurrentMapMode();
   if (mode != HDMapMode::INTERSECTION_SOLID && mode != HDMapMode::INTERSECTION)
     control.changeTo<NormalDriving>();
 }
@@ -70,8 +70,8 @@ void ParkingFSM::enter(Control& control) {
 
 void ParkingFSM::update(FullControl& control) {
   cout << "Parking FSM update!" << endl;
-  MapManager* map_manager = MapManager::getInstance();
-  auto        mode        = map_manager->getCurrentMapMode();
+  MapManager& map_manager = MapManager::getInstance();
+  auto        mode        = map_manager.getCurrentMapMode();
   if (mode != HDMapMode::PARKING) control.changeTo<NormalDriving>();
 }
 //----------------Parking Fsm--------------------

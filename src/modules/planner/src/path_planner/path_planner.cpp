@@ -19,9 +19,9 @@ namespace TiEV {
 
 PathPlanner::PathPlanner()
     : distance_table_rs(
-          new DistanceTable(Config::getInstance()->rs_distance_table_path)),
+          new DistanceTable(Config::getInstance().rs_distance_table_path)),
       distance_table_dubins(
-          new DistanceTable(Config::getInstance()->dubins_distance_table_path)),
+          new DistanceTable(Config::getInstance().dubins_distance_table_path)),
       config(Config::getInstance()),
       view_controller(MessageManager::getInstance()) {}
 
@@ -130,7 +130,7 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
     result_path = tiev_planner.plan(dynamic_obj_list, ref_path, start_state,
                                     nav_info.current_speed, backward_enabled,
                                     abs_safe_map, lane_safe_map,
-                                    config->plan_time_limit_ms * 1000,
+                                    config.plan_time_limit_ms * 1000,
                                     &clothoid_base_primitives, &plan_in_time);
   } else if (target_pose.x != 0 || target_pose.y != 0 || target_pose.ang != 0) {
     // planning to target
@@ -139,9 +139,9 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
     planning_to_target = true;
     result_path        = astar_planner.plan(
         start_state, target_state, nav_info.current_speed, backward_enabled,
-        abs_safe_map, lane_safe_map, config->plan_time_limit_ms * 1000,
+        abs_safe_map, lane_safe_map, config.plan_time_limit_ms * 1000,
         &arc_base_primitives);
-    view_controller->setPriorityLane({});
+    view_controller.setPriorityLane({});
   } else {
     LOG(WARNING) << "No reference path and target to plan !";
     return false;
@@ -234,35 +234,34 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
       result->back().ang      = std::atan2(pp.y - p.y, pp.x - p.x);
       (*result)[length - 1].k = (*result)[length - 2].k;
     }
-    
+
 // #define VIS_SMOOTHED_PATH
 #ifdef VIS_SMOOTHED_PATH
-  cv::namedWindow("smoothed_path", cv::WINDOW_KEEPRATIO);
-  cv::Mat img = cv::Mat(MAX_ROW, MAX_COL, CV_8UC3, {255, 255, 255});
-  for (int r = 0; r < MAX_ROW; ++r) {
-    for (int c = 0; c < MAX_COL; ++c) {
-      if (lane_safe_map[r][c] == 0) {
-        img.at<cv::Vec3b>(r, c) = cv::Vec3b(0, 0, 0);
+    cv::namedWindow("smoothed_path", cv::WINDOW_KEEPRATIO);
+    cv::Mat img = cv::Mat(MAX_ROW, MAX_COL, CV_8UC3, {255, 255, 255});
+    for (int r = 0; r < MAX_ROW; ++r) {
+      for (int c = 0; c < MAX_COL; ++c) {
+        if (lane_safe_map[r][c] == 0) {
+          img.at<cv::Vec3b>(r, c) = cv::Vec3b(0, 0, 0);
+        }
       }
     }
-  }
-  for (const auto& p : path_before_smooth) {
-    img.at<cv::Vec3b>(lround(p.x), lround(p.y)) = cv::Vec3b(0, 255, 0);
-  }
-  for (const auto& p : path_after_smooth) {
-    img.at<cv::Vec3b>(lround(p.x), lround(p.y)) = cv::Vec3b(0, 0, 255);
-  }
-  cv::imshow("smoothed_path", img);
-  cv::waitKey(0);
+    for (const auto& p : path_before_smooth) {
+      img.at<cv::Vec3b>(lround(p.x), lround(p.y)) = cv::Vec3b(0, 255, 0);
+    }
+    for (const auto& p : path_after_smooth) {
+      img.at<cv::Vec3b>(lround(p.x), lround(p.y)) = cv::Vec3b(0, 0, 255);
+    }
+    cv::imshow("smoothed_path", img);
+    cv::waitKey(0);
 #endif
-
   }
 
   // sen visualization data
-  if (planning_to_target) view_controller->setTarget(target_pose);
-  view_controller->setStartPoint(start_pose);
-  view_controller->setSafeMap(lane_safe_map);
-  view_controller->setPath(*result);
+  if (planning_to_target) view_controller.setTarget(target_pose);
+  view_controller.setStartPoint(start_pose);
+  view_controller.setSafeMap(lane_safe_map);
+  view_controller.setPath(*result);
   return plan_in_time;
 }
 

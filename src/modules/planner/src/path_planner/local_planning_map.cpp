@@ -40,7 +40,7 @@ void PathPlanner::local_planning_map::prepare(
   // left bound and right bound point
   left_bound_p = ref_end_p.getLateralPose(
       ref_end_p.lane_width * (ref_end_p.lane_num - ref_end_p.lane_seq + 0.5));
-  right_bound_p = ref_end_p.getLateralPose( - ref_end_p.lane_width *
+  right_bound_p = ref_end_p.getLateralPose(-ref_end_p.lane_width *
                                            (ref_end_p.lane_seq - 0.5));
 }
 
@@ -146,10 +146,10 @@ double PathPlanner::local_planning_map::get_heuristic(
   double    q0[3]              = {state.x, state.y, state.a};
   double    q1[3]              = {target.x, target.y, target.a};
   if (can_reverse) {
-    rs_dubins_distance = getInstance()->distance_table_rs->getDistance(q0, q1);
+    rs_dubins_distance = getInstance().distance_table_rs->getDistance(q0, q1);
   } else {
     rs_dubins_distance =
-        getInstance()->distance_table_dubins->getDistance(q0, q1);
+        getInstance().distance_table_dubins->getDistance(q0, q1);
   }
   // heuristic += 20 * astar_2d_distance;
   heuristic += std::max(astar_2d_distance, rs_dubins_distance);
