@@ -1,7 +1,7 @@
 {
 	"comment": "town05_forward",
-	"#roadmap_file": "/home/autolab/carla_path/Town03_original.txt",
-	"roadmap_file": "/home/autolab/carla_path/carla_path_Town04.txt",
+	"roadmap_file": "/home/autolab/carla_path/Town03_original.txt",
+	"#roadmap_file": "/home/autolab/carla_path/carla_path_Town04.txt",
 	"rs_distance_table_path": "/home/autolab/tiev2021/src/cfg/reeds_shepp_distance_table",
 	"dubins_distance_table_path": "/home/autolab/tiev2021/src/cfg/dubins_distance_table",
 	"enable_routing_by_file": 1,

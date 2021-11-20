@@ -906,7 +906,8 @@ void MapManager::visualization() {
 }
 
 vector<Pose> MapManager::getStartMaintainedPath() {
-  std::vector<Pose> path = getMaintainedPath(map.nav_info);
+  std::vector<Pose> path =
+      DecisionContext::getInstance().getMaintainedPath(map.nav_info);
   if (path.empty()) return path;
   int safe_size = path.size();
   for (int i = 0; i < path.size(); ++i) {
@@ -1054,40 +1055,16 @@ void MapManager::dynamicDecision(const DynamicBlockType dynamic_block_type) {
       if (now.in_map()) map.dynamic_obs_map[(int)now.x][(int)now.y] = 1;
     }
   };
-  /*
-  if (dynamic_block_type == DynamicBlockType::ALL_BLOCK) {
-    // // block all the dynamic
-    // for (const auto& obstacle : map.dynamic_obj_list.dynamic_obj_list) {
-    //   for (int i = 0; i < obstacle.corners.size(); ++i) {
-    //     const auto& start = obstacle.corners[i];
-    //     const auto& end =
-    //         obstacle.corners[(i + 1) % (int)obstacle.corners.size()];
-    //     add_obs_between(start, end);
-    //   }
-    // }
-    // block static objects
-    for (const auto& obstacle : map.dynamic_obj_list.dynamic_obj_list) {
-      if (!obstacle.path.empty() && obstacle.path[0].v > 1) continue;
-      for (int i = 0; i < obstacle.corners.size(); ++i) {
-        const auto& start = obstacle.corners[i];
-        const auto& end =
-            obstacle.corners[(i + 1) % (int)obstacle.corners.size()];
-        add_obs_between(start, end);
-      }
-    }
-  } else*/
-  {
-    // block the dynamic speed under 0.1m/s
-    for (const auto& obstacle : map.dynamic_obj_list.dynamic_obj_list) {
-      if (obstacle.path.size() < 2) continue;
-      const double speed = (obstacle.path[1] - obstacle.path[0]).len();
-      if (speed > 0.1) continue;
-      for (int i = 0; i < obstacle.corners.size(); ++i) {
-        const auto& start = obstacle.corners[i];
-        const auto& end =
-            obstacle.corners[(i + 1) % (int)obstacle.corners.size()];
-        add_obs_between(start, end);
-      }
+  // block the dynamic speed under 0.1m/s
+  for (const auto& obstacle : map.dynamic_obj_list.dynamic_obj_list) {
+    if (obstacle.path.size() < 2) continue;
+    const double speed = (obstacle.path[1] - obstacle.path[0]).len();
+    if (speed > 0.1) continue;
+    for (int i = 0; i < obstacle.corners.size(); ++i) {
+      const auto& start = obstacle.corners[i];
+      const auto& end =
+          obstacle.corners[(i + 1) % (int)obstacle.corners.size()];
+      add_obs_between(start, end);
     }
   }
 }
@@ -1208,7 +1185,7 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
   ref_path.resize(new_size);
   // get the lane center for each ref path p
   for (auto& p : ref_path) {
-    if (!p.neighbors.empty() /* || p.mode == CHANGE*/) continue;
+    if (!p.neighbors.empty() || p.mode == CHANGE) continue;
     for (int i = 0; i < p.lane_num; ++i) {
       const auto& neighbor_p =
           p.getLateralPose(p.lane_width * (i - p.lane_seq + 1));
@@ -1243,10 +1220,11 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
   };
   // set the center line priority to avoid bostacles
   HDMapPoint       last_ref_p;
-  constexpr double max_effect_dis = 50;  // m
+  constexpr double max_effect_dis = 10;  // m
   // backward check the path
   for (auto it = ref_path.rbegin(); it != ref_path.rend(); it++) {
     auto& ref_p = *it;
+    if (ref_p.s < 0) break;
     // LOG(WARNING) << "------ s=" << ref_p.s << " -------";
     for (int i = 0; i < ref_p.neighbors.size(); ++i) {
       auto& center_p = ref_p.neighbors[i];
@@ -1326,11 +1304,11 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
     last_ref_p = ref_p;
   }
   // forward check the path
-  /*
   last_ref_p.neighbors.clear();
-  constexpr double max_forward_effect_dis = 50;  // m
+  constexpr double max_forward_effect_dis = 100;  // m
   for (auto it = ref_path.begin(); it != ref_path.end(); it++) {
     auto& ref_p = *it;
+    if (ref_p.s < 0) continue;
     // LOG(WARNING) << "------ s=" << ref_p.s << " -------";
     for (int i = 0; i < ref_p.neighbors.size(); ++i) {
       auto& center_p = ref_p.neighbors[i];
@@ -1398,7 +1376,6 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
     //   LOG(INFO) << p;
     // }
   }
-  */
   // send to visualization center line offset
   MessageManager::getInstance().setPriorityLane(ref_path);
   return ref_path;

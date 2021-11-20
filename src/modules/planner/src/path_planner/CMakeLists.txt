@@ -36,6 +36,7 @@ target_link_libraries(path_planner
     PUBLIC
         distance_table
         speed_planner
+        planner_context
         message_manager
         planner_common
         ${STEERING_LIBRARY}

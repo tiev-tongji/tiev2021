@@ -8,12 +8,12 @@ namespace TiEV {
 /**
  * 这是途灵的碰撞检测，总共4个圆形包裹途灵
  * 首先检测大圆，再检测3个小圆
- * 坐标系定义：行为横轴，列为纵轴，当前车辆朝向为-pi
+ * 坐标系定义：行为横轴，列为纵轴，当前车辆朝向为pi
  */
 constexpr float CAR_WHEEL_BASE = 2.3;
 constexpr float CAR_LENGTH     = 3.9;  //(m)
 // constexpr float CAR_WIDTH              = 1.15;  //(m)
-constexpr float CAR_WIDTH              = 1.15;  //(m)
+constexpr float CAR_WIDTH              = 1.2;   //(m)
 constexpr float CAR_FRONT_AXLE_TO_HEAD = 1.02;  //(m)
 constexpr float CAR_BUMPER_LENGTH      = 0.3;   //(m)
 

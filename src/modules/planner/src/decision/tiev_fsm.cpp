@@ -42,10 +42,11 @@ void OnRoadFSM::update(FullControl& control) {
     // map.nav_info.car_pose << endl;
   }
   auto mode = map_manager.getCurrentMapMode();
-  if (mode == HDMapMode::INTERSECTION_SOLID || mode == HDMapMode::INTERSECTION)
-    control.changeTo<IntersectionDriving>();
-  else if (mode == HDMapMode::PARKING)
-    control.changeTo<SeekParkingSpot>();
+  // if (mode == HDMapMode::INTERSECTION_SOLID || mode ==
+  // HDMapMode::INTERSECTION)
+  //   // control.changeTo<IntersectionDriving>();
+  // else if (mode == HDMapMode::PARKING)
+  //   control.changeTo<SeekParkingSpot>();
 }
 //----------------OnRoad Fsm--------------------
 

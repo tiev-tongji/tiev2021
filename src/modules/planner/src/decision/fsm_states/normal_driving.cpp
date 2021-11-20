@@ -20,6 +20,19 @@ void NormalDriving::update(FullControl& control) {
 
   bool       back_ward  = map.nav_info.current_speed < 3 ? true : false;
   const auto start_path = map_manager.getStartMaintainedPath();
+  // if we need u-turn, the heading dif weight should be bigger
+  const auto& ref_path = map_manager.getForwardRefPath();
+  if (!ref_path.empty()) {
+    const bool need_reverse = ref_path.front().getDirectionVec().dot(
+                                  map.nav_info.car_pose.getDirectionVec()) < 0;
+    if (need_reverse) {
+      decision_context.setPlanningWeights({1, 0.01, 0.003, 0.001, 5, 1, 2});
+    } else {
+      decision_context.setPlanningWeights({1, 0.02, 0.008, 0.01, 2, 1, 5});
+    }
+  } else {
+    return;
+  }
 
   std::vector<Pose> result_path;
   PathPlanner::getInstance().runPathPlanner(
@@ -44,10 +57,12 @@ void NormalDriving::update(FullControl& control) {
     if (!maintained_path.empty() && duration_time() > limited_time) {
       // control.changeTo<FreeDriving>();
     }
+  } else if (decision_context.getCarSpeedMPS() > MIN_OVERTAKE_SPEED) {
+    // to overtaking driving
+    control.changeTo<OvertakeDriving>();
   } else {
     entry_time = getTimeStamp();
   }
-  control.changeTo<OvertakeDriving>();
 }
 
 }  // namespace TiEV

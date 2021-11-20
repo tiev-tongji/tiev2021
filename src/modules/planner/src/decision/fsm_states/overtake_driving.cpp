@@ -16,6 +16,7 @@ void OvertakeDriving::update(FullControl& control) {
   MapManager& map_manager      = MapManager::getInstance();
   auto&       decision_context = DecisionContext::getInstance();
   decision_context.setSpeedLimitMPS(map_manager.getCurrentMapSpeed());
+  decision_context.setPlanningWeights({1, 0.02, 0.06, 0.001, 2, 1, 5});
   map_manager.updatePlanningMap(MapManager::DynamicBlockType::NO_BLOCK);
   vector<Pose> start_path = map_manager.getStartMaintainedPath();
   const auto   map        = map_manager.getMap();
@@ -23,11 +24,14 @@ void OvertakeDriving::update(FullControl& control) {
   std::vector<Pose> result_path;
   PathPlanner::getInstance().runPathPlanner(
       map.nav_info, overtakeLaneDecision(map), map.dynamic_obj_list,
-      map_manager.getCurrentMapSpeed(), false, map.lidar_dis_map,
+      decision_context.getSpeedLimitMPS(), false, map.lidar_dis_map,
       map.planning_dis_map, start_path, Pose(0, 0, 0), &result_path);
 
   const auto maintained_path = decision_context.getMaintainedPath();
   decision_context.setMaintainedPath(result_path);
+  if (decision_context.getCarSpeedMPS() < MIN_OVERTAKE_SPEED) {
+    control.changeTo<NormalDriving>();
+  }
 }
 
 std::vector<HDMapPoint> OvertakeDriving::overtakeLaneDecision(

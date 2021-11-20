@@ -53,16 +53,21 @@ void PathPlanner::setStartMaintainedPath(
     start_pose = Pose(CAR_CEN_ROW, CAR_CEN_COL, PI);
     return;
   }
-  int start_idx = -1;
-  for (int i = start_maintained_path.size() - 1; i >= 0; --i) {
-    const auto& p = start_maintained_path[i];
+  int    start_idx = -1;
+  double max_k_dis = std::numeric_limits<double>::max();
+  for (int i = int(start_maintained_path.size()) - 1; i >= 0; --i) {
+    const auto& p     = start_maintained_path[i];
+    double      k_dis = std::numeric_limits<double>::max();
     for (const auto& k : k_list) {
-      if (fabs(p.k - k) < 1e-8) {
-        start_idx = i;
-        break;
-      }
+      double dis = fabs(p.k - k);
+      if (dis < k_dis) k_dis = dis;
     }
-    if (start_idx >= 0) break;
+    // LOG(INFO) << i << " k_dis=" << k_dis;
+    if (k_dis <= max_k_dis) {
+      max_k_dis = k_dis;
+      start_idx = i;
+    }
+    if (k_dis < 0.003) break;
   }
   this->start_maintained_path = start_maintained_path;
   if (start_idx < 0) {
@@ -173,8 +178,8 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
   // ***************path smoothing**********************//
   // only smooth path that has no backward path and is long enough
   bool have_backward_path = false;
-  for (auto it = result->begin(); it != result->end(); ++it) {
-    if (it->backward) {
+  for (const auto& p : *result) {
+    if (p.backward) {
       have_backward_path = true;
       break;
     }
@@ -183,8 +188,8 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
     // smooth the path
     vector<Point2d> path_before_smooth;
     path_before_smooth.reserve(result->size());
-    for (auto it = result->begin(); it != result->end(); ++it) {
-      path_before_smooth.emplace_back(it->x, it->y);
+    for (const auto& p : *result) {
+      path_before_smooth.emplace_back(p.x, p.y);
     }
     PathSmoother ps;
     // make sure the size of path_after_smooth and result_path is equal
@@ -194,45 +199,42 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
     double  ang_tmp;
     bool    smooth_path_crash = false;
     for (int i = 0; i + 1 < path_after_smooth.size(); ++i) {
-      p       = path_after_smooth[i];
-      pp      = path_after_smooth[i + 1];
-      ang_tmp = std::atan2(pp.y - p.y, pp.x - p.x);
-      if (collision(p.x, p.y, ang_tmp, lane_safe_map, 0.0)) {
+      const auto& p             = path_after_smooth[i];
+      const auto  direction_vec = path_after_smooth[i + 1] - p;
+      if (collision(p.x, p.y, direction_vec.getRad(), lane_safe_map, 0.0)) {
         smooth_path_crash = true;
         break;
       }
     }
     if (!smooth_path_crash) {
-      Point2d xim1, xi, xip1;
-      double  total_s   = 0;
-      int     left_turn = 1;
       for (int i = 1; i + 1 < path_after_smooth.size(); ++i) {
-        xim1 = path_after_smooth[i - 1];
-        xi   = path_after_smooth[i];
-        xip1 = path_after_smooth[i + 1];
-        total_s += (xi - xim1).len() * GRID_RESOLUTION;
-        (*result)[i].x   = path_after_smooth[i].x;
-        (*result)[i].y   = path_after_smooth[i].y;
-        (*result)[i].ang = std::atan2(xi.y - xim1.y, xi.x - xim1.x);
-        if ((*result)[i].ang > (*result)[i - 1].ang)
-          left_turn = 1;
-        else
-          left_turn = -1;
+        const auto& xim1   = path_after_smooth[i - 1];
+        const auto& xi     = path_after_smooth[i];
+        const auto& xip1   = path_after_smooth[i + 1];
+        const auto& last_p = (*result)[i - 1];
+        auto&       p      = (*result)[i];
+        p.x                = path_after_smooth[i].x;
+        p.y                = path_after_smooth[i].y;
+        p.ang              = (xip1 - xi).getRad();
         // curvature sign: left_turn positive
-        (*result)[i].k = left_turn * ps.getCurvature(xim1, xi, xip1);
-        (*result)[i].s = (*result)[0].s + total_s;
-        (*result)[i].updateGlobalCoordinate(nav_info.car_pose);
+        p.k = ps.getCurvature(xim1, xi, xip1);
+        p.s = last_p.s + (xi - xim1).len() * GRID_RESOLUTION;
+        p.updateGlobalCoordinate(nav_info.car_pose);
       }
-      Pose p, pp;
-      pp                      = (*result)[1];
-      p                       = (*result)[0];
-      (*result)[0].ang        = std::atan2(pp.y - p.y, pp.x - p.x);
-      (*result)[0].k          = (*result)[1].k;
-      int length              = result->size();
-      pp                      = (*result)[length - 1];
-      p                       = (*result)[length - 2];
-      result->back().ang      = std::atan2(pp.y - p.y, pp.x - p.x);
-      (*result)[length - 1].k = (*result)[length - 2].k;
+      const auto& sp_front = path_after_smooth.front();
+      const auto& sp_back  = path_after_smooth.back();
+      auto&       p_front  = result->front();
+      auto&       p_back   = result->back();
+      p_front.x            = sp_front.x;
+      p_front.y            = sp_front.y;
+      p_front.ang          = (path_after_smooth[1] - sp_front).getRad();
+      p_front.k            = (*result)[1].k;
+      p_front.updateGlobalCoordinate(nav_info.car_pose);
+      p_back.x   = sp_back.x;
+      p_back.y   = sp_back.y;
+      p_back.ang = (*(result->rbegin() + 1)).ang;
+      p_back.k   = (*(result->rbegin() + 1)).k;
+      p_back.updateGlobalCoordinate(nav_info.car_pose);
     }
 
 // #define VIS_SMOOTHED_PATH

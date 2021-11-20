@@ -216,17 +216,19 @@ Point2d PathSmoother::smoothnessTerm(const Point2d& xim2, const Point2d& xim1,
 
 double PathSmoother::getCurvature(const Point2d& xim1, const Point2d& xi,
                                   const Point2d& xip1) {
-  Point2d Dxi      = xi - xim1;
-  Point2d Dxip1    = xip1 - xi;
-  double  absDxi   = Dxi.len();
-  double  absDxip1 = Dxip1.len();
-  double  Dphi     = 0;
+  Point2d Dxi       = xi - xim1;
+  Point2d Dxip1     = xip1 - xi;
+  double  absDxi    = Dxi.len();
+  double  absDxip1  = Dxip1.len();
+  double  Dphi      = 0;
+  int     left_sign = 1;
   if (absDxi == 0 || absDxip1 == 0)
     return 0;
   else {
-    Dphi = std::acos(clamp(Dxi.dot(Dxip1) / (absDxi * absDxip1), -1., 1.));
+    Dphi      = std::acos(clamp(Dxi.dot(Dxip1) / (absDxi * absDxip1), -1., 1.));
+    left_sign = Dxi.cross(Dxip1) < 0 ? -1 : 1;
   }
-  double kappa = Dphi / absDxi / GRID_RESOLUTION;
+  double kappa = left_sign * Dphi / absDxi / GRID_RESOLUTION;
   if (std::isnan(kappa)) {
     kappa = 0;
   }
@@ -244,7 +246,7 @@ double PathSmoother::getTotalCost(const vector<Point2d>& path) {
     Point2d Dxip1 = path[i + 1] - path[i];
     Point2d Dxi   = path[i] - path[i - 1];
     smoothness_cost += (Dxip1 - Dxi).sqrLen();
-    curvature_cost += getCurvature(path[i - 1], path[i], path[i + 1]);
+    curvature_cost += fabs(getCurvature(path[i - 1], path[i], path[i + 1]));
   }
   total_cost = smoothness_cost + obstacle_cost + curvature_cost;
   // cout << "total cost: " << total_cost << ", smooth: " << smoothness_cost

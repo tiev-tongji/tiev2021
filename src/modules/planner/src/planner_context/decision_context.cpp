@@ -111,6 +111,41 @@ const std::vector<Pose> DecisionContext::getMaintainedPath() const {
   return res;
 }
 
+const std::vector<Pose> DecisionContext::getMaintainedPath(
+    const NavInfo& nav_info) const {
+  std::shared_lock<std::shared_mutex> lck(maintained_path_mutex);
+  auto                                path = _maintained_path;
+  lck.unlock();
+  for (auto& p : path) {
+    p.updateLocalCoordinate(nav_info.car_pose);
+  }
+  if (path.empty()) return path;
+  int    shortest_index = shortestPointIndex(nav_info.car_pose, path);
+  double base_s         = path[shortest_index].s;
+  for (auto& p : path) {
+    p.s -= base_s;
+  }
+  vector<Pose> res;
+  if (path[shortest_index].backward) {
+    for (auto p : path) {
+      if (p.s < 0) continue;
+      if (p.in_map() && p.backward)
+        res.push_back(p);
+      else
+        break;
+    }
+  } else {
+    for (auto p : path) {
+      if (p.s < 0) continue;
+      if (p.in_map() && !p.backward)
+        res.push_back(p);
+      else
+        break;
+    }
+  }
+  return res;
+}
+
 const std::queue<PlannerInfo> DecisionContext::getPlannerHitory() const {
   std::shared_lock<std::shared_mutex> lck(planner_info_mutex);
   return _planner_history_buffer;
@@ -130,6 +165,10 @@ const double DecisionContext::getCarSpeedMPS() const {
   NavInfo nav_info;
   MessageManager::getInstance().getNavInfo(nav_info);
   return nav_info.current_speed;
+}
+
+const PlanningWeights& DecisionContext::getPlanningWeights() const {
+  return _weights;
 }
 
 void DecisionContext::setPedestrianDecision(
@@ -163,5 +202,9 @@ void DecisionContext::setPlannerInfo(const PlannerInfo& planner_info) {
 void DecisionContext::setSpeedLimitMPS(const double speed_limit_mps) {
   std::unique_lock<std::shared_mutex> lck(speed_limit_mutex);
   _speed_limit_mps = speed_limit_mps;
+}
+
+void DecisionContext::setPlanningWeights(const PlanningWeights& weights) {
+  _weights = weights;
 }
 }  // namespace TiEV

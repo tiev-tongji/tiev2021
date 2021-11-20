@@ -11,6 +11,8 @@ constexpr double inf             = 1e8;
 constexpr double CAR_R           = 5.5;  // m
 constexpr double CAR_MAX_K       = 1 / CAR_R;
 constexpr int    ANGLE_NUM       = 72;
+
+constexpr double MIN_OVERTAKE_SPEED = 5;  // mps
 }  // namespace TiEV
 
 #endif  //!__CONST__H__

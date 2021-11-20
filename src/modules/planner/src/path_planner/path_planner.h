@@ -11,6 +11,7 @@
 
 #include "config.h"
 #include "const.h"
+#include "decision_context.h"
 #include "distance_table.h"
 #include "message_manager.h"
 #include "pose.h"

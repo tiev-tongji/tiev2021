@@ -261,9 +261,10 @@ bool PathPlanner::TiEVPlanner::is_time_out() {
 
 double PathPlanner::TiEVPlanner::get_cost_factor(
     const astate& prev_state, const astate& now_state) const {
-  double result = 1.0;
+  const auto& weights = DecisionContext::getInstance().getPlanningWeights();
+  double      result  = 1.0;
   // punish backwarding
-  if (now_state.is_backward) result *= BACKWARD_COST_FACTOR;
+  if (now_state.is_backward) result *= weights.w7;
   // // punish large curvature
   // result *= (1.0 + fabs(now_state.curvature) * CURVATURE_PUNISHMENT_FACTOR);
   // // punish large curvature change

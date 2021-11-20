@@ -12,6 +12,17 @@ struct PlannerInfo {
   // planner info of each iteration
 };
 
+struct PlanningWeights {
+  // heuristic weight decision results for path planner
+  double w1;  // target_dis_w;
+  double w2;  // target_sqrdis_w;
+  double w3;  // center_dis_w;
+  double w4;  // center_sqrdis_w;
+  double w5;  // ref_heading_dis_w;
+  double w6;  // obstacle_dis_w;
+  double w7;  // reverse cost w;
+};
+
 // magic static
 class DecisionContext {
  public:
@@ -22,13 +33,16 @@ class DecisionContext {
   const std::vector<DynamicObj> getStaticObsDecision() const;
   const std::vector<DynamicObj> getDynamicList() const;
 
-  const std::vector<Pose> getMaintainedPath() const;
+  const std::vector<Pose> getMaintainedPath() const;  // use new latest nav_info
+  const std::vector<Pose> getMaintainedPath(const NavInfo& nav_info) const;
 
   const std::queue<PlannerInfo> getPlannerHitory() const;
 
   const double getSpeedLimitKPH() const;
   const double getSpeedLimitMPS() const;
   const double getCarSpeedMPS() const;
+
+  const PlanningWeights& getPlanningWeights() const;
 
   void setPedestrianDecision(
       const std::vector<DynamicObj>& pedestrian_decision_result);
@@ -41,12 +55,15 @@ class DecisionContext {
 
   void setSpeedLimitMPS(const double speed_limit_mps);
 
+  void setPlanningWeights(const PlanningWeights& weights);
+
  private:
   // decision results
   std::vector<DynamicObj> _pedestrian_decision_result;
   std::vector<DynamicObj> _traffic_light_decision_result;
 
-  double _speed_limit_mps;
+  double          _speed_limit_mps;
+  PlanningWeights _weights;
 
   // some maintained variables
   std::vector<Pose> _maintained_path;

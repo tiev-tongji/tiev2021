@@ -94,7 +94,8 @@ bool PathPlanner::local_planning_map::is_lane_crashed(primitive& prim) const {
 double PathPlanner::local_planning_map::get_heuristic(
     const astate& state, const bool can_reverse,
     const double state_possible_speed) const {
-  double heuristic = 0;
+  const auto& weights   = DecisionContext::getInstance().getPlanningWeights();
+  double      heuristic = 0;
   // along the ref_path, the heuristic is small
   if (!is_planning_to_target) {
     double      min_distance = 1e8;
@@ -113,29 +114,28 @@ double PathPlanner::local_planning_map::get_heuristic(
       end_s = p.s;
     }
     // calculate the ref_path heuristic for this state(0-70)
-    heuristic += 2 * (end_s - ref_near_p.s);  // guide forward along the ref
-    // path guide close to ref path
-    // close to lane center(0-inf)
-    min_distance = 1e8;
+    const double target_dis = end_s - ref_near_p.s;
+    // path guide close to ref path, close to lane center(0-inf)
+    double center_line_dis = std::numeric_limits<double>::max();
     for (const auto& p : ref_near_p.neighbors) {
       if (!p.have_priority) continue;
-      double center_dis = sqr_dis(p.x, p.y, state.x, state.y);
-      if (center_dis < min_distance) min_distance = center_dis;
+      double dis = std::sqrt(sqr_dis(p.x, p.y, state.x, state.y));
+      if (dis < center_line_dis) center_line_dis = dis;
     }
-    const double center_lane_dis_weight =
-        std::max(10 - state_possible_speed, 0.0) * 1e-3 * 5;
-    heuristic += (0.005 + center_lane_dis_weight) * (min_distance);
-    // heuristic += 0.2 * (min_distance);
     // guide heading close to ref path (0-2)
-    heuristic += 5 * (1 - cos(fabs(state.a - ref_near_p.ang)));
+    const double ref_heading_dis = acos((cos(fabs(state.a - ref_near_p.ang))));
     // guide to away from obstacles
     const double max_obstacle_affect_dis = 2.5;  // m
-    heuristic +=
-        std::pow(std::min<double>(lane_safe_map[int(state.x)][int(state.y)] *
-                                          GRID_RESOLUTION -
-                                      max_obstacle_affect_dis,
-                                  0.0),
-                 2);
+    const double obstacle_dis            = std::max(
+        0.0, max_obstacle_affect_dis -
+                 lane_safe_map[int(state.x)][int(state.y)] * GRID_RESOLUTION);
+
+    heuristic += weights.w1 * target_dis;
+    heuristic += weights.w2 * target_dis * target_dis;
+    heuristic += weights.w3 * center_line_dis;
+    heuristic += weights.w4 * center_line_dis * center_line_dis;
+    heuristic += weights.w5 * ref_heading_dis * ref_heading_dis;
+    heuristic += weights.w6 * obstacle_dis * obstacle_dis;
     return heuristic;
   }
   // calculate the target heuristic
