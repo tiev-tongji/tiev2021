@@ -67,7 +67,7 @@ void PathPlanner::setStartMaintainedPath(
       max_k_dis = k_dis;
       start_idx = i;
     }
-    if (k_dis < 0.003) break;
+    if (k_dis < 0.001) break;
   }
   this->start_maintained_path = start_maintained_path;
   if (start_idx < 0) {
@@ -184,7 +184,7 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
       break;
     }
   }
-  if (result->size() > 5 && !have_backward_path) {
+  if (result->size() > 500000 && !have_backward_path) {
     // smooth the path
     vector<Point2d> path_before_smooth;
     path_before_smooth.reserve(result->size());

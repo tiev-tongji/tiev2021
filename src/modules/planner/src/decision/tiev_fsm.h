@@ -34,37 +34,27 @@ using FSM = M::PeerRoot<
     // OnRoad Fsm
     M::Composite<S(OnRoadFSM),
                  // substates
-                 S(GlobalPlanning),    //
-                 S(NormalDriving),     //
-                 S(LaneFreeDriving),   //
-                 S(OvertakeDriving),   //
-                 S(FreeDriving),       //
-                 S(GlobalReplanning),  //
-                 S(Exploration),       //
-                 S(UTurn)              //
+                 S(GlobalPlanning),   //
+                 S(NormalDriving),    //
+                 S(OvertakeDriving),  //
+                 S(FreeDriving),      //
+                 S(GlobalReplanning)  //
                  >,
     // Intersection Fsm
     M::Composite<S(IntersectionFSM),
                  // substates
-                 S(IntersectionDriving),             //
-                 S(SafeDriving),             //
-                 S(IntersectionFreeDriving)  //
-                 >,                          //
+                 S(IntersectionDriving)  //
+                 >,                      //
     M::Composite<S(ParkingFSM),
                  // substates
-                 S(SeekParkingSpot),     //
-                 S(ParkingPlanning),     //
-                 S(ReplaceParkingPath),  //
-                 S(Stop)                 //
-                 >,                      //
+                 S(ParkingPlanning)  //
+                 >,                  //
     M::Composite<S(TemporaryParkingFSM),
                  // substates
                  S(TemporaryParkingPlanning),  //
-                 S(TemporaryStop),             //
-                 S(TaskDecision)               //
+                 S(TemporaryStop)              //
                  >,                            //
-    S(Tracking),                               // just for tracking test
-    S(BackTracking)                            // just for back tracking test
+    S(Tracking)                                // just for tracking test
     >;
 
 #undef S
@@ -91,11 +81,6 @@ struct NormalDriving : TiEVState {
   void update(FullControl& control);
 };
 
-struct LaneFreeDriving : TiEVState {
-  void enter(Control& control);
-  void update(FullControl& control);
-};
-
 struct OvertakeDriving : TiEVState {
   void                    enter(Control& control);
   void                    update(FullControl& control);
@@ -109,16 +94,6 @@ struct FreeDriving : TiEVState {
 };
 
 struct GlobalReplanning : TiEVState {
-  void enter(Control& control);
-  void update(FullControl& control);
-};
-
-struct Exploration : TiEVState {
-  void enter(Control& control);
-  void update(FullControl& control);
-};
-
-struct UTurn : TiEVState {
   void enter(Control& control);
   void update(FullControl& control);
 };
@@ -136,25 +111,9 @@ struct IntersectionDriving : TiEVState {
   time_t expired_time;
 };
 
-struct SafeDriving : TiEVState {
-  void   enter(Control& control);
-  void   update(FullControl& control);
-  time_t last_block_time;
-  time_t expired_time;
-};
-
-struct IntersectionFreeDriving : TiEVState {
-  void enter(Control& control);
-  void update(FullControl& control);
-};
 //----------------Intersection Fsm--------------------
 //----------------Parking Fsm--------------------
 struct ParkingFSM : TiEVState {
-  void enter(Control& control);
-  void update(FullControl& control);
-};
-
-struct SeekParkingSpot : TiEVState {
   void enter(Control& control);
   void update(FullControl& control);
 };
@@ -164,15 +123,6 @@ struct ParkingPlanning : TiEVState {
   void update(FullControl& control);
 };
 
-struct ReplaceParkingPath : TiEVState {
-  void enter(Control& control);
-  void update(FullControl& control);
-};
-
-struct Stop : TiEVState {
-  void enter(Control& control);
-  void update(FullControl& control);
-};
 //----------------Parking Fsm--------------------
 //----------------TemporaryParking Fsm--------------------
 struct TemporaryParkingFSM : TiEVState {
@@ -190,10 +140,6 @@ struct TemporaryStop : TiEVState {
   void update(FullControl& control);
 };
 
-struct TaskDecision : TiEVState {
-  void enter(Control& control);
-  void update(FullControl& control);
-};
 //----------------TemporaryParking Fsm--------------------
 //----------------Tracking State--------------------
 struct Tracking : TiEVState {
@@ -201,10 +147,6 @@ struct Tracking : TiEVState {
   void update(FullControl& control);
 };
 
-struct BackTracking : TiEVState {
-  void enter(Control& control);
-  void update(FullControl& control);
-};
 //----------------Tracking State--------------------
 
 }  // namespace TiEV

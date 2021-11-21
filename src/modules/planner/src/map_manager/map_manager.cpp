@@ -1189,7 +1189,7 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
     for (int i = 0; i < p.lane_num; ++i) {
       const auto& neighbor_p =
           p.getLateralPose(p.lane_width * (i - p.lane_seq + 1));
-      p.neighbors.emplace_back(neighbor_p.x, neighbor_p.y, true, 0.0);
+      p.neighbors.emplace_back(neighbor_p.x, neighbor_p.y, true, 0.0, false);
     }
     // maybe we could add a oppsite lane center with no priority
   }
@@ -1220,7 +1220,7 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
   };
   // set the center line priority to avoid bostacles
   HDMapPoint       last_ref_p;
-  constexpr double max_effect_dis = 10;  // m
+  constexpr double max_effect_dis = 15;  // m
   // backward check the path
   for (auto it = ref_path.rbegin(); it != ref_path.rend(); it++) {
     auto& ref_p = *it;
@@ -1247,13 +1247,29 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
       //                        decision_map.planning_dis_map);
       // LOG(INFO) << "collision with dynamic:"
       //           << clash_with_dynamic(center_p.x, center_p.y);
-      if (collision(center_p.x, center_p.y, decision_map.planning_dis_map) ||
-          clash_with_dynamic(center_p.x, center_p.y)) {
+      const bool clash_with_static =
+          collision(center_p.x, center_p.y, decision_map.planning_dis_map);
+      if (clash_with_static || clash_with_dynamic(center_p.x, center_p.y)) {
         center_p.have_priority                = false;
         center_p.accumulate_dis_with_priority = 0.0;
+        center_p.accumulate_by_static_obs     = clash_with_static;
+        if (have_near_center_point &&
+            pre_nearest_center_point.accumulate_by_static_obs) {
+          center_p.have_priority = pre_nearest_center_point.have_priority;
+          center_p.accumulate_dis_with_priority =
+              pre_nearest_center_point.accumulate_dis_with_priority + min_dis;
+          center_p.accumulate_by_static_obs =
+              pre_nearest_center_point.accumulate_by_static_obs;
+        }
       } else if (have_near_center_point) {
-        if (pre_nearest_center_point.accumulate_dis_with_priority <
-            max_effect_dis) {
+        if (pre_nearest_center_point.accumulate_by_static_obs) {
+          center_p.have_priority = pre_nearest_center_point.have_priority;
+          center_p.accumulate_dis_with_priority =
+              pre_nearest_center_point.accumulate_dis_with_priority + min_dis;
+          center_p.accumulate_by_static_obs =
+              pre_nearest_center_point.accumulate_by_static_obs;
+        } else if (pre_nearest_center_point.accumulate_dis_with_priority <
+                   max_effect_dis) {
           center_p.have_priority = pre_nearest_center_point.have_priority;
           center_p.accumulate_dis_with_priority =
               pre_nearest_center_point.accumulate_dis_with_priority + min_dis;
@@ -1279,7 +1295,8 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
                       decision_map.planning_dis_map) ||
             clash_with_dynamic(oppsite_p.x, oppsite_p.y)) {
         } else {
-          ref_p.neighbors.emplace_back(oppsite_p.x, oppsite_p.y, true, 0.0);
+          ref_p.neighbors.emplace_back(oppsite_p.x, oppsite_p.y, true, 0.0,
+                                       false);
           all_have_no_priority = false;
         }
       }

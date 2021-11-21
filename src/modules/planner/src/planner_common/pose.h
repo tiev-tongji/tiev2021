@@ -187,18 +187,22 @@ struct LaneCenterPoint : public Point2d {
   // lane center with priority
   bool   have_priority = true;
   double accumulate_dis_with_priority;
+  bool   accumulate_by_static_obs = false;
   LaneCenterPoint(const double x_ = 0, const double y_ = 0,
                   const bool   have_priority_                = true,
-                  const double accumulate_dis_with_priority_ = 0.0)
+                  const double accumulate_dis_with_priority_ = 0.0,
+                  const bool   accumulate_by_static_obs_     = false)
       : Point2d(x_, y_),
         have_priority(have_priority_),
-        accumulate_dis_with_priority(accumulate_dis_with_priority_) {}
+        accumulate_dis_with_priority(accumulate_dis_with_priority_),
+        accumulate_by_static_obs(accumulate_by_static_obs_) {}
 
   friend std::ostream& operator<<(std::ostream&          out,
                                   const LaneCenterPoint& point) {
     out << "LaneCenterPoint: {x=" << point.x << " y=" << point.y
         << " priority=" << point.have_priority
-        << " accumu=" << point.accumulate_dis_with_priority;
+        << " accumu=" << point.accumulate_dis_with_priority
+        << " accumu by static=" << point.accumulate_by_static_obs;
     return out;
   }
 };

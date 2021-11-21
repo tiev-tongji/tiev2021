@@ -25,7 +25,5 @@ void ParkingPlanning::update(FullControl& control) {
   //     map.nav_info.current_speed, speed_path_list);
   map_manager.selectBestPath(speed_path_list);
   map_manager.maintainPath(map.nav_info, map.best_path.path);
-
-  if (false) control.changeTo<Stop>();  // TODO
 }
 }  // namespace TiEV
