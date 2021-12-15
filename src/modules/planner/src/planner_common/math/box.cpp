@@ -16,10 +16,10 @@ Box::Box(Vec center, double length, double width, double heading) {
 }
 
 void Box::InitCorners() {
-  const double dx1 = length_ / 2.0 * cos_heading_ / GRID_RESOLUTION;
-  const double dy1 = length_ / 2.0 * sin_heading_ / GRID_RESOLUTION;
-  const double dx2 = width_ / 2.0 * sin_heading_ / GRID_RESOLUTION;
-  const double dy2 = -width_ / 2.0 * cos_heading_ / GRID_RESOLUTION;
+  const double dx1 = length_ / 2.0 * cos_heading_;
+  const double dy1 = length_ / 2.0 * sin_heading_;
+  const double dx2 = width_ / 2.0 * sin_heading_;
+  const double dy2 = -width_ / 2.0 * cos_heading_;
 
   corners_.clear();
   // corners_.emplace_back(center_.x() + dx1 + dx2, center_.y() + dy1 + dy2);

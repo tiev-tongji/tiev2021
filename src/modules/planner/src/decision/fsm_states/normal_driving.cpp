@@ -1,5 +1,7 @@
+
 #include <iostream>
 
+#include "lattice_planner.h"
 #include "map_manager.h"
 #include "tiev_fsm.h"
 #include "tievlog.h"

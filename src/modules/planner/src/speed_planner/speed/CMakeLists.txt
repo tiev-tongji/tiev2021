@@ -8,6 +8,5 @@ target_include_directories(speed PUBLIC
 )
 target_link_libraries(speed PUBLIC
     planner_common
-    math
 )
 

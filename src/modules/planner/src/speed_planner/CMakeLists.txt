@@ -3,7 +3,6 @@ find_package(osqp REQUIRED)
 add_subdirectory(path_time_heuristic)
 add_subdirectory(speed)
 add_subdirectory(path_time_graph)
-add_subdirectory(math)
 add_subdirectory(qp_spline_speed_optimizer)
 add_subdirectory(splines)
 
@@ -19,6 +18,6 @@ target_link_libraries(speed_planner PUBLIC
     qp_spline_speed_optimizer 
     path_time_graph 
     speed 
-    math 
+    planner_common
     splines
 )

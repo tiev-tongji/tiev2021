@@ -7,15 +7,33 @@
 #include "const.h"
 #include "opencv2/opencv.hpp"
 #include "point2d.h"
+#include "pose.h"
 using std::vector;
 
 namespace TiEV {
 
 class PathSmoother {
  public:
-  PathSmoother();
+  PathSmoother(double learning_rate, double max_iteration, double weight_smooth,
+               double weight_curvature, double weight_obstacle)
+      : alpha(learning_rate),
+        maxIteration(max_iteration),
+        wSmoothness(weight_smooth),
+        wCurvature(weight_curvature),
+        wObstacle(weight_obstacle),
+        kappaMax(0.1818),
+        obsDMax(10),
+        width(MAX_ROW),
+        height(MAX_COL) {}
   // api
-  vector<Point2d> smoothPath(const vector<Point2d>& path);
+  vector<Point2d> smoothPath(const vector<Point2d>& path, const int gap = 5);
+
+  // smoothPath for lattice planner
+  vector<Point2d> smoothPath(const vector<HDMapPoint>& path, const int gap,
+                             std::string type);
+
+  template <typename T>
+  vector<Point2d> convert2Point2d(const vector<T>& original_path);
 
   // linear interpolate n points between original path points
   vector<Point2d> interpolatePath(const vector<Point2d>& path, const int n);
@@ -61,6 +79,8 @@ class PathSmoother {
   double wCurvature;
   /// weight for the smoothness term
   double wSmoothness;
+  /// max_iteration;
+  int maxIteration;
 
   /// width of the map
   int width;

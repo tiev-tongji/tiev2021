@@ -23,6 +23,8 @@ class Obstacle : public DynamicObj {
     for (auto& point : path) {
       point.ang = NormalizeAngle(PI - point.ang);
     }
+    length /= GRID_RESOLUTION;
+    width /= GRID_RESOLUTION;
   }
 
   void set_st_boundary(const STBoundary& st_boundary) {

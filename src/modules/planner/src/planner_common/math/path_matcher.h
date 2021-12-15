@@ -24,7 +24,9 @@ class PathMatcher {
    * @return The matched path point
    */
   static Pose MatchToPath(const std::vector<Pose>& path, const double x,
-                          const double y);
+                          const double y, std::string type = "speed_planner");
+  static Pose MatchToPath(const std::vector<HDMapPoint>& path, const double x,
+                          const double y, std::string type = "speed_planner");
 
   /**
    * @brief Match given s to a given path
@@ -33,7 +35,6 @@ class PathMatcher {
    * @return The matched path point
    */
   static Pose MatchToPath(const std::vector<Pose>& path, const double s);
-
   /**
    * @brief Convert a cartesian coordinate to a Frenet coordinate
    * @param path
@@ -55,7 +56,8 @@ class PathMatcher {
    * @return The projection point
    */
   static Pose FindProjectionPoint(const Pose& p0, const Pose& p1,
-                                  const double x, const double y);
+                                  const double x, const double y,
+                                  std::string type = "speed_planner");
 };
 
 }  // namespace TiEV

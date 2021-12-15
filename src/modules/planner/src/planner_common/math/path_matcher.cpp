@@ -9,7 +9,7 @@
 namespace TiEV {
 
 Pose PathMatcher::MatchToPath(const std::vector<Pose>& path, const double x,
-                              const double y) {
+                              const double y, std::string type) {
   auto func_dis_square = [](const Pose& point, const double x, const double y) {
     double dx = point.x - x;
     double dy = point.y - y;
@@ -33,7 +33,7 @@ Pose PathMatcher::MatchToPath(const std::vector<Pose>& path, const double x,
   if (idx_start == idx_end) {
     return path[idx_start];
   } else {
-    return FindProjectionPoint(path[idx_start], path[idx_end], x, y);
+    return FindProjectionPoint(path[idx_start], path[idx_end], x, y, type);
   }
   // more than 2 points
   //   const auto& projectionDis = [](const Pose& p0, const Pose& p1, double x,
@@ -57,6 +57,37 @@ Pose PathMatcher::MatchToPath(const std::vector<Pose>& path, const double x,
   //   y);
 }
 
+Pose PathMatcher::MatchToPath(const std::vector<HDMapPoint>& path,
+                              const double x, const double y,
+                              std::string type) {
+  auto func_dis_square = [](const HDMapPoint& point, const double x,
+                            const double y) {
+    double dx = point.x - x;
+    double dy = point.y - y;
+    return dx * dx + dy * dy;
+  };
+
+  double      dis_min = func_dis_square(path.front(), x, y);
+  std::size_t idx_min = 0;
+
+  for (std::size_t i = 1; i < path.size(); i++) {
+    double dis_tmp = func_dis_square(path[i], x, y);
+    if (dis_tmp < dis_min) {
+      dis_min = dis_tmp;
+      idx_min = i;
+    }
+  }
+
+  std::size_t idx_start = (idx_min == 0) ? idx_min : idx_min - 1;
+  std::size_t idx_end   = (idx_min + 1 == path.size()) ? idx_min : idx_min + 1;
+
+  if (idx_start == idx_end) {
+    return path[idx_start];
+  } else {
+    return FindProjectionPoint(path[idx_start], path[idx_end], x, y, type);
+  }
+}
+
 Pose PathMatcher::MatchToPath(const std::vector<Pose>& path, const double s) {
   auto comp = [](const Pose& point, const double s) { return point.s < s; };
 
@@ -71,7 +102,8 @@ Pose PathMatcher::MatchToPath(const std::vector<Pose>& path, const double s) {
 }
 
 Pose PathMatcher::FindProjectionPoint(const Pose& p0, const Pose& p1,
-                                      const double x, const double y) {
+                                      const double x, const double y,
+                                      std::string type) {
   double v0x = (x - p0.x);
   double v0y = (y - p0.y);
 
@@ -82,12 +114,16 @@ Pose PathMatcher::FindProjectionPoint(const Pose& p0, const Pose& p1,
   double dot     = v0x * v1x + v0y * v1y;
 
   double delta_s = dot / v1_norm * GRID_RESOLUTION;
+  if (type == "lattice_planner") {
+    delta_s /= GRID_RESOLUTION;
+  }
   return InterpolateUsingLinearApproximationWithS(p0, p1, p0.s + delta_s);
 }
 
 std::pair<double, double> PathMatcher::GetPathFrenetCoordinate(
     const std::vector<Pose>& path, const double x, const double y) {
-  Pose matched_path_point = MatchToPath(path, x, y);  // return pose.xy is gird
+  Pose matched_path_point =
+      MatchToPath(path, x, y, "speed_planner");  // return pose.xy is gird
   // LOG(INFO) << "match point: s=" << matched_path_point.s
   //           << " x=" << matched_path_point.x << " y=" <<
   //           matched_path_point.y;
@@ -99,6 +135,7 @@ std::pair<double, double> PathMatcher::GetPathFrenetCoordinate(
 
   // The original coord represents gridded cells
   // Here we need to transfer it to actual distance
+  // only for speed_planner
   double dis_x = delta_x * GRID_RESOLUTION;
   double dis_y = delta_y * GRID_RESOLUTION;
 

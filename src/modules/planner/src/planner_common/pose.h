@@ -45,6 +45,7 @@ struct LonLatPosition {
 struct Pose : public Point2d {
   double      ang;  // rad
   double      k;    // curvature 1/m
+  double      dk;   // derivative of curvature
   double      v;    // velocity m/s
   double      a;
   double      s;  // lenth meter
@@ -63,6 +64,16 @@ struct Pose : public Point2d {
         t(t_),
         backward(backward_),
         utm_position() {}
+
+  inline void set_x(double x_) { x = x_; }
+  inline void set_y(double y_) { y = y_; }
+  inline void set_s(double s_) { s = s_; }
+  inline void set_theta(double ang_) { ang = ang_; }
+  inline void set_kappa(double kappa_) { k = kappa_; }
+  inline void set_dkappa(double dkappa_) { dk = dkappa_; }
+  inline void set_v(double v_) { v = v_; }
+  inline void set_a(double a_) { a = a_; }
+  inline void set_t(double t_) { t = t_; }
 
   inline Point2d getDirectionVec() const { return Point2d(cos(ang), sin(ang)); }
 

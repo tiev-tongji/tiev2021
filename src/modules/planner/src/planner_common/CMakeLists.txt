@@ -1,4 +1,5 @@
 add_subdirectory(look_up_tables)
+add_subdirectory(math)
 
 add_library(planner_common SHARED "")
 
@@ -16,4 +17,5 @@ target_include_directories(planner_common PUBLIC
 
 target_link_libraries(planner_common PUBLIC
     distance_table
+    math
 )

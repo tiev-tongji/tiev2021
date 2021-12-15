@@ -184,14 +184,17 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
       break;
     }
   }
-  if (result->size() > 500000 && !have_backward_path) {
+  if (result->size() > 5 && !have_backward_path) {
     // smooth the path
     vector<Point2d> path_before_smooth;
     path_before_smooth.reserve(result->size());
     for (const auto& p : *result) {
       path_before_smooth.emplace_back(p.x, p.y);
     }
-    PathSmoother ps;
+    double learning_rate(0.24915), max_iteration(500), weight_smooth(1),
+        weight_curvature(1), weight_obstacle(0);
+    PathSmoother ps(learning_rate, max_iteration, weight_smooth,
+                    weight_curvature, weight_obstacle);
     // make sure the size of path_after_smooth and result_path is equal
     vector<Point2d> path_after_smooth = ps.smoothPath(path_before_smooth);
     // if collision happen, don't substitute the original path

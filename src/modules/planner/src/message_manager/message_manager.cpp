@@ -165,6 +165,14 @@ bool MessageManager::getDynamicObjList(DynamicObjList& dynamic_obj_list) {
       }
     }
 
+  // using lattice planner to predict dynamic_obj's trajectory
+  // smoothing reference line
+
+  // only consider dynamic_objs driving in the same direction as ego car
+  for (auto& dynamic_obj : dynamic_obj_list.dynamic_obj_list) {
+    break;
+  }
+
   inner_handler.objects_mtx.unlock_shared();
   return dynamic_obj_list.detected;
 }
