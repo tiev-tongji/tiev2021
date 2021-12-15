@@ -1,5 +1,5 @@
 #!/bin/bash
-cd ~/tiev2021/src/modules/planner
+cd ../src/modules/planner
 if [ ! -d "build" ]
 then
 	mkdir build
