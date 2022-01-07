@@ -4,7 +4,7 @@
 # CURR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 # TIEV_ROOT_DIR="${CURR_DIR}"
 TIEV_ROOT_DIR="/home/autolab/tiev2021"
-TIEV_IMAGE="tiev:mars"
+TIEV_IMAGE="tiev:moon"
 TIEV_CONTAINER="tiev"
 INSIDE_CONTAINER="tiev"
 SHM_SIZE="2G"
