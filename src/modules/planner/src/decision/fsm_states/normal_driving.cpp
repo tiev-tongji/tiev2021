@@ -17,7 +17,7 @@ void NormalDriving::update(FullControl& control) {
   MapManager& map_manager      = MapManager::getInstance();
   auto&       decision_context = DecisionContext::getInstance();
   // remove the dynamic object
-  map_manager.updatePlanningMap(MapManager::DynamicBlockType::NO_BLOCK);
+  map_manager.updatePlanningMap(MapManager::DynamicBlockType::ALL_BLOCK);
   const auto map = map_manager.getMap();
 
   bool       back_ward  = map.nav_info.current_speed < 3 ? true : false;
@@ -30,7 +30,7 @@ void NormalDriving::update(FullControl& control) {
     if (need_reverse) {
       decision_context.setPlanningWeights({1, 0.01, 0.003, 0.001, 5, 1, 2});
     } else {
-      decision_context.setPlanningWeights({1, 0.02, 0.008, 0.01, 2, 1, 5});
+      decision_context.setPlanningWeights({1, 0.02, 0.008, 0.06, 2, 1, 5});
     }
   } else {
     return;

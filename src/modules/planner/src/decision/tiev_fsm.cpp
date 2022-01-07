@@ -1,4 +1,6 @@
 #include "tiev_fsm.h"
+
+#include "decision_context.h"
 namespace TiEV {
 using namespace std;
 void Context::update() {
@@ -42,9 +44,10 @@ void OnRoadFSM::update(FullControl& control) {
     // map.nav_info.car_pose << endl;
   }
   auto mode = map_manager.getCurrentMapMode();
-  // if (mode == HDMapMode::INTERSECTION_SOLID || mode ==
-  // HDMapMode::INTERSECTION)
-  //   // control.changeTo<IntersectionDriving>();
+  if (mode == HDMapMode::INTERSECTION_SOLID ||
+      mode == HDMapMode::INTERSECTION) {
+    control.changeTo<IntersectionDriving>();
+  }
   // else if (mode == HDMapMode::PARKING)
   //   control.changeTo<SeekParkingSpot>();
 }
@@ -59,8 +62,15 @@ void IntersectionFSM::update(FullControl& control) {
   cout << "Intersection FSM update!" << endl;
   MapManager& map_manager = MapManager::getInstance();
   auto        mode        = map_manager.getCurrentMapMode();
-  if (mode != HDMapMode::INTERSECTION_SOLID && mode != HDMapMode::INTERSECTION)
+  if (mode != HDMapMode::INTERSECTION_SOLID &&
+      mode != HDMapMode::INTERSECTION) {
+    // erase decision context in intersectionFSM before going to another FSM
+    // state
+    auto&                   decision_context = DecisionContext::getInstance();
+    std::vector<DynamicObj> empty_objlist;
+    decision_context.setPedestrianDecision(empty_objlist);
     control.changeTo<NormalDriving>();
+  }
 }
 //----------------Intersection Fsm--------------------
 

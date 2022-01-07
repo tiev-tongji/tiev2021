@@ -67,9 +67,15 @@ void PathPlanner::setStartMaintainedPath(
       max_k_dis = k_dis;
       start_idx = i;
     }
+    break;
     if (k_dis < 0.001) break;
   }
   this->start_maintained_path = start_maintained_path;
+  if (!start_maintained_path.empty() && false) {
+    start_idx = start_maintained_path.size() - 1;
+    std::cout << "start pose curvature: " << start_maintained_path.back().k
+              << std::endl;
+  }
   if (start_idx < 0) {
     this->start_maintained_path.clear();
   } else {
@@ -184,6 +190,8 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
       break;
     }
   }
+  time_t start_time;
+  start_time = getTimeStamp();
   if (result->size() > 5 && !have_backward_path) {
     // smooth the path
     vector<Point2d> path_before_smooth;
@@ -196,7 +204,7 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
     PathSmoother ps(learning_rate, max_iteration, weight_smooth,
                     weight_curvature, weight_obstacle);
     // make sure the size of path_after_smooth and result_path is equal
-    vector<Point2d> path_after_smooth = ps.smoothPath(path_before_smooth);
+    vector<Point2d> path_after_smooth = ps.smoothPath(path_before_smooth, 5);
     // if collision happen, don't substitute the original path
     Point2d p, pp;
     double  ang_tmp;
@@ -252,7 +260,7 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
       }
     }
     for (const auto& p : path_before_smooth) {
-      img.at<cv::Vec3b>(lround(p.x), lround(p.y)) = cv::Vec3b(0, 255, 0);
+      img.at<cv::Vec3b>(lround(p.x), lround(p.y)) = cv::Vec3b(255, 0, 0);
     }
     for (const auto& p : path_after_smooth) {
       img.at<cv::Vec3b>(lround(p.x), lround(p.y)) = cv::Vec3b(0, 0, 255);
@@ -261,7 +269,8 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
     cv::waitKey(0);
 #endif
   }
-
+  std::cout << "smooth cost: " << (getTimeStamp() - start_time) / 1e3 << " ms"
+            << std::endl;
   // sen visualization data
   if (planning_to_target) view_controller.setTarget(target_pose);
   view_controller.setStartPoint(start_pose);

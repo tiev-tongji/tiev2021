@@ -26,7 +26,8 @@ class PathSmoother {
         width(MAX_ROW),
         height(MAX_COL) {}
   // api
-  vector<Point2d> smoothPath(const vector<Point2d>& path, const int gap = 5);
+  vector<Point2d> smoothPath(const vector<Point2d>& path, const int gap = 5,
+                             const int fixed_id = 0);
 
   // smoothPath for lattice planner
   vector<Point2d> smoothPath(const vector<HDMapPoint>& path, const int gap,

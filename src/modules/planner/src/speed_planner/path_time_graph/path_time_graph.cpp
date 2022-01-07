@@ -96,22 +96,23 @@ void PathTimeGraph::SetupObstacles(std::vector<Obstacle>&   obstacles,
 void PathTimeGraph::SetStaticObstacle(Obstacle&                obstacle,
                                       const std::vector<Pose>& path) {
   const Box box = GetStaticBoundingBox(obstacle);
-  std::cout << "obstacle details: " << obstacle.path.front().x << ' '
-            << obstacle.path.front().y << ' ' << obstacle.length << ' '
-            << obstacle.width << ' ' << obstacle.path.front().ang << std::endl;
-  std::cout << current_speed_ << std::endl;
-  for (const auto& i : box.corners()) {
-    std::cout << i.x() << ' ' << i.y() << std::endl;
-  }
+  // std::cout << "obstacle details: " << obstacle.path.front().x << ' '
+  //           << obstacle.path.front().y << ' ' << obstacle.length << ' '
+  //           << obstacle.width << ' ' << obstacle.path.front().ang <<
+  //           std::endl;
+  // std::cout << current_speed_ << std::endl;
+  // for (const auto& i : box.corners()) {
+  //   std::cout << i.x() << ' ' << i.y() << std::endl;
+  // }
   // LOG(INFO) << "Static Obstacle";
 
   SLBoundary sl_boundary = ComputeObstacleSLBoundary(box.corners(), path);
   double     left_width  = Default_Path_Width_ * 0.6 + current_speed_ * 0.1;
   double     right_width = Default_Path_Width_ * 0.6 + current_speed_ * 0.1;
-  std::cout << "finally: " << sl_boundary.start_s() << ' '
-            << sl_boundary.end_s() << ' ' << sl_boundary.start_l() << ' '
-            << sl_boundary.end_l() << ' ' << path_range_.first << ' '
-            << path_range_.second << std::endl;
+  // std::cout << "finally: " << sl_boundary.start_s() << ' '
+  //           << sl_boundary.end_s() << ' ' << sl_boundary.start_l() << ' '
+  //           << sl_boundary.end_l() << ' ' << path_range_.first << ' '
+  //           << path_range_.second << std::endl;
   // Out of path range
   if (sl_boundary.start_s() > path_range_.second ||
       sl_boundary.end_s() < path_range_.first ||
@@ -121,7 +122,7 @@ void PathTimeGraph::SetStaticObstacle(Obstacle&                obstacle,
       sl_boundary.end_l() - sl_boundary.start_l() > 10) {
     return;
   }
-  std::cout << "stop!" << std::endl;
+  // std::cout << "stop!" << std::endl;
   STPoint blp(sl_boundary.start_s(), 0);
   STPoint brp(sl_boundary.start_s(), total_time_);
   STPoint ulp(sl_boundary.end_s(), 0);

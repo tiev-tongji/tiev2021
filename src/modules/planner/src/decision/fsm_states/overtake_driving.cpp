@@ -17,7 +17,7 @@ void OvertakeDriving::update(FullControl& control) {
   auto&       decision_context = DecisionContext::getInstance();
   decision_context.setSpeedLimitMPS(map_manager.getCurrentMapSpeed());
   decision_context.setPlanningWeights({1, 0.02, 0.06, 0.001, 2, 1, 5});
-  map_manager.updatePlanningMap(MapManager::DynamicBlockType::NO_BLOCK);
+  map_manager.updatePlanningMap(MapManager::DynamicBlockType::ALL_BLOCK);
   vector<Pose> start_path = map_manager.getStartMaintainedPath();
   const auto   map        = map_manager.getMap();
 

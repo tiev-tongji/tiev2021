@@ -919,8 +919,8 @@ vector<Pose> MapManager::getStartMaintainedPath() {
     }
   }
   // get maintain s by car speed
-  const double maintain_s   = 2 * map.nav_info.current_speed;
-  int          maintain_idx = 0;
+  double maintain_s   = 2 * map.nav_info.current_speed;
+  int    maintain_idx = 0;
   for (const auto& p : path) {
     maintain_idx++;
     if (p.s >= maintain_s) break;
@@ -1057,6 +1057,10 @@ void MapManager::dynamicDecision(const DynamicBlockType dynamic_block_type) {
   };
   // block the dynamic speed under 0.1m/s
   for (const auto& obstacle : map.dynamic_obj_list.dynamic_obj_list) {
+    // don't block low speed dynamic obj in NO_BLOCK mode
+    if (dynamic_block_type == MapManager::DynamicBlockType::NO_BLOCK) {
+      break;
+    }
     if (obstacle.path.size() < 2) continue;
     const double speed = (obstacle.path[1] - obstacle.path[0]).len();
     if (speed > 0.1) continue;
@@ -1078,7 +1082,7 @@ void MapManager::laneBlockDecision() {
       if (now.in_map()) map.lane_block_map[(int)now.x][(int)now.y] = 1;
     }
   };
-  // block uncrrect lane in intersection
+  // block uncorrect lane in intersection
   for (const auto& p : map.ref_path) {
     // if it's not intersection solid or there is only 1 lane, don't block
     if (p.mode != HDMapMode::INTERSECTION_SOLID || p.lane_num < 2) continue;

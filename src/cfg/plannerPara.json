@@ -45,7 +45,7 @@
 	"routing": {
 		"host": "106.75.246.176",
 		"port": "50051",
-		"dbname": "simu_add2",
+		"dbname": "simu_add1",
 		"user": "postgres",
 		"password": "routing2020",
 		"topo_name": "topo_map",

@@ -24,8 +24,9 @@ void IntersectionDriving::update(FullControl& control) {
   map_manager.updatePlanningMap(MapManager::DynamicBlockType::NO_BLOCK);
   const auto map = map_manager.getMap();
 
-  bool       back_ward  = map.nav_info.current_speed < 3 ? true : false;
-  const auto start_path = map_manager.getStartMaintainedPath();
+  bool       back_ward       = map.nav_info.current_speed < 3 ? true : false;
+  const auto start_path      = map_manager.getStartMaintainedPath();
+  bool       block_stop_line = false;
 
   // RoadDirection direction =
   // map_manager.getForwardRefPath().front().direction;
@@ -34,13 +35,13 @@ void IntersectionDriving::update(FullControl& control) {
     if ((direction == RoadDirection::RIGHT && !map.traffic_light.right) ||
         (direction == RoadDirection::LEFT && !map.traffic_light.left) ||
         (direction == RoadDirection::STRAIGHT && !map.traffic_light.straight)) {
-      map_manager.blockStopLine();
+      block_stop_line = true;
     }
   }
 
   // parameters for constructing crosswalk
   constexpr double crosswalk_width = 4 / GRID_RESOLUTION;
-
+  // get stop_point before crosswalk
   HDMapPoint stop_point, crosswalk_end_point;
   for (int i = 0; i < map.forward_ref_path.size(); ++i) {
     const HDMapPoint& p = map.forward_ref_path[i];
@@ -64,9 +65,8 @@ void IntersectionDriving::update(FullControl& control) {
       break;
     };
   }
-
   // ensure that stop_point exit
-  if (stop_point.x != 0 && stop_point.y != 0) {
+  if (stop_point.x != 0 && stop_point.y != 0 && !block_stop_line) {
     // counterclockwise rotate -stop_point.ang is
     // equivalent to clockwise rotate stop_point.ang
     double rotate_ang = -stop_point.ang;
@@ -108,7 +108,6 @@ void IntersectionDriving::update(FullControl& control) {
     Point2d corner_lr = (box_half_crosswalk[0] + box_half_crosswalk[3]) / 2;
     Point2d corner_ll = (box_half_crosswalk[1] + box_half_crosswalk[2]) / 2;
     Point2d vector_lr, vector_ll;  // vector from obj to two corners above
-    bool    block_stop_line = false;
     for (const auto& obj : map.dynamic_obj_list.dynamic_obj_list) {
       if (obj.type != ObjectType::PEDESTRIAN) continue;
       if (obj.path.empty()) continue;
@@ -136,12 +135,13 @@ void IntersectionDriving::update(FullControl& control) {
       last_block_time = getTimeStamp();  // update last_block_time
 
     if (free_time < 1e6) {
-      map_manager.blockStopLine();
+      block_stop_line = true;
       std::cout << "block stop line succeed !" << std::endl;
+    } else {
+      block_stop_line = false;
     }
     std::cout << "block stop line: " << block_stop_line << std::endl;
     std::cout << "free time: " << (free_time) / 1e6 << "s" << std::endl;
-
 // #define VIS_CROSSWALK
 #ifdef VIS_CROSSWALK
     cv::namedWindow("crosswalk", cv::WINDOW_KEEPRATIO);
@@ -186,18 +186,34 @@ void IntersectionDriving::update(FullControl& control) {
 #endif
   }
 
+  if (block_stop_line) {
+    DynamicObj              dummy_obj;
+    std::vector<DynamicObj> obj_list;
+    dummy_obj.width  = 1.5;
+    dummy_obj.length = 10;
+    dummy_obj.path.emplace_back(stop_point.x, stop_point.y, stop_point.ang, 0,
+                                0, 0);
+    obj_list.push_back(dummy_obj);
+    decision_context.setPedestrianDecision(obj_list);
+  } else {
+    std::vector<DynamicObj> obj_list;
+    decision_context.setPedestrianDecision(obj_list);
+  }
+
+  // planning weight equal to normal driving
+  decision_context.setPlanningWeights({1, 0.02, 0.008, 0.06, 2, 1, 5});
   std::vector<Pose> result_path;
   PathPlanner::getInstance().runPathPlanner(
       map.nav_info, map_manager.getLaneCenterDecision(map),
       map.dynamic_obj_list, map_manager.getCurrentMapSpeed(), back_ward,
       map.lidar_dis_map, map.planning_dis_map, start_path, Pose(0, 0, 0),
       &result_path);
-
   const auto maintained_path = decision_context.getMaintainedPath();
   if (!maintained_path.empty() && maintained_path.front().backward &&
       map.nav_info.current_speed > 0.2) {
     return;
   }
+  decision_context.setSpeedLimitMPS(map_manager.getCurrentMapSpeed());
   decision_context.setMaintainedPath(result_path);
 }
 }  // namespace TiEV

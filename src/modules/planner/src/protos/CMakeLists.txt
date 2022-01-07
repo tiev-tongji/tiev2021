@@ -1,7 +1,7 @@
 find_package(Protobuf REQUIRED)
-find_package(gRPC REQUIRED)
-if(GRPC_FOUND)
-    message("-------grpc include dir: ${GRPC_INCLUDE_DIRS}")
+find_package(gRPC CONFIG REQUIRED)
+if(gRPC_FOUND)
+    message("-- Found grpc version: ${gRPC_VERSION}")
 else()
     message("do not find grpc......")
 endif()
@@ -47,4 +47,4 @@ target_include_directories(routing_service
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_include_directories(routing_service PRIVATE ${GRPC_INCLUDE_DIRS})
+# target_include_directories(routing_service PRIVATE ${GRPC_INCLUDE_DIRS})

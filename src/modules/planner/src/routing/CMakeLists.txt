@@ -1,4 +1,4 @@
-find_package(gRPC REQUIRED)
+find_package(gRPC CONFIG REQUIRED)
 add_library(routing STATIC "")
 target_sources(routing PRIVATE
     Routing.cpp

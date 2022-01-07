@@ -1,5 +1,5 @@
 #!/bin/bash
-cd ~/tiev2021/src/modules/IMU_Mapper_linux_zcm
+cd ../src/modules/IMU_Mapper_linux_zcm
 if [ ! -d "build" ]
 then
 	mkdir build
