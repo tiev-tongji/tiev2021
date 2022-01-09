@@ -109,6 +109,11 @@ int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path,
     return -1;
   }
 }
+int Routing::requestUpdateReferenceRoad(std::vector<HDMapPoint>& global_path,
+                                        const std::vector<Task>& task_points,
+                                        bool                     blocked) {
+  return -1;
+}
 
 void Routing::Array2Str(const std::vector<Task>& task_points,
                         std::string& array_x_str, std::string& array_y_str) {
@@ -162,7 +167,7 @@ Task Routing::waitForNextTask() {
     result.lon_lat_position.lat = res.lat();
     result.utm_position.utm_x   = res.utmx();
     result.utm_position.utm_y   = res.utmy();
-    result.get_on               = res.get_on();
+    result.get_on               = !res.on_or_off();
     result.task_points.clear();
     result.task_points.push_back(
         UtmPosition(res.utmx(), res.utmy(), res.heading()));
