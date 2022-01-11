@@ -31,13 +31,14 @@ void Handler::handleNAVINFO(const zcm::ReceiveBuffer *rbuf,
 
 void ZcmReceiver::zcmMsgReceive() {
   zcm::ZCM zcm;
+  zcm::ZCM zcm_ipc("ipc");
   if (!zcm.good()) {
     std::cout << "zcm is not good! " << std::endl;
     return;
   }
 
   zcm.subscribe("AIMPATH", &Handler::handleAIMPATH, &inner_handler);
-  zcm.subscribe("CANINFO", &Handler::handleCANINFO, &inner_handler);
+  zcm_ipc.subscribe("CANINFO", &Handler::handleCANINFO, &inner_handler);
   zcm.subscribe("NAVINFO", &Handler::handleNAVINFO, &inner_handler);
 
   while (0 == zcm.handle())

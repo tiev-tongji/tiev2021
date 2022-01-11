@@ -109,7 +109,7 @@ void init() {
 }
 
 void StanleyContollerThread() {
-  zcm::ZCM zcm{};
+  zcm::ZCM zcm("ipc");
   if (!zcm.good()) {
     cout << "message publish zcm is not good" << endl;
     return;

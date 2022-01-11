@@ -154,6 +154,11 @@ void sendPath() {
         control_path.points.push_back(tp);
       }
     }
+    
+    // for (const auto& p : control_path.points) {
+    //   std::cout << "x, y, ang: " << p.x << " , " << p.y << " , " << p.theta << std::endl;
+    // }
+
 
     MessageManager::getInstance().publishPath(control_path);
 

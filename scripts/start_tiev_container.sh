@@ -4,7 +4,7 @@
 # CURR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 # TIEV_ROOT_DIR="${CURR_DIR}"
 TIEV_ROOT_DIR="/home/autolab/tiev2021"
-TIEV_IMAGE="tiev:sun"
+TIEV_IMAGE="tiev:venus"
 TIEV_CONTAINER="tiev"
 INSIDE_CONTAINER="tiev"
 SHM_SIZE="8G"
@@ -53,11 +53,10 @@ nvidia-docker run -itd \
         -e DOCKER_GRP="${group}" \
         -e DOCKER_GRP_ID="${gid}" \
         -e DOCKER_IMG="${TIEV_IMAGE}" \
-	-e QT_QPA_PLATFORM_PLUGIN_PATH=/usr/local/lib/python3.8/dist-packages/cv2/qt/plugins/platforms \
         ${local_volumes} \
         --net host \
         --gpus all \
-        -w /home/${USER}/tiev \
+        -w /home/${USER}/tiev/scripts \
         --add-host "${INSIDE_CONTAINER}:127.0.0.1" \
         --add-host "${local_host}:127.0.0.1" \
         --hostname "${INSIDE_CONTAINER}" \
