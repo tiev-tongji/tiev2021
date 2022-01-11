@@ -54,7 +54,7 @@ struct Pose : public Point2d {
   UtmPosition utm_position;
   Pose(double x_ = 0, double y_ = 0, double ang_ = 0, double k_ = 0,
        double v_ = 0, double a_ = 0, double s_ = 0, double t_ = 0,
-       bool backward_ = false)
+       bool backward_ = false, UtmPosition utm_position_ = UtmPosition())
       : Point2d(x_, y_),
         ang(ang_),
         k(k_),
@@ -63,7 +63,7 @@ struct Pose : public Point2d {
         s(s_),
         t(t_),
         backward(backward_),
-        utm_position() {}
+        utm_position(utm_position_) {}
 
   inline void set_x(double x_) { x = x_; }
   inline void set_y(double y_) { y = y_; }
@@ -74,6 +74,9 @@ struct Pose : public Point2d {
   inline void set_v(double v_) { v = v_; }
   inline void set_a(double a_) { a = a_; }
   inline void set_t(double t_) { t = t_; }
+  inline void set_utm_position(UtmPosition utm_position_) {
+    utm_position = utm_position_;
+  }
 
   inline Point2d getDirectionVec() const { return Point2d(cos(ang), sin(ang)); }
 
@@ -106,7 +109,7 @@ struct Pose : public Point2d {
         << ") \tx=" << pose.x << ", y=" << pose.y << ", ang=" << pose.ang
         << ", k=" << pose.k << ", v=" << pose.v << " , a=" << pose.a
         << ", \ts=" << pose.s << ", t=" << pose.t
-        << ", backward=" << pose.backward << "}";
+        << ", backward=" << pose.backward << "}" << std::endl;
     return out;
   }
 
