@@ -4,10 +4,10 @@
 # CURR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 # TIEV_ROOT_DIR="${CURR_DIR}"
 TIEV_ROOT_DIR="/home/autolab/tiev2021"
-TIEV_IMAGE="tiev:moon"
+TIEV_IMAGE="tiev:sun"
 TIEV_CONTAINER="tiev"
 INSIDE_CONTAINER="tiev"
-SHM_SIZE="2G"
+SHM_SIZE="8G"
 
 function remove_container_if_exists() {
     local container="$1"
@@ -30,6 +30,8 @@ local_volumes="${local_volumes} -v /media:/media \
                     -v /etc/group:/etc/group:ro \
                     -v /etc/shadow:/etc/shadow:ro \
                     -v /usr/src:/usr/src \
+                    -v /usr/share/fonts:/usr/share/fonts \
+                    -v /usr/share/fonts:/usr/local/lib/fonts \
                     -v /lib/modules:/lib/modules"
 
 remove_container_if_exists ${TIEV_CONTAINER}
@@ -41,7 +43,7 @@ group="$(id -g -n)"
 gid="$(id -g)"
 
 # set -x
-docker run -itd \
+nvidia-docker run -itd \
         --privileged \
         --name "${TIEV_CONTAINER}" \
         -e DISPLAY="${display}" \
@@ -51,6 +53,7 @@ docker run -itd \
         -e DOCKER_GRP="${group}" \
         -e DOCKER_GRP_ID="${gid}" \
         -e DOCKER_IMG="${TIEV_IMAGE}" \
+	-e QT_QPA_PLATFORM_PLUGIN_PATH=/usr/local/lib/python3.8/dist-packages/cv2/qt/plugins/platforms \
         ${local_volumes} \
         --net host \
         --gpus all \
