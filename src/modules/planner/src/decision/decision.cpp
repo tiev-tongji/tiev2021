@@ -86,8 +86,8 @@ void sendPath() {
                         traffic_light_virtual_dymanic.begin(),
                         traffic_light_virtual_dymanic.end());
     // do the speed plan for the maintained path
-    auto      maintained_path = decision_context.getMaintainedPath();
-    double    max_speed       = decision_context.getSpeedLimitMPS();
+    auto maintained_path = decision_context.getMaintainedPath();
+    double    max_speed = decision_context.getSpeedLimitMPS();
     SpeedPath speed_path;
 
     structAIMPATH control_path;

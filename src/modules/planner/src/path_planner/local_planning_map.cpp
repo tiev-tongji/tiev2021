@@ -114,7 +114,7 @@ double PathPlanner::local_planning_map::get_heuristic(
       end_s = p.s;
     }
     // calculate the ref_path heuristic for this state(0-70)
-    const double target_dis = end_s - ref_near_p.s;
+    const double target_dis = (end_s - ref_near_p.s);
     // path guide close to ref path, close to lane center(0-inf)
     double center_line_dis = std::numeric_limits<double>::max();
     for (const auto& p : ref_near_p.neighbors) {
@@ -130,12 +130,14 @@ double PathPlanner::local_planning_map::get_heuristic(
         0.0, max_obstacle_affect_dis -
                  lane_safe_map[int(state.x)][int(state.y)] * GRID_RESOLUTION);
 
-    heuristic += weights.w1 * target_dis;
-    heuristic += weights.w2 * target_dis * target_dis;
-    heuristic += weights.w3 * center_line_dis;
-    heuristic += weights.w4 * center_line_dis * center_line_dis;
-    heuristic += weights.w5 * ref_heading_dis * ref_heading_dis;
-    heuristic += weights.w6 * obstacle_dis * obstacle_dis;
+    double h1, h2, h3, h4, h5, h6;
+    h1        = weights.w1 * target_dis;
+    h2        = weights.w2 * target_dis * target_dis;
+    h3        = weights.w3 * center_line_dis;
+    h4        = weights.w4 * center_line_dis * center_line_dis;
+    h5        = weights.w5 * ref_heading_dis * ref_heading_dis;
+    h6        = weights.w6 * obstacle_dis * obstacle_dis;
+    heuristic = h1 + h2 + h3 + h4 + h5 + h6;
     return heuristic;
   }
   // calculate the target heuristic

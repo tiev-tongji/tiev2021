@@ -8,7 +8,7 @@
 #include "tiev_class.h"
 
 namespace TiEV {
-struct PlannerInfo {
+class PlannerInfo {
   // planner info of each iteration
 };
 
@@ -16,8 +16,8 @@ struct PlanningWeights {
   // heuristic weight decision results for path planner
   double w1;  // target_dis_w;
   double w2;  // target_sqrdis_w;
-  double w3;  // center_dis_w;
-  double w4;  // center_sqrdis_w;
+  double w3;  // lane_center_dis_w;
+  double w4;  // lane_center_sqrdis_w;
   double w5;  // ref_heading_dis_w;
   double w6;  // obstacle_dis_w;
   double w7;  // reverse cost w;

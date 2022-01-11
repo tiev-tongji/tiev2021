@@ -69,6 +69,7 @@ class MapManager {
   RoadDirection getCurrentRoadDirection();
   HDMapPoint    getStopLine();
   vector<HDMapPoint> getForwardRefPath();
+  vector<HDMapPoint> getRefPath();
   HDMapSpeed         getCurrentSpeedMode();
   void updateRefPath(bool need_opposite = false);  //获取局部参考路
   void addPedestrian(DynamicObjList& dynamic_obj_list,
@@ -143,6 +144,7 @@ class MapManager {
   std::shared_mutex       global_path_mutex;
   std::shared_mutex       task_mutex;
   std::shared_mutex       parking_task_mutex;
+  std::shared_mutex       dynamic_obj_mutex;
 
  private:
   //---------execute when update--------
@@ -154,6 +156,7 @@ class MapManager {
   void mapDecision(bool history = false);
   void laneLineInterpolation();
   void getAccessibleMap();
+  void predDynamicObjTraj(); // predict dynamic obj trajectory using lattice planner
   //--------tool----------------
   int       getCarLaneId();  //获取车辆当前所在车道序号
   const int getGlobalPathNearestIndex(const int begin, const int end) const;

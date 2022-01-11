@@ -1,6 +1,7 @@
 #include "decision_context.h"
 
 #include "message_manager.h"
+#include "tievlog.h"
 
 namespace TiEV {
 const std::vector<DynamicObj>& DecisionContext::getPedestrianDecision() const {
@@ -119,7 +120,10 @@ const std::vector<Pose> DecisionContext::getMaintainedPath(
   for (auto& p : path) {
     p.updateLocalCoordinate(nav_info.car_pose);
   }
-  if (path.empty()) return path;
+  if (path.empty()) {
+    LOG(WARNING) << "maintained path empty !" << std::endl;
+    return path;
+  }
   int    shortest_index = shortestPointIndex(nav_info.car_pose, path);
   double base_s         = path[shortest_index].s;
   for (auto& p : path) {

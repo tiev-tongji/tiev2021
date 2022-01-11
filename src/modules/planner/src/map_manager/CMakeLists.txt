@@ -12,4 +12,5 @@ target_link_libraries(map_manager PUBLIC
     message_manager
     planner_context 
     routing
+    lattice_planner
 )

@@ -24,7 +24,7 @@ void IntersectionDriving::update(FullControl& control) {
   map_manager.updatePlanningMap(MapManager::DynamicBlockType::NO_BLOCK);
   const auto map = map_manager.getMap();
 
-  bool       back_ward       = map.nav_info.current_speed < 3 ? true : false;
+  bool       back_ward       = false;
   const auto start_path      = map_manager.getStartMaintainedPath();
   bool       block_stop_line = false;
 
@@ -186,6 +186,7 @@ void IntersectionDriving::update(FullControl& control) {
 #endif
   }
 
+  block_stop_line = false;
   if (block_stop_line) {
     DynamicObj              dummy_obj;
     std::vector<DynamicObj> obj_list;

@@ -36,8 +36,8 @@ vector<Point2d> PathSmoother::smoothPath(const vector<Point2d>& path,
 
   while (iterations < maxIteration) {
     for (int i = 2; i + 2 < newPath.size(); ++i) {
-      // fix the last point in start_maintain_path
-      if (gap > 0 && fixed_id / gap == 0) continue;
+      // fix the point at fixed_id
+      if (gap != 0 && fixed_id / gap == i) continue;
       xim2 = oldPath[i - 2];
       xim1 = oldPath[i - 1];
       xi   = oldPath[i];
@@ -60,6 +60,7 @@ vector<Point2d> PathSmoother::smoothPath(const vector<Point2d>& path,
       newPath[i].x = xi.x;
       newPath[i].y = xi.y;
     }
+    // if (iterations % 50 == 0) double cost = getTotalCost(newPath);
     oldPath = newPath;
     iterations++;
   }
@@ -109,11 +110,9 @@ vector<Point2d> PathSmoother::smoothPath(const vector<Point2d>& path,
       newPath[i].x = xi.x;
       newPath[i].y = xi.y;
     }
-    double cost = getTotalCost(newPath);
-    oldPath     = newPath;
+    oldPath = newPath;
     iterations++;
   }
-
   newPath.resize(path.size());
   return newPath;
 }
@@ -139,7 +138,7 @@ vector<Point2d> PathSmoother::convert2Point2d(const vector<T>& original_path) {
 vector<Point2d> PathSmoother::interpolatePath(const vector<Point2d>& path,
                                               const int              n) {
   vector<Point2d> interpolated_path;
-  if (path.empty() || n <= 0) return interpolated_path;
+  if (path.empty() || n <= 0) return path;
   Point2d p, pp, v;
   double  ratio;
   interpolated_path.reserve(path.size() * (n + 1));
@@ -178,8 +177,8 @@ Point2d PathSmoother::curvatureTerm(const Point2d& xim1, const Point2d& xi,
     if (fabs(Dphi) == 1) return Point2d(0, 0);
     double kappa = Dphi / absDxi;
 
-    // if the curvature is smaller then the maximum do nothing
-    if (kappa <= kappaMax) {
+    // if the curvature is smaller then the curvatureTerm do nothing
+    if (false) {
       Point2d zeros(0., 0.);
       return zeros;
     } else {
@@ -260,8 +259,8 @@ double PathSmoother::getTotalCost(const vector<Point2d>& path) {
     curvature_cost += fabs(getCurvature(path[i - 1], path[i], path[i + 1]));
   }
   total_cost = smoothness_cost + obstacle_cost + curvature_cost;
-  // cout << "total cost: " << total_cost << ", smooth: " << smoothness_cost
-  //      << ", curvature: " << curvature_cost << endl;
+  std::cout << "total cost: " << total_cost << ", smooth: " << smoothness_cost
+            << ", curvature: " << curvature_cost << std::endl;
   return total_cost;
 }
 

@@ -69,8 +69,9 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
 #ifdef VIS_EXPANSION
   cv::circle(expansion_img, cv::Point(int(start_state.y), int(start_state.x)),
              3, cv::Scalar(0, 255, 0), -1);
-  cv::circle(expansion_img, cv::Point(int(target_state.y), int(target_state.x)),
-             3, cv::Scalar(0, 0, 255), -1);
+  // cv::circle(expansion_img, cv::Point(int(target_state.y),
+  // int(target_state.x)),
+  //            3, cv::Scalar(0, 0, 255), -1);
 #endif
   LOG(INFO) << "TiEV Planner initialized";
 

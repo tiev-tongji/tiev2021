@@ -1,11 +1,14 @@
 #include "map_manager.h"
 
+#include <math.h>
+
 #include <fstream>
 #include <iostream>
 #include <queue>
 #include <shared_mutex>
 
 #include "collision_check.h"
+#include "lattice_planner.h"
 #include "tiev_utils.h"
 #include "tievlog.h"
 
@@ -486,6 +489,13 @@ vector<HDMapPoint> MapManager::getForwardRefPath() {
   return res;
 }
 
+vector<HDMapPoint> MapManager::getRefPath() {
+  ref_path_mutex.lock_shared();
+  vector<HDMapPoint> res = map.ref_path;
+  ref_path_mutex.unlock_shared();
+  return res;
+}
+
 HDMapSpeed MapManager::getCurrentSpeedMode() {
   ref_path_mutex.lock_shared();
   vector<HDMapPoint> res = map.forward_ref_path;
@@ -931,6 +941,10 @@ vector<Pose> MapManager::getStartMaintainedPath() {
   if (path.size() <= 2 ||
       (!path.empty() &&
        point2PointSqrDis(path.front(), map.nav_info.car_pose) > 5)) {
+    
+    if (point2PointSqrDis(path.front(), map.nav_info.car_pose) > 5) {
+      LOG(WARNING) << "start maintain path clear() !";
+    }
     path.clear();
   }
   return path;
@@ -1436,6 +1450,44 @@ bool MapManager::pnbox(const Pose& point, const vector<Pose>& box) {
   }
   if (inside) return true;
   return false;
+}
+
+void MapManager::predDynamicObjTraj() {
+  dynamic_obj_mutex.lock();
+  // 1.initialize lattice planner
+  LatticePlanner     lp;
+  vector<HDMapPoint> ref_path = getRefPath();
+  // 2.only consider vehicles which are on the road with the same direction
+  for (DynamicObj& dynamic_obj : map.dynamic_obj_list.dynamic_obj_list) {
+    if (dynamic_obj.path.size() <= 1) continue;
+    vector<Pose> ori_path     = dynamic_obj.path;
+    Pose         current_pose = ori_path[0];
+    double       min_id       = -1;
+    double       min_dis      = std::numeric_limits<double>::max();
+    double       dis          = -1;
+    for (int i = 0; i < ref_path.size(); ++i) {
+      dis = std::pow(ref_path[i].x - current_pose.x, 2) +
+            std::pow(ref_path[i].y - current_pose.y, 2);
+      if (dis < min_dis) {
+        min_dis = dis;
+        min_id  = i;
+      }
+    }
+    if (min_id == -1) continue;
+    Pose matched_pose = ref_path[min_id];
+    if (fabs(matched_pose.ang - current_pose.ang) >= PI / 3) continue;
+
+    Point2d v1(std::cos(matched_pose.ang), std::sin(matched_pose.ang));
+    Point2d v2(current_pose.x - matched_pose.x,
+               current_pose.y - matched_pose.y);
+    double  cross = v1.cross(v2);
+    double  left_bound, right_bound;
+  }
+  // 3.lane-keep or lane change decision
+  // 4.predict trajectory
+
+  dynamic_obj_mutex.unlock();
+  return;
 }
 
 MapManager* MapManager::instance = new MapManager;

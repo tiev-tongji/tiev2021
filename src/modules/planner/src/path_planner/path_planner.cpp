@@ -67,15 +67,10 @@ void PathPlanner::setStartMaintainedPath(
       max_k_dis = k_dis;
       start_idx = i;
     }
-    break;
-    if (k_dis < 0.001) break;
+    break;  // start_index = start_maintained_path.size()-1
+    // if (k_dis < 0.001) break;
   }
   this->start_maintained_path = start_maintained_path;
-  if (!start_maintained_path.empty() && false) {
-    start_idx = start_maintained_path.size() - 1;
-    std::cout << "start pose curvature: " << start_maintained_path.back().k
-              << std::endl;
-  }
   if (start_idx < 0) {
     this->start_maintained_path.clear();
   } else {
@@ -199,12 +194,15 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
     for (const auto& p : *result) {
       path_before_smooth.emplace_back(p.x, p.y);
     }
-    double learning_rate(0.24915), max_iteration(500), weight_smooth(1),
+    double learning_rate(0.23), max_iteration(500), weight_smooth(1),
         weight_curvature(1), weight_obstacle(0);
+    // double learning_rate(0.24915), max_iteration(500), weight_smooth(1),
+    //     weight_curvature(1), weight_obstacle(0);
     PathSmoother ps(learning_rate, max_iteration, weight_smooth,
                     weight_curvature, weight_obstacle);
     // make sure the size of path_after_smooth and result_path is equal
-    vector<Point2d> path_after_smooth = ps.smoothPath(path_before_smooth, 5);
+    vector<Point2d> path_after_smooth =
+        ps.smoothPath(path_before_smooth, 5, start_maintained_path.size());
     // if collision happen, don't substitute the original path
     Point2d p, pp;
     double  ang_tmp;
@@ -226,7 +224,10 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
         auto&       p      = (*result)[i];
         p.x                = path_after_smooth[i].x;
         p.y                = path_after_smooth[i].y;
-        p.ang              = (xip1 - xi).getRad();
+        // p.ang must be converted to 0_2_PI in accordance to result_path
+        p.ang = (xip1 - xi).getRad();
+        while (p.ang < 0) p.ang += 2 * PI;
+        while (p.ang > 2 * PI) p.ang -= 2 * PI;
         // curvature sign: left_turn positive
         p.k = ps.getCurvature(xim1, xi, xip1);
         p.s = last_p.s + (xi - xim1).len() * GRID_RESOLUTION;
@@ -238,8 +239,8 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
       auto&       p_back   = result->back();
       p_front.x            = sp_front.x;
       p_front.y            = sp_front.y;
-      p_front.ang          = (path_after_smooth[1] - sp_front).getRad();
-      p_front.k            = (*result)[1].k;
+      p_front.ang          = (*(result->begin() + 1)).ang;
+      p_front.k            = (*(result->begin() + 1)).k;
       p_front.updateGlobalCoordinate(nav_info.car_pose);
       p_back.x   = sp_back.x;
       p_back.y   = sp_back.y;
@@ -269,9 +270,7 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
     cv::waitKey(0);
 #endif
   }
-  std::cout << "smooth cost: " << (getTimeStamp() - start_time) / 1e3 << " ms"
-            << std::endl;
-  // sen visualization data
+  // send visualization data
   if (planning_to_target) view_controller.setTarget(target_pose);
   view_controller.setStartPoint(start_pose);
   view_controller.setSafeMap(lane_safe_map);

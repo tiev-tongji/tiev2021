@@ -12,7 +12,8 @@ void PathPlanner::clothoid_base_primitive_set::
   out_primitives.clear();
 
   const auto k_is_legal = [](double k) {
-    return k < -CAR_MAX_K ? false : (k > CAR_MAX_K ? false : true);
+    // loosen the condition
+    return k < -1.4 * CAR_MAX_K ? false : (k > 1.4 * CAR_MAX_K ? false : true);
   };
 
   // only forward generate arc for each k_step
@@ -91,6 +92,7 @@ PathPlanner::clothoid_base_primitive_set::get_nexts(
       };
   // the result
   std::vector<PathPlanner::base_primitive> base;
+  if (min_idx < 0) return base;
   base.reserve(current_subset[min_idx]->primitives.size());
   for (const auto& primi : current_subset[min_idx]->primitives) {
     // if (fabs(primi.get_end_curvature()) >

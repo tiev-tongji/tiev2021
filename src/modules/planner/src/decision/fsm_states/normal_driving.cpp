@@ -20,7 +20,8 @@ void NormalDriving::update(FullControl& control) {
   map_manager.updatePlanningMap(MapManager::DynamicBlockType::ALL_BLOCK);
   const auto map = map_manager.getMap();
 
-  bool       back_ward  = map.nav_info.current_speed < 3 ? true : false;
+  bool back_ward        = map.nav_info.current_speed < 3 ? true : false;
+  back_ward             = false;  // just for debug
   const auto start_path = map_manager.getStartMaintainedPath();
   // if we need u-turn, the heading dif weight should be bigger
   const auto& ref_path = map_manager.getForwardRefPath();
@@ -30,7 +31,10 @@ void NormalDriving::update(FullControl& control) {
     if (need_reverse) {
       decision_context.setPlanningWeights({1, 0.01, 0.003, 0.001, 5, 1, 2});
     } else {
-      decision_context.setPlanningWeights({1, 0.02, 0.008, 0.06, 2, 1, 5});
+      decision_context.setPlanningWeights({1, 0.02, 0.3, 0.03, 2.5, 0, 0});
+      // decision_context.setPlanningWeights({1, 0.02, 0.03, 0.01, 2.5, 0, 0});
+      // a good setting for overtake driving
+      // decision_context.setPlanningWeights({1, 0.02, 0.008, 0.06, 2, 1, 5});
     }
   } else {
     return;
@@ -49,7 +53,9 @@ void NormalDriving::update(FullControl& control) {
     return;
   }
   decision_context.setSpeedLimitMPS(map_manager.getCurrentMapSpeed());
-  decision_context.setMaintainedPath(result_path);
+  if (!result_path.empty()) {
+    decision_context.setMaintainedPath(result_path);
+  }
   if (map_manager.allowParking(map_manager.getTemporaryParkingTarget(),
                                map.ref_path)) {
     // when to parking
@@ -61,7 +67,7 @@ void NormalDriving::update(FullControl& control) {
     }
   } else if (decision_context.getCarSpeedMPS() > MIN_OVERTAKE_SPEED) {
     // to overtaking driving
-    control.changeTo<OvertakeDriving>();
+    // control.changeTo<OvertakeDriving>();
   } else {
     entry_time = getTimeStamp();
   }

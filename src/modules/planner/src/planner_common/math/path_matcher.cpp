@@ -114,6 +114,8 @@ Pose PathMatcher::FindProjectionPoint(const Pose& p0, const Pose& p1,
   double dot     = v0x * v1x + v0y * v1y;
 
   double delta_s = dot / v1_norm * GRID_RESOLUTION;
+  // in speed planner, all s in pose is in unit m
+  // in lattice planner, all s in pose is in unit GRID
   if (type == "lattice_planner") {
     delta_s /= GRID_RESOLUTION;
   }
