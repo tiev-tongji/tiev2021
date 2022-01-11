@@ -341,7 +341,7 @@ class LoadStreamsBasler:  # basler cameras
         di = pylon.DeviceInfo()
         # set ip here
         # di.SetDeviceClass("BaslerGigE")
-        ip_address="192.168.101.1"
+        ip_address="192.168.204.2"
         di.SetPropertyValue('IpAddress', ip_address)
         self.device_filter = di
         for i, s in enumerate(sources):

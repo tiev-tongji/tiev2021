@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 3.10)
 project(CONTROL_CENTER)
 set (CMAKE_CXX_STANDARD 11)
 
@@ -8,6 +9,6 @@ set(SOURCES EHBControl.cpp ROEWECenterControl.cpp pidController.cpp messageContr
 add_executable(CONTROL ${SOURCES})
 add_executable(ZCM_TEST zcmUnitTest.cpp)
 
-set(LIBS libusbcan.so libzcm.so libpthread.so)
+set(LIBS ${PROJECT_SOURCE_DIR}/libusbcan.so libzcm.so libpthread.so)
 TARGET_LINK_LIBRARIES(CONTROL ${LIBS}) 
 TARGET_LINK_LIBRARIES(ZCM_TEST ${LIBS}) 

@@ -57,7 +57,7 @@ int EHBControl::canInfoRead(){
 			if (frame[i].ID == 0x304)
 			{
 				get_m_EHB_TX2(&frame[i]);
-				return 0;
+				return 0; // htf: why return ?
 			}
 		}
 		usleep(50 * 1000);

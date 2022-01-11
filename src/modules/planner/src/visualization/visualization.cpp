@@ -1047,7 +1047,7 @@ void Visualization::msgReceiveIpc() {
 
 void Visualization::publishRemoteControl(
     const structREMOTECONTROL& remote_control) {
-  zcm_udp.publish("REMOTECONTROL", &remote_control);
+  zcm_ipc.publish("REMOTECONTROL", &remote_control);
 }
 
 void Visualization::Handler::handleFUSIONMAP(const zcm::ReceiveBuffer* rbuf,

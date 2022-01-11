@@ -44,6 +44,8 @@ ESRControl::ESRControl()
 
 void ESRControl::init()
 {
+    rcv_buff_size = 1000;
+    rcv_wait_time = 100;
     INFO("Start to read ESR info");
     static std::thread read_info(&ESRControl::canInfoRead, this);
 
@@ -86,7 +88,8 @@ void ESRControl::canInfoRead()
     while (1)
     {
         uint32_t cnt = VCI_Receive(can_dev.devType, can_dev.devIndex,
-                                   can_dev.channelNum, frame, rcv_buff_size, rcv_wait_time);
+                                    can_dev.channelNum, frame, rcv_buff_size, rcv_wait_time);
+        // INFO("cnt0 = " << cnt);
         for (int i = 0; i < cnt; i++)
         { //receive 50 frame
             int flag = (frame + i)->ID;
