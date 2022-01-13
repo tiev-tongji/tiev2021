@@ -4,14 +4,14 @@
 	"#roadmap_file": "/home/autolab/carla_path/Town03_original.txt",
 	"#roadmap_file": "/home/autolab/carla_path/carla_path_Town04.txt",
 	"#roadmap_file": "/home/autolab/tiev/src/cfg/xiqu_tracking.txt",
-	"rs_distance_table_path": "/home/autolab/tiev2021/src/cfg/reeds_shepp_distance_table",
-	"dubins_distance_table_path": "/home/autolab/tiev2021/src/cfg/dubins_distance_table",
+	"rs_distance_table_path": "/home/autolab/tiev/src/cfg/reeds_shepp_distance_table",
+	"dubins_distance_table_path": "/home/autolab/tiev/src/cfg/dubins_distance_table",
 	"enable_routing_by_file": 0,
 	"#enable_routing_by_file": {
 		"0": "disable routing by roadmap_file, and routing will request routing-server on internet",
 		"1": "enable routing by roadmap_file in car"
 	},
-	"control_mode": 0,
+	"control_mode": 2,
 	"#control_mode_annotation": {
 		"PlanningWithMapMode": 0,
 		"TrackingWithMapMode": 1,
@@ -19,15 +19,15 @@
 		"TrackingWithDebugMode": 3
 	},
 	"taxi_mode": 0,
-	"debug_speed_mode": 4,
+	"debug_speed_mode": 3,
 	"recommended_speeds": {
 		"BACK": -3,
 		"STOP": 0,
 		"VERYLOW": 8,
-		"LOW": 20,
-		"MID": 20,
-		"HIGH": 20,
-		"VERYHIGH": 40
+		"LOW": 15,
+		"MID": 15,
+		"HIGH": 50,
+		"VERYHIGH": 15
 	},
 	"max_acceleration": 1.0,
 	"max_deceleration": -1.0,
@@ -57,10 +57,8 @@
 	"#total_task_time": "time unit: min",
 	"total_task_time": 300,
 	"task_sequence": [
-		"dianxin",
-		"2",
-		"xiaomenkou",
-		"4"
+		"0",
+		"1"
 	],
-	"parking_task_name": "xiaomenkou"
+	"parking_task_name": "2"
 }
