@@ -22,17 +22,20 @@ void GlobalPlanning::update(FullControl& control) {
     return;
   }
   if (!Config::getInstance().enable_routing_by_file) {
-    Routing& routing = Routing::getInstance();
-    Task     current_pos;
-    current_pos.lon_lat_position.lon = map.nav_info.lon;
-    current_pos.lon_lat_position.lat = map.nav_info.lat;
-    std::vector<Task> task_list;
-    task_list.push_back(current_pos);
+    Routing&  routing = Routing::getInstance();
+    TaskPoint start_task_point;
+    start_task_point.lon     = map.nav_info.lon;
+    start_task_point.lat     = map.nav_info.lat;
+    start_task_point.utm_x   = map.nav_info.car_pose.utm_position.utm_x;
+    start_task_point.utm_y   = map.nav_info.car_pose.utm_position.utm_y;
+    start_task_point.heading = map.nav_info.car_pose.utm_position.heading;
+    std::vector<TaskPoint> task_list;
+    task_list.push_back(start_task_point);
     std::vector<Task> current_tasks = map_manager.getCurrentTasks();
     if (!current_tasks.empty())
-      task_list.push_back(current_tasks.back());
+      task_list.push_back(current_tasks.back().task_points.back());
     else
-      task_list.push_back(map_manager.getParkingTask());
+      task_list.push_back(map_manager.getParkingTask().task_points.back());
     int                     cost = -1;
     std::vector<HDMapPoint> tmp_global_path;
     if (task_list.size() > 1) {

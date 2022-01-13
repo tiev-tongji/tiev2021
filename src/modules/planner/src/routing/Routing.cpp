@@ -16,8 +16,6 @@
 // #include "angle.h"
 // #include "coordinate_converter/coordinate_converter.h"
 
-namespace TiEV {
-using namespace std;
 using google::protobuf::Empty;
 using grpc::Channel;
 using grpc::ClientContext;
@@ -28,8 +26,9 @@ using routing_service::MapService;
 using routing_service::RefRoad;
 using routing_service::RefRoadPoint;
 using routing_service::RoutingService;
-using routing_service::TaskPoint;
-using routing_service::TaskPoints;
+using GRPC_TaskPoint  = routing_service::TaskPoint;
+using GRPC_TaskPoints = routing_service::TaskPoints;
+namespace TiEV {
 Routing::Routing() {
   host        = Config::getInstance().host;
   port        = Config::getInstance().port;
@@ -40,20 +39,21 @@ Routing::Routing() {
                 " hostaddr=" + host + " port=" + port;
   output    = Config::getInstance().output;
   topo_name = Config::getInstance().topo_name;
-  std::cout << "target url: " << host + ":" + port << std::endl;
-  shared_ptr<Channel> channel = grpc::CreateChannel(
+  LOG(INFO) << "target url: " << host + ":" + port;
+  std::shared_ptr<Channel> channel = grpc::CreateChannel(
       host + ":" + port, grpc::InsecureChannelCredentials());
-  stub     = unique_ptr<RoutingService::Stub>(RoutingService::NewStub(channel));
-  map_stub = unique_ptr<MapService::Stub>(MapService::NewStub(channel));
-  writer   = unique_ptr<ClientWriter<CarInfo>>(
+  stub =
+      std::unique_ptr<RoutingService::Stub>(RoutingService::NewStub(channel));
+  map_stub = std::unique_ptr<MapService::Stub>(MapService::NewStub(channel));
+  writer   = std::unique_ptr<ClientWriter<CarInfo>>(
       map_stub->UpdateCarInfo(&writer_context, &writer_empty));
 }
 
 Routing::~Routing() {}
 
-int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path,
-                               const std::vector<Task>& task_points,
-                               bool                     blocked) {
+int Routing::findReferenceRoad(std::vector<HDMapPoint>&      global_path,
+                               const std::vector<TaskPoint>& task_points,
+                               bool                          blocked) {
   LOG(INFO) << "Find Road by Requesting Remote Service...";
   const auto start_time = getTimeStamp();
   global_path.clear();
@@ -62,13 +62,15 @@ int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path,
     return -1;
   }
   //调用service，处理返回结果
-  TaskPoints request;
+  GRPC_TaskPoints request;
   request.set_blocked(blocked);
   for (const auto& p : task_points) {
-    LOG(INFO) << "task:" << p.lon_lat_position;
     auto point = request.add_task_point();
-    point->set_lon(p.lon_lat_position.lon);
-    point->set_lat(p.lon_lat_position.lat);
+    point->set_lon(p.lon);
+    point->set_lat(p.lat);
+    point->set_utm_x(p.utm_x);
+    point->set_utm_y(p.utm_y);
+    point->set_heading(p.heading);
   }
   //指定使用的地图
   request.set_map(dbname);
@@ -120,18 +122,16 @@ int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path,
   }
 }
 
-int Routing::requestUpdateReferenceRoad(
-    const LonLatPosition&    start_lon_lat_position,
-    const UtmPosition&       start_utm_position,
-    std::vector<HDMapPoint>* global_path) {
+int Routing::requestUpdateReferenceRoad(const TaskPoint& start_task_point,
+                                        std::vector<HDMapPoint>* global_path) {
   //调用service，处理返回结果
-  TaskPoints request;
-  auto*      point = request.add_task_point();
-  point->set_lon(start_lon_lat_position.lon);
-  point->set_lat(start_lon_lat_position.lat);
-  point->set_utm_x(start_utm_position.utm_x);
-  point->set_utm_y(start_utm_position.utm_y);
-  point->set_heading(start_utm_position.heading);
+  GRPC_TaskPoints request;
+  auto*           point = request.add_task_point();
+  point->set_lon(start_task_point.lon);
+  point->set_lat(start_task_point.lat);
+  point->set_utm_x(start_task_point.utm_x);
+  point->set_utm_y(start_task_point.utm_y);
+  point->set_heading(start_task_point.heading);
   //指定使用的地图
   request.set_map(dbname);
   ClientContext context;
@@ -185,13 +185,13 @@ int Routing::requestUpdateReferenceRoad(
   }
 }
 
-void Routing::Array2Str(const std::vector<Task>& task_points,
+void Routing::Array2Str(const std::vector<TaskPoint>& task_points,
                         std::string& array_x_str, std::string& array_y_str) {
   array_x_str.append("ARRAY[");
   array_y_str.append("ARRAY[");
   for (auto it = task_points.begin(); it != task_points.end(); ++it) {
-    double lon = it->lon_lat_position.lon;
-    double lat = it->lon_lat_position.lat;
+    double lon = it->lon;
+    double lat = it->lat;
     if (it != task_points.begin()) {
       array_x_str.append(", ");
       array_y_str.append(", ");
@@ -225,11 +225,12 @@ void Routing::updateInfoToServer() {
   //   }
 }
 
+/*
 Task Routing::waitForNextTask() {
-  Empty         empty;
-  ClientContext context;
-  TaskPoint     res;
-  Task          result;
+  Empty          empty;
+  ClientContext  context;
+  GRPC_TaskPoint res;
+  Task           result;
   std::cout << "Waiting for next task..." << std::endl;
   Status status = map_stub->WaitForTaskPoint(&context, empty, &res);
   if (status.ok()) {
@@ -248,4 +249,5 @@ Task Routing::waitForNextTask() {
   std::cout << "Get next task" << std::endl;
   return result;
 }
+*/
 }  // namespace TiEV

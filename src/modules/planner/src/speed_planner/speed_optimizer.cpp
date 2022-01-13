@@ -18,8 +18,9 @@ SpeedPath SpeedOptimizer::RunSpeedOptimizer(
     double s = s_v.first;
     double v = s_v.second;
     if (v < init_v) {
-      double min_v = sqrt(max(0.0, init_v * init_v + 2 * max_deceleration * s));
-      v            = max(v, min_v);
+      double min_v =
+          sqrt(std::max(0.0, init_v * init_v + 2 * max_deceleration * s));
+      v = std::max(v, min_v);
     }
     modified_speed_limit.emplace_back(s, v);
   }
@@ -29,7 +30,7 @@ SpeedPath SpeedOptimizer::RunSpeedOptimizer(
     speed_path.success = false;
     return speed_path;
   }
-  vector<Obstacle> obj_list;
+  std::vector<Obstacle> obj_list;
   for (const auto& obstacle : obstacle_list) {
     Obstacle obj(obstacle);
 

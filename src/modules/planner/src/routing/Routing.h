@@ -21,7 +21,7 @@ using google::protobuf::Empty;
 using grpc::ClientContext;
 using grpc::ClientWriter;
 using routing_service::CarInfo;
-static mutex routing_mtx;
+static std::mutex routing_mtx;
 class Routing {
  public:
  public:
@@ -57,18 +57,17 @@ class Routing {
    *
    * @return 返回预估完成任务时间, 单位秒s, -1代表寻路失败.
    */
-  int findReferenceRoad(std::vector<HDMapPoint>& global_path,
-                        const std::vector<Task>& task_points,
-                        bool                     blockeds = false);
+  int findReferenceRoad(std::vector<HDMapPoint>&      global_path,
+                        const std::vector<TaskPoint>& task_points,
+                        bool                          blockeds = false);
 
-  int requestUpdateReferenceRoad(const LonLatPosition& start_lon_lat_position,
-                                 const UtmPosition&    start_utm_position,
+  int requestUpdateReferenceRoad(const TaskPoint&         start_task_point,
                                  std::vector<HDMapPoint>* global_path);
 
   // 将车辆信息发送至服务器
   void updateInfoToServer();
   // 获取下一个任务点
-  Task waitForNextTask();
+  // Task waitForNextTask();
 
  private:
   Routing();
@@ -93,8 +92,8 @@ class Routing {
   std::unique_ptr<ClientWriter<CarInfo>> writer;
 
   //将输入的task points转为sql array语句
-  void Array2Str(const std::vector<Task>& task_points, std::string& array_x_str,
-                 std::string& array_y_str);
+  void Array2Str(const std::vector<TaskPoint>& task_points,
+                 std::string& array_x_str, std::string& array_y_str);
 };
 }  // namespace TiEV
 #endif

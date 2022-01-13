@@ -31,13 +31,13 @@ const std::vector<DynamicObj> DecisionContext::getStaticObsDecision() const {
       lidar_dis_map[r][c] = std::numeric_limits<double>::max();
     }
   }
-  queue<pair<int, int>> obj_que;
+  std::queue<std::pair<int, int>> obj_que;
   for (int r = 0; r < MAX_ROW; ++r) {
     for (int c = 0; c < MAX_COL; ++c) {
       if (lidar_map.map[r][c] & 04) lidar_map.map[r][c] = 0;
       if (lidar_map.map[r][c] != 0) {
         lidar_dis_map[r][c] = 0;
-        obj_que.push(make_pair(r, c));
+        obj_que.push(std::make_pair(r, c));
       }
     }
   }
@@ -50,7 +50,7 @@ const std::vector<DynamicObj> DecisionContext::getStaticObsDecision() const {
       if (Point2d(tx, ty).in_map() &&
           lidar_dis_map[tx][ty] > lidar_dis_map[x][y] + dis[i]) {
         lidar_dis_map[tx][ty] = lidar_dis_map[x][y] + dis[i];
-        obj_que.push(make_pair(tx, ty));
+        obj_que.push(std::make_pair(tx, ty));
       }
     }
   }
@@ -91,7 +91,7 @@ const std::vector<Pose> DecisionContext::getMaintainedPath() const {
   for (auto& p : path) {
     p.s -= base_s;
   }
-  vector<Pose> res;
+  std::vector<Pose> res;
   if (path[shortest_index].backward) {
     for (auto p : path) {
       if (p.s < 0) continue;
@@ -129,7 +129,7 @@ const std::vector<Pose> DecisionContext::getMaintainedPath(
   for (auto& p : path) {
     p.s -= base_s;
   }
-  vector<Pose> res;
+  std::vector<Pose> res;
   if (path[shortest_index].backward) {
     for (auto p : path) {
       if (p.s < 0) continue;

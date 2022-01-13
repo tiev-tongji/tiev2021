@@ -10,13 +10,13 @@ namespace TiEV {
 
 class SpeedPath {
  public:
-  bool                        success    = false;
-  bool                        qp_success = false;
-  vector<STBoundary>          st_boundaries;
-  Spline1d                    splines;
-  vector<SplineLib::cSpline2> cubic_splines;
-  vector<Pose>                path;
-  SpeedData                   dp_speed_data;
+  bool                             success    = false;
+  bool                             qp_success = false;
+  std::vector<STBoundary>          st_boundaries;
+  Spline1d                         splines;
+  std::vector<SplineLib::cSpline2> cubic_splines;
+  std::vector<Pose>                path;
+  SpeedData                        dp_speed_data;
   SpeedPath() = default;
 };
 

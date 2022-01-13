@@ -68,12 +68,12 @@ class MapManager {
   HDMapMode     getCurrentMapMode();
   RoadDirection getCurrentRoadDirection();
   HDMapPoint    getStopLine();
-  vector<HDMapPoint> getForwardRefPath();
-  vector<HDMapPoint> getRefPath();
-  HDMapSpeed         getCurrentSpeedMode();
+  std::vector<HDMapPoint> getForwardRefPath();
+  std::vector<HDMapPoint> getRefPath();
+  HDMapSpeed              getCurrentSpeedMode();
   void updateRefPath(bool need_opposite = false);  //获取局部参考路
   void addPedestrian(DynamicObjList& dynamic_obj_list,
-                     const vector<HDMapPoint>&
+                     const std::vector<HDMapPoint>&
                          ref_path);  // 对道路内且相隔一定距离内的行人进行避让
   void addPedestrian(DynamicObjList& dynamic_obj_list);
   void blockStopLine();  // 封闭停止线，红灯时使用
@@ -87,12 +87,12 @@ class MapManager {
   void popCurrentTask();
   void pushCurrentTask(const Task&);  //添加新任务
   void clearTask();
-  void setGlobalPath(const vector<HDMapPoint>& new_global_path);
+  void setGlobalPath(const std::vector<HDMapPoint>& new_global_path);
   bool allowParking(const Pose&                    parking_spot,
                     const std::vector<HDMapPoint>& ref_path);
-  bool pnbox(const Pose& point, const vector<Pose>& box);
+  bool pnbox(const Pose& point, const std::vector<Pose>& box);
 
-  vector<Task> getCurrentTasks();
+  std::vector<Task> getCurrentTasks();
 
   const std::vector<HDMapPoint> getLaneCenterDecision(const Map& decision_map);
   //获取目标点
@@ -107,7 +107,7 @@ class MapManager {
   std::vector<Pose> getMaintainedPath(const NavInfo& nav_info);
   void              getSpeedMaintainedPath(NavInfo& nav_info);
   std::vector<Pose> getStartMaintainedPath();
-  void maintainPath(const NavInfo& nav_info, const vector<Pose>& path);
+  void maintainPath(const NavInfo& nav_info, const std::vector<Pose>& path);
   void selectBestPath(const std::vector<SpeedPath>& paths);
 
  public:
@@ -156,7 +156,8 @@ class MapManager {
   void mapDecision(bool history = false);
   void laneLineInterpolation();
   void getAccessibleMap();
-  void predDynamicObjTraj(); // predict dynamic obj trajectory using lattice planner
+  void
+  predDynamicObjTraj();  // predict dynamic obj trajectory using lattice planner
   //--------tool----------------
   int       getCarLaneId();  //获取车辆当前所在车道序号
   const int getGlobalPathNearestIndex(const int begin, const int end) const;

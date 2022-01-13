@@ -1,17 +1,20 @@
 #include "speed_planner.h"
+
 #include <functional>
 #include <iostream>
 #include <unordered_set>
+
 #include "tiev_utils.h"
+#include "tievlog.h"
 
 namespace TiEV {
 
 const std::vector<Step> Step::children() const {
   std::vector<Step> children;
   for (const auto &a : acceleration) {
-    double t = t_ + kT_interval;
-    double s = s_ + v_ * kT_interval + a * kT_interval * kT_interval / 2;
-    double v = v_ + a * kT_interval;
+    double t  = t_ + kT_interval;
+    double s  = s_ + v_ * kT_interval + a * kT_interval * kT_interval / 2;
+    double v  = v_ + a * kT_interval;
     double aa = a;
     if (v < 0 || t > 5) continue;
     children.emplace_back(s, t, v, aa);
@@ -28,7 +31,7 @@ const std::vector<Step> Step::samples_from_father(
   while (t < kT_interval) {
     double s = father_->v() * t + a_ * t * t / 2;
     double v = father_->v() + a_ * t;
-    Step step(father_->s() + s, father_->t() + t, v, a_);
+    Step   step(father_->s() + s, father_->t() + t, v, a_);
     samples.push_back(step);
     samples.back().set_father(*this);
     t += t_interval;
@@ -38,7 +41,7 @@ const std::vector<Step> Step::samples_from_father(
 
 void SpeedPlanner::construct_st_box(
     const std::vector<DynamicObj> &dynamic_obj_list,
-    const std::vector<Pose> *trajectory) {
+    const std::vector<Pose> *      trajectory) {
   st_box_list.clear();
   for (const auto &obj : dynamic_obj_list) {
     std::vector<std::pair<double, double>> collision_st;
@@ -51,10 +54,10 @@ void SpeedPlanner::construct_st_box(
     }
     if (!collision_st.empty()) {
       double s_start = collision_st.front().second;
-      double s_end = collision_st.back().second;
+      double s_end   = collision_st.back().second;
       double t_start = collision_st.front().first;
-      double t_end = collision_st.back().first;
-      STBox box;
+      double t_end   = collision_st.back().first;
+      STBox  box;
       box.ld = Point2d(t_start, s_start - obj.length / 2 - buffer);
       box.lu = Point2d(t_start, s_start + obj.length / 2);
       box.rd = Point2d(t_end, s_end - obj.length / 2 - buffer);
@@ -69,7 +72,7 @@ bool SpeedPlanner::SpeedPlanning(
     std::vector<Pose> *trajectory) {
   while (!step_pq.empty()) step_pq.pop();
   if (!trajectory || trajectory->empty()) {
-    std::cout << "WARNING: No trajectory to speed planning!" << endl;
+    LOG(WARNING) << "WARNING: No trajectory to speed planning!";
     return false;
   }
   // construct STBox
@@ -95,9 +98,9 @@ bool SpeedPlanner::SpeedPlanning(
     return true;
   };
   std::unordered_set<Step, StepHash> visited_steps;
-  std::vector<Step> speed_result;
-  std::function<bool(const Step &)> dfs = [&](const Step &step) {
-    std::cout << "search now:" << step << endl;
+  std::vector<Step>                  speed_result;
+  std::function<bool(const Step &)>  dfs = [&](const Step &step) {
+    LOG(INFO) << "search now:" << step;
     if (step.t() >= 5) {
       Step back_step = step;
       while (back_step.has_father()) {
@@ -118,7 +121,7 @@ bool SpeedPlanner::SpeedPlanning(
     return false;
   };
   const auto start_pose = trajectory->front();
-  Step initial_step(start_pose.s, start_pose.t, car_speed, start_pose.a);
+  Step       initial_step(start_pose.s, start_pose.t, car_speed, start_pose.a);
   step_pq.push(initial_step);
   if (!dfs(initial_step)) {
     for (auto &pose : *trajectory) {
@@ -151,9 +154,9 @@ bool SpeedPlanner::SpeedPlanning(
     bool speed_seted = false;
     for (const auto &step : speed_result) {
       if (step.s() >= pose.s) {
-        pose.t = step.t();
-        pose.v = step.v();
-        pose.a = step.a();
+        pose.t      = step.t();
+        pose.v      = step.v();
+        pose.a      = step.a();
         speed_seted = true;
         break;
       }

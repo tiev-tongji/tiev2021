@@ -845,7 +845,8 @@ Pose MapManager::getTemporaryParkingTarget() {
   }
   for (const auto& spot : current_tasks.back().task_points) {
     Pose p;
-    p.utm_position = spot;
+    p.utm_position.utm_x = spot.utm_x;
+    p.utm_position.utm_y = spot.utm_y;
     p.updateLocalCoordinate(map.nav_info.car_pose);
     if (p.in_map() && map.accessible_map[int(p.x)][int(p.y)]) {
       return p;
@@ -859,7 +860,8 @@ vector<Pose> MapManager::getTaskTarget() {
   auto         current_tasks = this->getCurrentTasks();
   for (auto task_point : current_tasks.back().task_points) {
     Pose task_pose;
-    task_pose.utm_position = task_point;
+    task_pose.utm_position.utm_x = task_point.utm_x;
+    task_pose.utm_position.utm_y = task_point.utm_y;
     task_pose.updateLocalCoordinate(map.nav_info.car_pose);
     if (task_pose.in_map() &&
         map.accessible_map[int(task_pose.x)][int(task_pose.y)]) {

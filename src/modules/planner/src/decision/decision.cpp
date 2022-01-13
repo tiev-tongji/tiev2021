@@ -186,7 +186,6 @@ void updateGlobalPathFromMapServer() {
   MachineManager& mm         = MachineManager::getInstance();
   Routing&        routing    = Routing::getInstance();
   NavInfo         nav_info;
-  vector<Task>    task_list;
   const time_t    time_limit    = 0.5 * 1e6;
   const auto      duration_time = [&]() { return getTimeStamp() - start_time; };
   while (!Config::getInstance().enable_routing_by_file) {
@@ -212,10 +211,12 @@ void updateGlobalPathFromMapServer() {
 
     // the path ref path point relateve with car
     const auto car_ref_point = map_m.getForwardRefPath().front();
-    int        cost          = -1;
-    cost = routing.requestUpdateReferenceRoad(car_ref_point.lon_lat_position,
-                                              car_ref_point.utm_position,
-                                              &tmp_global_path);
+    TaskPoint  start_task_point(
+        car_ref_point.lon_lat_position.lon, car_ref_point.lon_lat_position.lat,
+        car_ref_point.utm_position.utm_x, car_ref_point.utm_position.utm_y,
+        car_ref_point.utm_position.heading);
+    int cost =
+        routing.requestUpdateReferenceRoad(start_task_point, &tmp_global_path);
     if (cost < 0) {
       if (duration_time() < time_limit) {
         usleep(time_limit - duration_time());

@@ -36,8 +36,8 @@ struct SamplePoint {
   STPoint              path_time_point;
   double               ref_v;
   friend std::ostream& operator<<(std::ostream& out, const SamplePoint& p) {
-    cout << "s: " << p.path_time_point.s() << "\tt: " << p.path_time_point.t()
-         << "\tv: " << p.ref_v << "\n";
+    out << "s: " << p.path_time_point.s() << "\tt: " << p.path_time_point.t()
+        << "\tv: " << p.ref_v << "\n";
     return out;
   }
 };

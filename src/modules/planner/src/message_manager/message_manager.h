@@ -17,7 +17,7 @@
 
 namespace TiEV {
 
-static mutex msg_manager_mtx;
+static std::mutex msg_manager_mtx;
 class MessageManager {
  public:
   const static std::time_t NAV_INFO_TIMEOUT_US      = 1e6;
@@ -50,18 +50,18 @@ class MessageManager {
   void publishSlamControl(const structSLAMCONTROL& slam_control);
 
   // 用于决策与规划等模块发送可视化信息至visualization
-  visVISUALIZATION    visualization;
-  map<string, string> text_info;
+  visVISUALIZATION                   visualization;
+  std::map<std::string, std::string> text_info;
 
   void publishVisualization();
   void setTarget(const Pose& target);
   void setStartPoint(const Pose& start_point);
   void setSafeMap(double safe_map[MAX_ROW][MAX_COL]);
-  void setPath(const vector<Pose>& path);
+  void setPath(const std::vector<Pose>& path);
   void setUsedMap(bool used_map[MAX_ROW][MAX_COL]);
   void setSpeedPath(const SpeedPath& speed_path);
   void clearTextInfo();
-  void addTextInfo(const string& name, const string& value);
+  void addTextInfo(const std::string& name, const std::string& value);
   void setTextInfo();
   void setPriorityLane(const std::vector<HDMapPoint>& ref_path);
 

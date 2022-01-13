@@ -13,17 +13,20 @@ void GlobalReplanning::update(FullControl& control) {
   LOG(INFO) << "Global Re-planning update...";
   MapManager& map_m   = MapManager::getInstance();
   Routing&    routing = Routing::getInstance();
-  Task        current_pos;
-  const auto  ref_car_point        = map_m.getForwardRefPath().front();
-  current_pos.lon_lat_position.lon = ref_car_point.lon_lat_position.lon;
-  current_pos.lon_lat_position.lat = ref_car_point.lon_lat_position.lat;
-  std::vector<Task> task_list;
-  task_list.push_back(current_pos);
-  std::vector<Task> current_tasks = map_m.getCurrentTasks();
+  TaskPoint   start_task_point;
+  const auto  ref_car_point = map_m.getForwardRefPath().front();
+  start_task_point.lon      = ref_car_point.lon_lat_position.lon;
+  start_task_point.lat      = ref_car_point.lon_lat_position.lat;
+  start_task_point.utm_x    = ref_car_point.utm_position.utm_x;
+  start_task_point.utm_y    = ref_car_point.utm_position.utm_y;
+  start_task_point.heading  = ref_car_point.utm_position.heading;
+  std::vector<TaskPoint> task_list;
+  task_list.push_back(start_task_point);
+  const auto current_tasks = map_m.getCurrentTasks();
   if (!current_tasks.empty())
-    task_list.push_back(current_tasks.back());
+    task_list.push_back(current_tasks.back().task_points.back());
   else
-    task_list.push_back(map_m.getParkingTask());
+    task_list.push_back(map_m.getParkingTask().task_points.back());
   int                     cost = -1;
   std::vector<HDMapPoint> tmp_global_path;
   if (task_list.size() > 1)

@@ -36,20 +36,20 @@ class LidarMap {
 
 class DynamicObj {
  public:
-  int             id      = -2;
-  ObjectType      type    = UNKNOWN;
-  double          width   = -1;
-  double          length  = -1;
-  double          heading = -1;
-  double          v       = 0;  // m/s
-  vector<Pose>    path;
-  vector<Point2d> corners;
+  int                  id      = -2;
+  ObjectType           type    = UNKNOWN;
+  double               width   = -1;
+  double               length  = -1;
+  double               heading = -1;
+  double               v       = 0;  // m/s
+  std::vector<Pose>    path;
+  std::vector<Point2d> corners;
 };
 
 class DynamicObjList {
  public:
-  bool               detected = false;
-  vector<DynamicObj> dynamic_obj_list;
+  bool                    detected = false;
+  std::vector<DynamicObj> dynamic_obj_list;
 };
 
 class WarningObj {
@@ -62,8 +62,8 @@ class WarningObj {
 
 class WarningObjList {
  public:
-  bool               detected = false;
-  vector<WarningObj> warning_obj_list;
+  bool                    detected = false;
+  std::vector<WarningObj> warning_obj_list;
 };
 class TrafficLight {
  public:
@@ -75,8 +75,8 @@ class TrafficLight {
 
 class Pedestrian {
  public:
-  bool            detected = false;
-  vector<Point2d> positions;
+  bool                 detected = false;
+  std::vector<Point2d> positions;
 };
 
 class ParkingLot {
@@ -89,15 +89,15 @@ class ParkingLot {
 
 class ParkingLotList {
  public:
-  bool               detected = false;
-  vector<ParkingLot> parking_lot_list;
+  bool                    detected = false;
+  std::vector<ParkingLot> parking_lot_list;
 };
 
 class LaneLine {
  public:
-  LineType          type;
-  double            distance;
-  vector<LinePoint> points;
+  LineType               type;
+  double                 distance;
+  std::vector<LinePoint> points;
 };
 
 class Lane {
@@ -110,9 +110,9 @@ class Lane {
 
 class LaneList {
  public:
-  bool         detected = false;
-  int          current_id;
-  vector<Lane> lane_list;
+  bool              detected = false;
+  int               current_id;
+  std::vector<Lane> lane_list;
 };
 
 class RainSignal {

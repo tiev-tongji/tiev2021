@@ -31,7 +31,6 @@
 	},
 	"max_acceleration": 1.0,
 	"max_deceleration": -1.0,
-	"start_time": 2605922200000000,
 	"targets_num_limit": 5,
 	"plan_time_limit_ms": 150,
 	"car_away_limit_meter": 1.0,
@@ -55,64 +54,13 @@
 		"topo_name": "topo_map",
 		"output": "/tmp/shortest_road.csv"
 	},
-	"##parking_task": {
-		"utm_x": 329377.80,
-		"utm_y": 3462185.77,
-		"heading": -2.92,
-		"lat": 31.28613274,
-		"lon": 121.20897848,
-		"task_points": [
-			{
-		"utm_x": 329377.80,
-		"utm_y": 3462185.77,
-		"heading": -2.92,
-		"lat": 31.281499,
-		"lon": 121.297593
-			}
-		]
-	},
-	"#parking_task": {
-				"utm_x": 329831.89,
-				"utm_y": 3462008.50,
-				"heading": 1.57,
-				"lat": 31.279966,
-				"lon": 121.212392,
-				"task_points": [
-			{
-				"utm_x": 329831.89,
-				"utm_y": 3462008.50,
-				"heading": 1.57,
-				"lat": 31.279966,
-				"lon": 121.212392
-			}
-		]
-	},
-	"##tasks": [
-		{
-			"task": {
-				"utm_x": 328866,
-				"utm_y": 3463348,
-				"heading": -2.92,
-				"lat": 31.2919032,
-				"lon": 121.2020227,
-				"on": 0
-			},
-			"task_points": [
-				{
-				"utm_x": 329377.80,
-				"utm_y": 3462185.77,
-				"heading": -2.92,
-				"lat": 31.281499,
-				"lon": 121.297593
-				}
-			]
-		}
+	"#total_task_time": "time unit: min",
+	"total_task_time": 300,
+	"task_sequence": [
+		"1",
+		"2",
+		"3",
+		"4"
 	],
-	"tasks" : [
-		1,
-		2,
-		3,
-		4
-	],
-	"parking_task" : 1
+	"parking_task_name": "1"
 }
