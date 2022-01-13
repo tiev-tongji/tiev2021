@@ -37,17 +37,20 @@ double ay_max_low;
 double max_wheel_angle;
 double wheel_base;
 
-void init() {
+void init()
+{
   ifstream ifs;
   ifs.open("../../../cfg/controllerPara.json");
-  if (!ifs.is_open()) {
+  if (!ifs.is_open())
+  {
     cout << "can not open the controllerPara.json" << endl;
     return;
   }
 
   Json::Reader reader;
   Json::Value root;
-  if (!reader.parse(ifs, root, false)) {
+  if (!reader.parse(ifs, root, false))
+  {
     cout << "can not parse the controllerPara.json" << endl;
     return;
   }
@@ -108,14 +111,18 @@ void init() {
   cout << "aim_dis_base_backward: " << aim_dis_base_backward << endl;
 }
 
-void StanleyContollerThread() {
+void StanleyContollerThread()
+{
   zcm::ZCM zcm("ipc");
-  if (!zcm.good()) {
+  zcm::ZCM zcm_udp;
+  if (!zcm.good())
+  {
     cout << "message publish zcm is not good" << endl;
     return;
   }
 
-  while (1) {
+  while (1)
+  {
     long start_time, end_time, used_time;
 
     start_time = clock();
@@ -125,9 +132,11 @@ void StanleyContollerThread() {
     //		current_velocity = 60; //add for test
     double current_velocity_m_s = current_velocity / 3.6;
     cout << "current vel: " << current_velocity_m_s << endl;
-    if (zcmreceiver.getControlPath(control_path)) {
+    if (zcmreceiver.getControlPath(control_path))
+    {
       double aim_dis_base = aim_dis_base_forward;
-      if (direction == -1) {
+      if (direction == -1)
+      {
         aim_dis_base = aim_dis_base_backward;
       }
       //			getRefPose3(control_path, direction,
@@ -142,20 +151,24 @@ void StanleyContollerThread() {
         direction = -1;
       else
         direction = 1;
-
-    } else {
+    }
+    else
+    {
       ref_velocity = 0.0;
     }
     // cout << "ref pose: " <<  ref_pose.x << "  " << ref_pose.y << "  " <<
     // ref_pose.angle * 180 / PI << "  " << ref_pose.kappa << endl;
 
     double ay_max;
-    if (current_velocity < v_switch_high) {
+    if (current_velocity < v_switch_high)
+    {
       stanleycontroller.computeWheelAngle(ref_pose, current_pose,
                                           current_velocity_m_s, direction,
                                           current_yawrate, ref_steering_angle);
       ay_max = ay_max_low;
-    } else {
+    }
+    else
+    {
       stanleycontroller.computeWheelAngleHighSpeed(
           ref_pose, current_pose, current_velocity_m_s, direction,
           current_yawrate, ref_steering_angle);
@@ -200,10 +213,12 @@ void StanleyContollerThread() {
          << control_msg.aimspeed << endl;
 
     zcm.publish("CANCONTROL", &control_msg);
+    zcm_udp.publish("CANCONTROL", &control_msg);
   }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
   init();
   thread task1(StanleyContollerThread);
   task1.detach();

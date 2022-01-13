@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
   // start send controller path thread
   thread send_traj = thread(sendPath);
   // start routing thread
-  thread routing_thread = thread(requestGlobalPathFromMapServer);
+  thread routing_thread = thread(updateGlobalPathFromMapServer);
   // start decision thread
   runTiEVFSM();
   msg_receiver_ipc.join();

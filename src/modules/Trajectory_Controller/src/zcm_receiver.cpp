@@ -3,7 +3,8 @@
 
 void Handler::handleAIMPATH(const zcm::ReceiveBuffer *rbuf,
                             const std::string &channel,
-                            const structAIMPATH *msg) {
+                            const structAIMPATH *msg)
+{
   path_mutex.lock();
   update_time_path = getTimeStamp();
   tmp_path = *msg;
@@ -13,7 +14,8 @@ void Handler::handleAIMPATH(const zcm::ReceiveBuffer *rbuf,
 
 void Handler::handleCANINFO(const zcm::ReceiveBuffer *rbuf,
                             const std::string &channel,
-                            const structCANINFO *msg) {
+                            const structCANINFO *msg)
+{
   caninfo_mutex.lock();
   tmp_caninfo = *msg;
   //	update_time_caninfo = TiEV::getTimeStamp();
@@ -22,30 +24,35 @@ void Handler::handleCANINFO(const zcm::ReceiveBuffer *rbuf,
 
 void Handler::handleNAVINFO(const zcm::ReceiveBuffer *rbuf,
                             const std::string &channel,
-                            const structNAVINFO *msg) {
+                            const structNAVINFO *msg)
+{
   navinfo_mutex.lock();
   tmp_navinfo = *msg;
   //	update_time_navinfo = TiEV::getTimeStamp();
   navinfo_mutex.unlock();
 }
 
-void ZcmReceiver::zcmMsgReceive() {
+void ZcmReceiver::zcmMsgReceive()
+{
   zcm::ZCM zcm;
   zcm::ZCM zcm_ipc("ipc");
-  if (!zcm.good()) {
+  if (!zcm.good())
+  {
     std::cout << "zcm is not good! " << std::endl;
     return;
   }
 
   zcm.subscribe("AIMPATH", &Handler::handleAIMPATH, &inner_handler);
-  zcm_ipc.subscribe("CANINFO", &Handler::handleCANINFO, &inner_handler);
+  // zcm_ipc.subscribe("CANINFO", &Handler::handleCANINFO, &inner_handler);
+  zcm.subscribe("CANINFO", &Handler::handleCANINFO, &inner_handler);
   zcm.subscribe("NAVINFO", &Handler::handleNAVINFO, &inner_handler);
 
   while (0 == zcm.handle())
     ;
 }
 
-bool ZcmReceiver::getControlPath(std::vector<ControlPose> &control_path) {
+bool ZcmReceiver::getControlPath(std::vector<ControlPose> &control_path)
+{
   if (inner_handler.tmp_path.num_points < 1 ||
       getTimeStamp() - inner_handler.update_time_path > AIMPATH_TIME_OUT_US)
     return false;
@@ -53,7 +60,8 @@ bool ZcmReceiver::getControlPath(std::vector<ControlPose> &control_path) {
   inner_handler.path_mutex.lock();
   int num = inner_handler.tmp_path.num_points;
   control_path.clear();
-  for (int i = 0; i < num; i++) {
+  for (int i = 0; i < num; i++)
+  {
     ControlPose buffer_point;
     buffer_point.x = inner_handler.tmp_path.points[i].x;
     buffer_point.y = inner_handler.tmp_path.points[i].y;
@@ -72,7 +80,8 @@ bool ZcmReceiver::getControlPath(std::vector<ControlPose> &control_path) {
 
 bool ZcmReceiver::getCarStatus(double &current_velocity,
                                double &current_steering_angle,
-                               double &current_yawrate) {
+                               double &current_yawrate)
+{
   inner_handler.caninfo_mutex.lock();
   current_velocity = inner_handler.tmp_caninfo.carspeed / 100.0;
   current_steering_angle = inner_handler.tmp_caninfo.carsteer;

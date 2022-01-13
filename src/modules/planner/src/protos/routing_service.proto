@@ -13,6 +13,9 @@ service RoutingService {
 message Point {
   double lon = 1;
   double lat = 2;
+  double utm_x = 3;
+  double utm_y = 4;
+  double heading = 5;
 }
 
 //发送给服务器的任务点序列

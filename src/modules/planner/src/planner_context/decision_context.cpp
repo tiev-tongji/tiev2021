@@ -121,7 +121,7 @@ const std::vector<Pose> DecisionContext::getMaintainedPath(
     p.updateLocalCoordinate(nav_info.car_pose);
   }
   if (path.empty()) {
-    LOG(WARNING) << "maintained path empty !" << std::endl;
+    // LOG(WARNING) << "maintained path empty !";
     return path;
   }
   int    shortest_index = shortestPointIndex(nav_info.car_pose, path);

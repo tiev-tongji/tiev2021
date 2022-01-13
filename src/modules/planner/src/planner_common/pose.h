@@ -222,18 +222,20 @@ struct LaneCenterPoint : public Point2d {
 };
 
 struct HDMapPoint : public Pose {
-  HDMapEvent    event;
-  HDMapMode     mode;
-  HDMapSpeed    speed_mode;
-  int           lane_num;
-  int           lane_seq;
-  double        lane_width;
-  RoadDirection direction;
-  BlockType     block_type;
+  LonLatPosition lon_lat_position;
+  HDMapEvent     event;
+  HDMapMode      mode;
+  HDMapSpeed     speed_mode;
+  int            lane_num;
+  int            lane_seq;
+  double         lane_width;
+  RoadDirection  direction;
+  BlockType      block_type;
   // for lateral lane center
   std::vector<LaneCenterPoint> neighbors;
-  HDMapPoint(double utm_x_ = 0, double utm_y_ = 0, double heading_ = 0,
-             double k_ = 0, HDMapMode mode_ = HDMapMode::NORMAL,
+  HDMapPoint(double lon = 0, double lat = 0, double utm_x_ = 0,
+             double utm_y_ = 0, double heading_ = 0, double k_ = 0,
+             HDMapMode  mode_       = HDMapMode::NORMAL,
              HDMapSpeed speed_mode_ = HDMapSpeed::MIDDLE,
              HDMapEvent event_      = HDMapEvent::NONE,
              BlockType block_type_ = BlockType::BlockAll, int lane_num_ = 0,
@@ -241,15 +243,16 @@ struct HDMapPoint : public Pose {
              RoadDirection direction_ = RoadDirection::STRAIGHT, double x_ = 0,
              double y_ = 0, double ang_ = 0)
       : Pose(x_, y_, ang_, k_) {
-    event        = event_;
-    mode         = mode_;
-    speed_mode   = speed_mode_;
-    lane_num     = lane_num_;
-    lane_seq     = lane_seq_;
-    lane_width   = lane_width_;
-    direction    = direction_;
-    block_type   = block_type_;
-    utm_position = UtmPosition(utm_x_, utm_y_, heading_);
+    event            = event_;
+    mode             = mode_;
+    speed_mode       = speed_mode_;
+    lane_num         = lane_num_;
+    lane_seq         = lane_seq_;
+    lane_width       = lane_width_;
+    direction        = direction_;
+    block_type       = block_type_;
+    utm_position     = UtmPosition(utm_x_, utm_y_, heading_);
+    lon_lat_position = LonLatPosition(lon, lat, heading_);
   }
 
   inline Point2d toPoint2d() const { return Point2d(x, y); }

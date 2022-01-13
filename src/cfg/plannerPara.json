@@ -1,11 +1,12 @@
 {
 	"comment": "town05_forward",
+	"roadmap_file": "/home/autolab/tiev/src/cfg/Town03_original.txt",
 	"#roadmap_file": "/home/autolab/carla_path/Town03_original.txt",
 	"#roadmap_file": "/home/autolab/carla_path/carla_path_Town04.txt",
-	"roadmap_file": "/home/autolab/tiev/src/cfg/xiqu_tracking.txt",
+	"#roadmap_file": "/home/autolab/tiev/src/cfg/xiqu_tracking.txt",
 	"rs_distance_table_path": "/home/autolab/tiev2021/src/cfg/reeds_shepp_distance_table",
 	"dubins_distance_table_path": "/home/autolab/tiev2021/src/cfg/dubins_distance_table",
-	"enable_routing_by_file": 1,
+	"enable_routing_by_file": 0,
 	"#enable_routing_by_file": {
 		"0": "disable routing by roadmap_file, and routing will request routing-server on internet",
 		"1": "enable routing by roadmap_file in car"
@@ -23,8 +24,8 @@
 		"BACK": -3,
 		"STOP": 0,
 		"VERYLOW": 8,
-		"LOW": 10,
-		"MID": 10,
+		"LOW": 30,
+		"MID": 30,
 		"HIGH": 20,
 		"VERYHIGH": 40
 	},
@@ -46,7 +47,9 @@
 	"routing": {
 		"host": "106.75.246.176",
 		"port": "50051",
-		"dbname": "simu_add1",
+		"#dbname": "simu_add1",
+		"dbname": "test_ground2021_uav",
+		"#dbname": "jiading2021",
 		"user": "postgres",
 		"password": "routing2020",
 		"topo_name": "topo_map",
@@ -56,8 +59,8 @@
 		"utm_x": 329377.80,
 		"utm_y": 3462185.77,
 		"heading": -2.92,
-		"lat": 31.281499,
-		"lon": 121.297593,
+		"lat": 31.28613274,
+		"lon": 121.20897848,
 		"task_points": [
 			{
 		"utm_x": 329377.80,
@@ -87,11 +90,11 @@
 	"tasks": [
 		{
 			"task": {
-				"utm_x": 329377.80,
-				"utm_y": 3462185.77,
+				"utm_x": 328866,
+				"utm_y": 3463348,
 				"heading": -2.92,
-				"lat": 31.281499,
-				"lon": 121.297593,
+				"lat": 31.2919032,
+				"lon": 121.2020227,
 				"on": 0
 			},
 			"task_points": [

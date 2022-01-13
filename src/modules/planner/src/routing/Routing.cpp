@@ -54,17 +54,18 @@ Routing::~Routing() {}
 int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path,
                                const std::vector<Task>& task_points,
                                bool                     blocked) {
-  std::cout << "in Routing find reference road..." << std::endl;
+  LOG(INFO) << "Find Road by Requesting Remote Service...";
   const auto start_time = getTimeStamp();
   global_path.clear();
   if (task_points.size() < 2) {
-    std::cerr << "not enough points" << std::endl;
+    LOG(WARNING) << "Please set more than 2 task points";
     return -1;
   }
   //调用service，处理返回结果
   TaskPoints request;
   request.set_blocked(blocked);
   for (const auto& p : task_points) {
+    LOG(INFO) << "task:" << p.lon_lat_position;
     auto point = request.add_task_point();
     point->set_lon(p.lon_lat_position.lon);
     point->set_lat(p.lon_lat_position.lat);
@@ -73,46 +74,115 @@ int Routing::findReferenceRoad(std::vector<HDMapPoint>& global_path,
   request.set_map(dbname);
   ClientContext context;
   RefRoad       response;
-  std::cout << "requesting TiEV server..." << std::endl;
-  Status status = stub->FindReferenceRoad(&context, request, &response);
+  Status        status = stub->FindReferenceRoad(&context, request, &response);
   if (status.ok()) {
-    std::cout << "RPC success" << std::endl;
+    LOG(INFO) << "Remote Service Connection Success!";
     int    sum_costs      = response.time_cost();
     size_t sum_points_num = response.point_size();
+    switch (sum_costs) {
+      case -1:
+      case -3:
+        LOG(WARNING) << "Remote Service Occures Wrong!";
+        return sum_costs;
+      case -2:
+        LOG(WARNING) << "Car is far from map topology!";
+        return sum_costs;
+      case -4:
+        LOG(INFO) << "The Global Path is not changed";
+        return sum_costs;
+    }
     for (size_t i = 0; i < sum_points_num; i++) {
       auto       res_point = response.point(i);
       HDMapPoint p;
       p.utm_position =
           UtmPosition(res_point.utmx(), res_point.utmy(), res_point.heading());
-      p.mode       = HDMapMode(res_point.mode());
-      p.speed_mode = HDMapSpeed(res_point.speed_mode());
-      p.event      = HDMapEvent(res_point.event_mode());
-      p.block_type = BlockType(res_point.opposite_side_mode());
-      p.lane_num   = res_point.lane_num();
-      p.lane_seq   = res_point.lane_seq();
-      p.lane_width = res_point.lane_width();
+      p.mode                     = HDMapMode(res_point.mode());
+      p.speed_mode               = HDMapSpeed(res_point.speed_mode());
+      p.event                    = HDMapEvent(res_point.event_mode());
+      p.block_type               = BlockType(res_point.opposite_side_mode());
+      p.lane_num                 = res_point.lane_num();
+      p.lane_seq                 = res_point.lane_seq();
+      p.lane_width               = res_point.lane_width();
+      p.lon_lat_position.lon     = res_point.lon();
+      p.lon_lat_position.lat     = res_point.lat();
+      p.lon_lat_position.heading = res_point.heading();
       global_path.push_back(p);
     }
-    LOG(WARNING) << "requst routing server time: "
-                 << (getTimeStamp() - start_time) * 1e-6 << "s";
-    std::cout << "Build reference line file sucessfully which is " << output
-              << std::endl;
-    std::cout << "total points number: " << sum_points_num << std::endl;
-    std::cout << "estimated time cost: " << sum_costs << "s, " << sum_costs / 60
-              << "mins" << std::endl;
+    // LOG(INFO) << "requst routing server time: "
+    //              << (getTimeStamp() - start_time) * 1e-6 << "s";
+    LOG(INFO) << "Estimated time cost: " << sum_costs / 60 << "mins "
+              << sum_costs % 60 << "s";
     return sum_costs;
   } else {
-    std::cerr << "RPC failed" << std::endl;
-    std::cerr << "error code: " << status.error_code() << std::endl;
-    std::cerr << "error message: " << status.error_message() << std::endl;
-    std::cerr << "error detail: " << status.error_details() << std::endl;
+    LOG(WARNING) << "Find Error code: " << status.error_code()
+                 << " Error message: " << status.error_message();
     return -1;
   }
 }
-int Routing::requestUpdateReferenceRoad(std::vector<HDMapPoint>& global_path,
-                                        const std::vector<Task>& task_points,
-                                        bool                     blocked) {
-  return -1;
+
+int Routing::requestUpdateReferenceRoad(
+    const LonLatPosition&    start_lon_lat_position,
+    const UtmPosition&       start_utm_position,
+    std::vector<HDMapPoint>* global_path) {
+  //调用service，处理返回结果
+  TaskPoints request;
+  auto*      point = request.add_task_point();
+  point->set_lon(start_lon_lat_position.lon);
+  point->set_lat(start_lon_lat_position.lat);
+  point->set_utm_x(start_utm_position.utm_x);
+  point->set_utm_y(start_utm_position.utm_y);
+  point->set_heading(start_utm_position.heading);
+  //指定使用的地图
+  request.set_map(dbname);
+  ClientContext context;
+  RefRoad       response;
+  LOG(INFO) << "Update Road in Remote...";
+  Status status =
+      stub->RequestUpdateReferenceRoad(&context, request, &response);
+  if (status.ok()) {
+    LOG(INFO) << "Request success!";
+    int sum_costs = response.time_cost();
+    LOG(INFO) << "Estimated time cost: " << sum_costs / 60 << "mins "
+              << sum_costs % 60;
+    switch (sum_costs) {
+      case -1:
+      case -3:
+        LOG(WARNING) << "Remote Service Occures Wrong!";
+        return sum_costs;
+      case -2:
+        LOG(WARNING) << "Car is far from map topology!";
+        return sum_costs;
+      case -4:
+        LOG(INFO) << "The Global Path is no need to chang";
+        return sum_costs;
+    }
+    size_t size = response.point_size();
+    // std::cout << "id lon lat utmx utmy heading curv mode speed_mode "
+    //              "event_mode opposite_side_mode lane_num lane_seq lane_width"
+    //           << std::endl;
+    for (size_t i = 0; i < size; i++) {
+      auto       res_point = response.point(i);
+      HDMapPoint p;
+      p.utm_position =
+          UtmPosition(res_point.utmx(), res_point.utmy(), res_point.heading());
+      p.mode                     = HDMapMode(res_point.mode());
+      p.speed_mode               = HDMapSpeed(res_point.speed_mode());
+      p.event                    = HDMapEvent(res_point.event_mode());
+      p.block_type               = BlockType(res_point.opposite_side_mode());
+      p.lane_num                 = res_point.lane_num();
+      p.lane_seq                 = res_point.lane_seq();
+      p.lane_width               = res_point.lane_width();
+      p.lon_lat_position.lon     = res_point.lon();
+      p.lon_lat_position.lat     = res_point.lat();
+      p.lon_lat_position.heading = res_point.heading();
+      global_path->push_back(p);
+    }
+    return sum_costs;
+  } else {
+    LOG(WARNING) << "Update Error code: " << status.error_code()
+                 << " Error message: " << status.error_message();
+    return -1;
+  }
 }
 
 void Routing::Array2Str(const std::vector<Task>& task_points,

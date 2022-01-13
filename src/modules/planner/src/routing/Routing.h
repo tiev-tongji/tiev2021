@@ -61,9 +61,9 @@ class Routing {
                         const std::vector<Task>& task_points,
                         bool                     blockeds = false);
 
-  int requestUpdateReferenceRoad(std::vector<HDMapPoint>& global_path,
-                                 const std::vector<Task>& task_points,
-                                 bool                     blockeds = false);
+  int requestUpdateReferenceRoad(const LonLatPosition& start_lon_lat_position,
+                                 const UtmPosition&    start_utm_position,
+                                 std::vector<HDMapPoint>* global_path);
 
   // 将车辆信息发送至服务器
   void updateInfoToServer();

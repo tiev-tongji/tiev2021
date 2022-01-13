@@ -86,8 +86,8 @@ void sendPath() {
                         traffic_light_virtual_dymanic.begin(),
                         traffic_light_virtual_dymanic.end());
     // do the speed plan for the maintained path
-    auto maintained_path = decision_context.getMaintainedPath();
-    double    max_speed = decision_context.getSpeedLimitMPS();
+    auto      maintained_path = decision_context.getMaintainedPath();
+    double    max_speed       = decision_context.getSpeedLimitMPS();
     SpeedPath speed_path;
 
     structAIMPATH control_path;
@@ -154,11 +154,11 @@ void sendPath() {
         control_path.points.push_back(tp);
       }
     }
-    
-    // for (const auto& p : control_path.points) {
-    //   std::cout << "x, y, ang: " << p.x << " , " << p.y << " , " << p.theta << std::endl;
-    // }
 
+    // for (const auto& p : control_path.points) {
+    //   std::cout << "x, y, ang: " << p.x << " , " << p.y << " , " << p.theta
+    //   << std::endl;
+    // }
 
     MessageManager::getInstance().publishPath(control_path);
 
@@ -176,7 +176,10 @@ void sendPath() {
   }
 }
 
-void requestGlobalPathFromMapServer() {
+/**
+ *  This thread is updating the global path in realtime
+ */
+void updateGlobalPathFromMapServer() {
   time_t          start_time = getTimeStamp();
   MessageManager& msg_m      = MessageManager::getInstance();
   MapManager&     map_m      = MapManager::getInstance();
@@ -184,7 +187,7 @@ void requestGlobalPathFromMapServer() {
   Routing&        routing    = Routing::getInstance();
   NavInfo         nav_info;
   vector<Task>    task_list;
-  const time_t    time_limit    = 10 * 1e6;
+  const time_t    time_limit    = 0.5 * 1e6;
   const auto      duration_time = [&]() { return getTimeStamp() - start_time; };
   while (!Config::getInstance().enable_routing_by_file) {
     msg_m.getNavInfo(nav_info);
@@ -192,6 +195,7 @@ void requestGlobalPathFromMapServer() {
     if (Config::getInstance().taxi_mode) {
       routing.updateInfoToServer();
     }
+    if (map_m.getForwardRefPath().empty()) continue;
     vector<HDMapPoint> tmp_global_path;
     HDMapMode          road_mode = map_m.getCurrentMapMode();
     // mode
@@ -205,25 +209,22 @@ void requestGlobalPathFromMapServer() {
         mm.machine.isActive<TemporaryParkingFSM>() ||
         mm.machine.isActive<IntersectionFSM>())
       continue;
-    Task current_pos;
-    current_pos.lon_lat_position.lon = nav_info.lon;
-    current_pos.lon_lat_position.lat = nav_info.lat;
-    task_list.clear();
-    task_list.push_back(current_pos);
-    vector<Task> current_tasks = map_m.getCurrentTasks();
-    if (!current_tasks.empty())
-      task_list.push_back(current_tasks.back());
-    else
-      task_list.push_back(map_m.getParkingTask());
-    int cost = -1;
-    if (task_list.size() > 1)
-      cost = routing.findReferenceRoad(tmp_global_path, task_list, false);
-    LOG(INFO) << "Cost of global path: " << cost;
-    if (cost == -1) continue;
-    LOG(INFO) << "global path size:" << tmp_global_path.size();
-    if (!tmp_global_path.empty()) {  // TODO: When to replace?
+
+    // the path ref path point relateve with car
+    const auto car_ref_point = map_m.getForwardRefPath().front();
+    int        cost          = -1;
+    cost = routing.requestUpdateReferenceRoad(car_ref_point.lon_lat_position,
+                                              car_ref_point.utm_position,
+                                              &tmp_global_path);
+    if (cost < 0) {
+      if (duration_time() < time_limit) {
+        usleep(time_limit - duration_time());
+      }
+      continue;
+    }
+    LOG(INFO) << "Replace global path: size=" << tmp_global_path.size();
+    if (!tmp_global_path.empty()) {
       map_m.setGlobalPath(tmp_global_path);
-      break;
     }
     if (duration_time() < time_limit) {
       usleep(time_limit - duration_time());
