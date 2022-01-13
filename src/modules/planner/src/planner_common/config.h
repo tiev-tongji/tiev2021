@@ -82,6 +82,7 @@ class Config {
   // NOTICE: READ-ONLY
   double a_star_curvature_changed_punishment;
   // NOTICE: READ-ONLY
+  map<string, Task> tasks_map;
   vector<Task> tasks;
   Task         parking_task;
 
@@ -111,6 +112,12 @@ class Config {
   void init();
 
   void outputConfigures() const;
+
+  std::string &Trim(std::string &);
+
+  void SplitString(const std::string &, std::vector<std::string> &, const std::string &);
+
+  void ReadTasks(const std::string &);
 };
 }  // namespace TiEV
 

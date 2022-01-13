@@ -16,6 +16,8 @@ using namespace std;
 namespace TiEV {
 
 void Config::init() {
+  ReadTasks(TiEV_CONFIG_DIRECT + "task_points.txt");
+  
   string  para_file_path = TiEV_CONFIG_DIRECT + "plannerPara.json";
   fstream input(para_file_path, ios::in);
   if (!input.is_open()) {
@@ -61,6 +63,14 @@ void Config::init() {
   password                          = routing_config["password"].GetString();
   topo_name                         = routing_config["topo_name"].GetString();
   output                            = routing_config["output"].GetString();
+  auto tasks_arr                    = doc["tasks"].GetArray();
+  for( int k = 0; k < tasks_arr.Size(); k ++ ) {
+    auto task = tasks_arr[k].GetInt();
+    tasks.push_back(tasks_map[std::to_string(task)]);
+  }
+  auto parking_task_pos             = doc["parking_task"].GetInt();
+  parking_task = tasks_map[std::to_string(parking_task_pos)];
+  /*
   auto& parking_task_pos            = doc["parking_task"];
   parking_task.lon_lat_position.lon = parking_task_pos["lon"].GetDouble();
   parking_task.lon_lat_position.lat = parking_task_pos["lat"].GetDouble();
@@ -74,11 +84,11 @@ void Config::init() {
     double heading              = parking_task_points[k]["heading"].GetDouble();
     parking_task.task_points[k] = UtmPosition(utm_x, utm_y, heading);
   }
-
+  */
   // start_time = doc["start_time"].GetInt64();
   start_time = getTimeStamp();
   end_time   = start_time + 1e6 * 60 * 60 * 10;
-
+  /*
   tasks.clear();
   if (!taxi_mode) {
     auto task_arr = doc["tasks"].GetArray();
@@ -102,6 +112,8 @@ void Config::init() {
     }
     reverse(tasks.begin(), tasks.end());
   }
+  */
+  
 #undef nameof
   input.close();
   outputConfigures();
@@ -153,6 +165,56 @@ void Config::outputConfigures() const {
     cout << endl;
   }
 #undef print
+}
+
+std::string & Config::Trim(std::string &s)   
+{  
+    if( s.empty() ) {  
+        return s;  
+    }  
+    s.erase(0, s.find_first_not_of(" \r\n\t"));  
+    s.erase(s.find_last_not_of(" \r\n\t") + 1);  
+    return s;  
+}  
+void Config::SplitString(const std::string& s, std::vector<std::string>& v, const std::string& c)
+{
+    std::string::size_type pos1, pos2;
+    pos2 = s.find(c);
+    pos1 = 0;
+    while(std::string::npos != pos2)
+    {
+        v.push_back(s.substr(pos1, pos2-pos1));
+         
+        pos1 = pos2 + c.size();
+        pos2 = s.find(c, pos1);
+    }
+    if(pos1 != s.length()) {
+        v.push_back(s.substr(pos1));
+    }
+}
+void Config::ReadTasks(const std::string &file_name) {
+    std::ifstream fin(file_name.c_str());
+    std::string line;
+    while( std::getline(fin, line) ) {
+        line.erase(line.length() - line.find_first_not_of("#"));
+        std::vector<std::string> items;
+        SplitString(line, items, " ");
+        std::string task_name = items[0];
+        Trim(task_name);
+        if( task_name == "Id" ) {
+          continue ;
+        }
+        else if( items.size() == 7 ) {
+          double lat = std::atof(items[2].c_str()), lon = std::atof(items[3].c_str()), utm_x = std::atof(items[4].c_str()), utm_y = std::atof(items[5].c_str()), heading = std::atof(items[6].c_str());
+          
+          if( tasks_map.find(task_name) == tasks_map.end() ) {
+              tasks_map[task_name] = Task(utm_x, utm_y, lat, lon, heading, 0);
+          }
+          tasks_map[task_name].task_points.push_back(UtmPosition(utm_x, utm_y, heading));
+        }
+    }
+    fin.close();
+    return ;
 }
 
 // Config Config::inner_instance;
