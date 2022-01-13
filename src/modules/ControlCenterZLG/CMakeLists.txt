@@ -9,6 +9,6 @@ set(SOURCES EHBControl.cpp ROEWECenterControl.cpp pidController.cpp messageContr
 add_executable(CONTROL ${SOURCES})
 add_executable(ZCM_TEST zcmUnitTest.cpp)
 
-set(LIBS ${PROJECT_SOURCE_DIR}/libusbcan.so libzcm.so libpthread.so)
+set(LIBS libusbcan.so libzcm.so libpthread.so)
 TARGET_LINK_LIBRARIES(CONTROL ${LIBS}) 
 TARGET_LINK_LIBRARIES(ZCM_TEST ${LIBS}) 

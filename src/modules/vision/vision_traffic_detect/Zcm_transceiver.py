@@ -4,7 +4,8 @@ from MsgTrafficLightSignal import MsgTrafficLightSignal
 
 class ZcmTransceiver(object):
     def __init__(self):
-        self.transceiver = ZCM('ipc')
+        #self.transceiver = ZCM('ipc')
+        self.transceiver = ZCM('udpm://239.255.76.67:7667?ttl=1')
         if not self.transceiver.good():
             print("Unable to initialize ZeroCM")
             exit(-1)
@@ -15,4 +16,4 @@ class ZcmTransceiver(object):
         msg_traffic_light_signal.left = left
         msg_traffic_light_signal.forward = forward
         msg_traffic_light_signal.right = right
-        self.transceiver.publish("msgTrafficLightSignal", msg_traffic_light_signal)
+        self.transceiver.publish("MsgTrafficLightSignal", msg_traffic_light_signal)
