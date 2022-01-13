@@ -1,4 +1,5 @@
 #include "path_smoother.h"
+#include "tievlog.h"
 using std::cout;
 using std::endl;
 
@@ -56,11 +57,18 @@ vector<Point2d> PathSmoother::smoothPath(const vector<Point2d>& path,
         continue;
       }
 
+      correction = correction + wObstacle * obstacleTerm(xi);
+      // Point2d obs_gra = obstacleTerm(xi);
+      // LOG(INFO) << "obtacle gradient: " << obs_gra;
+      if (!isOnGrid(xi + correction)) {
+        continue;
+      }
+
       xi           = xi + alpha * correction / totalWeight;
       newPath[i].x = xi.x;
       newPath[i].y = xi.y;
     }
-    // if (iterations % 50 == 0) double cost = getTotalCost(newPath);
+    // if (iterations % 50 == 0) double cost = getTotalCost(newPath); // for tuning
     oldPath = newPath;
     iterations++;
   }
@@ -106,6 +114,12 @@ vector<Point2d> PathSmoother::smoothPath(const vector<Point2d>& path,
       if (!isOnGrid(xi + correction)) {
         continue;
       }
+
+      correction = correction + wObstacle * obstacleTerm(xi);
+      if (!isOnGrid(xi + correction)) {
+        continue;
+      }
+
       xi           = xi + alpha * correction / totalWeight;
       newPath[i].x = xi.x;
       newPath[i].y = xi.y;
@@ -224,6 +238,43 @@ Point2d PathSmoother::smoothnessTerm(const Point2d& xim2, const Point2d& xim1,
   return xim2 - 4.0 * xim1 + 6.0 * xi - 4.0 * xip1 + xip2;
 }
 
+//###################################################
+//                                    OBSTACLE TERM
+//###################################################
+Point2d PathSmoother::obstacleTerm(const Point2d& xi) {
+  Point2d gradient(0, 0);
+  const int x0 = int(xi.x);
+  const int y0 = int(xi.y);
+  if (!isOnGrid(xi)) return gradient;
+  if (planning_dis_map[x0][y0] > obsDMax) return gradient;
+  // search obstacle on a rectangle around point xi
+  int max_rect_id = int(obsDMax) + 1;
+  double dis_square = std::pow(planning_dis_map[x0][y0], 2);
+  for (int rect_id = 1; rect_id < max_rect_id; ++rect_id) {
+    vector<int> rect_arr;
+    rect_arr.push_back(-rect_id);
+    rect_arr.push_back(rect_id);
+    for (const int i : rect_arr)
+      for (int j = -rect_id; j <= rect_id; ++j) {
+        if (!isOnGrid(xi + Point2d(i, j))) continue;
+        // check if there is a obstacle at (x0+i, y0+j)
+        if (planning_dis_map[x0 + i][y0 + j] == 0) {
+          Point2d p_obs(x0 + i, y0 + j);
+          return xi - p_obs;
+        }
+      }
+    for (const int j : rect_arr)
+      for (int i = -rect_id; i <= rect_id; ++i) {
+        if (!isOnGrid(xi + Point2d(i, j))) continue;
+        if (planning_dis_map[x0 + i][y0 + j] == 0) {
+          Point2d p_obs(x0 + i, y0 + j);
+          return xi - p_obs;
+        }
+      }
+  }
+  return gradient;
+}
+
 double PathSmoother::getCurvature(const Point2d& xim1, const Point2d& xi,
                                   const Point2d& xip1) {
   Point2d Dxi       = xi - xim1;
@@ -249,18 +300,19 @@ double PathSmoother::getCurvature(const Point2d& xim1, const Point2d& xi,
 double PathSmoother::getTotalCost(const vector<Point2d>& path) {
   if (path.size() < 3) return 0;
   double smoothness_cost = 0;
-  double obstacle_cost   = 0;
   double curvature_cost  = 0;
+  double obstacle_cost   = 0;
   double total_cost;
   for (int i = 1; i + 1 < path.size(); ++i) {
     Point2d Dxip1 = path[i + 1] - path[i];
     Point2d Dxi   = path[i] - path[i - 1];
     smoothness_cost += (Dxip1 - Dxi).sqrLen();
     curvature_cost += fabs(getCurvature(path[i - 1], path[i], path[i + 1]));
+    obstacle_cost += planning_dis_map[int(path[i].x)][int(path[i].y)];
   }
   total_cost = smoothness_cost + obstacle_cost + curvature_cost;
-  std::cout << "total cost: " << total_cost << ", smooth: " << smoothness_cost
-            << ", curvature: " << curvature_cost << std::endl;
+  LOG(WARNING) << "total cost: " << total_cost << ", smooth: " << smoothness_cost
+            << ", curvature: " << curvature_cost << ", obstacle: " << obstacle_cost;
   return total_cost;
 }
 

@@ -46,6 +46,7 @@ SpeedPath SpeedOptimizer::RunSpeedOptimizer(
   SpeedOptimizer speed_optimizer(obj_list, trajectory, modified_speed_limit, 0,
                                  total_path_length, 0, TOTAL_TIME,
                                  current_speed);
+
   if (speed_optimizer.Process(speed_path)) {
     speed_path.success = true;
   } else {

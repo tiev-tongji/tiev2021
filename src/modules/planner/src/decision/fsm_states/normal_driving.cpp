@@ -55,6 +55,7 @@ void NormalDriving::update(FullControl& control) {
   if (!result_path.empty()) {
     decision_context.setMaintainedPath(result_path);
   }
+  decision_context.updatePlannerInfo(map.dynamic_obj_list.dynamic_obj_list);
   if (map_manager.allowParking(map_manager.getTemporaryParkingTarget(),
                                map.ref_path)) {
     // when to parking
