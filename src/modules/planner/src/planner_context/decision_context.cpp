@@ -4,12 +4,12 @@
 #include "tievlog.h"
 
 namespace TiEV {
-const std::vector<DynamicObj>& DecisionContext::getPedestrianDecision() const {
+const std::vector<DynamicObj> DecisionContext::getPedestrianDecision() const {
   std::shared_lock<std::shared_mutex> lck(pedestrian_mutex);
   return _pedestrian_decision_result;
 }
 
-const std::vector<DynamicObj>& DecisionContext::getTrafficLightDecision()
+const std::vector<DynamicObj> DecisionContext::getTrafficLightDecision()
     const {
   std::shared_lock<std::shared_mutex> lck(traffic_light_mutex);
   return _traffic_light_decision_result;
@@ -150,7 +150,7 @@ const std::vector<Pose> DecisionContext::getMaintainedPath(
   return res;
 }
 
-const std::queue<PlannerInfo> DecisionContext::getPlannerHitory() const {
+const std::deque<PlannerInfo> DecisionContext::getPlannerHistory() const {
   std::shared_lock<std::shared_mutex> lck(planner_info_mutex);
   return _planner_history_buffer;
 }
@@ -198,9 +198,9 @@ void DecisionContext::setMaintainedPath(const std::vector<Pose> path) {
 void DecisionContext::setPlannerInfo(const PlannerInfo& planner_info) {
   std::unique_lock<std::shared_mutex> lck(planner_info_mutex);
   while (_planner_history_buffer.size() > max_buffer_size) {
-    _planner_history_buffer.pop();
+    _planner_history_buffer.pop_front();
   }
-  _planner_history_buffer.push(planner_info);
+  _planner_history_buffer.push_back(planner_info);
 }
 
 void DecisionContext::setSpeedLimitMPS(const double speed_limit_mps) {
@@ -210,5 +210,33 @@ void DecisionContext::setSpeedLimitMPS(const double speed_limit_mps) {
 
 void DecisionContext::setPlanningWeights(const PlanningWeights& weights) {
   _weights = weights;
+}
+
+void DecisionContext::updatePlannerInfo(const std::vector<DynamicObj> &dynamic_obj_list) {
+  std::set<int> static_vehicles;
+  for (const auto& obj : dynamic_obj_list) {
+    // static vehicle
+    if (obj.type == ObjectType::CAR && obj.v <= 0.1) {
+      static_vehicles.insert(obj.id);
+    }
+  }
+  PlannerInfo new_info(static_vehicles);
+  new_info.timestamp = getTimeStamp();
+
+  std::unique_lock<std::shared_mutex> lck(planner_info_mutex);
+  _planner_history_buffer.push_back(new_info);
+  if (_planner_history_buffer.size() > max_buffer_size) {
+    _planner_history_buffer.pop_front();
+  }
+  LOG(INFO) << "planner info: ";
+  for (auto info = _planner_history_buffer.rbegin(); info < _planner_history_buffer.rend(); ++info) {
+    std::cout << info->timestamp << " , ";
+    auto sta_veh = info->static_vehicles;
+    for (auto it = sta_veh.begin(); it != sta_veh.end(); ++it) {
+      std::cout << *it << " , ";
+    }
+    std::cout << std::endl;
+
+  }
 }
 }  // namespace TiEV

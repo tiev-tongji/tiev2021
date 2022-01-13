@@ -8,12 +8,27 @@
 #include "opencv2/opencv.hpp"
 #include "point2d.h"
 #include "pose.h"
+#include "collision_check.h"
 using std::vector;
 
 namespace TiEV {
 
 class PathSmoother {
  public:
+  PathSmoother(double learning_rate, double max_iteration, double weight_smooth,
+               double weight_curvature, double weight_obstacle, const double planning_dis_map_[MAX_ROW][MAX_COL])
+      : alpha(learning_rate),
+        maxIteration(max_iteration),
+        wSmoothness(weight_smooth),
+        wCurvature(weight_curvature),
+        wObstacle(weight_obstacle),
+        kappaMax(0.1818),
+        obsDMax(COLLISION_CIRCLE_SMALL_R / GRID_RESOLUTION),
+        width(MAX_ROW),
+        height(MAX_COL) {
+          memcpy(this->planning_dis_map, planning_dis_map_, sizeof(this->planning_dis_map));
+        }
+
   PathSmoother(double learning_rate, double max_iteration, double weight_smooth,
                double weight_curvature, double weight_obstacle)
       : alpha(learning_rate),
@@ -22,7 +37,7 @@ class PathSmoother {
         wCurvature(weight_curvature),
         wObstacle(weight_obstacle),
         kappaMax(0.1818),
-        obsDMax(10),
+        obsDMax(COLLISION_CIRCLE_SMALL_R / GRID_RESOLUTION),
         width(MAX_ROW),
         height(MAX_COL) {}
   // api
@@ -50,6 +65,9 @@ class PathSmoother {
   Point2d smoothnessTerm(const Point2d& xim2, const Point2d& xim1,
                          const Point2d& xi, const Point2d& xip1,
                          const Point2d& xip2);
+
+  /// obstacleCost - drive away from the obstacle
+  Point2d obstacleTerm(const Point2d& xi);
 
   double getCurvature(const Point2d& xim1, const Point2d& xi,
                       const Point2d& xip1);
@@ -82,6 +100,8 @@ class PathSmoother {
   double wSmoothness;
   /// max_iteration;
   int maxIteration;
+
+  double planning_dis_map[MAX_ROW][MAX_COL];
 
   /// width of the map
   int width;

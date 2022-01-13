@@ -18,14 +18,6 @@
 #configure tmux
 echo "set-option -g mouse on" | tee ~/.tmux.conf
 
-#check this ubuntu whether has tmux
-type tmux
-if [ $? != 0 ]
-then
-	sudo apt update
-	sudo apt install tmux -y
-fi
-
 #check the tiev session whether is existing
 tmux has-session -t tiev
 if [ $? != 0 ]
@@ -44,7 +36,7 @@ then
 	#start trajectory controller
 	tmux send-keys -t tiev:tiev2021.2 'cd ~/tiev/scripts/' C-m
 	#start trajectory controller
-	tmux send-keys -t tiev:tiev2021.3 'cd ~/tiev/src/cfg/' C-m
+	tmux send-keys -t tiev:tiev2021.3 'cd ~/tiev/scripts/' C-m
 	tmux send-keys -t tiev:tiev2021.3 'tmux select-pane -U' C-m
 	#start can control ZLG
 	#tmux send-keys -t tiev:tiev2021.3 'cd ~/tiev/scripts/' C-m

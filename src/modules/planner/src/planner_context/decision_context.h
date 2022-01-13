@@ -2,14 +2,20 @@
 #define DECISION_CONTEXT_H
 #include <mutex>
 #include <queue>
+#include <deque>
 #include <shared_mutex>
 #include <vector>
+#include <set>
 
 #include "tiev_class.h"
 
 namespace TiEV {
 class PlannerInfo {
+public:
+  PlannerInfo(const std::set<int>& static_vehicles_) : static_vehicles(static_vehicles_) {}
   // planner info of each iteration
+  std::set<int> static_vehicles;
+  time_t timestamp;
 };
 
 struct PlanningWeights {
@@ -27,8 +33,8 @@ struct PlanningWeights {
 class DecisionContext {
  public:
   // getter and setter
-  const std::vector<DynamicObj>& getPedestrianDecision() const;
-  const std::vector<DynamicObj>& getTrafficLightDecision() const;
+  const std::vector<DynamicObj> getPedestrianDecision() const;
+  const std::vector<DynamicObj> getTrafficLightDecision() const;
 
   const std::vector<DynamicObj> getStaticObsDecision() const;
   const std::vector<DynamicObj> getDynamicList() const;
@@ -36,7 +42,7 @@ class DecisionContext {
   const std::vector<Pose> getMaintainedPath() const;  // use new latest nav_info
   const std::vector<Pose> getMaintainedPath(const NavInfo& nav_info) const;
 
-  const std::queue<PlannerInfo> getPlannerHitory() const;
+  const std::deque<PlannerInfo> getPlannerHistory() const;
 
   const double getSpeedLimitKPH() const;
   const double getSpeedLimitMPS() const;
@@ -57,6 +63,8 @@ class DecisionContext {
 
   void setPlanningWeights(const PlanningWeights& weights);
 
+  void updatePlannerInfo(const std::vector<DynamicObj> &dynamic_obj_list);
+
  private:
   // decision results
   std::vector<DynamicObj> _pedestrian_decision_result;
@@ -70,7 +78,7 @@ class DecisionContext {
 
   // the hitory info of planner, max size = 100;
   static constexpr size_t max_buffer_size = 100;
-  std::queue<PlannerInfo> _planner_history_buffer;
+  std::deque<PlannerInfo> _planner_history_buffer;
 
  public:
   DecisionContext(const DecisionContext&) = delete;

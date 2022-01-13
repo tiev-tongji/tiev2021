@@ -1070,15 +1070,37 @@ void MapManager::dynamicDecision(const DynamicBlockType dynamic_block_type) {
       if (now.in_map()) map.dynamic_obs_map[(int)now.x][(int)now.y] = 1;
     }
   };
+  const auto& decision_context = DecisionContext::getInstance();
+  const std::deque<PlannerInfo> planner_history = decision_context.getPlannerHistory();
   // block the dynamic speed under 0.1m/s
   for (const auto& obstacle : map.dynamic_obj_list.dynamic_obj_list) {
     // don't block low speed dynamic obj in NO_BLOCK mode
     if (dynamic_block_type == MapManager::DynamicBlockType::NO_BLOCK) {
       break;
     }
-    if (obstacle.path.size() < 2) continue;
-    const double speed = (obstacle.path[1] - obstacle.path[0]).len();
-    if (speed > 0.1) continue;
+    if (obstacle.type != ObjectType::CAR) continue;
+    if (obstacle.path.empty()) continue;
+    if (obstacle.v > 0.1) continue;
+    // only if the vehicle stands still longer than still_timelimit, we block it
+    bool block = false;
+    double still_timelimit = 1e6;
+    for (auto info = planner_history.rbegin(); info < planner_history.rend(); ++info) {
+      auto sta_veh = info->static_vehicles;
+      auto it = info->static_vehicles.find(obstacle.id);
+      // LOG(INFO) << *it << std::endl;
+      // LOG(INFO) << (getTimeStamp() - info->timestamp) / 1e6; 
+      if (it == sta_veh.end()) {
+        if (getTimeStamp() - info->timestamp >= still_timelimit) {
+          block = true;
+        }
+        break;
+      }
+      if (it != sta_veh.end() && getTimeStamp() - info->timestamp >= still_timelimit) {
+        block = true;
+        break;
+      }
+    }
+    if (!block) continue;
     for (int i = 0; i < obstacle.corners.size(); ++i) {
       const auto& start = obstacle.corners[i];
       const auto& end =
