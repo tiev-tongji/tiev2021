@@ -57,10 +57,10 @@
 	"#total_task_time": "time unit: min",
 	"total_task_time": 300,
 	"task_sequence": [
-		"1",
+		"dianxin",
 		"2",
-		"3",
+		"xiaomenkou",
 		"4"
 	],
-	"parking_task_name": "1"
+	"parking_task_name": "xiaomenkou"
 }

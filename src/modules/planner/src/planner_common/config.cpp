@@ -68,17 +68,27 @@ void Config::init() {
 
   auto tasks_arr = doc["task_sequence"].GetArray();
   for (int k = 0; k < tasks_arr.Size(); ++k) {
-    auto task = tasks_arr[k].GetString();
-    tasks.push_back(tasks_map[task]);
+    auto task_name = tasks_arr[k].GetString();
+    if (tasks_map.find(task_name) == tasks_map.end()) {
+      LOG(FATAL) << "No task named \"" << task_name
+                 << "\" in task points file! Please check task_sequence in "
+                    "planner.json";
+    }
+    tasks.push_back(tasks_map[task_name]);
     // the fist task is to pick up the passenger
     tasks.back().get_on = (k + 1) % 2;
   }
   std::reverse(tasks.begin(), tasks.end());
-  total_task_time       = doc["total_task_time"].GetDouble();
-  auto parking_task_pos = doc["parking_task_name"].GetString();
-  parking_task          = tasks_map[parking_task_pos];
-  start_time            = getTimeStamp();
-  end_time              = start_time + total_task_time * 60 * 1e6;
+  total_task_time        = doc["total_task_time"].GetDouble();
+  auto parking_task_name = doc["parking_task_name"].GetString();
+  if (tasks_map.find(parking_task_name) == tasks_map.end()) {
+    LOG(FATAL) << "No task named \"" << parking_task_name
+               << "\" in task points file! Please check parking_task_name in "
+                  "planner.json";
+  }
+  parking_task = tasks_map[parking_task_name];
+  start_time   = getTimeStamp();
+  end_time     = start_time + total_task_time * 60 * 1e6;
 
 #undef nameof
   input.close();
