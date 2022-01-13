@@ -2,34 +2,36 @@
 
 #include "map_manager.h"
 #include "tiev_fsm.h"
+#include "tievlog.h"
 namespace TiEV {
-using namespace std;
 
 void GlobalReplanning::enter(Control& control) {
-  cout << "entry Global Replanning..." << endl;
+  LOG(INFO) << "entry Global Re-planning...";
 }
 
 void GlobalReplanning::update(FullControl& control) {
-  cout << "Global Replanning update..." << endl;
+  LOG(INFO) << "Global Re-planning update...";
   MapManager& map_m   = MapManager::getInstance();
   Routing&    routing = Routing::getInstance();
   Task        current_pos;
-  Map&        map                  = map_m.getMap();
-  current_pos.lon_lat_position.lon = map.nav_info.lon;
-  current_pos.lon_lat_position.lat = map.nav_info.lat;
-  vector<Task> task_list;
+  const auto  ref_car_point        = map_m.getForwardRefPath().front();
+  current_pos.lon_lat_position.lon = ref_car_point.lon_lat_position.lon;
+  current_pos.lon_lat_position.lat = ref_car_point.lon_lat_position.lat;
+  std::vector<Task> task_list;
   task_list.push_back(current_pos);
-  vector<Task> current_tasks = map_m.getCurrentTasks();
+  std::vector<Task> current_tasks = map_m.getCurrentTasks();
   if (!current_tasks.empty())
     task_list.push_back(current_tasks.back());
   else
     task_list.push_back(map_m.getParkingTask());
-  int                cost = -1;
-  vector<HDMapPoint> tmp_global_path;
+  int                     cost = -1;
+  std::vector<HDMapPoint> tmp_global_path;
   if (task_list.size() > 1)
     cost = routing.findReferenceRoad(tmp_global_path, task_list, true);
-  cout << "Cost of global path: " << cost << endl;
-  if (cost == -1) return;
+  if (cost < 0) {
+    LOG(WARNING) << "Retry Re-planning...";
+    return;
+  }
   map_m.setGlobalPath(tmp_global_path);
   control.changeTo<NormalDriving>();
 }

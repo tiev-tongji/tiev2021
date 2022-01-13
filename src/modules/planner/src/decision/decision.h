@@ -20,7 +20,7 @@ class MachineManager {
 };
 void runTiEVFSM();
 void sendPath();
-void requestGlobalPathFromMapServer();
+void updateGlobalPathFromMapServer();
 
 }  // namespace TiEV
 

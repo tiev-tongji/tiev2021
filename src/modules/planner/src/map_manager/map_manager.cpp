@@ -105,7 +105,7 @@ void MapManager::readGlobalPathFile(const string& file_path) {
   while (input >> id >> lon >> lat >> utm_x >> utm_y >> heading >> curve >>
          mode >> speed_mode >> event >> block_type >> lane_num >> lane_seq >>
          lane_width) {
-    HDMapPoint point(utm_x, utm_y, heading, curve, (HDMapMode)mode,
+    HDMapPoint point(lon, lat, utm_x, utm_y, heading, curve, (HDMapMode)mode,
                      (HDMapSpeed)speed_mode, (HDMapEvent)event,
                      (BlockType)block_type, lane_num, lane_seq, lane_width);
     global_path.push_back(point);
@@ -941,7 +941,6 @@ vector<Pose> MapManager::getStartMaintainedPath() {
   if (path.size() <= 2 ||
       (!path.empty() &&
        point2PointSqrDis(path.front(), map.nav_info.car_pose) > 5)) {
-    
     if (point2PointSqrDis(path.front(), map.nav_info.car_pose) > 5) {
       LOG(WARNING) << "start maintain path clear() !";
     }

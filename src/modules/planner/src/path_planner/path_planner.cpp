@@ -187,7 +187,7 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
   }
   time_t start_time;
   start_time = getTimeStamp();
-  if (result->size() > 5 && !have_backward_path) {
+  if (result->size() > 50 && !have_backward_path) {
     // smooth the path
     vector<Point2d> path_before_smooth;
     path_before_smooth.reserve(result->size());
