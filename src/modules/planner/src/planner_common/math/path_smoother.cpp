@@ -1,4 +1,5 @@
 #include "path_smoother.h"
+
 #include "tievlog.h"
 using std::cout;
 using std::endl;
@@ -68,7 +69,8 @@ vector<Point2d> PathSmoother::smoothPath(const vector<Point2d>& path,
       newPath[i].x = xi.x;
       newPath[i].y = xi.y;
     }
-    // if (iterations % 50 == 0) double cost = getTotalCost(newPath); // for tuning
+    // if (iterations % 50 == 0)
+    //   double cost = getTotalCost(newPath);  // for tuning
     oldPath = newPath;
     iterations++;
   }
@@ -242,14 +244,14 @@ Point2d PathSmoother::smoothnessTerm(const Point2d& xim2, const Point2d& xim1,
 //                                    OBSTACLE TERM
 //###################################################
 Point2d PathSmoother::obstacleTerm(const Point2d& xi) {
-  Point2d gradient(0, 0);
+  Point2d   gradient(0, 0);
   const int x0 = int(xi.x);
   const int y0 = int(xi.y);
   if (!isOnGrid(xi)) return gradient;
   if (planning_dis_map[x0][y0] > obsDMax) return gradient;
   // search obstacle on a rectangle around point xi
-  int max_rect_id = int(obsDMax) + 1;
-  double dis_square = std::pow(planning_dis_map[x0][y0], 2);
+  int    max_rect_id = int(obsDMax) + 1;
+  double dis_square  = std::pow(planning_dis_map[x0][y0], 2);
   for (int rect_id = 1; rect_id < max_rect_id; ++rect_id) {
     vector<int> rect_arr;
     rect_arr.push_back(-rect_id);
@@ -311,8 +313,10 @@ double PathSmoother::getTotalCost(const vector<Point2d>& path) {
     obstacle_cost += planning_dis_map[int(path[i].x)][int(path[i].y)];
   }
   total_cost = smoothness_cost + obstacle_cost + curvature_cost;
-  LOG(WARNING) << "total cost: " << total_cost << ", smooth: " << smoothness_cost
-            << ", curvature: " << curvature_cost << ", obstacle: " << obstacle_cost;
+  LOG(WARNING) << "total cost: " << total_cost
+               << ", smooth: " << smoothness_cost
+               << ", curvature: " << curvature_cost
+               << ", obstacle: " << obstacle_cost;
   return total_cost;
 }
 

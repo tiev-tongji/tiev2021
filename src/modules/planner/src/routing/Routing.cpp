@@ -84,13 +84,13 @@ int Routing::findReferenceRoad(std::vector<HDMapPoint>&      global_path,
     switch (sum_costs) {
       case -1:
       case -3:
-        LOG(WARNING) << "Remote Service Occures Wrong!";
+        LOG(WARNING) << "Remote Service Error!";
         return sum_costs;
       case -2:
         LOG(WARNING) << "Car is far from map topology!";
         return sum_costs;
       case -4:
-        LOG(INFO) << "The Global Path is not changed";
+        LOG(INFO) << "No need to change Global Path!";
         return sum_costs;
     }
     for (size_t i = 0; i < sum_points_num; i++) {
@@ -147,13 +147,13 @@ int Routing::requestUpdateReferenceRoad(const TaskPoint& start_task_point,
     switch (sum_costs) {
       case -1:
       case -3:
-        LOG(WARNING) << "Remote Service Occures Wrong!";
+        LOG(WARNING) << "Remote Service Error!";
         return sum_costs;
       case -2:
         LOG(WARNING) << "Car is far from map topology!";
         return sum_costs;
       case -4:
-        LOG(INFO) << "The Global Path is no need to chang";
+        LOG(INFO) << "No need to change Global Path!";
         return sum_costs;
     }
     size_t size = response.point_size();

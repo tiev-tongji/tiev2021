@@ -57,8 +57,13 @@
 	"#total_task_time": "time unit: min",
 	"total_task_time": 300,
 	"task_sequence": [
-		"0",
-		"1"
+		"5",
+		"3",
+		"4",
+		"7",
+		"1",
+		"5",
+		"6"
 	],
 	"parking_task_name": "2"
 }

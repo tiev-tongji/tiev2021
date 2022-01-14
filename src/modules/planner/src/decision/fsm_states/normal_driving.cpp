@@ -20,7 +20,8 @@ void NormalDriving::update(FullControl& control) {
   map_manager.updatePlanningMap(MapManager::DynamicBlockType::ALL_BLOCK);
   const auto map = map_manager.getMap();
 
-  bool       back_ward  = map.nav_info.current_speed < 3 ? true : false;
+  bool back_ward        = map.nav_info.current_speed < 3 ? true : false;
+  back_ward             = false;
   const auto start_path = map_manager.getStartMaintainedPath();
   // if we need u-turn, the heading dif weight should be bigger
   const auto& ref_path = map_manager.getForwardRefPath();
@@ -30,7 +31,7 @@ void NormalDriving::update(FullControl& control) {
     if (need_reverse) {
       decision_context.setPlanningWeights({1, 0.01, 0.003, 0.001, 5, 1, 2});
     } else {
-      decision_context.setPlanningWeights({1, 0.02, 0.3, 0.03, 2.5, 5, 0});
+      decision_context.setPlanningWeights({1, 0.02, 0.2, 0.03, 2.5, 5, 0});
       // decision_context.setPlanningWeights({1, 0.02, 0.03, 0.01, 2.5, 0, 0});
       // a good setting for overtake driving
       // decision_context.setPlanningWeights({1, 0.02, 0.008, 0.06, 2, 1, 5});
@@ -69,6 +70,9 @@ void NormalDriving::update(FullControl& control) {
     // to overtaking driving
     // control.changeTo<OvertakeDriving>();
   } else {
+    if (getTimeStamp() - entry_time < 50e3) {
+      usleep(50 * 1000 - getTimeStamp() + entry_time);
+    }
     entry_time = getTimeStamp();
   }
 }

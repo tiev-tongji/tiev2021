@@ -186,7 +186,7 @@ void updateGlobalPathFromMapServer() {
   MachineManager& mm         = MachineManager::getInstance();
   Routing&        routing    = Routing::getInstance();
   NavInfo         nav_info;
-  const time_t    time_limit    = 0.5 * 1e6;
+  const time_t    time_limit    = 2 * 1e6;
   const auto      duration_time = [&]() { return getTimeStamp() - start_time; };
   while (!Config::getInstance().enable_routing_by_file) {
     msg_m.getNavInfo(nav_info);

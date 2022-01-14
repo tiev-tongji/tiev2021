@@ -33,7 +33,7 @@ void OnRoadFSM::update(FullControl& control) {
   auto mode = map_manager.getCurrentMapMode();
   if (mode == HDMapMode::INTERSECTION_SOLID ||
       mode == HDMapMode::INTERSECTION) {
-    control.changeTo<IntersectionDriving>();
+    // control.changeTo<IntersectionDriving>();
   }
 }
 //----------------OnRoad Fsm--------------------
