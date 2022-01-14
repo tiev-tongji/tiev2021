@@ -15,7 +15,7 @@
 #include "ControlCenterCommon.h"
 using namespace std;
 
-#define EHB_DEBUG 0
+#define EHB_DEBUG 1
 
 #define SHOW(x) cout << #x << " = " << x+0 << endl
 

@@ -34,7 +34,7 @@ STATE messageControl::init(){
     veh_control_sub.subscribe("CANCONTROL", &messageHandle::veh_control_info, &msgHandle);
     veh_control_sub.subscribe("REMOTECONTROL", &messageHandle::veh_remote_control, &msgHandle);
     veh_control_sub.subscribe("NAVINFO", &messageHandle::veh_navinfo, &msgHandle);
-
+    veh_control_sub.subscribe("AIMPATH", &messageHandle::veh_aimpath, &msgHandle);
     static std::thread zcmRun(&messageControl::zcm_run, this);
 
     return CC_OK;
@@ -59,7 +59,10 @@ STATE messageControl::get_remote_control_msg(bool* remote_control){
     STATE ret = msgHandle.get_remote_control_msg(remote_control);
     return ret;
 }
-
+STATE messageControl::get_aim_path_msg(float* curvature){
+    STATE ret = msgHandle.get_veh_aimpath(curvature);
+    return ret;
+}
 STATE messageControl::pub_veh_status_msg(veh_info_t& veh_info){
     struct timeval tv;
     gettimeofday(&tv, NULL);
@@ -75,10 +78,12 @@ STATE messageControl::pub_veh_status_msg(veh_info_t& veh_info){
     veh_status.timestamp = tv.tv_sec*1000000 + tv.tv_usec;
     
     veh_status_pub.publish("CANINFO", &veh_status);
+    return 0;
 }
 
 STATE messageControl::pub_esr_objinfo_msg(structESROBJINFO* esrObjInfo){
     veh_status_pub.publish("ESROBJINFO", esrObjInfo);
+    return 0;
 }
 STATE messageHandle::get_veh_control_msg(veh_info_t* veh_info){
     std::lock_guard<std::mutex> lk(veh_info_lock);
@@ -98,6 +103,11 @@ STATE messageHandle::get_remote_control_msg(bool* remote_control){
     return CC_OK;
 }
 
+STATE messageHandle::get_veh_aimpath(float* curvature){
+    std::lock_guard<std::mutex> lk(aim_path_lock);
+    *curvature = curvature_;
+    return CC_OK;
+}
 void messageHandle::veh_control_info(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structCANCONTROL *msg){
     {
         std::lock_guard<std::mutex> lk(veh_info_lock);
@@ -127,3 +137,10 @@ void messageHandle::veh_navinfo(const zcm::ReceiveBuffer* rbuf, const std::strin
         //nav_info_.pitchDeg = msg->mPitch;
     }
 }
+void messageHandle::veh_aimpath(const zcm::ReceiveBuffer* rbuf, const std::string& chan, const structAIMPATH *msg){
+    {
+        std::lock_guard<std::mutex> lk(aim_path_lock);
+        if(msg->points[0].k < 0.2)
+            curvature_ = msg->points[0].k;
+        //nav_info_.pitchDeg = msg->mPitch;
+    }}
