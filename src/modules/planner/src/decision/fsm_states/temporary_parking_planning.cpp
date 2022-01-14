@@ -2,6 +2,7 @@
 
 #include "map_manager.h"
 #include "tiev_fsm.h"
+#include "tievlog.h"
 namespace TiEV {
 using namespace std;
 
@@ -12,12 +13,13 @@ void TemporaryParkingPlanning::enter(Control& control) {
 }
 
 void TemporaryParkingPlanning::update(FullControl& control) {
-  cout << "Temporary Parking Planning update..." << endl;
-  MapManager& map_manager = MapManager::getInstance();
+  LOG(INFO) << "Temporary Parking Driving update...";
+  MapManager& map_manager      = MapManager::getInstance();
+  auto&       decision_context = DecisionContext::getInstance();
+  const auto map = map_manager.getMap();
+  const auto start_path = map_manager.getStartMaintainedPath();
   map_manager.updateRefPath();
   map_manager.updatePlanningMap(MapManager::DynamicBlockType::NO_BLOCK);
-  auto&        map        = map_manager.getMap();
-  vector<Pose> start_path = map_manager.getStartMaintainedPath();
   Pose         target     = map_manager.getTemporaryParkingTarget();
   if (!map_manager.allowParking(target, map.ref_path)) {
     control.changeTo<NormalDriving>();
@@ -28,13 +30,17 @@ void TemporaryParkingPlanning::update(FullControl& control) {
       map.nav_info, map.ref_path, map.dynamic_obj_list,
       map_manager.getCurrentMapSpeed(), true, map.lidar_dis_map,
       map.planning_dis_map, start_path, target, &result_path);
+
   const auto maintained_path = map_manager.getMaintainedPath(map.nav_info);
-  if (!maintained_path.empty() &&
-      ((maintained_path.front().backward && map.nav_info.current_speed > 0.2)/* ||
-       !collision(maintained_path, map.planning_dis_map)*/)) {
+  if (!maintained_path.empty() && !collision(maintained_path, map.planning_dis_map)) {
     return;
   }
-  map_manager.maintainPath(map.nav_info, result_path);
+  decision_context.setSpeedLimitMPS(map_manager.getCurrentMapSpeed());
+  if (!result_path.empty()) {
+    decision_context.setMaintainedPath(result_path);
+  }
+  decision_context.updatePlannerInfo(map.dynamic_obj_list.dynamic_obj_list);
+
   entry_time               = getTimeStamp();
   const auto& current_pose = map.nav_info.car_pose;
 
