@@ -71,13 +71,14 @@ void EHBControl::canInfoSend(){
 		if(dcuMessage_.AimPressure == 0){
 			continue;
 		}
-		VCI_CAN_OBJ frame[1];
+		VCI_CAN_OBJ frame[2];
 		frame[0].ID = 0x303;
 		frame[0].DataLen = 8;
 		send_m_TX2_EHB(frame);
+		// frame[1] = frame[0];
 		// std::time_t time_now = TiEV::getTimeStamp();
-		INFO("send ehb: "<<(int)frame[0].Data[4]);
-		// int i = VCI_Transmit(can_dev.devType, can_dev.devIndex, can_dev.channelNum, frame, 1);
+		// INFO("send ehb: "<<(int)frame[0].Data[4]);
+		// VCI_Transmit(can_dev.devType, can_dev.devIndex, can_dev.channelNum, frame, 1);
 		INFO("vci return = "<<VCI_Transmit(can_dev.devType, can_dev.devIndex, can_dev.channelNum, frame, 1));
 		// INFO("time = "<<TiEV::getTimeStamp() - time_now);
 	}

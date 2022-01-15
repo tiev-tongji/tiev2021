@@ -68,7 +68,9 @@ void runTiEVFSM() {
 void sendPath() {
   // get the decison context
   const auto& decision_context = DecisionContext::getInstance();
+  time_t time_limit = 10e3;
   while (true) {
+    auto start_time = getTimeStamp();	  
     const auto static_obstacle_virtual_dymanic =
         decision_context.getStaticObsDecision();
     const auto pedestrian_virtual_dymanic =
@@ -173,6 +175,8 @@ void sendPath() {
       vis.maintained_path.push_back(vp);
     }
     MessageManager::getInstance().setSpeedPath(speed_path);
+    auto time_passed = getTimeStamp() - start_time;
+    if(time_passed < time_limit) usleep(time_limit - time_passed);
   }
 }
 
