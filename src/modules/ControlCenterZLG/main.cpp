@@ -194,6 +194,12 @@ int main(int argc, char *argv[]) {
     else {
       dcuMsg.AimPressure = 0; // john: verify
     }
+
+    // double aim_p = 0;
+    // std::cin >> aim_p;
+    // dcuMsg.AimPressure = aim_p;
+    // std::cout << "dcu: " << (int)dcuMsg.AimPressure << std::endl;
+
     ehb_control.sendDCUMessage(dcuMsg);
     if (!enable_pc_control) {
       dcuMsg.AimPressure = 0;
