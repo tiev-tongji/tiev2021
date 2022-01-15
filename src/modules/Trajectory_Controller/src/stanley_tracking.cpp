@@ -74,7 +74,8 @@ void StanleyTracking::computeWheelAngle(const ControlPose ref_pose, const Contro
 //		kinematic_gain = atan(1);
 	}
 	else{
-		kinematic_gain = -1 *(_k_heading_dev * heading_error + atan(-1 * _k_lateral_rear * pos_error / (k_soft + std::fabs(current_vel))));
+		// kinematic_gain = -1 *(_k_heading_dev * heading_error + atan(-1 * _k_lateral_rear * pos_error / (k_soft + std::fabs(current_vel))));
+		kinematic_gain = -1.0 *(_k_heading_dev * heading_error + atan(-1.0 * 0.1 * pos_error));
 	}
 	dynamic_gain = _k_kappa_dev * (current_vel * ref_pose.kappa - current_yawrate) + current_vel * current_vel * ref_pose.kappa * _mass / (2 * _cornering_stiffness * (1 + _lf / _lr));
 	if (_flag_dynamic){

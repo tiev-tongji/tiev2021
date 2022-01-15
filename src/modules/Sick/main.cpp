@@ -65,18 +65,17 @@ int main(int argc, const char *argv[])
 		int sf = sick_front.start_recieve_client(0);
 		int sb = sick_back.start_recieve_client(1);
 
-
 		noisy_point();
-		for (int i = 0; i < 501; i++)
-		{
-			for (int j = 0; j < 251; j++)
-			{
-				if (mapData.cells[i][j] == 1)
-				{
-					cout << j << ' ' << i << endl;
-				}
-			}
-		}
+		// for (int i = 0; i < 501; i++)
+		// {
+		// 	for (int j = 0; j < 251; j++)
+		// 	{
+		// 		if (mapData.cells[i][j] == 1)
+		// 		{
+		// 			cout << j << ' ' << i << endl;
+		// 		}
+		// 	}
+		// }
 		// char ch = getchar();
 		if (sb && sf)
 		{

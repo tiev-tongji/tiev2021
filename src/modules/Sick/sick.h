@@ -101,10 +101,10 @@ namespace TiEV
 	void noisy_init()
 	{
 		fstream fp;
-		fp.open("noisy.txt",ios::in);
+		fp.open("../noisy.txt",ios::in);
 
 		char s[20];
-		//cout<<fp.peek()<<endl;
+		// cout<<fp.peek()<<endl;
 		while (fp.peek()!=EOF)
 		{
 			fp.getline(s, 20);
@@ -114,6 +114,7 @@ namespace TiEV
 			int y = atoi(&s[4]);
 
 			noisy_points.push_back(point_xy(x,y));
+			// cout<<"get one noisy point"<<endl;
 		}
 		noisy_points.erase(unique(noisy_points.begin(),noisy_points.end()),noisy_points.end());
 	}
@@ -300,6 +301,7 @@ namespace TiEV
 						//cout << x << ' ' << y << endl;
 					}
 				}
+				return 1;
 			}
 			else //back雷达进行坐标变换
 			{

@@ -16,3 +16,7 @@ steer_PH 0.01
 steer_IH 0.0001
 steer_DH 0.058
 steer_FFH -4.0
+steer_reverse_P 0.0080
+steer_reverse_I 0.00005
+steer_reverse_D 0.00
+steer_reverse_FF -20.0

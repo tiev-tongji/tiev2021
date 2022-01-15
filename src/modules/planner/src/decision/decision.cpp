@@ -121,7 +121,7 @@ void sendPath() {
           average_k += maintained_path[j].k / (end_idx - begin_idx);
         }
         if (point.backward) {
-          max_speed = min(2.0, max_speed);
+          max_speed = min(1.0, max_speed);
           point.ang = M_PI + point.ang;
         }
         speed_limits.emplace_back(

@@ -208,13 +208,19 @@ STATE angle_pid_control(const veh_info_t &veh_info, float &desired_angle, float 
     float D_angle = P_angle - P_angle_old;
     P_angle_old = P_angle;
     float P_contribute, I_contribute, D_contribute, FF_contribute = 0;
-    if (veh_info.speed <= 20)
+    if (veh_info.speed <= 20 && veh_info.speed >= 0)
     {
         P_contribute = P_angle * params.steer_P * k;
         I_contribute = I_angle * params.steer_I;
         D_contribute = D_angle * params.steer_D;
         //DEBUG("Curvature INFO ==> curvature:" << Cur);
         FF_contribute = L * Cur + Kv * veh_info.speed * veh_info.speed * Cur - params.steer_FF * (-L_r * Cur + m_r / (2 * C_alpha_r) * veh_info.speed * veh_info.speed * Cur);
+    }
+    else if(veh_info.speed < 0){
+        P_contribute = P_angle * params.steer_reverse_P * k;
+        I_contribute = I_angle * params.steer_reverse_I;
+        D_contribute = D_angle * params.steer_reverse_D;
+        FF_contribute = L * Cur + Kv * veh_info.speed * veh_info.speed * Cur - params.steer_reverse_FF * (-L_r * Cur + m_r / (2 * C_alpha_r) * veh_info.speed * veh_info.speed * Cur);
     }
     else
     {
