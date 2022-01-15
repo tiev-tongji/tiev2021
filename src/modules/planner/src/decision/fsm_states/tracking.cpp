@@ -20,18 +20,47 @@ void Tracking::update(FullControl& control) {
   map_manager.updatePlanningMap(MapManager::DynamicBlockType::NO_BLOCK);
   map_manager.updateRefPath();
   vector<Pose> tracking_path;
-  const auto&  ref_path = map_manager.getForwardRefPath();
+  auto         ref_path = map_manager.getForwardRefPath();
   if (ref_path.empty()) {
     LOG(WARNING) << "ref_path empty!";
     return;
   }
-  double init_s = ref_path[0].s;
+  bool                    first_backward = ref_path.front().backward;
+  std::vector<HDMapPoint> first_part;
+  std::vector<HDMapPoint> second_part;
+  bool                    traverse_first = true;
+  for (const auto& p : ref_path) {
+    if (traverse_first && p.backward == first_backward) {
+      if (p.passed) continue;
+      first_part.push_back(p);
+    } else if (p.backward != first_backward) {
+      traverse_first = false;
+      second_part.push_back(p);
+    } else {
+      break;
+    }
+  }
+  if (first_part.size() < 2 && !second_part.empty()) ref_path = second_part;
+
+  double init_s                      = ref_path[0].s;
+  bool   is_testing_backward_driving = true;
   for (const auto& p : ref_path) {
     Pose tmp(p.x, p.y, p.ang, p.k, p.v, p.a, p.s, p.t, p.backward,
              p.utm_position);
+    tmp.passed = p.passed;
+    if (is_testing_backward_driving) {
+      if (p.v < 0) {
+        tmp.backward = true;
+        tmp.v        = 2;
+      }
+    }
     tracking_path.push_back(tmp);
   }
-  decision_context.setSpeedLimitMPS(map_manager.getCurrentMapSpeed());
+  if (is_testing_backward_driving) {
+    decision_context.setSpeedLimitMPS(2);
+  } else {
+    decision_context.setSpeedLimitMPS(map_manager.getCurrentMapSpeed());
+  }
   decision_context.setMaintainedPath(tracking_path);
   entry_time = getTimeStamp();
   /*

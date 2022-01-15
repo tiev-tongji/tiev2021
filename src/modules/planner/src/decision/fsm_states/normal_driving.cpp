@@ -20,7 +20,7 @@ void NormalDriving::update(FullControl& control) {
   map_manager.updatePlanningMap(MapManager::DynamicBlockType::ALL_BLOCK);
   const auto map = map_manager.getMap();
 
-  bool back_ward        = map.nav_info.current_speed < 1 ? true : false;
+  bool       back_ward  = map.nav_info.current_speed < 1 ? true : false;
   const auto start_path = map_manager.getStartMaintainedPath();
   // if we need u-turn, the heading dif weight should be bigger
   const auto& ref_path = map_manager.getForwardRefPath();

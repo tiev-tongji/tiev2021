@@ -54,7 +54,7 @@ const std::vector<DynamicObj> DecisionContext::getStaticObsDecision() const {
     }
   }
   // static obs decision
-  for (const auto& point : getMaintainedPath()) {
+  for (const auto& point : getConstMaintainedPath()) {
     if (collision(point, lidar_dis_map)) {
       DynamicObj obj;
       obj.type = CAR;
@@ -75,8 +75,8 @@ const std::vector<DynamicObj> DecisionContext::getDynamicList() const {
   return dynamic_list.dynamic_obj_list;
 }
 
-const std::vector<Pose> DecisionContext::getMaintainedPath() const {
-  std::shared_lock<std::shared_mutex> lck(maintained_path_mutex);
+const std::vector<Pose> DecisionContext::getMaintainedPath() {
+  std::unique_lock<std::shared_mutex> lck(maintained_path_mutex);
   auto                                path = _maintained_path;
   lck.unlock();
   NavInfo nav_info;
@@ -90,30 +90,32 @@ const std::vector<Pose> DecisionContext::getMaintainedPath() const {
   for (auto& p : path) {
     p.s -= base_s;
   }
-  std::vector<Pose> res;
-  if (path[shortest_index].backward) {
-    for (auto p : path) {
-      if (p.s < 0) continue;
-      if (p.in_map() && p.backward)
-        res.push_back(p);
-      else
-        break;
-    }
-  } else {
-    for (auto p : path) {
-      if (p.s < 0) continue;
-      if (p.in_map() && !p.backward)
-        res.push_back(p);
-      else
-        break;
+
+  bool              first_backward = path[shortest_index].backward;
+  std::vector<Pose> res_first_part;
+  std::vector<Pose> res_second_part;
+  bool              traverse_first = true;
+  for (int i = shortest_index; i < path.size(); ++i) {
+    const auto& p = path[i];
+    if (traverse_first && p.backward == first_backward) {
+      if (p.passed) continue;
+      res_first_part.push_back(p);
+    } else if (p.backward != first_backward) {
+      traverse_first = false;
+      res_second_part.push_back(p);
+    } else {
+      break;
     }
   }
-  return res;
+  _maintained_path[shortest_index].passed = true;
+  if (res_second_part.empty()) return res_first_part;
+  if (res_first_part.size() < 2) return res_second_part;
+  return res_first_part;
 }
 
 const std::vector<Pose> DecisionContext::getMaintainedPath(
-    const NavInfo& nav_info) const {
-  std::shared_lock<std::shared_mutex> lck(maintained_path_mutex);
+    const NavInfo& nav_info) {
+  std::unique_lock<std::shared_mutex> lck(maintained_path_mutex);
   auto                                path = _maintained_path;
   lck.unlock();
   for (auto& p : path) {
@@ -128,25 +130,64 @@ const std::vector<Pose> DecisionContext::getMaintainedPath(
   for (auto& p : path) {
     p.s -= base_s;
   }
-  std::vector<Pose> res;
-  if (path[shortest_index].backward) {
-    for (auto p : path) {
-      if (p.s < 0) continue;
-      if (p.in_map() && p.backward)
-        res.push_back(p);
-      else
-        break;
-    }
-  } else {
-    for (auto p : path) {
-      if (p.s < 0) continue;
-      if (p.in_map() && !p.backward)
-        res.push_back(p);
-      else
-        break;
+
+  bool              first_backward = path[shortest_index].backward;
+  std::vector<Pose> res_first_part;
+  std::vector<Pose> res_second_part;
+  bool              traverse_first = true;
+  for (int i = shortest_index; i < path.size(); ++i) {
+    const auto& p = path[i];
+    if (traverse_first && p.backward == first_backward) {
+      if (p.passed) continue;
+      res_first_part.push_back(p);
+    } else if (p.backward != first_backward) {
+      traverse_first = false;
+      res_second_part.push_back(p);
+    } else {
+      break;
     }
   }
-  return res;
+  _maintained_path[shortest_index].passed = true;
+  if (res_second_part.empty()) return res_first_part;
+  if (res_first_part.size() < 2) return res_second_part;
+  return res_first_part;
+}
+
+const std::vector<Pose> DecisionContext::getConstMaintainedPath() const {
+  std::shared_lock<std::shared_mutex> lck(maintained_path_mutex);
+  auto                                path = _maintained_path;
+  lck.unlock();
+  NavInfo nav_info;
+  MessageManager::getInstance().getNavInfo(nav_info);
+  for (auto& p : path) {
+    p.updateLocalCoordinate(nav_info.car_pose);
+  }
+  if (path.empty()) return path;
+  int    shortest_index = shortestPointIndex(nav_info.car_pose, path);
+  double base_s         = path[shortest_index].s;
+  for (auto& p : path) {
+    p.s -= base_s;
+  }
+
+  bool              first_backward = path[shortest_index].backward;
+  std::vector<Pose> res_first_part;
+  std::vector<Pose> res_second_part;
+  bool              traverse_first = true;
+  for (int i = shortest_index; i < path.size(); ++i) {
+    const auto& p = path[i];
+    if (traverse_first && p.backward == first_backward) {
+      if (p.passed) continue;
+      res_first_part.push_back(p);
+    } else if (p.backward != first_backward) {
+      traverse_first = false;
+      res_second_part.push_back(p);
+    } else {
+      break;
+    }
+  }
+  if (res_second_part.empty()) return res_first_part;
+  if (res_first_part.size() < 2) return res_second_part;
+  return res_first_part;
 }
 
 const std::deque<PlannerInfo> DecisionContext::getPlannerHistory() const {

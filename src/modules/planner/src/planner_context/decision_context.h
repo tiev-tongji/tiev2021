@@ -1,21 +1,22 @@
 #ifndef DECISION_CONTEXT_H
 #define DECISION_CONTEXT_H
+#include <deque>
 #include <mutex>
 #include <queue>
-#include <deque>
+#include <set>
 #include <shared_mutex>
 #include <vector>
-#include <set>
 
 #include "tiev_class.h"
 
 namespace TiEV {
 class PlannerInfo {
-public:
-  PlannerInfo(const std::set<int>& static_vehicles_) : static_vehicles(static_vehicles_) {}
+ public:
+  PlannerInfo(const std::set<int>& static_vehicles_)
+      : static_vehicles(static_vehicles_) {}
   // planner info of each iteration
   std::set<int> static_vehicles;
-  time_t timestamp;
+  time_t        timestamp;
 };
 
 struct PlanningWeights {
@@ -39,8 +40,9 @@ class DecisionContext {
   const std::vector<DynamicObj> getStaticObsDecision() const;
   const std::vector<DynamicObj> getDynamicList() const;
 
-  const std::vector<Pose> getMaintainedPath() const;  // use new latest nav_info
-  const std::vector<Pose> getMaintainedPath(const NavInfo& nav_info) const;
+  const std::vector<Pose> getMaintainedPath();  // use new latest nav_info
+  const std::vector<Pose> getMaintainedPath(const NavInfo& nav_info);
+  const std::vector<Pose> getConstMaintainedPath() const;
 
   const std::deque<PlannerInfo> getPlannerHistory() const;
 
@@ -63,7 +65,7 @@ class DecisionContext {
 
   void setPlanningWeights(const PlanningWeights& weights);
 
-  void updatePlannerInfo(const std::vector<DynamicObj> &dynamic_obj_list);
+  void updatePlannerInfo(const std::vector<DynamicObj>& dynamic_obj_list);
 
  private:
   // decision results

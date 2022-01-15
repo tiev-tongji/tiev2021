@@ -50,7 +50,8 @@ struct Pose : public Point2d {
   double      a;
   double      s;  // lenth meter
   double      t;  // time second
-  bool        backward;
+  bool        backward = false;
+  bool        passed = false;
   UtmPosition utm_position;
   Pose(double x_ = 0, double y_ = 0, double ang_ = 0, double k_ = 0,
        double v_ = 0, double a_ = 0, double s_ = 0, double t_ = 0,

@@ -356,6 +356,7 @@ void MapManager::updateRefPath(bool need_opposite) {
   int search_end =
       min(int(global_path.size() - 1), global_path_nearest_idx + search_depth);
   global_path_nearest_idx = getGlobalPathNearestIndex(search_begin, search_end);
+  global_path[global_path_nearest_idx].passed = true;
   search_begin = max(global_path_nearest_idx - search_history_depth, 0);
   search_end =
       min(int(global_path.size() - 1), global_path_nearest_idx + search_depth);
@@ -365,6 +366,7 @@ void MapManager::updateRefPath(bool need_opposite) {
     HDMapPoint p = global_path[i];
     p.updateLocalCoordinate(car_pose);
     p.v = getSpeedBySpeedMode(p.speed_mode);
+    if (p.v < 0) p.backward = true;
     if (!p.in_map()) continue;
     map.ref_path.push_back(p);
     if (i == global_path_nearest_idx)
