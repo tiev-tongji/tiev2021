@@ -3,7 +3,7 @@
 # set -k
 # CURR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 # TIEV_ROOT_DIR="${CURR_DIR}"
-TIEV_ROOT_DIR="/home/autolab/tiev"
+TIEV_ROOT_DIR="/home/autolab/tiev2021"
 TIEV_IMAGE="tiev:venus"
 TIEV_CONTAINER="tiev"
 INSIDE_CONTAINER="tiev"
@@ -43,7 +43,7 @@ group="$(id -g -n)"
 gid="$(id -g)"
 
 # set -x
-docker run -itd \
+nvidia-docker run -itd \
         --privileged \
         --name "${TIEV_CONTAINER}" \
         -e DISPLAY="${display}" \
@@ -55,6 +55,7 @@ docker run -itd \
         -e DOCKER_IMG="${TIEV_IMAGE}" \
         ${local_volumes} \
         --net host \
+        --gpus all \
         -w /home/${USER}/tiev/scripts \
         --add-host "${INSIDE_CONTAINER}:127.0.0.1" \
         --add-host "${local_host}:127.0.0.1" \
