@@ -4,7 +4,7 @@ import time
 from functools import partial
 
 import numpy as np
-import second.data.custome_eval as custome_eval
+from second.data import custome_eval as custome_eval
 from second.core import box_np_ops
 from second.core import preprocess as prep
 from second.data import kitti_common as kitti

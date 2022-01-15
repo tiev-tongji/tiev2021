@@ -13,7 +13,7 @@ from second.core import preprocess as prep
 import second.data.custome_eval as custome_eval
 @register_dataset
 class ApolloDataset(Dataset):
-    NumPointFeatures = 4
+    NumPointFeatures = 3
     def __init__(self,
                  root_path,
                  info_path,
@@ -147,9 +147,9 @@ def _read_imageset_file(path):
 #create infos files
 def create_apollo_info_file(data_path=None, save_path=None, relative_path=True):
     #read file
-    data_path="/media/autolab/3187f5af-bb7c-4819-9e8c-3a685e91817c/TXB/APOLLO_DATASET_ROOT/"
-    train_img_ids = _read_imageset_file("/home/autolab/tianxuebo/second.pytorch/second/data/ImageSets/apollo_train.txt")
-    val_img_ids = _read_imageset_file("/home/autolab/tianxuebo/second.pytorch/second/data/ImageSets/apollo_val.txt")
+    data_path="/home/autolab/tianxuebo/second.pytorch/second/DATASET/WAYMO_WITH_INTEN_DATASET_ROOT/"
+    train_img_ids = _read_imageset_file("/home/autolab/tianxuebo/second.pytorch/second/data/ImageSets/waymo2_train.txt")
+    val_img_ids = _read_imageset_file("/home/autolab/tianxuebo/second.pytorch/second/data/ImageSets/waymo2_val.txt")
     print("Generate info. this may take several minutes.")
     save_path = data_path
     #prepare train infos
@@ -205,7 +205,7 @@ def get_apollo_image_info(data_path,
 def get_one_info(idx,data_path):
     info = {}
     idx_6="%06d" % idx
-    pc_info = {'num_features': 4}
+    pc_info = {'num_features': 3}
     pc_info['velodyne_path'] = 'training/velodyne/'+idx_6+'.bin'
     img_info={'image_idx': idx}
     calib_info = {}

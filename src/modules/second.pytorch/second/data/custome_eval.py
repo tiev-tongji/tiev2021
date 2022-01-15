@@ -71,6 +71,9 @@ def get_one_result(detection,labels_path,data_type,object_type,threshold):
     gt_num=0
     dt_num=0
     sum_iou=0
+    for i in range(obs_num):
+        if detection["name"][i] == object_type:
+            dt_num+=1
     for line in lines:
         obj=line.split(' ')
         ttpye=obj[0]
@@ -87,13 +90,12 @@ def get_one_result(detection,labels_path,data_type,object_type,threshold):
         for i in range(obs_num):
             if detection["name"][i] != object_type:
                 continue
-            dt_num+=1
             dt_location = detection["location"][i]
             dt_dimension = detection["dimensions"][i]
             dt_angs=detection["rotation_y"][i]
             dt_ang=dt_angs*180/math.pi
             if data_type== 'apollo':
-                rect2=((dt_location[0],dt_location[1]) , (dt_dimension[2],dt_dimension[0]) , dt_ang)
+                rect2=((dt_location[0],dt_location[1]) , (dt_dimension[1],dt_dimension[0]) , dt_ang)
             elif data_type == 'kitti':
                 rect2=((dt_location[0],dt_location[1]) , (dt_dimension[0],dt_dimension[1]) , dt_ang)
             area_and,area_or=calculat_cover_area(rect1,rect2)
@@ -149,8 +151,8 @@ def get_det_results(detections,labels_path,data_type):
     acc,recall,iou=get_det_result(detections,labels_path,data_type,'Pedestrian',0)
     print('--Pedestrian Result--\nAvg_Precision:',acc,'\nAvg_Recall:',recall,'\nAvg_IoU:',iou)
 
-    acc,recall,iou=get_det_result(detections,labels_path,data_type,'Truck',0)
-    print('--Truck Result--\nAvg_Precision:',acc,'\nAvg_Recall:',recall,'\nAvg_IoU:',iou)
+    #acc,recall,iou=get_det_result(detections,labels_path,data_type,'Truck',0)
+    #print('--Truck Result--\nAvg_Precision:',acc,'\nAvg_Recall:',recall,'\nAvg_IoU:',iou)
     
 if __name__ == '__main__':
     fire.Fire()
