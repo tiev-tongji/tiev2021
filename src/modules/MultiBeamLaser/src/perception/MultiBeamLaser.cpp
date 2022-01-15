@@ -752,8 +752,12 @@ int main()
     settings.kf_settings.measurement_variance = 0.1;
     settings.kf_settings.position_variance = 0.7;//0.1;
     settings.kf_settings.velocity_variance = 0.001;
+    settings.kf_settings.heading_variance = 0.01;
+    settings.kf_settings.heading_velocity_variance = 0.01;
     settings.kf_settings.initial_position_variance = 0.05;
     settings.kf_settings.initial_velocity_variance = 1.0;
+    settings.kf_settings.initial_heading_variance = 0.5;
+    settings.kf_settings.initial_heading_velocity_variance = 0.5;
 
     settings.use_velodyne = 1;
     settings.velodyne_threshold_factor = 0.0013;

@@ -64,7 +64,7 @@ public:
   bool getCenterOfPoints(double *x, double *y, double *z);
 
   virtual int  getSize() = 0;
-  virtual void markDynamic(dgc_grid_p grid, unsigned short counter, double velocity, bool isdynamic);
+  virtual void markDynamic(dgc_grid_p grid, unsigned short counter, double velocity, double heading, double heading_velocity, bool isdynamic);
 
   virtual float maxHeight() = 0;
 

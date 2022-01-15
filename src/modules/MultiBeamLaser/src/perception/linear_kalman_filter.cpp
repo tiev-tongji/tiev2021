@@ -27,6 +27,13 @@ void LinearKalmanFilter::predict(const Eigen::MatrixXd& transition_matrix, doubl
   timestamp_ = timestamp;
 }
 
+void LinearKalmanFilter::predict_ekf(const Eigen::MatrixXd &transition_matrix_mu,const Eigen::MatrixXd &transition_matrix_sigma, double timestamp)
+{
+  mu_ = transition_matrix_mu * mu_;
+  sigma_ = transition_matrix_sigma * sigma_ * transition_matrix_sigma.transpose() + transition_covariance_;
+  timestamp_ = timestamp;
+}
+
 void LinearKalmanFilter::update(const Eigen::VectorXd& measurement, double timestamp) {
   MatrixXd tmp = measurement_matrix_ * sigma_ * measurement_matrix_.transpose() + measurement_covariance_;
   kalman_gain_ = sigma_ * measurement_matrix_.transpose() * tmp.inverse();

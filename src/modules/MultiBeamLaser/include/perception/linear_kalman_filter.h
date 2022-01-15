@@ -34,6 +34,16 @@ class LinearKalmanFilter {
   //! Lines 2 and 3 of Kalman_filter algorithm in Probabilistic Robotics, Chapter 3.
   void predict(const Eigen::MatrixXd& transition_matrix, double timestamp);
 
+  /**
+   * @brief Estimates the next state of the tracked object using EKF
+   * Lines 2 and 3 of Extended Kalman_filter algorithm.
+   * 
+   * @param transition_matrix_mu_  g of EKF
+   * @param transition_matrix_sigma_ G of EKF
+   * @param timestamp_ 
+   */
+  void predict_ekf(const Eigen::MatrixXd &transition_matrix_mu,const Eigen::MatrixXd &transition_matrix_sigma, double timestamp);
+
   //! Estimates the state of the tracked object based on a given measurement.
   //! Lines 4-7 of Kalman_filter algorithm in Probabilistic Robotics, Chapter 3.
   void update(const Eigen::VectorXd& measurement, double timestamp);

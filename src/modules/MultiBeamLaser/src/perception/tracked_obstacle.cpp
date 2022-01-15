@@ -170,28 +170,28 @@ namespace TiEV {
 
         if(isDynamic_)
         {
-            Vector2d diffRelativeObj;
-            int from = trajSize - 1, to = max(0, trajSize - 6);
-            diffRelativeObj(0) = trackUtmTrajectory_[from].x - trackUtmTrajectory_[to].x;
-            diffRelativeObj(1) = trackUtmTrajectory_[from].y - trackUtmTrajectory_[to].y;
+            // Vector2d diffRelativeObj;
+            // int from = trajSize - 1, to = max(0, trajSize - 6);
+            // diffRelativeObj(0) = trackUtmTrajectory_[from].x - trackUtmTrajectory_[to].x;
+            // diffRelativeObj(1) = trackUtmTrajectory_[from].y - trackUtmTrajectory_[to].y;
 
             double globalObjYaw;
-
             if(latestNavInfo.mRTKStatus == 1)
             {
-                if(lastObservation_->second_type == 0 && 
-                  ( getVelocity() < MinVelYawThres || disdelta < MinCarDisThres))
-                {
-                    trackTheta_ = lastObservation_->pose.yaw;
-                        return;
-                }
+                // if(lastObservation_->second_type == 0 && 
+                //   ( getVelocity() < MinVelYawThres || disdelta < MinCarDisThres))
+                // {
+                //     trackTheta_ = lastObservation_->pose.yaw;
+                //         return;
+                // }
 
-                if(getVelocity() < MinVelYawThres)
-                    globalObjYaw = atan2(getYVel(), getXVel());
-                else 
-                    globalObjYaw = atan2(diffRelativeObj(1), diffRelativeObj(0));
-
-                trackTheta_ = globalObjYaw - rotationAngle;
+                // if(getVelocity() < MinVelYawThres)
+                //     globalObjYaw = atan2(getYVel(), getXVel());
+                // else 
+                //     globalObjYaw = atan2(diffRelativeObj(1), diffRelativeObj(0));
+                globalObjYaw = filter->mu_(3);
+                trackTheta_ = globalObjYaw - rotationAngle - M_PI_2;
+                if (filter->mu_(2) < 0) trackTheta_ = trackTheta_ + M_PI ;
             }
             else 
             {
@@ -208,6 +208,9 @@ namespace TiEV {
                 trackTheta_ += 2 * M_PI;
             }
         }
+        else {
+            trackTheta_ = lastObservation_->pose.yaw;
+        }
     }
 
 
@@ -215,8 +218,9 @@ namespace TiEV {
     {
         pose.x = trackGridXY_(0);
         pose.y = trackGridXY_(1);
-        x_velocity_ = filter->mu_[2];
-        y_velocity_ = filter->mu_[3];
+        x_velocity_ = abs(filter->mu_[2]);
+        angular_velocity = filter->mu_[4];
+        y_velocity_ = 0;
         missed_++;
     }
 
@@ -228,8 +232,9 @@ namespace TiEV {
 
         pose.x = trackGridXY_(0);
         pose.y = trackGridXY_(1);
-        x_velocity_ = filter->mu_[2];
-        y_velocity_ = filter->mu_[3];
+        x_velocity_ = abs(filter->mu_[2]);
+        angular_velocity = filter->mu_[4];
+        y_velocity_ = 0;
         missed_ = 0;
     }
 
@@ -246,6 +251,11 @@ namespace TiEV {
         return range(getXVel(), getYVel());
     }
 
+    double TrackedObstacle::getAngularVel() const
+    {
+      return angular_velocity;
+    }
+    
     void TrackedObstacle::markDynamic(dgc_grid_p grid, unsigned short counter) {
         lastObservation_->pose.x = pose.x;
         lastObservation_->pose.y = pose.y;
@@ -256,7 +266,7 @@ namespace TiEV {
         lastObservation_->pose.yaw = this->trackTheta_;
         lastObservation_->second_type = this->trackType_;
 
-        lastObservation_->markDynamic(grid, counter, this->getVelocity(), this->isDynamic_);
+        lastObservation_->markDynamic(grid, counter, this->getVelocity(), this->trackTheta_, this->angular_velocity, this->isDynamic_);
     }
 
     void TrackedObstacle::populatePoints() {

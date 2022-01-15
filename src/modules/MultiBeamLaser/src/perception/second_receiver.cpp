@@ -9,8 +9,8 @@ SecondPython::SecondPython()
 	Py_Initialize();
 
 	PyRun_SimpleString("import sys");
-	//PyRun_SimpleString("sys.path.append(\'/home/autolab/tiev2019/src/modules/second.pytorch/second/pytorch\')");
-	PyRun_SimpleString("sys.path.append(\'/home/autolab/txb/second.pytorch/second/pytorch\')");
+	PyRun_SimpleString("sys.path.append(\'/home/autolab/tiev/src/modules/second.pytorch/second/pytorch\')");
+	//PyRun_SimpleString("sys.path.append(\'/home/autolab/txb/second.pytorch/second/pytorch\')");
 	
 	pymodule = PyImport_ImportModule("SECOND");
 	PyRun_SimpleString("print(\"hhhhhhhh\")");

@@ -92,14 +92,14 @@ namespace TiEV {
     }
 
     //important, show obstacles 
-    void Obstacle::markDynamic(dgc_grid_p grid, unsigned short counter, double velocity, bool isdynamic) 
+    void Obstacle::markDynamic(dgc_grid_p grid, unsigned short counter, double velocity,double heading,double heading_velocity, bool isdynamic) 
     {
         double x1,y1,x2,y2,x3,y3,x4,y4,x_end,y_end;
-        if(length < width)
+        if(length > width)
             swap(length, width);
 
-        length += 2;
-        width += 1;
+        // length += 2;
+        // width += 1;
 
         double rotationTheta = pose.yaw - M_PI / 2.0;
 
@@ -136,7 +136,7 @@ namespace TiEV {
             }
         }
                 
-        if(isdynamic && second_type != 127)
+        if( isdynamic && second_type != 127)//isdynamic &&
         // if(second_type != 127)
         {
             // char bufferprint[50];
@@ -147,19 +147,21 @@ namespace TiEV {
             myVisual.drawLine(point2d_t(x2, y2), point2d_t(x3, y3), sca);
             myVisual.drawLine(point2d_t(x3, y3), point2d_t(x4, y4), sca);
             myVisual.drawLine(point2d_t(x4, y4), point2d_t(x1, y1), sca);
-            myVisual.drawLine(point2d_t(pose.x, pose.y), point2d_t(x_end, y_end), sca);
+            // myVisual.drawLine(point2d_t(pose.x, pose.y), point2d_t(x_end, y_end), sca);
 
             predictPose[0].x = pose.x;
             predictPose[0].y = pose.y;
+            
 
             for(int i = 1; i < 6; ++i)
             {
                 double xx, yy;
-                transform(0,  i * velocity, rotationTheta, pose.x, pose.y, xx, yy);
+                transform(0,  i * velocity, heading, pose.x, pose.y, xx, yy);
                 predictPose[i].x = xx;
                 predictPose[i].y = yy;
-                myVisual.drawLine(point2d_t(pose.x, pose.y), point2d_t(xx, yy), sca);
+                myVisual.drawLine(point2d_t(predictPose[i-1].x,predictPose[i-1].y), point2d_t(xx, yy), sca);
                 myVisual.drawCircle(point2d_t(xx, yy), sca, 1);
+                heading = heading + heading_velocity;
             }
         }
     }

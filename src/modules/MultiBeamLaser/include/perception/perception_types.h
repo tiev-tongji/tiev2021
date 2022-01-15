@@ -231,8 +231,12 @@ typedef struct {
   double measurement_variance;
   double position_variance;
   double velocity_variance;
+  double heading_variance;
+  double heading_velocity_variance;
   double initial_position_variance;
   double initial_velocity_variance;
+  double initial_heading_variance;
+  double initial_heading_velocity_variance;
 } tracker_kf_settings_t, *tracker_kf_settings_p;
 
 typedef struct {

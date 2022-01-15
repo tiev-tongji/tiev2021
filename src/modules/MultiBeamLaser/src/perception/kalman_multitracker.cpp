@@ -41,6 +41,40 @@ KalmanMultiTracker::KalmanMultiTracker(
     transition_covariance_(3, 3) = velocity_variance;
 }
 
+KalmanMultiTracker::KalmanMultiTracker(
+        double correspondence_thresh, double pruning_thresh,
+		double measurement_variance, double position_variance,
+		double velocity_variance, double heading_variance,
+        double heading_velocity_variance, double initial_position_variance,
+		double initial_velocity_variance, double initial_heading_variance,
+        double initial_heading_velocity_variance) :
+        next_id_(0),
+        correspondence_thresh_(correspondence_thresh),
+        pruning_thresh_(pruning_thresh),    
+        current_timestamp_(0),
+        prev_timestamp_(0)
+{
+    measurement_matrix_ = MatrixXd::Identity(2, 5);
+    transition_matrix_ = MatrixXd::Identity(5, 5);
+    transition_matrix_mu_ = MatrixXd::Identity(5, 5);
+    transition_matrix_sigma_ = MatrixXd::Identity(5, 5);
+    measurement_covariance_ = MatrixXd::Identity(2, 2) * measurement_variance;
+    initial_sigma_ = MatrixXd::Zero(5, 5);
+    initial_sigma_(0, 0) = initial_position_variance;
+    initial_sigma_(1, 1) = initial_position_variance;
+    initial_sigma_(2, 2) = initial_velocity_variance;
+    initial_sigma_(3, 3) = initial_heading_variance;
+    initial_sigma_(4, 4) = initial_heading_velocity_variance;
+
+
+    transition_covariance_ = MatrixXd::Zero(5, 5);
+    transition_covariance_(0, 0) = position_variance;
+    transition_covariance_(1, 1) = position_variance;
+    transition_covariance_(2, 2) = velocity_variance;
+    transition_covariance_(3, 3) = heading_variance;
+    transition_covariance_(4, 4) = heading_velocity_variance;
+}
+
 void KalmanMultiTracker::eraseAll()
 {
     list<std::tr1::shared_ptr<TrackedObstacle> >::iterator it;
@@ -116,16 +150,23 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
                 double delta_t = measurement->time_ - track->filter->timestamp_;
 
                 // Compute the prediction for the timestamp of this measurement.
-                transition_matrix_(0, 2) = delta_t;
-                transition_matrix_(1, 3) = delta_t;
+                // transition_matrix_(0, 2) = delta_t;
+                // transition_matrix_(1, 3) = delta_t;
+                transition_matrix_sigma_(0, 2) = delta_t * cos(track->filter->mu_(3));
+                transition_matrix_sigma_(1, 2) = delta_t * sin(track->filter->mu_(3));
+                transition_matrix_sigma_(0, 3) = delta_t * track->filter->mu_(2) * sin(track->filter->mu_(3)) * -1;
+                transition_matrix_sigma_(1, 3) = delta_t * track->filter->mu_(2) * cos(track->filter->mu_(3));
+                transition_matrix_sigma_(3, 4) = delta_t;
 
                 VectorXd mu_bar(2);
 
-                double vel = track->getVelocity();
+                // double vel = track->getVelocity();
                 int augment = 1;
+                mu_bar(0) = augment * delta_t * track->filter->mu_(2) * cos(track->filter->mu_(3)) + track->filter->mu_(0);
+                mu_bar(1) = augment * delta_t * track->filter->mu_(2) * sin(track->filter->mu_(3)) + track->filter->mu_(1);
 
-                mu_bar(0) = augment * delta_t * track->filter->mu_(2) + track->filter->mu_(0);
-                mu_bar(1) = augment * delta_t * track->filter->mu_(3) + track->filter->mu_(1); 
+                // mu_bar(0) = augment * delta_t * track->filter->mu_(2) + track->filter->mu_(0);
+                // mu_bar(1) = augment * delta_t * track->filter->mu_(3) + track->filter->mu_(1); 
 
                 double x, y;
                 measurement->getCenterOfPoints(&x, &y); 
@@ -136,7 +177,7 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
 
                 VectorXd innovation = mu_bar - measurement->objWorldPose;
 
-                MatrixXd sigma_bar = transition_matrix_ * track->filter->sigma_ * transition_matrix_.transpose() + track->filter->transition_covariance_;
+                MatrixXd sigma_bar = transition_matrix_sigma_ * track->filter->sigma_ * transition_matrix_sigma_.transpose() + track->filter->transition_covariance_;
                 MatrixXd sigma_bar_inv_pos = sigma_bar.block(0, 0, 2, 2).inverse(); // The covariance matrix for the marginal of a Gaussian is just that block of the full covariance matrix.
                 double tempscore = exp(-0.5 * (innovation.transpose() * sigma_bar_inv_pos * innovation)[0]) / sqrt(( 2 * M_PI * sigma_bar.block(0, 0, 2, 2)).determinant());
                 if(track->trackType_ == measurement->second_type)
@@ -159,10 +200,17 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
             if((*it)->missed_ >= 10)
                 (*it)->isDynamic_ = false;
 
-            transition_matrix_(0, 2) = current_timestamp_ - prev_timestamp_;
-            transition_matrix_(1, 3) = current_timestamp_ - prev_timestamp_;
+            double delta_t = current_timestamp_ - prev_timestamp_;
+            transition_matrix_mu_(0, 2) = delta_t * cos((*it)->filter->mu_(3));
+            transition_matrix_mu_(1, 2) = delta_t * sin((*it)->filter->mu_(3));
+            transition_matrix_mu_(3, 4) = delta_t;
+            transition_matrix_sigma_(0, 2) = delta_t * cos((*it)->filter->mu_(3));
+            transition_matrix_sigma_(1, 2) = delta_t * sin((*it)->filter->mu_(3));
+            transition_matrix_sigma_(0, 3) = delta_t * (*it)->filter->mu_(2) * sin((*it)->filter->mu_(3)) * -1;
+            transition_matrix_sigma_(1, 3) = delta_t * (*it)->filter->mu_(2) * cos((*it)->filter->mu_(3));
+            transition_matrix_sigma_(3, 4) = delta_t;
 
-            (*it)->filter->predict(transition_matrix_, (*it)->filter->timestamp_ + current_timestamp_ - prev_timestamp_);
+            (*it)->filter->predict_ekf(transition_matrix_mu_,transition_matrix_sigma_, (*it)->filter->timestamp_ + current_timestamp_ - prev_timestamp_);
 
             Eigen::Vector2d kalmanFliterPose((*it)->filter->mu_(0), (*it)->filter->mu_(1)); //new world pose prediction by kalman
             Eigen::Vector3f srcGlobal(kalmanFliterPose(0), kalmanFliterPose(1), 0), targetLocal;     
@@ -181,14 +229,22 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
         {
             int m = direct_assignment.find(tracker_idx)->second;
 
-            double delta_time = measurements[m]->time_ - (*it)->filter->timestamp_;
+            double delta_t = measurements[m]->time_ - (*it)->filter->timestamp_;
 
             (*it)->missed_ = 0;  
 
-            transition_matrix_(0, 2) = delta_time;
-            transition_matrix_(1, 3) = delta_time;
+            // transition_matrix_(0, 2) = delta_time;
+            // transition_matrix_(1, 3) = delta_time;
+            transition_matrix_mu_(0, 2) = delta_t * cos((*it)->filter->mu_(3));
+            transition_matrix_mu_(1, 2) = delta_t * sin((*it)->filter->mu_(3));
+            transition_matrix_mu_(3, 4) = delta_t;
+            transition_matrix_sigma_(0, 2) = delta_t * cos((*it)->filter->mu_(3));
+            transition_matrix_sigma_(1, 2) = delta_t * sin((*it)->filter->mu_(3));
+            transition_matrix_sigma_(0, 3) = delta_t * (*it)->filter->mu_(2) * sin((*it)->filter->mu_(3)) * -1;
+            transition_matrix_sigma_(1, 3) = delta_t * (*it)->filter->mu_(2) * cos((*it)->filter->mu_(3));
+            transition_matrix_sigma_(3, 4) = delta_t;
 
-            (*it)->filter->predict(transition_matrix_, measurements[m]->time_);//call linear kalman to update the mu_ and sigma_
+            (*it)->filter->predict_ekf(transition_matrix_mu_,transition_matrix_sigma_, measurements[m]->time_);//call linear kalman to update the mu_ and sigma_
             (*it)->filter->update(measurements[m]->objWorldPose, measurements[m]->time_);
 
             Eigen::Vector2d kalmanFliterPose((*it)->filter->mu_(0), (*it)->filter->mu_(1)); //new world position update by kalman
@@ -221,7 +277,7 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
         if (!isNotracks && reverse_assignment.find(i) != reverse_assignment.end()) 
             continue;
         
-        VectorXd initial_state = VectorXd::Zero(4);
+        VectorXd initial_state = VectorXd::Zero(5);
 
         double x,y;
         measurements[i]->getCenterOfPoints(&x, &y);
@@ -230,7 +286,7 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
         measurements[i]->objWorldPose << targetGlobal(0), targetGlobal(1);
 
         initial_state.segment(0, 2) = measurements[i]->objWorldPose; //initial measurement world pose
-
+        initial_state(3) = measurements[i]->pose.yaw + carYaw - M_PI_2;
         std::tr1::shared_ptr<LinearKalmanFilter> new_kf(new LinearKalmanFilter(next_id_,
             measurements[i]->time_, initial_state, initial_sigma_,
             measurement_matrix_, transition_covariance_,
