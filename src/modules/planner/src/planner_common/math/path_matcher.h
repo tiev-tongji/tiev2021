@@ -7,6 +7,11 @@
 
 namespace TiEV {
 
+struct IdDis {
+  int    id;
+  double dis;
+};
+
 /**
  * @class
  * @brief Math a given coordinate(X/Y) to a given path and convert it to Frenet
@@ -27,6 +32,29 @@ class PathMatcher {
                           const double y, std::string type = "speed_planner");
   static Pose MatchToPath(const std::vector<HDMapPoint>& path, const double x,
                           const double y, std::string type = "speed_planner");
+
+  // returned distance is positive if p is on the left hand side of the path
+  template <class P1, class P2>
+  static IdDis MatchToPath(const std::vector<P1>& path, const P2& p) {
+    double dis_min = std::numeric_limits<double>::max();
+    int    idx_min = -1;
+    if (path.empty()) return {idx_min, dis_min};
+    for (int i = 0; i < path.size(); ++i) {
+      double dis_tmp = std::sqrt(std::pow(path[i].x - p.x, 2) +
+                                 std::pow(path[i].y - p.y, 2));
+      if (dis_tmp < dis_min) {
+        dis_min = dis_tmp;
+        idx_min = i;
+      }
+    }
+    const auto matched_point = path[idx_min];
+    Point2d    v1(std::cos(matched_point.ang), std::sin(matched_point.ang));
+    Point2d    v2(p.x - matched_point.x, p.y - matched_point.y);
+    bool       left_side = (v1.cross(v2) > 0);
+    double     signed_dis;
+    left_side == true ? signed_dis = dis_min : signed_dis = -dis_min;
+    return {idx_min, signed_dis};
+  }
 
   /**
    * @brief Match given s to a given path

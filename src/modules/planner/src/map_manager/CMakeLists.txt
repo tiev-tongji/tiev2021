@@ -13,4 +13,5 @@ target_link_libraries(map_manager PUBLIC
     planner_context 
     routing
     lattice_planner
+    planner_common
 )

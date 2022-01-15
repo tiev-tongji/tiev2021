@@ -9,6 +9,7 @@
 
 #include "collision_check.h"
 #include "lattice_planner.h"
+#include "path_matcher.h"
 #include "tiev_utils.h"
 #include "tievlog.h"
 
@@ -194,7 +195,7 @@ void MapManager::setGlobalPathDirection() {
   RoadDirection current_direction = RoadDirection::STRAIGHT;
   double        heading_after = 0.0, heading_before = 0.0;
   int           exit_index, entry_index;
-  for (int i = global_path.size(); i >= 0; i--) {
+  for (int i = int(global_path.size()) - 1; i >= 0; i--) {
     if (global_path[i].event != HDMapEvent::ENTRY_INTERSECTION &&
         global_path[i].event != HDMapEvent::EXIT_INTERSECTION) {
       global_path[i].direction = current_direction;
@@ -474,7 +475,10 @@ void MapManager::blockStopLine() {
 
 void MapManager::updatePlanningMap(DynamicBlockType dynamic_block_type,
                                    bool             history) {
-  laneBlockDecision();
+  // ALL_BLOCK: block static vehicles and lane
+  // SEMI_BLOCK: block static vehicles
+  // NO_BLOCK: don't block anything
+  laneBlockDecision(dynamic_block_type);
   dynamicDecision(dynamic_block_type);
   mapDecision(history);
   getAccessibleMap();
@@ -618,7 +622,7 @@ void MapManager::getAccessibleMap() {
     for (int i = 0; i < 4; ++i) {
       const int tx = x + dx[i], ty = y + dy[i];
       if (!visited[tx][ty] && Point2d(tx, ty).in_map() &&
-          map.planning_dis_map[tx][ty] * GRID_RESOLUTION >
+          map.lidar_dis_map[tx][ty] * GRID_RESOLUTION >
               COLLISION_CIRCLE_SMALL_R) {
         visited[tx][ty]            = true;
         map.accessible_map[tx][ty] = true;
@@ -845,8 +849,9 @@ Pose MapManager::getTemporaryParkingTarget() {
   }
   for (const auto& spot : current_tasks.back().task_points) {
     Pose p;
-    p.utm_position.utm_x = spot.utm_x;
-    p.utm_position.utm_y = spot.utm_y;
+    p.utm_position.utm_x   = spot.utm_x;
+    p.utm_position.utm_y   = spot.utm_y;
+    p.utm_position.heading = spot.heading;
     p.updateLocalCoordinate(map.nav_info.car_pose);
     if (p.in_map() && map.accessible_map[int(p.x)][int(p.y)]) {
       return p;
@@ -1081,11 +1086,13 @@ void MapManager::dynamicDecision(const DynamicBlockType dynamic_block_type) {
     }
     if (obstacle.type != ObjectType::CAR) continue;
     if (obstacle.path.empty()) continue;
-    if (obstacle.v > 0.1) continue;
-    // only if the vehicle stands still longer than still_timelimit, we block it
-    bool block             = false;
-    block                  = true;  // stop using decion context for now
-    double still_timelimit = 1e6;
+    const double move = (obstacle.path.back() - obstacle.path.front()).len();
+    if (move > 0.1) continue;
+    // only if the vehicle stands still longer than static_timelimit, we block
+    // it
+    bool block = false;
+    // block                  = true;  // stop using decion context for now
+    double static_timelimit = 2e6;
     for (auto info = planner_history.rbegin(); info < planner_history.rend();
          ++info) {
       auto sta_veh = info->static_vehicles;
@@ -1093,13 +1100,13 @@ void MapManager::dynamicDecision(const DynamicBlockType dynamic_block_type) {
       // LOG(INFO) << *it << std::endl;
       // LOG(INFO) << (getTimeStamp() - info->timestamp) / 1e6;
       if (it == sta_veh.end()) {
-        if (getTimeStamp() - info->timestamp >= still_timelimit) {
+        if (getTimeStamp() - info->timestamp >= static_timelimit) {
           block = true;
         }
         break;
       }
       if (it != sta_veh.end() &&
-          getTimeStamp() - info->timestamp >= still_timelimit) {
+          getTimeStamp() - info->timestamp >= static_timelimit) {
         block = true;
         break;
       }
@@ -1114,8 +1121,9 @@ void MapManager::dynamicDecision(const DynamicBlockType dynamic_block_type) {
   }
 }
 
-void MapManager::laneBlockDecision() {
+void MapManager::laneBlockDecision(DynamicBlockType dynamic_block_type) {
   memset(map.lane_block_map, 0, sizeof(map.lane_block_map));
+  if (dynamic_block_type != MapManager::DynamicBlockType::ALL_BLOCK) return;
   const auto add_obs_between = [&](const Pose& start, const Pose& end) {
     const auto direction = (end - start).getDirection();
     for (int i = 0; i < (end - start).len(); ++i) {
@@ -1123,8 +1131,39 @@ void MapManager::laneBlockDecision() {
       if (now.in_map()) map.lane_block_map[(int)now.x][(int)now.y] = 1;
     }
   };
-  // block uncorrect lane in intersection
-  for (const auto& p : map.ref_path) {
+  bool block_boundary_line = true;
+  if (!isVehicleOnRoad(map.nav_info.car_pose)) {
+    block_boundary_line = false;
+  }
+  double delta_ang = 0;
+  // don't block boundary line in Uturn scenario
+  for (int i = 1; i < map.forward_ref_path.size(); i += 5) {
+    delta_ang +=
+        fabs(map.forward_ref_path[i].ang - map.forward_ref_path[i - 1].ang);
+    if (delta_ang > PI) {
+      block_boundary_line = false;
+      break;
+    }
+  }
+  for (const auto& p : map.forward_ref_path) {
+    if ((map.nav_info.car_pose - p).len() < 8 / GRID_RESOLUTION) continue;
+    // 1. block boundary line
+    if (block_boundary_line) {
+      if (p.block_type & BlockType::BlockRight) {
+        // half lane shifted from the lane boundary line to reserve some space
+        const double right_dis = -(p.lane_seq - 1 + 1) * p.lane_width;
+        const Pose   bound_p   = p.getLateralPose(right_dis);
+        map.lane_block_map[(int)bound_p.x][(int)bound_p.y] = 1;
+      }
+      if (p.block_type & BlockType::BlockLeft) {
+        // half lane shifted from the lane boundary line to reserve some space
+        const double left_dis = (p.lane_num - p.lane_seq + 1) * p.lane_width;
+        const Pose   bound_p  = p.getLateralPose(left_dis);
+        map.lane_block_map[(int)bound_p.x][(int)bound_p.y] = 1;
+      }
+    }
+
+    // 2. block uncorrect lane in intersection
     // if it's not intersection solid or there is only 1 lane, don't block
     if (p.mode != HDMapMode::INTERSECTION_SOLID || p.lane_num < 2) continue;
     double block_start_point_dis = 0;
@@ -1201,14 +1240,14 @@ bool MapManager::allowParking(const Pose&                    parking_spot,
   double min_dis = std::numeric_limits<double>::max();
   Pose   near_ref_p;
   for (const auto& ref_p : ref_path) {
-    const double dis = (parking_spot - ref_p).sqrLen();
+    const double dis = (parking_spot - ref_p).len();
     if (dis < min_dis) {
       min_dis    = dis;
       near_ref_p = ref_p;
     }
   }
   // if parking spot is low than 20m in reference path, parking
-  if (near_ref_p.s < 20) return true;
+  if (near_ref_p.s < 20 && min_dis < 30 / GRID_RESOLUTION) return true;
   return false;
 }
 
@@ -1261,6 +1300,7 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
       return false;
     } catch (const std::exception& e) {
       LOG(FATAL) << "maby the dynamic obj have no corners!";
+      return false;
     }
   };
   // set the center line priority to avoid bostacles
@@ -1287,6 +1327,7 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
       }
       // decide the priority
       // if the center have priority but crashed
+      // LOG(INFO) << center_p;
       // LOG(INFO) << "collision with map:"
       //           << collision(center_p.x, center_p.y,
       //                        decision_map.planning_dis_map);
@@ -1294,33 +1335,39 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
       //           << clash_with_dynamic(center_p.x, center_p.y);
       const bool clash_with_static =
           collision(center_p.x, center_p.y, decision_map.planning_dis_map);
-      if (clash_with_static || clash_with_dynamic(center_p.x, center_p.y)) {
+      if (clash_with_static) {  // clash with static obstacle
         center_p.have_priority                = false;
         center_p.accumulate_dis_with_priority = 0.0;
         center_p.accumulate_by_static_obs     = clash_with_static;
+      } else if (clash_with_dynamic(center_p.x,
+                                    center_p.y) &&
+                 true) {  // TODO clash with dynamic object
         if (have_near_center_point &&
-            pre_nearest_center_point.accumulate_by_static_obs) {
-          center_p.have_priority = pre_nearest_center_point.have_priority;
+            pre_nearest_center_point.accumulate_by_static_obs &&
+            pre_nearest_center_point.accumulate_dis_with_priority <
+                max_effect_dis) {  // still affected by last static obs
+          center_p.have_priority = false;
           center_p.accumulate_dis_with_priority =
               pre_nearest_center_point.accumulate_dis_with_priority + min_dis;
-          center_p.accumulate_by_static_obs =
-              pre_nearest_center_point.accumulate_by_static_obs;
+          center_p.accumulate_by_static_obs = true;
+        } else {
+          center_p.have_priority                = false;
+          center_p.accumulate_dis_with_priority = 0.0;
+          center_p.accumulate_by_static_obs     = false;
         }
-      } else if (have_near_center_point) {
-        if (pre_nearest_center_point.accumulate_by_static_obs) {
-          center_p.have_priority = pre_nearest_center_point.have_priority;
-          center_p.accumulate_dis_with_priority =
-              pre_nearest_center_point.accumulate_dis_with_priority + min_dis;
-          center_p.accumulate_by_static_obs =
-              pre_nearest_center_point.accumulate_by_static_obs;
-        } else if (pre_nearest_center_point.accumulate_dis_with_priority <
-                   max_effect_dis) {
-          center_p.have_priority = pre_nearest_center_point.have_priority;
-          center_p.accumulate_dis_with_priority =
-              pre_nearest_center_point.accumulate_dis_with_priority + min_dis;
-        }
+      } else if (have_near_center_point &&
+                 pre_nearest_center_point.accumulate_by_static_obs &&
+                 pre_nearest_center_point.accumulate_dis_with_priority <
+                     max_effect_dis) {  // still affected by last static obs
+        center_p.have_priority = false;
+        center_p.accumulate_dis_with_priority =
+            pre_nearest_center_point.accumulate_dis_with_priority + min_dis;
+        center_p.accumulate_by_static_obs = true;
+      } else {
+        center_p.have_priority                = true;
+        center_p.accumulate_dis_with_priority = 0.0;
+        center_p.accumulate_by_static_obs     = false;
       }
-      // LOG(INFO) << center_p;
     }
     // check if all the lane center have no priority
     bool all_have_no_priority = !ref_p.neighbors.empty();
@@ -1328,6 +1375,15 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
       if (cp.have_priority) {
         all_have_no_priority = false;
         break;
+      }
+    }
+    if (all_have_no_priority) {
+      // consider with lane center only clashed with dynamic
+      for (auto& center_p : ref_p.neighbors) {
+        if (!collision(center_p.x, center_p.y, decision_map.planning_dis_map)) {
+          center_p.have_priority = true;
+          all_have_no_priority   = false;
+        }
       }
     }
     if (all_have_no_priority) {
@@ -1347,15 +1403,6 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
       }
     }
     if (all_have_no_priority) {
-      // consider with lane center only clashed with dynamic
-      for (auto& center_p : ref_p.neighbors) {
-        if (!collision(center_p.x, center_p.y, decision_map.planning_dis_map)) {
-          center_p.have_priority = true;
-          all_have_no_priority   = false;
-        }
-      }
-    }
-    if (all_have_no_priority) {
       // TODO:if still have no priority, consider the road outside?
       // set all is ok
       for (auto& center_p : ref_p.neighbors) {
@@ -1365,7 +1412,9 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
     }
     last_ref_p = ref_p;
   }
-  // forward check the path
+  // don't forward check the path
+  MessageManager::getInstance().setPriorityLane(ref_path);
+  return ref_path;
   last_ref_p.neighbors.clear();
   constexpr double max_forward_effect_dis = 100;  // m
   for (auto it = ref_path.begin(); it != ref_path.end(); it++) {
@@ -1515,6 +1564,19 @@ void MapManager::predDynamicObjTraj() {
 
   dynamic_obj_mutex.unlock();
   return;
+}
+
+bool MapManager::isVehicleOnRoad(const Pose& vehicle_pose) {
+  if (map.ref_path.empty()) return false;
+  auto   match_info = PathMatcher::MatchToPath(map.ref_path, vehicle_pose);
+  int    id         = match_info.id;
+  double signed_dis = match_info.dis * GRID_RESOLUTION;
+  auto   p          = map.ref_path[id];
+  // reserve 0.5m
+  double right_bound = -((p.lane_seq - 1 + 0.5) * p.lane_width - 0.5);
+  double left_bound  = (p.lane_num - p.lane_seq + 0.5) * p.lane_width - 0.5;
+  if (signed_dis < left_bound && signed_dis > right_bound) return true;
+  return false;
 }
 
 MapManager* MapManager::instance = new MapManager;

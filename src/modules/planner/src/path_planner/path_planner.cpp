@@ -194,8 +194,8 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
     for (const auto& p : *result) {
       path_before_smooth.emplace_back(p.x, p.y);
     }
-    double learning_rate(0.22), max_iteration(500), weight_smooth(1),
-        weight_curvature(1), weight_obstacle(5);
+    double learning_rate(0.25), max_iteration(500), weight_smooth(1),
+        weight_curvature(1), weight_obstacle(10);
     // double learning_rate(0.24915), max_iteration(500), weight_smooth(1),
     //     weight_curvature(1), weight_obstacle(0);
     PathSmoother ps(learning_rate, max_iteration, weight_smooth,

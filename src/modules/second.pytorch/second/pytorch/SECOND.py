@@ -1,6 +1,7 @@
 import copy
 import json
 import os
+#os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 from pathlib import Path
 import pickle
 import shutil
@@ -26,9 +27,8 @@ import second.data.tiev_dataset
 
 anchors=None
 class SECOND():
-    def __init__(self,config_path='/home/autolab/tiev2019/src/modules/second.pytorch/second/configs/all.tiev.config',
-                    model_dir='/home/autolab/tiev2019/src/modules/second.pytorch/second/model_dir_apolo_all_4.0/',measure_time=False):
-        #/home/autolab/tianxuebo/second.pytorch/second/model_dir_mix_1_1.0/
+    def __init__(self,config_path='/home/autolab/tiev/src/modules/second.pytorch/second/configs/all.tiev.config',
+                    model_dir='/home/autolab/tiev/src/modules/second.pytorch/second/model_dir_mix2_2.0/',measure_time=False):
         self.model_dir = str(Path(model_dir).resolve())
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if isinstance(config_path, str):
@@ -65,6 +65,7 @@ class SECOND():
         example['num_voxels']=[example['num_voxels']]
         example['metrics']=[example['metrics']]
         example['anchors']=[example['anchors']]
+        #np.savetxt("b.txt", example['anchors'][0], delimiter=",")
         example = example_convert_to_torch(example, self.float_dtype, self.device)
         with torch.no_grad():
             result=self.net(example)
@@ -112,17 +113,18 @@ def build_network(model_cfg, measure_time=False):
        
 second=SECOND()
 
-ef get_boxes(bindata):
-       print("hhhhh")
 def get_boxes(bindata):
-     print("hhhhh")
     #bindata=np.array([i for i in bindata])
-    print("bindata shape:",bindata.shape,"\n",bindata[0])
+    #print("bindata shape:",bindata.shape,"\n",bindata[0])
     result=second.detect(bindata)
     lab=result[0].get('label_preds').cpu().numpy().reshape(-1,1)
     result=np.append(lab, result[0].get('box3d_lidar').cpu().numpy(),axis=1)
     print("result shape",result.shape)
     return result
 
-f __name__ == '__main__':
-   fire.Fire()
+def get_boxes2(bindata):
+    result=second.detect(bindata)
+    return result
+
+if __name__ == '__main__':
+    fire.Fire()

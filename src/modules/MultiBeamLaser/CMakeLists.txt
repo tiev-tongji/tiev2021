@@ -13,14 +13,17 @@ find_package( OpenCV REQUIRED ) #opencv_highgui opencv_imgproc
 
 find_package(Threads REQUIRED)
 find_package(PythonLibs  REQUIRED)
-#find_package(Eigen3)
+find_package(Eigen3)
 
-set(EIGEN3_INCLUDE_DIR "/home/autolab/tiev2021/src/common/Eigen")
+#set(EIGEN3_INCLUDE_DIR "/home/autolab/tiev2020-code/src/common/Eigen")
 
 #set(PYTHON_INCLUDE_DIRS &{PYTHON_INCLUDE_DIRS} /home/autolab/anaconda3/lib/python3.7/site-packages/numpy/core/include /home/autolab/anaconda3/include/python3.7m)
 
-set(PYTHON_INCLUDE_DIRS &{PYTHON_INCLUDE_DIRS} /home/autolab/.conda/envs/second/lib/python3.7/site-packages/numpy/core/include /home/autolab/.conda/envs/second/include/python3.7m) 
-
+#set(PYTHON_INCLUDE_DIRS &{PYTHON_INCLUDE_DIRS} /home/autolab/.conda/envs/second/lib/python3.7/site-packages/numpy/core/include /home/autolab/.conda/envs/second/include/python3.7m) 
+set(PYTHON_INCLUDE_DIRS &{PYTHON_INCLUDE_DIRS} 
+	#/home/autolab/anaconda3/envs/txb-second-torch_1.4/lib/python3.6/site-packages/numpy/core/include 
+	/usr/local/lib/python3.6/dist-packages/numpy/core/include        
+	/usr/include/python3.6)
 #set(PYTHON_INCLUDE_DIRS &{PYTHON_INCLUDE_DIRS} /home/autolab/anaconda3/lib/python3.6/site-packages/numpy/core/include /home/autolab/anaconda3/include/python3.6m) 
 #${EIGEN3_INCLUDE_DIR}
 include_directories(include ${PYTHON_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR})
@@ -47,8 +50,9 @@ set(PERCEPTION_FILES ${PERCEPTION}/appl_history.cc ${PERCEPTION}/utils.cc ${PERC
 add_executable(MultibeamLaser ${GLOBAL_FILES} ${TINY_FILES} ${PERCEPTION_FILES} ../../common/nature/timestamp.cpp)
 
 target_link_libraries(MultibeamLaser
-		/home/autolab/.conda/envs/second/lib/libpython3.7m.so 
-		#/home/autolab/anaconda3/envs/second/lib/python3.7/site-packages/cv2/cv2.cpython-37m-x86_64-linux-gnu.so
+		#/home/autolab/.conda/envs/second/lib/libpython3.7m.so 
+		#/home/autolab/anaconda3/envs/txb-second-torch_1.4/lib/libpython3.6m.so 
+		/usr/lib/x86_64-linux-gnu/libpython3.6m.so
 		/usr/lib/x86_64-linux-gnu/libtiff.so
 		/usr/local/lib/libzcm.so 
 		${CMAKE_THREAD_LIBS_INIT} 

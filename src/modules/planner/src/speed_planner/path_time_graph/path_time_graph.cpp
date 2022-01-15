@@ -63,15 +63,13 @@ SLBoundary PathTimeGraph::ComputeObstacleSLBoundary(
   for (const auto& point : vertices) {
     std::pair<double, double> sl_point =
         PathMatcher::GetPathFrenetCoordinate(path, point.x(), point.y());
-    // LOG(INFO) << "vertice:[" << point.x() << " " << point.y()
-    //           << "] sl_point: s=" << sl_point.first << " l=" <<
-    //           sl_point.second;
-    // std::cout << "sl result: " << sl_point.second << std::endl;
     start_s = std::fmin(start_s, sl_point.first);
     end_s   = std::fmax(end_s, sl_point.first);
     start_l = std::fmin(start_l, sl_point.second);
     end_l   = std::fmax(end_l, sl_point.second);
   }
+  // LOG(INFO) << start_s << " , " << end_s << " , " << start_l << " , " <<
+  // end_l;
 
   SLBoundary sl_boundary;
   sl_boundary.set_start_s(start_s);
@@ -107,8 +105,8 @@ void PathTimeGraph::SetStaticObstacle(Obstacle&                obstacle,
   // LOG(INFO) << "Static Obstacle";
 
   SLBoundary sl_boundary = ComputeObstacleSLBoundary(box.corners(), path);
-  double     left_width  = Default_Path_Width_ * 0.6 + current_speed_ * 0.1;
-  double     right_width = Default_Path_Width_ * 0.6 + current_speed_ * 0.1;
+  double     left_width  = Default_Path_Width_ * 0.8;
+  double     right_width = Default_Path_Width_ * 0.8;
   // std::cout << "finally: " << sl_boundary.start_s() << ' '
   //           << sl_boundary.end_s() << ' ' << sl_boundary.start_l() << ' '
   //           << sl_boundary.end_l() << ' ' << path_range_.first << ' '
@@ -117,9 +115,7 @@ void PathTimeGraph::SetStaticObstacle(Obstacle&                obstacle,
   if (sl_boundary.start_s() > path_range_.second ||
       sl_boundary.end_s() < path_range_.first ||
       sl_boundary.start_l() > left_width ||
-      sl_boundary.end_l() < -right_width ||
-      sl_boundary.end_s() - sl_boundary.start_s() > 10 ||
-      sl_boundary.end_l() - sl_boundary.start_l() > 10) {
+      sl_boundary.end_l() < -right_width) {
     return;
   }
   // std::cout << "stop!" << std::endl;
@@ -149,8 +145,8 @@ void PathTimeGraph::SetDynamicObstacle(Obstacle&                obstacle,
     Box        box         = GetDynamicBoundingBox(obstacle, point);
     SLBoundary sl_boundary = ComputeObstacleSLBoundary(box.corners(), path);
 
-    double left_width  = Default_Path_Width_ * 0.5;
-    double right_width = Default_Path_Width_ * 0.5;
+    double left_width  = Default_Path_Width_ * 0.6 + current_speed_ * 0.1;
+    double right_width = Default_Path_Width_ * 0.6 + current_speed_ * 0.1;
 
     // If obstacle is out of lane at this time
     if (sl_boundary.start_s() > path_range_.second ||

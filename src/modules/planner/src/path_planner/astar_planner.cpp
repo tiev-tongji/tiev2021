@@ -129,7 +129,8 @@ const std::vector<PathPlanner::astate>& PathPlanner::AstarPlanner::plan(
     // the probability depends on its heuristic x.
     double x                              = current.score - current.cost;
     double analytic_expansion_probability = 0.2402 * exp(-0.006 * x);
-    if (iterations == 0 || random_urd(gen) <= analytic_expansion_probability) {
+    if (true || iterations == 0 ||
+        random_urd(gen) <= analytic_expansion_probability) {
       if (try_analytic_expansion(
               current_state, reverse_allowed, CAR_MAX_CURVATURE,
               max_sigma() * GRID_RESOLUTION * GRID_RESOLUTION)) {

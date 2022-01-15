@@ -25,6 +25,7 @@ private:
 
   double x_velocity_;
   double y_velocity_;
+  double angular_velocity;
 
   Eigen::VectorXf prior_log_odds_; //Prior log odds for each class. The indices here correspond to those in booster->class_map_.  
   Eigen::VectorXf log_odds_; //Log odds for each class, updated via incorporateBoostingResponse.
@@ -72,6 +73,7 @@ public:
   double getYVel() const;
 
   double getVelocity() const;
+  double getAngularVel() const;
 
   Eigen::VectorXf getLogOdds() { return log_odds_; }
   std::tr1::shared_ptr<Obstacle> getLastObservation() { return lastObservation_; }

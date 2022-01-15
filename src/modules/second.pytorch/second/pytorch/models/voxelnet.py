@@ -187,7 +187,8 @@ class VoxelNet(nn.Module):
         self._time_dict = {}
         self._time_total_dict = {}
         self._time_count_dict = {}
-
+    #计时间的函数
+    #torch.cuda.synchronize()是为了计算真正消耗的时间
     def start_timer(self, *names):
         if not self.measure_time:
             return

@@ -138,8 +138,12 @@ void perception_track_obstacles(vector< std::tr1::shared_ptr<Obstacle> >& detect
                 settings.kf_settings.measurement_variance,
                 settings.kf_settings.position_variance,
                 settings.kf_settings.velocity_variance,
+                settings.kf_settings.heading_variance,
+                settings.kf_settings.heading_velocity_variance,
                 settings.kf_settings.initial_position_variance,
-                settings.kf_settings.initial_velocity_variance
+                settings.kf_settings.initial_velocity_variance,
+                settings.kf_settings.initial_heading_variance,
+                settings.kf_settings.initial_heading_velocity_variance
         );
         init = true;
     }

@@ -10,19 +10,48 @@ import fire
 import numpy as np
 import torch
 from google.protobuf import text_format
-
+import psutil
+from second.utils.log_tool import SimpleModelLog
+from second.utils.progress_bar import ProgressBar
 import second.data.kitti_common as kitti
 import torchplus
 from second.builder import target_assigner_builder, voxel_builder
 from second.core import box_np_ops
-from second.data.preprocess import merge_second_batch, merge_second_batch_multigpu
 from second.protos import pipeline_pb2
+from second.data.preprocess import merge_second_batch, merge_second_batch_multigpu
+
 from second.pytorch.builder import (box_coder_builder, input_reader_builder,
                                     lr_scheduler_builder, optimizer_builder,
                                     second_builder)
-from second.utils.log_tool import SimpleModelLog
-from second.utils.progress_bar import ProgressBar
-import psutil
+
+anchors=None
+def example_convert_to_torch2(example, dtype=torch.float32,device=None) -> dict:
+    device = device or torch.device("cuda:0")
+    example_torch = {}
+    float_names = [
+        "voxels", "reg_targets", "reg_weights", "bev_map", "importance"
+    ]
+    for k, v in example.items():
+        if k in float_names:
+            example_torch[k] = torch.tensor(
+                v, dtype=torch.float32, device=device).to(dtype)
+        elif k in [ "anchors"]:
+            global anchors
+            if anchors is None:
+                anchors = example_torch[k] = torch.tensor(v, dtype=torch.float32, device=device).to(dtype)
+            else:
+                 example_torch[k]=anchors
+        elif k in ["coordinates", "labels", "num_points"]:
+            example_torch[k] = torch.tensor(
+                v, dtype=torch.int32, device=device)
+        elif k in ["anchors_mask"]:
+            example_torch[k] = torch.tensor(
+                v, dtype=torch.uint8, device=device)
+        elif k == "num_voxels":
+            example_torch[k] = torch.tensor(v)
+        else:
+            example_torch[k] = v
+    return example_torch
 
 def example_convert_to_torch(example, dtype=torch.float32,device=None) -> dict:
     device = device or torch.device("cuda:0")
@@ -431,7 +460,6 @@ def evaluate(config_path,
              ckpt_path=None,
              measure_time=False,
              batch_size=None,
-             dataset_name=None,
              **kwargs):
     """Don't support pickle_result anymore. if you want to generate kitti label file,
     please use kitti_anno_to_label_file and convert_detection_to_kitti_annos
@@ -508,26 +536,24 @@ def evaluate(config_path,
     t2 = time.time()
     numm=0
     for example in iter(eval_dataloader):
-        
-        #if numm >=10:
-        #    break
-        #    continue
         if measure_time:
             prep_times.append(time.time() - t2)
             torch.cuda.synchronize()
             t1 = time.time()
-        example = example_convert_to_torch(example, float_dtype)
-        print(example)
-        break
+        example = example_convert_to_torch(example, float_dtype) ########################
         if measure_time:
             torch.cuda.synchronize()
             prep_example_times.append(time.time() - t1)
         with torch.no_grad():
+            #print(example['metadata'])
+            #print(net(example))
             detections += net(example)
         bar.print_bar()
         if measure_time:
             t2 = time.time()
         numm+=1
+        if numm >=1000 :
+             break
     sec_per_example = len(eval_dataset) / (time.time() - t)
     print(f'generate label finished({sec_per_example:.2f}/s). start eval:')
     if measure_time:
@@ -539,8 +565,8 @@ def evaluate(config_path,
         print(f"avg {name} time = {val * 1000:.3f} ms")
     with open(result_path_step / "result.pkl", 'wb') as f:
         pickle.dump(detections, f)
-    result_dict=eval_dataset.dataset.evaluation(detections,
-                                                str(result_path_step))
+    result_dict = eval_dataset.dataset.evaluation(detections,
+                                                  str(result_path_step))
     if result_dict is not None:
         for k, v in result_dict["results"].items():
             print("Evaluation {}".format(k))

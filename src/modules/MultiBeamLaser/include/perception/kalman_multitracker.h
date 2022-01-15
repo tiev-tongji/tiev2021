@@ -21,6 +21,11 @@ class KalmanMultiTracker {
   Eigen::MatrixXd measurement_matrix_;
   //! Transition matrix common to all tracks.  Modified every update step based on delta_time.
   Eigen::MatrixXd transition_matrix_;
+
+  //for ekf
+  Eigen::MatrixXd transition_matrix_mu_;
+  Eigen::MatrixXd transition_matrix_sigma_;
+
   //! Control matrix common to al tracks.
   Eigen::MatrixXd control_matrix_;
   //! Initial state covariance common to all tracks.
@@ -45,6 +50,13 @@ class KalmanMultiTracker {
 		     double measurement_variance, double position_variance,
 		     double velocity_variance, double initial_position_variance,
 		     double initial_velocity_variance);
+
+  KalmanMultiTracker(double correspondence_thresh, double pruning_thresh,
+		     double measurement_variance, double position_variance,
+		     double velocity_variance, double heading_variance,
+         double heading_velocity_variance, double initial_position_variance,
+		     double initial_velocity_variance, double initial_heading_variance,
+         double initial_heading_velocity_variance);
 
   void eraseAll();
 
