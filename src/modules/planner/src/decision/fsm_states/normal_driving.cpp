@@ -20,7 +20,7 @@ void NormalDriving::update(FullControl& control) {
   map_manager.updatePlanningMap(MapManager::DynamicBlockType::ALL_BLOCK);
   const auto map = map_manager.getMap();
 
-  bool       back_ward  = map.nav_info.current_speed < 1 ? true : false;
+  bool back_ward        = map.nav_info.current_speed < 1 ? true : false;
   const auto start_path = map_manager.getStartMaintainedPath();
   // if we need u-turn, the heading dif weight should be bigger
   const auto& ref_path = map_manager.getForwardRefPath();
@@ -56,13 +56,13 @@ void NormalDriving::update(FullControl& control) {
     decision_context.setMaintainedPath(result_path);
   }
   decision_context.updatePlannerInfo(map.dynamic_obj_list.dynamic_obj_list);
-  
+
   // LOG(INFO) << map_manager.getTemporaryParkingTarget();
   if (map_manager.allowParking(map_manager.getTemporaryParkingTarget(),
                                ref_path)) {
     // when to parking
     control.changeTo<TemporaryParkingPlanning>();
-  } else if (map.nav_info.current_speed < 0.1) {
+  } else if (false) {  // TODO
     // the car is top
     if (!maintained_path.empty() && duration_time() > limited_time) {
       // control.changeTo<FreeDriving>();
@@ -72,7 +72,7 @@ void NormalDriving::update(FullControl& control) {
     // control.changeTo<OvertakeDriving>();
   } else {
     if (getTimeStamp() - entry_time < 50e3) {
-      usleep(50 * 1000 - getTimeStamp() + entry_time);
+      usleep(50e3 - getTimeStamp() + entry_time);
     }
     entry_time = getTimeStamp();
   }

@@ -91,6 +91,7 @@ struct Pose : public Point2d {
   };
 
   inline Pose getLateralPose(const double l) const {
+    // left positive
     double _tmp      = l / GRID_RESOLUTION;
     double dx        = -sin(ang) * _tmp;
     double dy        = cos(ang) * _tmp;

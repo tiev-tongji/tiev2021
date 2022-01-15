@@ -77,7 +77,7 @@ class MapManager {
                          ref_path);  // 对道路内且相隔一定距离内的行人进行避让
   void addPedestrian(DynamicObjList& dynamic_obj_list);
   void blockStopLine();  // 封闭停止线，红灯时使用
-  enum DynamicBlockType { NO_BLOCK, ALL_BLOCK };
+  enum DynamicBlockType { NO_BLOCK, SEMI_BLOCK, ALL_BLOCK };
   void updatePlanningMap(DynamicBlockType dynamic_block_type,
                          bool             history = false);
   Map& getMap();
@@ -152,7 +152,7 @@ class MapManager {
   void adjustRefPathByVLaneLine();  //通过视觉车道线矫正参考路
   void laneMatch();                 // 车道线匹配
   void dynamicDecision(const DynamicBlockType dynamic_block_type);
-  void laneBlockDecision();
+  void laneBlockDecision(const DynamicBlockType dynamic_block_type);
   void mapDecision(bool history = false);
   void laneLineInterpolation();
   void getAccessibleMap();
@@ -161,7 +161,7 @@ class MapManager {
   //--------tool----------------
   int       getCarLaneId();  //获取车辆当前所在车道序号
   const int getGlobalPathNearestIndex(const int begin, const int end) const;
-  bool vehicleIsOnRoad(Pose const& vehicle_pose);  // 判断车辆是否已回到车道
+  bool isVehicleOnRoad(Pose const& vehicle_pose);  // 判断车辆是否已回到车道
   void setGlobalPathDirection();  // 设置全局参考路中RoadDirection属性
   void filtPoints();
 };

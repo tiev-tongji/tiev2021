@@ -303,20 +303,20 @@ double PathSmoother::getTotalCost(const vector<Point2d>& path) {
   if (path.size() < 3) return 0;
   double smoothness_cost = 0;
   double curvature_cost  = 0;
-  double obstacle_cost   = 0;
+  double obstacle_dist   = 0;
   double total_cost;
   for (int i = 1; i + 1 < path.size(); ++i) {
     Point2d Dxip1 = path[i + 1] - path[i];
     Point2d Dxi   = path[i] - path[i - 1];
     smoothness_cost += (Dxip1 - Dxi).sqrLen();
     curvature_cost += fabs(getCurvature(path[i - 1], path[i], path[i + 1]));
-    obstacle_cost += planning_dis_map[int(path[i].x)][int(path[i].y)];
+    obstacle_dist += planning_dis_map[int(path[i].x)][int(path[i].y)] / 1000;
   }
-  total_cost = smoothness_cost + obstacle_cost + curvature_cost;
+  total_cost = smoothness_cost - obstacle_dist + curvature_cost;
   LOG(WARNING) << "total cost: " << total_cost
                << ", smooth: " << smoothness_cost
                << ", curvature: " << curvature_cost
-               << ", obstacle: " << obstacle_cost;
+               << ", obstacle_dis: " << obstacle_dist;
   return total_cost;
 }
 

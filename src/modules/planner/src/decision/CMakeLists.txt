@@ -11,4 +11,5 @@ target_link_libraries(decision PUBLIC
     map_manager
     path_planner
     lattice_planner
+    planner_common
 )
