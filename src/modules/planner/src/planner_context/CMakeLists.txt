@@ -6,5 +6,6 @@ target_include_directories(planner_context PUBLIC
     ./
 )
 target_link_libraries(planner_context PUBLIC 
-    planner_common message_manager
+    planner_common
+    message_manager
 )

@@ -9,7 +9,7 @@ namespace TiEV {
 
 struct IdDis {
   int    id;
-  double dis;
+  double signed_dis;
 };
 
 /**

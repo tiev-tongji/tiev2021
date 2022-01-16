@@ -20,7 +20,7 @@ void NormalDriving::update(FullControl& control) {
   map_manager.updatePlanningMap(MapManager::DynamicBlockType::ALL_BLOCK);
   const auto map = map_manager.getMap();
 
-  bool       back_ward  = map.nav_info.current_speed < 1 ? true : false;
+  bool       back_ward  = map.nav_info.current_speed < 0.1 ? true : false;
   const auto start_path = map_manager.getStartMaintainedPath();
   // if we need u-turn, the heading dif weight should be bigger
   const auto& ref_path = map_manager.getForwardRefPath();
@@ -46,13 +46,17 @@ void NormalDriving::update(FullControl& control) {
       map.lidar_dis_map, map.planning_dis_map, start_path, Pose(0, 0, 0),
       &result_path);
 
-  const auto maintained_path = decision_context.getMaintainedPath();
+  const auto maintained_path     = decision_context.getMaintainedPath();
+  bool       change_maintainpath = true;
   if (!maintained_path.empty() && maintained_path.front().backward &&
       map.nav_info.current_speed > 0.2) {
-    return;
+    change_maintainpath = false;
+  }
+  if (decision_context.getMovementInSeconds(5) < 1) {
+    change_maintainpath = true;
   }
   decision_context.setSpeedLimitMPS(map_manager.getCurrentMapSpeed());
-  if (!result_path.empty()) {
+  if (!result_path.empty() && change_maintainpath) {
     decision_context.setMaintainedPath(result_path);
   }
   decision_context.updatePlannerInfo(map.dynamic_obj_list.dynamic_obj_list);

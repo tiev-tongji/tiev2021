@@ -35,20 +35,17 @@ void TemporaryParkingPlanning::update(FullControl& control) {
   decision_context.setSpeedLimitMPS(
       std::min(2.0, map_manager.getCurrentMapSpeed()));
   decision_context.updatePlannerInfo(map.dynamic_obj_list.dynamic_obj_list);
-  const auto maintained_path = decision_context.getMaintainedPath(map.nav_info);
+  const auto maintained_path = decision_context.getEntireMaintainedPath();
   double     dis =
-      PathMatcher::MatchToPath(maintained_path, map.nav_info.car_pose).dis;
-  if (maintained_path.size() > 5 && dis < 0.5 / GRID_RESOLUTION &&
+      fabs(PathMatcher::MatchToPath(maintained_path, map.nav_info.car_pose).signed_dis);
+  bool change_maintainpath = true;
+  if (!maintained_path.empty() && dis < 0.5 / GRID_RESOLUTION &&
       (maintained_path.back() - target).len() < 1 &&
       (maintained_path.front() - map.nav_info.car_pose).len() < 1 &&
       !collision(maintained_path, map.planning_dis_map)) {
-    if (getTimeStamp() - entry_time < 50e3) {
-      usleep(50e3 - getTimeStamp() + entry_time);
-    }
-    entry_time = getTimeStamp();
-    return;
+    change_maintainpath = false;
   }
-  if (!result_path.empty()) {
+  if (!result_path.empty() && change_maintainpath) {
     decision_context.setMaintainedPath(result_path);
   }
 

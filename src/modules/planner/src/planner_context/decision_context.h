@@ -8,15 +8,15 @@
 #include <vector>
 
 #include "tiev_class.h"
+#include "tievmsg.h"
 
 namespace TiEV {
 class PlannerInfo {
  public:
-  PlannerInfo(const std::set<int>& static_vehicles_)
-      : static_vehicles(static_vehicles_) {}
   // planner info of each iteration
   std::set<int> static_vehicles;
   time_t        timestamp;
+  NavInfo       nav_info;
 };
 
 struct PlanningWeights {
@@ -43,6 +43,7 @@ class DecisionContext {
   const std::vector<Pose> getMaintainedPath();  // use new latest nav_info
   const std::vector<Pose> getMaintainedPath(const NavInfo& nav_info);
   const std::vector<Pose> getConstMaintainedPath() const;
+  const std::vector<Pose> getEntireMaintainedPath() const;
 
   const std::deque<PlannerInfo> getPlannerHistory() const;
 
@@ -51,6 +52,8 @@ class DecisionContext {
   const double getCarSpeedMPS() const;
 
   const PlanningWeights& getPlanningWeights() const;
+
+  const double getMovementInSeconds(const double& seconds);
 
   void setPedestrianDecision(
       const std::vector<DynamicObj>& pedestrian_decision_result);

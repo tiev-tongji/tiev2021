@@ -1,6 +1,7 @@
 #include "decision_context.h"
 
 #include "message_manager.h"
+#include "pose.h"
 #include "tievlog.h"
 
 namespace TiEV {
@@ -98,7 +99,7 @@ const std::vector<Pose> DecisionContext::getMaintainedPath() {
   for (int i = shortest_index; i < path.size(); ++i) {
     const auto& p = path[i];
     if (traverse_first && p.backward == first_backward) {
-      if (p.passed) continue;
+      // if (p.passed) continue;
       res_first_part.push_back(p);
     } else if (p.backward != first_backward) {
       traverse_first = false;
@@ -138,7 +139,7 @@ const std::vector<Pose> DecisionContext::getMaintainedPath(
   for (int i = shortest_index; i < path.size(); ++i) {
     const auto& p = path[i];
     if (traverse_first && p.backward == first_backward) {
-      if (p.passed) continue;
+      // if (p.passed) continue;
       res_first_part.push_back(p);
     } else if (p.backward != first_backward) {
       traverse_first = false;
@@ -176,7 +177,7 @@ const std::vector<Pose> DecisionContext::getConstMaintainedPath() const {
   for (int i = shortest_index; i < path.size(); ++i) {
     const auto& p = path[i];
     if (traverse_first && p.backward == first_backward) {
-      if (p.passed) continue;
+      // if (p.passed) continue;
       res_first_part.push_back(p);
     } else if (p.backward != first_backward) {
       traverse_first = false;
@@ -188,6 +189,18 @@ const std::vector<Pose> DecisionContext::getConstMaintainedPath() const {
   if (res_second_part.empty()) return res_first_part;
   if (res_first_part.size() < 2) return res_second_part;
   return res_first_part;
+}
+
+const std::vector<Pose> DecisionContext::getEntireMaintainedPath() const {
+  std::shared_lock<std::shared_mutex> lck(maintained_path_mutex);
+  auto                                path = _maintained_path;
+  lck.unlock();
+  NavInfo nav_info;
+  MessageManager::getInstance().getNavInfo(nav_info);
+  for (auto& p : path) {
+    p.updateLocalCoordinate(nav_info.car_pose);
+  }
+  return path;
 }
 
 const std::deque<PlannerInfo> DecisionContext::getPlannerHistory() const {
@@ -213,6 +226,29 @@ const double DecisionContext::getCarSpeedMPS() const {
 
 const PlanningWeights& DecisionContext::getPlanningWeights() const {
   return _weights;
+}
+
+const double DecisionContext::getMovementInSeconds(
+    const double& seconds) {
+  std::shared_lock<std::shared_mutex> lck(planner_info_mutex);
+  if (_planner_history_buffer.empty()) return 0.0;
+  time_t      now = getTimeStamp();
+  UtmPosition current_utm =
+      _planner_history_buffer.back().nav_info.car_pose.utm_position;
+  UtmPosition last_utm =
+      _planner_history_buffer.front().nav_info.car_pose.utm_position;
+  double movement = std::sqrt(std::pow(last_utm.utm_x - current_utm.utm_x, 2)+
+                              std::pow(last_utm.utm_y - current_utm.utm_y, 2));
+  for (auto info = _planner_history_buffer.rbegin();
+       info != _planner_history_buffer.rend(); ++info) {
+    if (info->timestamp - now >= seconds * 10e6) {
+      UtmPosition history_utm = info->nav_info.car_pose.utm_position;
+      movement = std::sqrt(std::pow(history_utm.utm_x - current_utm.utm_x, 2)+
+                           std::pow(history_utm.utm_y - current_utm.utm_y, 2));
+      break;
+    }
+  }
+  return movement;
 }
 
 void DecisionContext::setPedestrianDecision(
@@ -261,8 +297,12 @@ void DecisionContext::updatePlannerInfo(
       static_vehicles.insert(obj.id);
     }
   }
-  PlannerInfo new_info(static_vehicles);
-  new_info.timestamp = getTimeStamp();
+  PlannerInfo new_info;
+  new_info.static_vehicles = static_vehicles;
+  new_info.timestamp       = getTimeStamp();
+  NavInfo nav_info;
+  MessageManager::getInstance().getNavInfo(nav_info);
+  new_info.nav_info = nav_info;
 
   std::unique_lock<std::shared_mutex> lck(planner_info_mutex);
   _planner_history_buffer.push_back(new_info);

@@ -1148,7 +1148,7 @@ void MapManager::laneBlockDecision(DynamicBlockType dynamic_block_type) {
     }
   }
   for (const auto& p : map.forward_ref_path) {
-    if ((map.nav_info.car_pose - p).len() < 8 / GRID_RESOLUTION) continue;
+    if ((map.nav_info.car_pose - p).len() < 3 / GRID_RESOLUTION) continue;
     // 1. block boundary line
     if (block_boundary_line) {
       if (p.block_type & BlockType::BlockRight) {
@@ -1170,35 +1170,38 @@ void MapManager::laneBlockDecision(DynamicBlockType dynamic_block_type) {
     if (p.mode != HDMapMode::INTERSECTION_SOLID || p.lane_num < 2) continue;
     double block_start_point_dis = 0;
     double block_end_point_dis   = 0;
+    double half_block_ratio = 0.2; // block ratio of a lane
+    double half_reserve_space_ratio = 0.5 - half_block_ratio; // reserve space for a blocked lane
+    double block_width = 2 * half_block_ratio * p.lane_width;
     // if there are 2 lane
     if (p.lane_num == 2) {
       if (p.direction == RoadDirection::RIGHT ||
           p.direction == RoadDirection::STRAIGHT) {
         // if we'll turn right or go straight, block the left lane
-        block_start_point_dis = (p.lane_num - p.lane_seq - 0.5) * p.lane_width;
-        block_end_point_dis   = block_start_point_dis + p.lane_width;
+        block_start_point_dis = (p.lane_num - p.lane_seq - half_block_ratio) * p.lane_width;
+        block_end_point_dis   = block_start_point_dis + block_width;
       } else {
         // if we'll turn left, block the right lane
-        block_start_point_dis = (1 - p.lane_seq - 0.5) * p.lane_width;
-        block_end_point_dis   = block_start_point_dis + p.lane_width;
+        block_start_point_dis = (1 - p.lane_seq - half_block_ratio) * p.lane_width;
+        block_end_point_dis   = block_start_point_dis + block_width;
       }
     } else {
       // if the lanes are more than 2
       if (p.direction == RoadDirection::RIGHT) {
         // if we'll turn right, block all the lane except the right one
-        block_start_point_dis = (1 - p.lane_seq + 0.5) * p.lane_width;
-        block_end_point_dis   = (p.lane_num - p.lane_seq + 0.5) * p.lane_width;
+        block_start_point_dis = (1 - p.lane_seq + 0.5 + half_reserve_space_ratio) * p.lane_width;
+        block_end_point_dis   = (p.lane_num - p.lane_seq + half_block_ratio) * p.lane_width;
       } else if (p.direction == RoadDirection::LEFT) {
         // if we'll turn left, block all the lane except the left one
-        block_start_point_dis = (1 - p.lane_seq - 0.5) * p.lane_width;
-        block_end_point_dis   = (p.lane_num - p.lane_seq - 0.5) * p.lane_width;
+        block_start_point_dis = (1 - p.lane_seq - half_block_ratio) * p.lane_width;
+        block_end_point_dis   = (p.lane_num - p.lane_seq - 0.5 - half_reserve_space_ratio) * p.lane_width;
       } else {
         // if we'll go straight, block the left and right lanes
-        const double right_start_dis = (1 - p.lane_seq - 0.5) * p.lane_width;
-        const double right_end_dis   = right_start_dis + p.lane_width;
+        const double right_start_dis = (1 - p.lane_seq - half_block_ratio) * p.lane_width;
+        const double right_end_dis   = right_start_dis + block_width;
         const double left_start_dis =
-            (p.lane_num - p.lane_seq - 0.5) * p.lane_width;
-        const double left_end_dis = left_start_dis + p.lane_width;
+            (p.lane_num - p.lane_seq - half_block_ratio) * p.lane_width;
+        const double left_end_dis = left_start_dis + block_width;
         add_obs_between(p.getLateralPose(right_start_dis),
                         p.getLateralPose(right_end_dis));
         add_obs_between(p.getLateralPose(left_start_dis),
@@ -1572,7 +1575,7 @@ bool MapManager::isVehicleOnRoad(const Pose& vehicle_pose) {
   if (map.ref_path.empty()) return false;
   auto   match_info = PathMatcher::MatchToPath(map.ref_path, vehicle_pose);
   int    id         = match_info.id;
-  double signed_dis = match_info.dis * GRID_RESOLUTION;
+  double signed_dis = match_info.signed_dis * GRID_RESOLUTION;
   auto   p          = map.ref_path[id];
   // reserve 0.5m
   double right_bound = -((p.lane_seq - 1 + 0.5) * p.lane_width - 0.5);
