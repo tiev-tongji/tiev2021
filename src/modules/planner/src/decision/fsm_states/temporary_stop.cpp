@@ -68,7 +68,10 @@ void TemporaryStop::update(FullControl& control) {
     int cost = routing.findReferenceRoad(tmp_global_path, new_task_list, false);
     map_manager.setGlobalPath(tmp_global_path);
   }
-  if (duration_time() < 20e6) usleep(20e6 - duration_time());
+  if (duration_time() < 20e6) {
+    usleep(20e6 - duration_time());
+    LOG(INFO) << "waiting...";
+  }
   control.changeTo<NormalDriving>();
 }
 }  // namespace TiEV

@@ -67,8 +67,9 @@ void runTiEVFSM() {
  */
 void sendPath() {
   // get the decison context
-  auto&  decision_context = DecisionContext::getInstance();
-  time_t time_limit       = 10e3;
+  auto&           decision_context = DecisionContext::getInstance();
+  time_t          time_limit       = 10e3;
+  MachineManager& mm               = MachineManager::getInstance();
   while (true) {
     auto       start_time = getTimeStamp();
     const auto static_obstacle_virtual_dymanic =
@@ -94,6 +95,9 @@ void sendPath() {
 
     structAIMPATH control_path;
     control_path.points.clear();
+    if (mm.machine.isActive<TemporaryStop>()) {
+      maintained_path.clear();
+    }
     if (maintained_path.empty()) {
       // send a control path to stop
       control_path.num_points = 10;
