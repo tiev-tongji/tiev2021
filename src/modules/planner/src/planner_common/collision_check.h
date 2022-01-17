@@ -18,7 +18,7 @@ constexpr float CAR_FRONT_AXLE_TO_HEAD = 1.02;  //(m)
 constexpr float CAR_BUMPER_LENGTH      = 0.3;   //(m)
 
 constexpr double COLLISION_CIRCLE_BIG_R   = 2.3;   // m
-constexpr double COLLISION_CIRCLE_SMALL_R = 1.25;  // m
+constexpr double COLLISION_CIRCLE_SMALL_R = 0.7;  // m
 
 constexpr double circle_dis2 = -((CAR_LENGTH + CAR_BUMPER_LENGTH) / 2 -
                                  (CAR_FRONT_AXLE_TO_HEAD + CAR_BUMPER_LENGTH));

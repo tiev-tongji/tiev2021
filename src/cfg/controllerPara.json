@@ -25,7 +25,7 @@
 	},
 
 	"filterPara" : {
-			"alfa_steering_angle" : 1,
-			"alfa_velocity" : 1 
+			"alfa_steering_angle" : 0.4,
+			"alfa_velocity" : 0.5 
 	}
 }

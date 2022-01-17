@@ -95,7 +95,7 @@ void sendPath() {
 
     structAIMPATH control_path;
     control_path.points.clear();
-    if (mm.machine.isActive<TemporaryStop>()) {
+    if (mm.machine.isActive<TemporaryStop>() || mm.machine.isActive<GlobalReplanning>()) {
       maintained_path.clear();
     }
     if (maintained_path.empty()) {

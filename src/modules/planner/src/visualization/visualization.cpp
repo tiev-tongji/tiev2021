@@ -1024,7 +1024,7 @@ void Visualization::msgReceiveUdp() {
   zcm_udp.subscribe("FUSIONMAP", &Handler::handleFUSIONMAP, &inner_handler);
   zcm_udp.subscribe("NAVINFO", &Handler::handleNAVINFO, &inner_handler);
   zcm_udp.subscribe("OBJECTLIST", &Handler::handleOBJECTLIST, &inner_handler);
-  zcm_udp.subscribe("msgTrafficLightSignal", &Handler::handleTRAFFICLIGHT,
+  zcm_udp.subscribe("MsgTrafficLightSignal", &Handler::handleTRAFFICLIGHT,
                     &inner_handler);
   zcm_udp.subscribe("LANE_info", &Handler::handleLANES, &inner_handler);
   zcm_udp.subscribe("PARKINGSLOTS", &Handler::handlePARKINGSLOTS,

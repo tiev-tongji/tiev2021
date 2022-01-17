@@ -371,6 +371,7 @@ class LoadStreamsBasler:  # basler cameras
                 # Access the image data
                 image = self.converter.Convert(grabResult)
                 img = image.GetArray()
+                img = np.flip(img, axis=0)
                 self.imgs[index] = img
             grabResult.Release()
 

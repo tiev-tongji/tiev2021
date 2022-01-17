@@ -1252,7 +1252,7 @@ bool MapManager::allowParking(const Pose&                    parking_spot,
     }
   }
   // if parking spot is low than 20m in reference path, parking
-  if (near_ref_p.s < 20 && min_dis < 30 / GRID_RESOLUTION) return true;
+  if (near_ref_p.s < 20 && ref_path.back().s < 20) return true;
   return false;
 }
 
