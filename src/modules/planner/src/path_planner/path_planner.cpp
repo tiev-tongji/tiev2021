@@ -267,7 +267,7 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
       img.at<cv::Vec3b>(lround(p.x), lround(p.y)) = cv::Vec3b(0, 0, 255);
     }
     cv::imshow("smoothed_path", img);
-    cv::waitKey(0);
+    cv::waitKey(10);
 #endif
   }
   // send visualization data

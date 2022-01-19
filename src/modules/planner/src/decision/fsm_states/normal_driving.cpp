@@ -3,6 +3,7 @@
 
 #include "lattice_planner.h"
 #include "map_manager.h"
+#include "path_smoother.h"
 #include "tiev_fsm.h"
 #include "tievlog.h"
 namespace TiEV {
@@ -30,7 +31,7 @@ void NormalDriving::update(FullControl& control) {
     if (need_reverse) {
       decision_context.setPlanningWeights({1, 0.01, 0.003, 0.001, 5, 1, 2});
     } else {
-      decision_context.setPlanningWeights({1, 0.02, 0.2, 0.03, 2.5, 5, 0});
+      decision_context.setPlanningWeights({2, 0.02, 0.2, 0.03, 2.5, 0, 0});
       // decision_context.setPlanningWeights({1, 0.02, 0.03, 0.01, 2.5, 0, 0});
       // a good setting for overtake driving
       // decision_context.setPlanningWeights({1, 0.02, 0.008, 0.06, 2, 1, 5});
@@ -48,10 +49,13 @@ void NormalDriving::update(FullControl& control) {
 
   const auto maintained_path     = decision_context.getMaintainedPath();
   bool       change_maintainpath = true;
+  bool       is_collision = collision(maintained_path, map.planning_dis_map);
+  // is driving backward
   if (!maintained_path.empty() && maintained_path.front().backward &&
-      map.nav_info.current_speed > 0.2) {
+      !is_collision) {
     change_maintainpath = false;
   }
+  // stay still for too long
   if (decision_context.getMovementInSeconds(5) < 1) {
     change_maintainpath = true;
   }

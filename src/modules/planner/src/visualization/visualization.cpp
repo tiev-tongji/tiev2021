@@ -141,14 +141,14 @@ void Visualization::init() {
         *traffic_light_red_right.ptr<cv::Vec3b>(r, c) = VEC_TiEV_BLACK;
     }
   }
-  if (!car_img.data) {
-    cv::Mat car_img = cv::imread(TiEV_car_png_path);
-    if (!car_img.data) {
-      cout << "no TiEV_car.jpg or TiEV_car.png in pics folder!!!" << endl;
-    } else
-      cv::resize(car_img, TiEV_car, TiEV_car.size(), 0, 0, cv::INTER_LANCZOS4);
-  } else
-    cv::resize(car_img, TiEV_car, TiEV_car.size(), 0, 0, cv::INTER_LANCZOS4);
+  // if (!car_img.data) {
+  //   cv::Mat car_img = cv::imread(TiEV_car_png_path);
+  //   if (!car_img.data) {
+  //     cout << "no TiEV_car.jpg or TiEV_car.png in pics folder!!!" << endl;
+  //   } else
+  //     cv::resize(car_img, TiEV_car, TiEV_car.size(), 0, 0, cv::INTER_LANCZOS4);
+  // } else
+    // cv::resize(car_img, TiEV_car, TiEV_car.size(), 0, 0, cv::INTER_LANCZOS4);
   cv::Mat TiEV_logo = cv::imread(TiEV_logo_path);
   if (!TiEV_logo.data)
     cout << "no TiEV_logo.png in pics folder!!!" << endl;

@@ -14,7 +14,7 @@ void TemporaryStop::enter(Control& control) {
 }
 
 void TemporaryStop::update(FullControl& control) {
-  LOG(INFO) << "Temporary Stop update...";
+  // LOG(INFO) << "Temporary Stop update...";
   MapManager& map_manager = MapManager::getInstance();
   const auto  map         = map_manager.getMap();
   if (!map.nav_info.detected || duration_time() < limited_time) return;

@@ -7,6 +7,7 @@
 #include "message_manager.h"
 #include "path_planner.h"
 #include "point2d.h"
+#include "pose.h"
 
 namespace TiEV {
 
@@ -131,8 +132,11 @@ struct TemporaryParkingFSM : TiEVState {
 };
 
 struct TemporaryParkingPlanning : TiEVState {
-  void enter(Control& control);
-  void update(FullControl& control);
+  void              enter(Control& control);
+  void              update(FullControl& control);
+  std::vector<Pose> planned_path_segment_idx;
+  Pose              sub_target;
+  std::vector<Pose> planned_path;
 };
 
 struct TemporaryStop : TiEVState {

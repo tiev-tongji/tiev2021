@@ -167,7 +167,7 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
         expansion_img.at<cv::Vec3b>(int(st.x), int(st.y))[2] -= 5;
       }
       cv::imshow("expansion", expansion_img);
-      cv::waitKey();
+      cv::waitKey(10);
 #endif
       // for (const auto& st : expansion.get_states()) {
       //   LOG(INFO) << st;

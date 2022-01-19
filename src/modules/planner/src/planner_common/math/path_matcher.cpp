@@ -30,6 +30,8 @@ Pose PathMatcher::MatchToPath(const std::vector<Pose>& path, const double x,
   std::size_t idx_start = (idx_min == 0) ? idx_min : idx_min - 1;
   std::size_t idx_end   = (idx_min + 1 == path.size()) ? idx_min : idx_min + 1;
 
+  // if idx_min = 0, find projection point between path[0] and path[1], rather
+  // than return path[0]
   if (idx_start == idx_end) {
     return path[idx_start];
   } else {
@@ -101,7 +103,6 @@ Pose PathMatcher::MatchToPath(const std::vector<Pose>& path, const double s) {
                                                   s);
 }
 
-
 Pose PathMatcher::FindProjectionPoint(const Pose& p0, const Pose& p1,
                                       const double x, const double y,
                                       std::string type) {
@@ -127,9 +128,6 @@ std::pair<double, double> PathMatcher::GetPathFrenetCoordinate(
     const std::vector<Pose>& path, const double x, const double y) {
   Pose matched_path_point =
       MatchToPath(path, x, y, "speed_planner");  // return pose.xy is gird
-  // LOG(INFO) << "match point: s=" << matched_path_point.s
-  //           << " x=" << matched_path_point.x << " y=" <<
-  //           matched_path_point.y;
   double rtheta  = matched_path_point.ang;
   double rx      = matched_path_point.x;
   double ry      = matched_path_point.y;

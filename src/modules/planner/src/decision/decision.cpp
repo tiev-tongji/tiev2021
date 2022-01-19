@@ -95,7 +95,8 @@ void sendPath() {
 
     structAIMPATH control_path;
     control_path.points.clear();
-    if (mm.machine.isActive<TemporaryStop>() || mm.machine.isActive<GlobalReplanning>()) {
+    if (mm.machine.isActive<TemporaryStop>() ||
+        mm.machine.isActive<GlobalReplanning>()) {
       maintained_path.clear();
     }
     if (maintained_path.empty()) {
@@ -125,11 +126,13 @@ void sendPath() {
           average_k += maintained_path[j].k / (end_idx - begin_idx);
         }
         if (point.backward) {
-          max_speed = min(1.0, max_speed);
+          max_speed = std::min(1.0, max_speed);
+          // convert a backward path to a forward path for speed optimizer
           point.ang = M_PI + point.ang;
         }
         speed_limits.emplace_back(
-            point.s, min(max_speed, max_velocity_for_curvature(average_k)));
+            point.s,
+            std::min(max_speed, max_velocity_for_curvature(average_k)));
       }
       maintained_path.front().v = decision_context.getCarSpeedMPS();
       speed_path                = SpeedOptimizer::RunSpeedOptimizer(
@@ -147,8 +150,9 @@ void sendPath() {
       control_path.num_points = speed_path.path.size();
       for (const auto& p : speed_path.path) {
         TrajectoryPoint tp;
-        tp.x     = (CAR_CEN_ROW - p.x) * GRID_RESOLUTION;
-        tp.y     = (CAR_CEN_COL - p.y) * GRID_RESOLUTION;
+        tp.x = (CAR_CEN_ROW - p.x) * GRID_RESOLUTION;
+        tp.y = (CAR_CEN_COL - p.y) * GRID_RESOLUTION;
+        // in trajectory controller, x points forward, y points leftward
         tp.theta = p.ang - PI;
         while (tp.theta > PI) tp.theta -= 2 * PI;
         while (tp.theta <= -PI) tp.theta += 2 * PI;
@@ -156,7 +160,7 @@ void sendPath() {
         tp.k = p.k;
         tp.t = p.t;
         tp.v = p.v;
-        if (tp.v < 0.8 && tp.v > 0.0000001) tp.v = 0.8;
+        // if (tp.v < 0.8 && tp.v > 0.00000) tp.v = 0.8;
         control_path.points.push_back(tp);
       }
     }

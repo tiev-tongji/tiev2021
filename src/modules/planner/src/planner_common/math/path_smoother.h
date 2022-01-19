@@ -15,6 +15,8 @@ namespace TiEV {
 
 class PathSmoother {
  public:
+  PathSmoother() = default;
+
   PathSmoother(double learning_rate, double max_iteration, double weight_smooth,
                double weight_curvature, double weight_obstacle, const double planning_dis_map_[MAX_ROW][MAX_COL])
       : alpha(learning_rate),

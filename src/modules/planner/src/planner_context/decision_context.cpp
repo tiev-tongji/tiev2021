@@ -293,7 +293,7 @@ void DecisionContext::updatePlannerInfo(
   std::set<int> static_vehicles;
   for (const auto& obj : dynamic_obj_list) {
     // static vehicle
-    if (obj.type == ObjectType::CAR && obj.v <= 0.1) {
+    if (obj.type == ObjectType::CAR && fabs(obj.v) <= 1) {
       static_vehicles.insert(obj.id);
     }
   }

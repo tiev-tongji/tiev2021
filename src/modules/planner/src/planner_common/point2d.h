@@ -52,9 +52,9 @@ struct Point2d {
     return out;
   }
   inline const double cosDeltaAngle(const Point2d& other_point) const {
-    double cross = this->dot(other_point);
+    double dot = this->dot(other_point);
     if (this->len() == 0 || other_point.len() == 0) return 0;
-    double cos   = cross / (this->len() * other_point.len());
+    double cos   = dot / (this->len() * other_point.len());
     return cos;
   }
 };

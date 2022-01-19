@@ -250,8 +250,14 @@ Point2d PathSmoother::obstacleTerm(const Point2d& xi) {
   if (!isOnGrid(xi)) return gradient;
   if (planning_dis_map[x0][y0] > obsDMax) return gradient;
   // search obstacle on a rectangle around point xi
-  int    max_rect_id = int(obsDMax) + 1;
-  double dis_square  = std::pow(planning_dis_map[x0][y0], 2);
+  int    max_rect_id     = int(obsDMax) + 1;
+  double manhattan_dis   = planning_dis_map[x0][y0];
+  auto   getManhattanDis = [&](int i, int j) {
+    int delta       = std::abs(i - j);
+    int smaller_one = std::min(i, j);
+    return smaller_one * 1.414 + delta;
+  };
+  const double Epsilon = 1e-3;
   for (int rect_id = 1; rect_id < max_rect_id; ++rect_id) {
     vector<int> rect_arr;
     rect_arr.push_back(-rect_id);
@@ -260,7 +266,8 @@ Point2d PathSmoother::obstacleTerm(const Point2d& xi) {
       for (int j = -rect_id; j <= rect_id; ++j) {
         if (!isOnGrid(xi + Point2d(i, j))) continue;
         // check if there is a obstacle at (x0+i, y0+j)
-        if (planning_dis_map[x0 + i][y0 + j] == 0) {
+        if (fabs(getManhattanDis(i, j) - manhattan_dis) < Epsilon &&
+            planning_dis_map[x0 + i][y0 + j] == 0) {
           Point2d p_obs(x0 + i, y0 + j);
           return xi - p_obs;
         }
@@ -268,7 +275,8 @@ Point2d PathSmoother::obstacleTerm(const Point2d& xi) {
     for (const int j : rect_arr)
       for (int i = -rect_id; i <= rect_id; ++i) {
         if (!isOnGrid(xi + Point2d(i, j))) continue;
-        if (planning_dis_map[x0 + i][y0 + j] == 0) {
+        if (fabs(getManhattanDis(i, j) - manhattan_dis) < Epsilon &&
+            planning_dis_map[x0 + i][y0 + j] == 0) {
           Point2d p_obs(x0 + i, y0 + j);
           return xi - p_obs;
         }

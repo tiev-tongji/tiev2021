@@ -132,7 +132,7 @@ const std::vector<PathPlanner::astate>& PathPlanner::AstarPlanner::plan(
     if (true || iterations == 0 ||
         random_urd(gen) <= analytic_expansion_probability) {
       if (try_analytic_expansion(
-              current_state, reverse_allowed, CAR_MAX_CURVATURE,
+              current_state, reverse_allowed, 0.5 * CAR_MAX_CURVATURE,
               max_sigma() * GRID_RESOLUTION * GRID_RESOLUTION)) {
         last_primitive_ptr = current.ptr;
         if (last_primitive_ptr != NULL)
@@ -306,7 +306,7 @@ bool PathPlanner::AstarPlanner::try_analytic_expansion(const astate& state,
       provider->traverse([&aer, &map, &state](const astate& sampled_state) {
         aer.emplace_back(sampled_state);
         astate& end_state = aer.back();
-        end_state.s += state.s;
+        end_state.s       = state.s + end_state.s * GRID_RESOLUTION;
         if (map.is_in_map(end_state) == false || map.is_lane_crashed(end_state))
           return false;
         else

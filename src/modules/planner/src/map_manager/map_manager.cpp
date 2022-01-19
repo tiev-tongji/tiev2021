@@ -950,9 +950,6 @@ vector<Pose> MapManager::getStartMaintainedPath() {
   if (path.size() <= 2 ||
       (!path.empty() &&
        point2PointSqrDis(path.front(), map.nav_info.car_pose) > 5)) {
-    if (point2PointSqrDis(path.front(), map.nav_info.car_pose) > 5) {
-      LOG(WARNING) << "start maintain path clear() !";
-    }
     path.clear();
   }
   return path;
@@ -1147,9 +1144,11 @@ void MapManager::laneBlockDecision(DynamicBlockType dynamic_block_type) {
       break;
     }
   }
+  // block_boundary_line = false; // for debug
   for (const auto& p : map.forward_ref_path) {
-    if ((map.nav_info.car_pose - p).len() < 3 / GRID_RESOLUTION) continue;
+    if ((map.nav_info.car_pose - p).len() < 1.5 / GRID_RESOLUTION) continue;
     // 1. block boundary line
+    block_boundary_line = false;
     if (block_boundary_line) {
       if (p.block_type & BlockType::BlockRight) {
         // half lane shifted from the lane boundary line to reserve some space
@@ -1170,35 +1169,44 @@ void MapManager::laneBlockDecision(DynamicBlockType dynamic_block_type) {
     if (p.mode != HDMapMode::INTERSECTION_SOLID || p.lane_num < 2) continue;
     double block_start_point_dis = 0;
     double block_end_point_dis   = 0;
-    double half_block_ratio = 0.2; // block ratio of a lane
-    double half_reserve_space_ratio = 0.5 - half_block_ratio; // reserve space for a blocked lane
+    double half_block_ratio      = 0.2;  // block ratio of a lane
+    double half_reserve_space_ratio =
+        0.5 - half_block_ratio;  // reserve space for a blocked lane
     double block_width = 2 * half_block_ratio * p.lane_width;
     // if there are 2 lane
     if (p.lane_num == 2) {
       if (p.direction == RoadDirection::RIGHT ||
           p.direction == RoadDirection::STRAIGHT) {
         // if we'll turn right or go straight, block the left lane
-        block_start_point_dis = (p.lane_num - p.lane_seq - half_block_ratio) * p.lane_width;
-        block_end_point_dis   = block_start_point_dis + block_width;
+        block_start_point_dis =
+            (p.lane_num - p.lane_seq - half_block_ratio) * p.lane_width;
+        block_end_point_dis = block_start_point_dis + block_width;
       } else {
         // if we'll turn left, block the right lane
-        block_start_point_dis = (1 - p.lane_seq - half_block_ratio) * p.lane_width;
-        block_end_point_dis   = block_start_point_dis + block_width;
+        block_start_point_dis =
+            (1 - p.lane_seq - half_block_ratio) * p.lane_width;
+        block_end_point_dis = block_start_point_dis + block_width;
       }
     } else {
       // if the lanes are more than 2
       if (p.direction == RoadDirection::RIGHT) {
         // if we'll turn right, block all the lane except the right one
-        block_start_point_dis = (1 - p.lane_seq + 0.5 + half_reserve_space_ratio) * p.lane_width;
-        block_end_point_dis   = (p.lane_num - p.lane_seq + half_block_ratio) * p.lane_width;
+        block_start_point_dis =
+            (1 - p.lane_seq + 0.5 + half_reserve_space_ratio) * p.lane_width;
+        block_end_point_dis =
+            (p.lane_num - p.lane_seq + half_block_ratio) * p.lane_width;
       } else if (p.direction == RoadDirection::LEFT) {
         // if we'll turn left, block all the lane except the left one
-        block_start_point_dis = (1 - p.lane_seq - half_block_ratio) * p.lane_width;
-        block_end_point_dis   = (p.lane_num - p.lane_seq - 0.5 - half_reserve_space_ratio) * p.lane_width;
+        block_start_point_dis =
+            (1 - p.lane_seq - half_block_ratio) * p.lane_width;
+        block_end_point_dis =
+            (p.lane_num - p.lane_seq - 0.5 - half_reserve_space_ratio) *
+            p.lane_width;
       } else {
         // if we'll go straight, block the left and right lanes
-        const double right_start_dis = (1 - p.lane_seq - half_block_ratio) * p.lane_width;
-        const double right_end_dis   = right_start_dis + block_width;
+        const double right_start_dis =
+            (1 - p.lane_seq - half_block_ratio) * p.lane_width;
+        const double right_end_dis = right_start_dis + block_width;
         const double left_start_dis =
             (p.lane_num - p.lane_seq - half_block_ratio) * p.lane_width;
         const double left_end_dis = left_start_dis + block_width;
@@ -1275,7 +1283,18 @@ const std::vector<HDMapPoint> MapManager::getLaneCenterDecision(
   // get the lane center for each ref path p
   for (auto& p : ref_path) {
     if (!p.neighbors.empty() || p.mode == CHANGE) continue;
+    if (p.mode == HDMapMode::INTERSECTION ||
+        p.event == HDMapEvent::EXIT_INTERSECTION) {
+      for (int i = -1; i <= 1; ++i) {
+        const auto& neighbor_p = p.getLateralPose(p.lane_width * i * 3 / 4);
+        p.neighbors.emplace_back(neighbor_p.x, neighbor_p.y, true, 0.0, false);
+      }
+    }
     for (int i = 0; i < p.lane_num; ++i) {
+      if (p.mode == HDMapMode::INTERSECTION ||
+          p.event == HDMapEvent::EXIT_INTERSECTION) {
+        continue;
+      }
       const auto& neighbor_p =
           p.getLateralPose(p.lane_width * (i - p.lane_seq + 1));
       p.neighbors.emplace_back(neighbor_p.x, neighbor_p.y, true, 0.0, false);

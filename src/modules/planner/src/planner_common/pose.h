@@ -51,7 +51,7 @@ struct Pose : public Point2d {
   double      s;  // lenth meter
   double      t;  // time second
   bool        backward = false;
-  bool        passed = false;
+  bool        passed   = false;
   UtmPosition utm_position;
   Pose(double x_ = 0, double y_ = 0, double ang_ = 0, double k_ = 0,
        double v_ = 0, double a_ = 0, double s_ = 0, double t_ = 0,
@@ -132,9 +132,14 @@ struct Pose : public Point2d {
     utm_position.heading = hd;
   }
 
-  inline const double cosDeltaAngle(const Pose& other_pose) const {
-    double cross = this->dot(other_pose);
-    double cos   = cross / (this->len() * other_pose.len());
+  inline const double deltaAngle(const Pose& other_pose) const {
+    double ang1 = this->ang;
+    double ang2 = other_pose.ang;
+    while (ang1 > 2 * PI) ang1 -= 2 * PI;
+    while (ang1 <= 0) ang1 += 2 * PI;
+    while (ang2 > 2 * PI) ang2 -= 2 * PI;
+    while (ang2 <= 0) ang2 += 2 * PI;
+    double cos = fabs(ang1 - ang2);
     return cos;
   }
 
