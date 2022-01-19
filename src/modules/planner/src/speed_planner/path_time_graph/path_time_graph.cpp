@@ -5,6 +5,7 @@
 #include <iostream>
 #include <limits>
 
+#include "collision_check.h"
 #include "linear_interpolation.h"
 #include "path_matcher.h"
 #include "st_point.h"
@@ -68,10 +69,13 @@ SLBoundary PathTimeGraph::ComputeObstacleSLBoundary(
     start_l = std::fmin(start_l, sl_point.second);
     end_l   = std::fmax(end_l, sl_point.second);
   }
-  // LOG(INFO) << start_s << " , " << end_s << " , " << start_l << " , " <<
-  // end_l;
 
   SLBoundary sl_boundary;
+  // remove car head
+  if (end_s > 0) {
+    start_s = std::max(start_s - CAR_FRONT_AXLE_TO_HEAD, 0.1);
+    end_s   = std::max(end_s - CAR_FRONT_AXLE_TO_HEAD, 0.1);
+  }
   sl_boundary.set_start_s(start_s);
   sl_boundary.set_end_s(end_s);
   sl_boundary.set_start_l(start_l);
