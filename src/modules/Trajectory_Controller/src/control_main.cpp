@@ -147,6 +147,7 @@ void StanleyContollerThread()
                   ref_pose);
       ref_velocity = getRefVelocity(control_path, current_velocity_m_s,
                                     aim_dis_k, aim_dis_base);
+      std::cout << "ref_velocity: " << ref_velocity << " m/s" << std::endl;
       if (ref_velocity < 0)
         direction = -1;
       else
@@ -210,7 +211,7 @@ void StanleyContollerThread()
     cout << "aimsteer---------------------------------------> "
          << control_msg.aimsteer << endl;
     cout << "aimspeed---------------------------------------> "
-         << control_msg.aimspeed << endl;
+         << control_msg.aimspeed << " km/h" << endl;
 
     zcm.publish("CANCONTROL", &control_msg);
     zcm_udp.publish("CANCONTROL", &control_msg);
