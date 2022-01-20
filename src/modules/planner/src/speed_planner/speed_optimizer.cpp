@@ -3,6 +3,7 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include "tievlog.h"
 
 namespace TiEV {
 
@@ -86,6 +87,7 @@ bool SpeedOptimizer::Process(SpeedPath& speed_path) {
   clock_t start_t, end_t;
   start_t = clock();
   if (!DP_Process()) {
+    LOG(WARNING) << "Speed Optimizer DP failed!";
     return false;
   }
   end_t = clock();
@@ -102,6 +104,7 @@ bool SpeedOptimizer::Process(SpeedPath& speed_path) {
     // If failing to solve qp problem,
     // we adopt an alternative method
     // to generate cubic splines
+    LOG(WARNING) << "Speed Optimizer Using Cublic Splines!";
     const int           NUM_POINT = dp_speed_data_.size();
     SplineLib::Vec2f    points[NUM_POINT];
     SplineLib::Vec2f    velocity[NUM_POINT];

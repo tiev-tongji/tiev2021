@@ -160,6 +160,13 @@ void sendPath() {
         tp.k = p.k;
         tp.t = p.t;
         tp.v = p.v;
+        // limit speed for temporary parking
+        // because speed optimizer fails if path is too short
+        // 50 points means 10m
+        if (control_path.num_points < 50) {
+          if (tp.v < -1) tp.v = -1;
+          if (tp.v > 1) tp.v = 1;
+        }
         // if (tp.v < 0.8 && tp.v > 0.00000) tp.v = 0.8;
         control_path.points.push_back(tp);
       }
