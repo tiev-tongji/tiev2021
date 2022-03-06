@@ -74,24 +74,24 @@ private:
 		while (receiving_) {
 			usb_port.Read(buffers);
 			for (size_t i = 0; i < buffers.size()-5; i++) {
-				if (buffers[i] == FRAME::HEAD && buffers[i+5] == FRAME::TAIL)
-					HandleRemoteControlFrame(buffers.substr(i, 6).c_str());
+				if ((unsigned char)buffers[i] == FRAME::HEAD && (unsigned char)buffers[i+5] == FRAME::TAIL)
+					HandleRemoteControlFrame(reinterpret_cast<const unsigned char*>(buffers.substr(i, 6).c_str()));
 				i += 6;
 			}
 			usleep(50*1000);
 		}
 	}
 
-	void HandleRemoteControlFrame(const char* frame) {
+	void HandleRemoteControlFrame(const unsigned char* frame) {
 		if (frame[1] != FRAME::ADDR1 || frame[2] != FRAME::ADDR2)
 			return;
 
 		unsigned char button_pressed = frame[4];
 		if (button_pressed == FRAME::ENABLE) 
-			is_brake == true;
+			is_brake = true;
 
 		else if (button_pressed == FRAME::DISABLE) 
-			is_brake == false;
+			is_brake = false;
 
 		// std::cout<<"Send remote_control_enable = "<<(remote_control_msg.enable ? "true" : "false")<<std::endl;
 	}

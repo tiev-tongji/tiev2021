@@ -71,12 +71,12 @@ namespace CppLinuxSerial {
 
 		// Check status
 		if(fileDesc_ == -1) {
-		    THROW_EXCEPT("\033[0;31m Could not open device " + device_ + ". Is the device name correct and do you have read/write permission?");
+		    THROW_EXCEPT("\033[0;31m Could not open device " + device_ + ". Is the device name correct and do you have read/write permission?\033[0m");
 		}
 
     ConfigureTermios();
 
-		std::cout << "\033[0;32m COM port opened successfully." << std::endl;
+		std::cout << "\033[0;32m COM port opened successfully.\033[0m" << std::endl;
         state_ = State::OPEN;
 	}
 

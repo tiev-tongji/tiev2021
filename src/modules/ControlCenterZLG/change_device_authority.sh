@@ -14,3 +14,6 @@ then
     remotecontrol='SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="remote_control", MODE="0666"'
     echo $remotecontrol > /etc/udev/rules.d/50-remote-control.rules
 fi
+
+udevadm control --reload-rules
+# replug the devices
