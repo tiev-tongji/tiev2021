@@ -17,6 +17,7 @@
 #include "messageControl.h"
 #include "pidController.h"
 #include "signal.h"
+#include "RemoteControl.hpp"
 #include <iostream>
 #include <math.h>
 #include <unistd.h>
@@ -121,6 +122,9 @@ int main(int argc, char *argv[]) {
   esr_control.init();
   nav_info_t veh_nav_info;
 
+  RemoteController remote_controller;
+  remote_controller.startReceiving();
+
   bool enable_pc_control = false;
   veh_info_t veh_pc_control_info;
 
@@ -186,7 +190,10 @@ int main(int argc, char *argv[]) {
     DCUMessage dcuMsg;
     // std::cout<< "isbreak: " << is_break << std:endl;
     // std::cout<< "ACC speed_torque: " << speed_torque <<std::endl;
-    if (is_break == true && enable_pc_control) {
+    if (remote_controller.isBrake()) {
+      dcuMsg.AimPressure = 5.;
+    }
+    else if (is_break == true && enable_pc_control) {
       dcuMsg.AimPressure = fmin(80.0, fabs(speed_torque));
       speed_torque = 0;
     }

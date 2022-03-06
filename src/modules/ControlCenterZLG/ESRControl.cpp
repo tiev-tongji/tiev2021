@@ -24,9 +24,8 @@
 #define OFFSET_X 4
 #define OFFSET_Y 15
 
-// ESRControl::ESRControl()
-// {
-// }
+using namespace std;
+
 
 ESRControl::~ESRControl()
 {
