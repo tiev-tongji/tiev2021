@@ -25,7 +25,7 @@
 #include <limits>
 #include <memory>
 #include <sstream>
-#include <string>
+#include <fstream>
 
 #include "Eigen/Eigenvalues"
 #include "cartographer/common/make_unique.h"
@@ -510,6 +510,229 @@ void SparsePoseGraph::AddSubmapFromProto(const int trajectory_id,
   //*****zz 2019-10-14*****//
 
 }
+
+
+// ----- JuRan HuangTengfei 2021-11-24 ----- // 
+void SparsePoseGraph::BuildMapImageFromSubmaps(const std::string& map_save_path_, const std::string& map_info_save_path_, double reso) {
+    auto all_submap = GetAllSubmapData();
+    double historical_max_x = -INFINITY;
+    double historical_min_x = INFINITY;
+    double historical_max_y = -INFINITY;
+    double historical_min_y = INFINITY;
+    std::fstream map_info_writer(map_info_save_path_, std::ios::out);
+
+    std::cout << all_submap[0].size() << " in historical map" <<std::endl;
+    for(int i = 0;i < all_submap[0].size();i++){
+        mapping::SubmapId submapID_temp{0,i};
+        ProbabilityGrid probability_grid_temp = submap_data_.at(submapID_temp).submap->probability_grid();
+        Eigen::Vector2d maxgrid = probability_grid_temp.limits().max();
+        double limitx = probability_grid_temp.limits().cell_limits().num_x_cells;
+        double limity = probability_grid_temp.limits().cell_limits().num_y_cells;
+        double minx, miny;
+        double maxx= maxgrid.x();
+        double maxy= maxgrid.y();
+        minx= maxx - reso*limity;
+        miny= maxy - reso*limitx;
+
+        if(maxx > historical_max_x){
+            historical_max_x = maxx;
+        }
+        if(maxy > historical_max_y){
+            historical_max_y = maxy;
+        }
+        if(minx < historical_min_x){
+            historical_min_x = minx;
+        }
+        if(miny < historical_min_y){
+            historical_min_y = miny;
+        }
+    }
+
+    std::cout << "the board of historical map:" <<std::endl;
+    std::cout << "min x: " << historical_min_x << std::endl;
+    std::cout << "min y: " << historical_min_y << std::endl;
+    std::cout << "max x: " << historical_max_x << std::endl;
+    std::cout << "max y: " << historical_max_y << std::endl << std::endl;
+
+    std::vector<std::vector<double>> map;
+    std::vector<std::vector<int>> count;
+
+    int map_board_x = (historical_max_x - historical_min_x)/reso + 0.5;
+    int map_board_y = (historical_max_y - historical_min_y)/reso + 0.5;
+
+    std::cout << "the size of historical cvMat" << std::endl;
+    std::cout << "map board x: " << map_board_x <<std::endl;
+    std::cout << "map board y: " << map_board_y <<std::endl << std::endl;
+
+    double orgin_in_map_x = (0 - historical_min_x)/reso;
+    double orgin_in_map_y = (0 - historical_min_y)/reso;
+
+    std::cout << "the orgin in historical cvMat" << std::endl;
+    std::cout << "orgin in map x: " << orgin_in_map_x <<std::endl;
+    std::cout << "orgin in map y: " << orgin_in_map_y <<std::endl << std::endl;
+    map_info_writer << orgin_in_map_x << " " << orgin_in_map_y << " " << reso;
+    map_info_writer.close();
+
+    map.resize(map_board_x);
+    for(int i = 0;i<map_board_x;i++){
+        map[i].resize(map_board_y, 0);
+    }
+
+    count.resize(map_board_x);
+    for(int i = 0;i<map_board_x;i++){
+        count[i].resize(map_board_y, 0);
+    }
+
+    std::cout << "start fusing historical map ..." << std::endl;
+    for(int i = 0;i < all_submap[0].size();i++){
+        mapping::SubmapId submapID_temp{0,i};
+        SubmapData& one_submap = submap_data_.at(submapID_temp);
+
+        ProbabilityGrid probability_grid_temp = one_submap.submap->probability_grid();
+        Eigen::Vector2d maxgrid = probability_grid_temp.limits().max();
+        double limitx = probability_grid_temp.limits().cell_limits().num_x_cells;
+        double limity = probability_grid_temp.limits().cell_limits().num_y_cells;
+        double minx, miny;
+        double maxx= maxgrid.x();
+        double maxy= maxgrid.y();
+        minx= maxx - reso*limity;
+        miny= maxy - reso*limitx;
+
+        for (double m = minx;m < maxx;)
+        {
+            for (double n = miny; n < maxy;)
+            {
+                Eigen::Vector2f point(m,n);
+                Eigen::Array2i cell_index = probability_grid_temp.limits().GetCellIndex(point);
+
+                if(probability_grid_temp.limits().Contains(cell_index) == true)
+                {
+                    float probility = probability_grid_temp.GetProbability(cell_index);
+                    //get average above ths
+                    if(probility >= 0.7)
+                    {
+                        int index_in_map_x = (m - historical_min_x)/reso;
+                        int index_in_map_y = (n - historical_min_y)/reso;
+
+                        count[index_in_map_x][index_in_map_y] += 1;
+                    }
+                }
+                n+=reso;
+            }
+            m+=reso;
+        }
+    }
+
+    std::cout << "successfully fusing historical map" << std::endl;
+
+    cv::Mat cv_map(map_board_x, map_board_y, CV_8UC1, Scalar(0));
+
+    //get average above ths
+    for (int m = 0;m < map_board_x;m++)
+        for (int n=0; n < map_board_y; n++)
+        {
+            if(count[m][n]!=0)
+            {
+                cv_map.at<uchar>(m,n) = 255;
+            }
+        }
+
+    cv::imwrite(map_save_path_, cv_map);
+
+    std::cout << "Save map to " << map_save_path_ << std::endl;
+}
+
+
+void SparsePoseGraph::UpdateSubmapsFromMapImage(const std::string& original_map_img_path_,
+                                                const std::string& modified_map_img_path_,
+                                                const std::string& map_info_path_){
+    double orgin_x_in_map, orgin_y_in_map;
+    double map_resolution;
+
+    std::ifstream map_set_file(map_info_path_);
+    if(!map_set_file.is_open()){
+        std::cerr << "Fail to load map info txt file" << std::endl;
+        exit(-1);
+    }
+    map_set_file >> orgin_x_in_map >> orgin_y_in_map >> map_resolution;
+
+    cv::Mat erased, added;
+    {   cv::Mat original_map = cv::imread(original_map_img_path_, cv::IMREAD_GRAYSCALE);
+        cv::Mat modified_map = cv::imread(modified_map_img_path_, cv::IMREAD_GRAYSCALE);
+        if(original_map.data == nullptr){
+            std::cerr << "Fail to load map from " << original_map_img_path_ << std::endl;
+            exit(-1);
+        }
+        if(modified_map.data == nullptr){
+            std::cerr << "Fail to load map from " << modified_map_img_path_ << std::endl;
+            exit(-1);
+        }
+        cv::subtract(original_map, modified_map, erased);
+        cv::subtract(modified_map, original_map, added);
+    }
+
+    auto all_submap = GetAllSubmapData();
+
+    std::cout << all_submap[0].size() << " in historical map" <<std::endl;
+
+    std::cout << "start modify historical map ..." << std::endl;
+
+    for(int i = 0;i < all_submap[0].size();i++){
+        mapping::SubmapId submapID_temp{0,i};
+        SubmapData& one_submap = submap_data_.at(submapID_temp);
+
+        const ProbabilityGrid* const_probability_grid_ptr =
+                &one_submap.submap->probability_grid();
+        Eigen::Vector2d maxgrid = const_probability_grid_ptr->limits().max();
+        double limitx = const_probability_grid_ptr->limits().cell_limits().num_x_cells;
+        double limity = const_probability_grid_ptr->limits().cell_limits().num_y_cells;
+        double minx, miny;
+        double maxx = maxgrid.x();
+        double maxy = maxgrid.y();
+        minx = maxx - map_resolution * limity;
+        miny = maxy - map_resolution * limitx;
+
+        for (double m = minx;m < maxx;)
+        {
+            for (double n = miny; n < maxy;)
+            {
+                Eigen::Vector2f point(m, n);
+                Eigen::Array2i cell_index =
+                        const_probability_grid_ptr->limits().GetCellIndex(point);
+
+                if(const_probability_grid_ptr->limits().Contains(cell_index) == true)
+                {
+                    float probility = const_probability_grid_ptr->GetProbability(cell_index);
+
+                    int index_in_map_x = m/map_resolution + orgin_x_in_map;
+                    int index_in_map_y = n/map_resolution + orgin_y_in_map;
+
+                    if(index_in_map_x > added.rows || index_in_map_x < 0
+                    || index_in_map_y > added.cols || index_in_map_y < 0)
+                        continue;
+
+                    if(erased.at<uchar>(index_in_map_x, index_in_map_y) > 128)
+                    {
+                        ProbabilityGrid* probability_grid_ptr =
+                                const_cast<ProbabilityGrid*>(const_probability_grid_ptr);
+                        probability_grid_ptr->ChangeProbability(cell_index, 0.1);
+                    }
+                    else if(added.at<uchar>(index_in_map_x, index_in_map_y) > 128)
+                    {
+                        ProbabilityGrid* probability_grid_ptr =
+                                const_cast<ProbabilityGrid*>(const_probability_grid_ptr);
+                        probability_grid_ptr->ChangeProbability(cell_index, 0.7);
+                    }
+                }
+                n += map_resolution;
+            }
+            m += map_resolution;
+        }
+    }
+    std::cout << "successfully modify historical map" << std::endl;
+}
+// ----- JuRan HuangTengfei 2021-11-24 ----- //
+
 
 void SparsePoseGraph::AddTrimmer(
     std::unique_ptr<mapping::PoseGraphTrimmer> trimmer) {

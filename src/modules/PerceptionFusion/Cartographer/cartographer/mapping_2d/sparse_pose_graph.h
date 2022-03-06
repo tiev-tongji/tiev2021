@@ -131,6 +131,21 @@ class SparsePoseGraph : public mapping::SparsePoseGraph {
   cv::Mat GetImage(double reckonx,double reckony,double yaw, int rows, int cols, int cen_row, int cen_col, float reso,int search_num ,float threshold) override;
   //*****zz2019-10-14*****//
 
+
+  /** JuRan HuangTengfei 2021-11-24 
+   * @brief generate global image format map from all the submaps
+   * @param reso resolution(meter/pixel) of generated map
+   */
+  void BuildMapImageFromSubmaps(const std::string& map_save_path_, const std::string& map_info_save_path_, double reso = 0.2);
+
+  /** JuRan HuangTengfei 2021-11-24 
+   * @brief update all submaps according to manually edited image map
+   */
+  void UpdateSubmapsFromMapImage(const std::string& original_map_img_path_,
+                                 const std::string& modified_map_img_path_,
+                                 const std::string& map_info_path_);
+
+
  private:
   // The current state of the submap in the background threads. When this
   // transitions to kFinished, all scans are tried to match against this submap.

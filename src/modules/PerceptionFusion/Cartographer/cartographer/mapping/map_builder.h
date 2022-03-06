@@ -88,6 +88,25 @@ class MapBuilder {
 
   mapping::SparsePoseGraph* sparse_pose_graph();
 
+
+  /** JuRan HuangTengfei 2021-11-24 
+   * @brief generate global image format map from all the submaps
+   * @param reso resolution(meter/pixel) of generated map
+   */
+  void BuildMapImageFromSubmaps(const std::string& map_save_path_, const std::string map_info_save_path_, double reso = 0.2){
+    dynamic_cast<mapping_2d::SparsePoseGraph*>(sparse_pose_graph_)->BuildMapImageFromSubmaps(map_save_path_, map_info_save_path_, reso);
+  }
+  /** JuRan HuangTengfei 2021-11-24 
+   * @brief update all submaps according to manually edited image map
+   */
+  void UpdateSubmapsFromMapImage(const std::string& original_map_img_path_,
+                                 const std::string& modified_map_img_path_,
+                                const std::string& map_info_path_){
+    dynamic_cast<mapping_2d::SparsePoseGraph*>(sparse_pose_graph_)
+      ->UpdateSubmapsFromMapImage(original_map_img_path_, modified_map_img_path_, map_info_path_);
+  }
+
+
  private:
   const proto::MapBuilderOptions options_;
   common::ThreadPool thread_pool_;
