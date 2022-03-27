@@ -28,6 +28,7 @@ void MapManager::update() {
   message_manager.getMap(map.lidar);
   //-------
   updateRefPath();
+  // predDynamicObjTraj();
   handleLidarMap();
 }
 
@@ -1553,40 +1554,73 @@ bool MapManager::pnbox(const Pose& point, const vector<Pose>& box) {
 }
 
 void MapManager::predDynamicObjTraj() {
-  dynamic_obj_mutex.lock();
-  // 1.initialize lattice planner
-  LatticePlanner     lp;
-  vector<HDMapPoint> ref_path = getRefPath();
+  // dynamic_obj_mutex.lock();
+  // 1.initialize reference_line_info
+  LatticePlanner          lp;
+  std::vector<HDMapPoint> ref_path = getForwardRefPath();
+  if (ref_path.empty()) return;
+  std::vector<ReferenceLineInfo> reference_line_info_list;
+  time_t                         start_time, end_time;
+  start_time = getTimeStamp();
+  reference_line_info_list.resize(ref_path[0].lane_num);
+  reference_line_info_list[ref_path[0].lane_seq - 1] =
+      ReferenceLineInfo(ref_path);
+  end_time = getTimeStamp();
+  int original_ref_line_id = ref_path[0].lane_seq;
+  for (int i = 1; i <= ref_path.front().lane_num; ++i) {
+    if (i == original_ref_line_id) continue;
+    ReferenceLineInfo new_ref_line_info =
+        reference_line_info_list[original_ref_line_id - 1];
+    new_ref_line_info.ShiftRefLine(original_ref_line_id, i);
+    reference_line_info_list[i - 1] = new_ref_line_info;
+  }
   // 2.only consider vehicles which are on the road with the same direction
   for (DynamicObj& dynamic_obj : map.dynamic_obj_list.dynamic_obj_list) {
     if (dynamic_obj.path.size() <= 1) continue;
-    vector<Pose> ori_path     = dynamic_obj.path;
-    Pose         current_pose = ori_path[0];
-    double       min_id       = -1;
-    double       min_dis      = std::numeric_limits<double>::max();
-    double       dis          = -1;
-    for (int i = 0; i < ref_path.size(); ++i) {
-      dis = std::pow(ref_path[i].x - current_pose.x, 2) +
-            std::pow(ref_path[i].y - current_pose.y, 2);
-      if (dis < min_dis) {
-        min_dis = dis;
-        min_id  = i;
-      }
+    std::vector<Pose> ori_path = dynamic_obj.path;
+    // calculate lane id relative to ref_path. (left positive)
+    auto match_info = PathMatcher::MatchToPath(ref_path, ori_path[0]);
+    auto matched_p  = ref_path[match_info.id];
+    int  cur_lane_rel =
+        copysign(std::floor((fabs(match_info.signed_dis * GRID_RESOLUTION) -
+                             ref_path[match_info.id].lane_width / 2) /
+                                ref_path[match_info.id].lane_width +
+                            1),
+                 match_info.signed_dis);
+    auto convert2pi = [](double ang) {
+      while (ang < 0) ang += 2 * PI;
+      while (ang >= 2 * PI) ang -= 2 * PI;
+      return ang;
+    };
+    // 3.exclude invalid vehicles and calculate target lane
+    if (convert2pi(ori_path.back().ang) - convert2pi(ori_path.front().ang) >
+        PI / 6)
+      cur_lane_rel += 1;
+    if (convert2pi(ori_path.back().ang) - convert2pi(ori_path.front().ang) <
+        -PI / 6)
+      cur_lane_rel -= 1;
+    if (cur_lane_rel + matched_p.lane_seq < 1 ||
+        cur_lane_rel + matched_p.lane_seq > matched_p.lane_num ||
+        fabs(convert2pi(ori_path[0].ang) - convert2pi(matched_p.ang)) >= PI / 3)
+      continue;
+    if (cur_lane_rel + ref_path[0].lane_seq < 1 ||
+        cur_lane_rel + ref_path[0].lane_seq > matched_p.lane_num)
+      continue;
+    // 4.plan new path for dynamic_obj
+    std::vector<Pose> new_path;
+    lp.PlanOnReferenceLine(
+        ori_path[0],
+        &reference_line_info_list[ref_path[0].lane_seq + cur_lane_rel - 1]);
+    new_path = reference_line_info_list[ref_path[0].lane_seq + cur_lane_rel - 1]
+                   .trajectory();
+    // LOG(WARNING) << "obstacle path";
+    for (auto& p : new_path) {
+      p.updateGlobalCoordinate(map.nav_info.car_pose);
+      // std::cout << p;
     }
-    if (min_id == -1) continue;
-    Pose matched_pose = ref_path[min_id];
-    if (fabs(matched_pose.ang - current_pose.ang) >= PI / 3) continue;
-
-    Point2d v1(std::cos(matched_pose.ang), std::sin(matched_pose.ang));
-    Point2d v2(current_pose.x - matched_pose.x,
-               current_pose.y - matched_pose.y);
-    double  cross = v1.cross(v2);
-    double  left_bound, right_bound;
+    dynamic_obj.path = new_path;
   }
-  // 3.lane-keep or lane change decision
-  // 4.predict trajectory
-
-  dynamic_obj_mutex.unlock();
+  // dynamic_obj_mutex.unlock();
   return;
 }
 

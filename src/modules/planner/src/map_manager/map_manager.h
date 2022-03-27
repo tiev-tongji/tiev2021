@@ -156,8 +156,7 @@ class MapManager {
   void mapDecision(bool history = false);
   void laneLineInterpolation();
   void getAccessibleMap();
-  void
-  predDynamicObjTraj();  // predict dynamic obj trajectory using lattice planner
+  void predDynamicObjTraj();  // predict dynamic obj trajectory using lattice planner
   //--------tool----------------
   int       getCarLaneId();  //获取车辆当前所在车道序号
   const int getGlobalPathNearestIndex(const int begin, const int end) const;

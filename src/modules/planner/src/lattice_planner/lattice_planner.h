@@ -60,6 +60,8 @@ class LatticePlanner {
   bool PlanOnReferenceLine(const Pose&            planning_init_point,
                            std::vector<Obstacle>& obstacle_list,
                            ReferenceLineInfo*     reference_line_info);
+  bool PlanOnReferenceLine(const Pose&        planning_init_point,
+                           ReferenceLineInfo* reference_line_info);
 };
 
 }  // namespace TiEV

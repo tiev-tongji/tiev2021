@@ -82,10 +82,8 @@ std::vector<Pose> LatticePlanner::Plan(
   planning_init_point.a = 0;  // don't consider acc for now
   time_t start_time, end_time;
   start_time = getTimeStamp();
-  reference_line_info_list.emplace_back(reference_line, planning_init_point);
-  end_time = getTimeStamp();
-  std::cout << "smooth cost: " << (end_time - start_time) / 1e3 << " ms "
-            << std::endl;
+  reference_line_info_list.emplace_back(reference_line);
+  end_time                 = getTimeStamp();
   int original_ref_line_id = reference_line[0].lane_seq;
   for (int i = 1; i <= reference_line.front().lane_num; ++i) {
     break;  // don't shift lane
@@ -95,6 +93,7 @@ std::vector<Pose> LatticePlanner::Plan(
     reference_line_info_list.push_back(new_ref_line_info);
   }
   // convert dynamic_obj information to local coordinate
+  // don't consider obstacles while predicting other vehicles' trajectories
   std::vector<Obstacle> obstacle_list;
   // punish lane change
   double min_distance_to_refline = std::numeric_limits<double>::max();
@@ -186,9 +185,9 @@ bool LatticePlanner::PlanOnReferenceLine(
   std::array<double, 3> init_d;
   ComputeInitFrenetState(matched_point, planning_init_point, &init_s, &init_d);
 
+  // 4. configure
   double speed_limit = reference_line_info->GetSpeedLimitFromS(init_s[0]);
-  reference_line_info->SetLatticeCruiseSpeed(speed_limit);
-
+  reference_line_info->SetLatticeCruiseSpeed(planning_init_point.v);
   PlanningTarget planning_target = reference_line_info->planning_target();
 
   // 5. generate 1d trajectory bundle for longitudinal and lateral respectively.
@@ -196,23 +195,16 @@ bool LatticePlanner::PlanOnReferenceLine(
                                                ptr_reference_line);
   std::vector<std::shared_ptr<Curve1d>> lon_trajectory1d_bundle;
   std::vector<std::shared_ptr<Curve1d>> lat_trajectory1d_bundle;
-
   trajectory1d_generator.GenerateTrajectoryBundles(
       planning_target, &lon_trajectory1d_bundle, &lat_trajectory1d_bundle);
 
+  // 6. combine two 1d trajectories to one 2d trajectory
   size_t num_lattice_traj = 0;
   auto   trajectory_pair =
       std::make_pair(lon_trajectory1d_bundle[0], lat_trajectory1d_bundle[0]);
-  double trajectory_pair_cost = 0;
-  // combine two 1d trajectories to one 2d trajectory
-  time_t start_time, end_time;
-  start_time                            = getTimeStamp();
-  std::vector<Pose> combined_trajectory = TrajectoryCombiner::Combine(
+  double            trajectory_pair_cost = 0;
+  std::vector<Pose> combined_trajectory  = TrajectoryCombiner::Combine(
       *ptr_reference_line, *trajectory_pair.first, *trajectory_pair.second, 0);
-  end_time = getTimeStamp();
-  std::cout << "combine cost: " << (end_time - start_time) / 1e3 << " ms "
-            << std::endl;
-  std::cout << "combine_path size: " << combined_trajectory.size() << std::endl;
 
   // std::cout << "lon traj: " << std::endl;
   // std::cout << trajectory_pair.first;
@@ -278,7 +270,120 @@ bool LatticePlanner::PlanOnReferenceLine(
     num_planning_succeeded_cycles += 1;
     return true;
   } else {
-    std::cout << "lattice planner failed " << std::endl;
+    // std::cout << "lattice planner failed " << std::endl;
+    return false;
+  }
+}
+
+bool LatticePlanner::PlanOnReferenceLine(
+    const Pose& planning_init_point, ReferenceLineInfo* reference_line_info) {
+  static size_t num_planning_cycles           = 0;
+  static size_t num_planning_succeeded_cycles = 0;
+
+  ++num_planning_cycles;
+
+  reference_line_info->set_is_on_reference_line();
+  // 1. obtain a reference line and transform it to the Pose format.
+  auto ptr_reference_line = std::make_shared<std::vector<Pose>>(
+      HDMapPoint2Pose(reference_line_info->reference_line()));
+
+  // 2. compute the matched point of the init planning point on the reference
+  // line.
+  Pose matched_point =
+      PathMatcher::MatchToPath(*ptr_reference_line, planning_init_point.x,
+                               planning_init_point.y, "lattice_planner");
+
+  // 3. according to the matched point, compute the init state in Frenet frame.
+  std::array<double, 3> init_s;
+  std::array<double, 3> init_d;
+  ComputeInitFrenetState(matched_point, planning_init_point, &init_s, &init_d);
+
+  // 4. configure
+  double speed_limit = reference_line_info->GetSpeedLimitFromS(init_s[0]);
+  reference_line_info->SetLatticeCruiseSpeed(speed_limit);
+  PlanningTarget planning_target = reference_line_info->planning_target();
+
+  // 5. generate 1d trajectory bundle for longitudinal and lateral respectively.
+  Trajectory1dGenerator                 trajectory1d_generator(init_s, init_d,
+                                               ptr_reference_line);
+  std::vector<std::shared_ptr<Curve1d>> lon_trajectory1d_bundle;
+  std::vector<std::shared_ptr<Curve1d>> lat_trajectory1d_bundle;
+  trajectory1d_generator.GenerateTrajectoryBundles(
+      planning_target, &lon_trajectory1d_bundle, &lat_trajectory1d_bundle);
+
+  // 6. combine two 1d trajectories to one 2d trajectory
+  size_t num_lattice_traj = 0;
+  auto   trajectory_pair =
+      std::make_pair(lon_trajectory1d_bundle[0], lat_trajectory1d_bundle[0]);
+  double            trajectory_pair_cost = 0;
+  std::vector<Pose> combined_trajectory  = TrajectoryCombiner::Combine(
+      *ptr_reference_line, *trajectory_pair.first, *trajectory_pair.second, 0);
+
+  // std::cout << "lon traj: " << std::endl;
+  // std::cout << trajectory_pair.first;
+  // std::cout << "lat traj: " << std::endl;
+  // std::cout << trajectory_pair.second;
+  auto draw_curve = [](std::shared_ptr<Curve1d> curve, std::string windowname) {
+    cv::namedWindow(windowname, cv::WINDOW_KEEPRATIO);
+    cv::Mat img = cv::Mat(MAX_ROW, MAX_COL, CV_8UC3, {255, 255, 255});
+    for (double x = 0.0; x < curve->ParamLength(); x += 1) {
+      img.at<cv::Vec3b>((int)x, (int)curve->Evaluate(0, x) + 125) =
+          cv::Vec3b(0x00, 0x00, 0x00);
+    }
+    cv::circle(img, cv::Point2d(CAR_CEN_COL, CAR_CEN_ROW), 2,
+               cv::Vec3b(0x00, 0x00, 0xff), 2);
+    cv::imshow(windowname, img);
+    cv::resizeWindow(windowname, 1600, 800);
+    cv::waitKey(50);
+  };
+  auto draw_path = [](std::vector<Pose> path, std::string windowname) {
+    cv::namedWindow(windowname, cv::WINDOW_KEEPRATIO);
+    cv::Mat img = cv::Mat(MAX_ROW, MAX_COL, CV_8UC3, {255, 255, 255});
+    for (const auto& p : path) {
+      img.at<cv::Vec3b>((int)p.x, (int)p.y) = cv::Vec3b(0x00, 0x00, 0x00);
+    }
+    cv::circle(img, cv::Point2d(CAR_CEN_COL, CAR_CEN_ROW), 2,
+               cv::Vec3b(0x00, 0x00, 0xff), 2);
+    cv::imshow(windowname, img);
+    cv::resizeWindow(windowname, 1600, 800);
+    cv::waitKey(50);
+  };
+  auto draw_path_compare = [](std::vector<Pose> path1, std::vector<Pose> path2,
+                              std::string windowname) {
+    cv::namedWindow(windowname, cv::WINDOW_KEEPRATIO);
+    cv::Mat img = cv::Mat(MAX_ROW, MAX_COL, CV_8UC4, {255, 255, 255, 255});
+    for (const auto& p : path1) {
+      img.at<cv::Vec4b>((int)p.x, (int)p.y) = cv::Vec4b(0x00, 0x00, 0xff, 0xff);
+    }
+    for (int i = 0; i < path2.size(); i += 5) {
+      auto p = path2[i];
+      cv::circle(img, cv::Point2d((int)p.y, (int)p.x), 0.1,
+                 cv::Vec4b(0x00, 0xff, 0x00, 0x00), 0);
+    }
+    cv::circle(img, cv::Point2d(CAR_CEN_COL, CAR_CEN_ROW), 1.5,
+               cv::Vec4b(0x00, 0x00, 0x00, 0xff), 0);
+    cv::imshow(windowname, img);
+    cv::resizeWindow(windowname, 1600, 800);
+    cv::waitKey(10);
+  };
+  // draw_curve(trajectory_pair.first, "s-t");
+  // draw_curve(trajectory_pair.first, "l-s");
+  // draw_path(combined_trajectory, "x-y");
+  // draw_path(*ptr_reference_line, "ref_path");
+  // draw_path_compare(combined_trajectory, *ptr_reference_line,
+  //                   "red-ref, green-traj");
+
+  num_lattice_traj += 1;
+  reference_line_info->SetTrajectory(combined_trajectory);
+  reference_line_info->SetCost(reference_line_info->PriorityCost() +
+                               trajectory_pair_cost);
+  reference_line_info->SetDrivable(true);
+
+  if (num_lattice_traj > 0) {
+    num_planning_succeeded_cycles += 1;
+    return true;
+  } else {
+    // std::cout << "lattice planner failed " << std::endl;
     return false;
   }
 }

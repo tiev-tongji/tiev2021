@@ -70,7 +70,7 @@ class ReferenceLineInfo {
  public:
   enum class LaneType { LeftForward, LeftReverse, RightForward, RightReverse };
   ReferenceLineInfo() = default;
-  ReferenceLineInfo(std::vector<HDMapPoint> reference_line, Pose stop_point);
+  ReferenceLineInfo(std::vector<HDMapPoint> reference_line);
 
   double GetSpeedLimitFromS(double s);
 

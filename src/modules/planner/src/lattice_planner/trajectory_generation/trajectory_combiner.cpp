@@ -105,7 +105,7 @@ std::vector<Pose> TrajectoryCombiner::Combine(
     // } else {
     //   t_param = t_param + 5 / v;  // 0.2m for one point
     // }
-    t_param               = t_param + 0.01;
+    t_param               = t_param + FLAGS_trajectory_time_resolution;
     prev_trajectory_point = trajectory_point;
   }
   return combined_trajectory;

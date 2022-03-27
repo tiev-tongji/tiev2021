@@ -66,7 +66,7 @@ std::vector<Condition> EndConditionSampler::SampleLonEndConditionsForCruising(
 
   std::vector<Condition> end_s_conditions;
   for (const auto& time : time_samples) {
-    std::cout << "V_upper, V_lower not implemented " << std::endl;
+    // std::cout << "V_upper, V_lower not implemented " << std::endl;
     double v_upper = ref_cruise_speed;
     double v_lower = 0;
     // double v_upper = std::min(feasible_region_.VUpper(time),

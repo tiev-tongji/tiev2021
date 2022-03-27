@@ -45,22 +45,22 @@ void Trajectory1dGenerator::GenerateTrajectoryBundles(
 
   GenerateLateralTrajectoryBundle(ptr_lat_trajectory_bundle);
 
-  std::cout << "lon sample points: " << std::endl;
+  // std::cout << "lon sample points: " << std::endl;
   for (const auto& curve : *ptr_lon_trajectory_bundle) {
     double t_max = curve->ParamLength();
     double s     = curve->Evaluate(0, t_max);
     double s0    = curve->Evaluate(0, 0.0);
     double v     = curve->Evaluate(1, t_max);
     double v0    = curve->Evaluate(1, 0.0);
-    std::cout << "s0=" << s0 << " s=" << s << " v0=" << v0 << " v=" << v
-              << " t=" << t_max << std::endl;
+    // std::cout << "s0=" << s0 << " s=" << s << " v0=" << v0 << " v=" << v
+    //           << " t=" << t_max << std::endl;
   }
-  std::cout << "lat sample points: " << std::endl;
+  // std::cout << "lat sample points: " << std::endl;
   for (const auto& curve : *ptr_lat_trajectory_bundle) {
     double s_max = curve->ParamLength();
     double d     = curve->Evaluate(0, s_max);
     double d0    = curve->Evaluate(0, 0.0);
-    std::cout << "d0=" << d0 << " d=" << d << " s=" << s_max << std::endl;
+    // std::cout << "d0=" << d0 << " d=" << d << " s=" << s_max << std::endl;
   }
 }
 
@@ -115,12 +115,12 @@ void Trajectory1dGenerator::GenerateLongitudinalTrajectoryBundle(
   GenerateSpeedProfilesForCruising(planning_target.cruise_speed(),
                                    ptr_lon_trajectory_bundle);
 
-  GenerateSpeedProfilesForPathTimeObstacles(ptr_lon_trajectory_bundle);
+  // GenerateSpeedProfilesForPathTimeObstacles(ptr_lon_trajectory_bundle);
 
-  if (planning_target.has_stop_point()) {
-    GenerateSpeedProfilesForStopping(planning_target.stop_point().s,
-                                     ptr_lon_trajectory_bundle);
-  }
+  // if (planning_target.has_stop_point()) {
+  //   GenerateSpeedProfilesForStopping(planning_target.stop_point().s,
+  //                                    ptr_lon_trajectory_bundle);
+  // }
 }
 
 void Trajectory1dGenerator::GenerateLateralTrajectoryBundle(

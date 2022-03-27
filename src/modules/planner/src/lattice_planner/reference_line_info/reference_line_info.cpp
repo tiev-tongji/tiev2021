@@ -31,12 +31,7 @@
 
 namespace TiEV {
 
-ReferenceLineInfo::ReferenceLineInfo(std::vector<HDMapPoint> reference_line,
-                                     Pose                    stop_point) {
-  // convert reference_line and stop_point information to local coordination
-  stop_point.s /= GRID_RESOLUTION;
-  planning_target_.set_stop_point(stop_point);
-
+ReferenceLineInfo::ReferenceLineInfo(std::vector<HDMapPoint> reference_line) {
   auto clamp = [](double x, double lb, double ub) {
     if (x > ub) return ub;
     if (x < lb) return lb;
@@ -75,8 +70,6 @@ ReferenceLineInfo::ReferenceLineInfo(std::vector<HDMapPoint> reference_line,
   start_time = getTimeStamp();
   std::vector<Point2d> smoothed_path =
       ps.smoothPath(reference_line, num_interpolate_points, "lattice_planner");
-  std::cout << "only smooth cost: " << (getTimeStamp() - start_time) / 1e3
-            << " ms " << std::endl;
   start_time = getTimeStamp();
   for (int i = 0; i < smoothed_path.size(); ++i) {
     int        in_ref_line_id = std::min(i / (num_interpolate_points + 1),
@@ -116,12 +109,10 @@ ReferenceLineInfo::ReferenceLineInfo(std::vector<HDMapPoint> reference_line,
       reference_line_[i + 1].ang = reference_line_[i].ang;
     }
   }
-  std::cout << "bianli cost: " << (getTimeStamp() - start_time) / 1e3 << " ms"
-            << std::endl;
 }
 
 double ReferenceLineInfo::GetSpeedLimitFromS(double s) {
-  std::cout << "GetSpeedLimitFromS is not implemented " << std::endl;
+  // std::cout << "GetSpeedLimitFromS is not implemented " << std::endl;
   for (const auto& p : reference_line_) {
     if (p.s >= s) {
       MapManager& map_manager = MapManager::getInstance();
