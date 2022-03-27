@@ -16,8 +16,8 @@
 #include <string.h>
 #include <string>
 #include <fstream>
+#include <iostream>
 
-#include "sys_logger.h"
 
 typedef int8_t STATE;
 

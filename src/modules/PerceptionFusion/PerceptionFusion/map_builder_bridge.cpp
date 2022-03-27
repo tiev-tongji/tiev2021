@@ -36,6 +36,10 @@ void MapBuilderBridge::LoadMap(const std::string& map_filename) {
     //LOG(INFO) << "Loading map '" << map_filename << "'...";
     cartographer::io::ProtoStreamReader stream(map_filename);
     map_builder_.LoadMap(&stream);
+    // // generate image first;
+    // map_builder_.BuildMapImageFromSubmaps("./map_image.png", "./map_image_info.txt", 0.2);
+    // // update submaps from modified image, set save_map_flag in params to true
+    // map_builder_.UpdateSubmapsFromMapImage("./result/xiqu_map.png", "./result/xiqu_map_modi.png", "./result/xiqu_mapinfo.txt");
 }
 
 int MapBuilderBridge::AddTrajectory(

@@ -81,6 +81,18 @@ class ProbabilityGrid {
     known_cells_box_.extend(cell_index.matrix());
   }
 
+
+  // ----- JuRan HuangTengfei 2021-11-24 ----- //
+  // Change the probability of the cell at 'cell_index' to the given 'probability'
+  void ChangeProbability(const Eigen::Array2i& cell_index,
+                         const float probability){
+    if (limits_.Contains(cell_index)) {
+      uint16& cell = cells_[ToFlatIndex(cell_index)];
+      cell = mapping::ProbabilityToValue(probability);
+    }
+  }
+
+
   // Applies the 'odds' specified when calling ComputeLookupTableToApplyOdds()
   // to the probability of the cell at 'cell_index' if the cell has not already
   // been updated. Multiple updates of the same cell will be ignored until

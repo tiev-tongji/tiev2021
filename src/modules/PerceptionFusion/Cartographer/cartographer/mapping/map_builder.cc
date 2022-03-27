@@ -220,11 +220,11 @@ void MapBuilder::LoadMap(io::ProtoStreamReader* const reader) {
       break;
     }
     if (proto.has_submap()) {
-      const transform::Rigid3d submap_pose = transform::ToRigid3(
-          pose_graph.trajectory(proto.submap().submap_id().trajectory_id())
-              .submap(proto.submap().submap_id().submap_index())
-              .pose());
-      sparse_pose_graph_->AddSubmapFromProto(map_trajectory_id, submap_pose,
+      // const transform::Rigid3d submap_pose = transform::ToRigid3(
+      //     pose_graph.trajectory(proto.submap().submap_id().trajectory_id())
+      //         .submap(proto.submap().submap_id().submap_index())
+      //         .pose());
+      sparse_pose_graph_->AddSubmapFromProto(map_trajectory_id, {},
                                              proto.submap());
     }
   }
