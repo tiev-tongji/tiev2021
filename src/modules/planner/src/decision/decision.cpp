@@ -163,11 +163,12 @@ void sendPath() {
         // limit speed for temporary parking
         // because speed optimizer fails if path is too short
         // 50 points means 10m
-        if (control_path.num_points < 50) {
-          if (tp.v < -1) tp.v = -1;
-          if (tp.v > 1) tp.v = 1;
-        }
-        // if (tp.v < 0.8 && tp.v > 0.00000) tp.v = 0.8;
+        // if (control_path.num_points < 50) {
+        //   if (tp.v < -1) tp.v = -1;
+        //   if (tp.v > 1) tp.v = 1;
+        // }
+        // because aimspeed's type is int
+        if (tp.v <= 1 / 3.6 && tp.v > 0.0001) tp.v = 1.1 / 3.6;
         control_path.points.push_back(tp);
       }
     }

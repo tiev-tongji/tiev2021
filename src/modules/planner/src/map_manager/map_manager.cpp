@@ -1565,7 +1565,7 @@ void MapManager::predDynamicObjTraj() {
   reference_line_info_list.resize(ref_path[0].lane_num);
   reference_line_info_list[ref_path[0].lane_seq - 1] =
       ReferenceLineInfo(ref_path);
-  end_time = getTimeStamp();
+  end_time                 = getTimeStamp();
   int original_ref_line_id = ref_path[0].lane_seq;
   for (int i = 1; i <= ref_path.front().lane_num; ++i) {
     if (i == original_ref_line_id) continue;
