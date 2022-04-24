@@ -1,10 +1,9 @@
 #include <unistd.h>
 
 #include <random>
+#include <cmath>
 
 #include "log.h"
-#include "look_up_tables/dubins_table/dubins.h"
-#include "math.h"
 #include "opencv2/opencv.hpp"
 #include "path_planner.h"
 #include "tievlog.h"
@@ -21,7 +20,12 @@ PathPlanner::node_expansion_callback node_expanded;
 #ifdef DEBUG_ANALYTIC_EXPANSION_CALLBACK
 PathPlanner::analytic_expansion_callback analytic_expanded;
 #endif
-
+/*
+ * using RTT algorithm to determine accessible path
+ * @param _base_primitives      the method used to impl node extension
+ * @plan_in_time                OUTPUT param (WARNING), mark whether plan success
+ * @return                      result path
+ */
 const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
     const DynamicObjList&          dynamic_obj_list,
     const std::vector<HDMapPoint>& ref_path, const astate& _start_state,
@@ -44,7 +48,7 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
         cv::Vec3b(0, 255, 0);
   }
 #endif
-  constexpr double max_dcc = -0.5;  // m/s^2
+  constexpr double max_dcc = -0.5;
   start_time               = getTimeStamp();
   dead_line                = start_time + _max_duration;
   iterations               = 0;
@@ -65,7 +69,6 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
   while (!node_pool.empty()) node_pool.pop();
   planning_map.prepare(dynamic_obj_list, ref_path, _abs_safe_map,
                        _lane_safe_map, is_backward_enabled);
-  // LOG(WARNING) << "start:" << start_state << " target:" << target_state;
 #ifdef VIS_EXPANSION
   cv::circle(expansion_img, cv::Point(int(start_state.y), int(start_state.x)),
              3, cv::Scalar(0, 255, 0), -1);
@@ -75,7 +78,6 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
 #endif
   LOG(INFO) << "TiEV Planner initialized";
 
-  // push start_state to node pool
   node_pool.push({planning_map.get_heuristic(
                       start_state, start_state.is_backward, start_speed_m_s),
                   start_speed_m_s, 0.0, 0.0, nullptr});
@@ -102,42 +104,19 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
     return cos_val;
   };
   while (!(is_time_out() || target_reached || node_pool.empty())) {
-    // get current node
-    /*
-    LOG(WARNING) << "-----node_pool_start------";
-    std::vector<node> tmp_pool;
-    tmp_pool.reserve(node_pool.size());
-    while (!node_pool.empty()) {
-      tmp_pool.push_back(node_pool.top());
-      node_pool.pop();
-    }
-    for (const auto& n : tmp_pool) {
-      LOG(INFO) << "score = " << n.score << " cost=" << n.cost
-                << " heuristic=" << n.score - n.cost;
-      node_pool.push(n);
-    }
-    LOG(WARNING) << "-----node_pool_end------";
-    //*/
     node current = node_pool.top();
     node_pool.pop();
-
-    // get current state
     astate                      current_state;
-    std::vector<base_primitive> bases;
-    // only the first node in the open list has
-    // a null current.ptr
     if (current.ptr == nullptr) {
-      current_state = _start_state;
+        current_state = _start_state;
     } else {
-      current_state = current.ptr->get_end_state();
+        current_state = current.ptr->get_end_state();
     }
+    std::vector<base_primitive> bases;
     const double state_possible_speed = std::sqrt(std::max(
         2.0 * max_dcc * current_state.s + current_speed * current_speed,
         0.0));  // v = sqrt(2*a*s+ v_0^2)
     bases = base_primitives->get_nexts(current_state, state_possible_speed);
-    // LOG(WARNING) << "current_state:" << current_state
-    //              << " score=" << current.score;
-
     bool reverse_allowed = is_backward_enabled;
 
     for (const auto& base : bases) {
@@ -154,8 +133,6 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
           last_primitive_ptr    = &expansion;
         }
       }
-      // LOG(INFO) << "expansion size=" << primitive_pool.size();
-      // LOG(INFO) << "is_visited=" << is_visited(expansion.get_end_state());
 #ifdef VIS_EXPANSION
       // LOG(INFO) << "---expansion k_step="
       //           << expansion.get_end_state().curvature -
@@ -169,9 +146,6 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
       cv::imshow("expansion", expansion_img);
       cv::waitKey(10);
 #endif
-      // for (const auto& st : expansion.get_states()) {
-      //   LOG(INFO) << st;
-      // }
       if (is_visited(expansion.get_end_state())) continue;
       // check if primitive crashed
       // is_crashed does not check if the primitive is completely
@@ -192,7 +166,7 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
         // if end_state is in the local map, add it to open list
         else if (planning_map.is_in_map(end_state)) {
           // update end_state to history
-          visit(end_state);
+            setVisit(end_state);
           double heuristic = planning_map.get_heuristic(
               end_state, reverse_allowed, current_speed);
           double cost_factor = get_cost_factor(current_state, end_state);
@@ -220,24 +194,19 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
   if (last_primitive_ptr != nullptr) {
     vector<astate> states(last_primitive_ptr->get_states());
     path.insert(path.end(), states.rend() - target_offset - 1, states.rend());
-
     last_primitive_ptr = last_primitive_ptr->get_parent();
     while (last_primitive_ptr != nullptr) {
-      vector<astate> states = last_primitive_ptr->get_states();
-      path.insert(path.end(), states.rbegin() + 1, states.rend());
+      vector<astate> states_tmp = last_primitive_ptr->get_states();
+      path.insert(path.end(), states_tmp.rbegin() + 1, states_tmp.rend());
       last_primitive_ptr = last_primitive_ptr->get_parent();
     }
   }
 
   result.insert(result.begin(), path.rbegin(), path.rend());
-  // result.insert(result.end(), analytic_expansion_result.begin(),
-  //               analytic_expansion_result.end());
-  // } else
-  //   log_1("timeout: no result found");
   return result;
 }
 
-void PathPlanner::TiEVPlanner::visit(const astate& state) {
+void PathPlanner::TiEVPlanner::setVisit(const astate& state) {
   double a       = PathPlanner::wrap_angle_0_2_PI(state.a);
   int    ang_idx = a / (2 * M_PI / ang_num);
   node_visited_map[lround(2 * state.x)][lround(2 * state.y)][ang_idx] = true;
@@ -261,18 +230,11 @@ bool PathPlanner::TiEVPlanner::is_time_out() {
 }
 
 double PathPlanner::TiEVPlanner::get_cost_factor(
-    const astate& prev_state, const astate& now_state) const {
+        const astate& prev_state, const astate& now_state) const {
   const auto& weights = DecisionContext::getInstance().getPlanningWeights();
   double      result  = 1.0;
   // punish backwarding
   if (now_state.is_backward) result *= weights.w7;
-  // // punish large curvature
-  // result *= (1.0 + fabs(now_state.curvature) * CURVATURE_PUNISHMENT_FACTOR);
-  // // punish large curvature change
-  // result *= (1.0 + fabs(now_state.curvature - prev_state.curvature) *
-  //                      CURVATURE_CHANGE_PUNISHMENT_FACTOR);
-  // // punish history visited nodes
-  // result *= (1.0 + history_visits * NODE_REVISIT_PUNISHMENT);
 
   return result;
 }

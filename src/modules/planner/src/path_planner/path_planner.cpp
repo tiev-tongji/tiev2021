@@ -126,7 +126,7 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
   std::vector<astate> result_path;
   // a flag stands for plan a path in time
   bool plan_in_time = false;
-  // chose a specific path planning algrithom
+  // chose a specific path planning algorithm
   astate start_state(start_pose.x, start_pose.y, start_pose.ang, start_pose.s,
                      start_pose.k, start_pose.backward);
   if (!ref_path.empty() && target_pose.x == 0 && target_pose.y == 0 &&
@@ -152,7 +152,7 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
     LOG(WARNING) << "No reference path and target to plan !";
     return false;
   }
-  // contruct the whole path
+  // construct the whole path
   result->clear();
   result->reserve(start_maintained_path.size() + result_path.size());
   result->insert(result->end(), start_maintained_path.begin(),

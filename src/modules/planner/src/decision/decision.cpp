@@ -2,7 +2,6 @@
 
 #include <unistd.h>
 
-#include <thread>
 
 #include "Routing.h"
 #include "collision_check.h"
@@ -18,49 +17,46 @@ namespace TiEV {
  * 决策规划的线程
  */
 void runTiEVFSM() {
-  MachineManager& mm  = MachineManager::getInstance();
+  MachineManager& machineManager  = MachineManager::getInstance();
   const Config&   cfg = Config::getInstance();
   // map managet initialization
-  MapManager& mapm = MapManager::getInstance();
-  if (cfg.enable_routing_by_file) mapm.readGlobalPathFile(cfg.roadmap_file);
+  MapManager& mapManager = MapManager::getInstance();
+  if (cfg.enable_routing_by_file) mapManager.readGlobalPathFile(cfg.roadmap_file);
   // FSM...
   // Context       context;
   // FSM::Instance machine{ context };
   while (true) {
-    MessageManager& msgm = MessageManager::getInstance();
-    msgm.clearTextInfo();
-    time_t start_t = getTimeStamp();
-    mapm.update();
-    mm.context.update();  //更新途灵事件信息
-    mm.machine.update();
-    time_t end_t     = getTimeStamp();
-    int    time_cost = (end_t - start_t) / 1000;
-    if (mm.machine.isActive<NormalDriving>())
-      msgm.addTextInfo("FSM State", "NormalDriving");
-    if (mm.machine.isActive<FreeDriving>())
-      msgm.addTextInfo("FSM State", "FreeDriving");
-    if (mm.machine.isActive<GlobalPlanning>())
-      msgm.addTextInfo("FSM State", "GlobalPlanning");
-    if (mm.machine.isActive<GlobalReplanning>())
-      msgm.addTextInfo("FSM State", "GlobalReplanning");
-    if (mm.machine.isActive<ParkingPlanning>())
-      msgm.addTextInfo("FSM State", "ParkingPlanning");
-    if (mm.machine.isActive<OvertakeDriving>())
-      msgm.addTextInfo("FSM State", "OvertakeDriving");
-    if (mm.machine.isActive<TemporaryParkingPlanning>())
-      msgm.addTextInfo("FSM State", "TemporaryParkingPlanning");
-    if (mm.machine.isActive<TemporaryStop>())
-      msgm.addTextInfo("FSM State", "TemporaryStop");
-    if (mm.machine.isActive<Tracking>())
-      msgm.addTextInfo("FSM State", "Tracking");
-    if (mm.machine.isActive<IntersectionDriving>())
-      msgm.addTextInfo("FSM State", "IntersectionDriving");
-    mapm.visualization();
+    MessageManager& messageManager = MessageManager::getInstance();
+    messageManager.clearTextInfo();
+    mapManager.update();
+    machineManager.context.update();  //更新途灵事件信息
+    machineManager.machine.update();
+    if (machineManager.machine.isActive<NormalDriving>())
+      messageManager.addTextInfo("FSM State", "NormalDriving");
+    if (machineManager.machine.isActive<FreeDriving>())
+      messageManager.addTextInfo("FSM State", "FreeDriving");
+    if (machineManager.machine.isActive<GlobalPlanning>())
+      messageManager.addTextInfo("FSM State", "GlobalPlanning");
+    if (machineManager.machine.isActive<GlobalReplanning>())
+      messageManager.addTextInfo("FSM State", "GlobalReplanning");
+    if (machineManager.machine.isActive<ParkingPlanning>())
+      messageManager.addTextInfo("FSM State", "ParkingPlanning");
+    if (machineManager.machine.isActive<OvertakeDriving>())
+      messageManager.addTextInfo("FSM State", "OvertakeDriving");
+    if (machineManager.machine.isActive<TemporaryParkingPlanning>())
+      messageManager.addTextInfo("FSM State", "TemporaryParkingPlanning");
+    if (machineManager.machine.isActive<TemporaryStop>())
+      messageManager.addTextInfo("FSM State", "TemporaryStop");
+    if (machineManager.machine.isActive<Tracking>())
+      messageManager.addTextInfo("FSM State", "Tracking");
+    if (machineManager.machine.isActive<IntersectionDriving>())
+      messageManager.addTextInfo("FSM State", "IntersectionDriving");
+    mapManager.visualization();
   }
 }
 /* Before send the path to the trajectory controller, we must do the speed
- * planner for the path with some decison results:
- * 1.retrive the path, find if there is collion on the path
+ * planner for the path with some decision results:
+ * 1.retrieve the path, find if there is collusion on the path
  * 2.add the pedestrian decision result
  * 3.add the traffic light decision result
  * the above decision results are transformed to virtual dynamic obj
@@ -69,7 +65,7 @@ void sendPath() {
   // get the decison context
   auto&           decision_context = DecisionContext::getInstance();
   time_t          time_limit       = 10e3;
-  MachineManager& mm               = MachineManager::getInstance();
+  MachineManager& machineManager               = MachineManager::getInstance();
   while (true) {
     auto       start_time = getTimeStamp();
     const auto static_obstacle_virtual_dymanic =
@@ -95,8 +91,8 @@ void sendPath() {
 
     structAIMPATH control_path;
     control_path.points.clear();
-    if (mm.machine.isActive<TemporaryStop>() ||
-        mm.machine.isActive<GlobalReplanning>()) {
+    if (machineManager.machine.isActive<TemporaryStop>() ||
+        machineManager.machine.isActive<GlobalReplanning>()) {
       maintained_path.clear();
     }
     if (maintained_path.empty()) {
@@ -146,7 +142,7 @@ void sendPath() {
           point.a   = -point.a;
         }
       }
-      // send control trojectory
+      // send control trajectory
       control_path.num_points = speed_path.path.size();
       for (const auto& p : speed_path.path) {
         TrajectoryPoint tp;

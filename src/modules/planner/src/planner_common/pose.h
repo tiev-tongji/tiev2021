@@ -48,7 +48,7 @@ struct Pose : public Point2d {
   double      dk;   // derivative of curvature
   double      v;    // velocity m/s
   double      a;
-  double      s;  // lenth meter
+  double      s;  // length meter
   double      t;  // time second
   bool        backward = false;
   bool        passed   = false;

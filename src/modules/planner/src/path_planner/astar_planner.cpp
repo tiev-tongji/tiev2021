@@ -89,21 +89,6 @@ const std::vector<PathPlanner::astate>& PathPlanner::AstarPlanner::plan(
   int target_offset = -1;
   while (!(is_time_out() || target_reached || node_pool.empty())) {
     // get current node
-    /*
-    LOG(WARNING) << "-----node_pool_start------";
-    std::vector<node> tmp_pool;
-    tmp_pool.reserve(node_pool.size());
-    while (!node_pool.empty()) {
-      tmp_pool.push_back(node_pool.top());
-      node_pool.pop();
-    }
-    for (const auto& n : tmp_pool) {
-      LOG(INFO) << "score = " << n.score << " cost=" << n.cost
-                << " heuristic=" << n.score - n.cost;
-      node_pool.push(n);
-    }
-    LOG(WARNING) << "-----node_pool_end------";
-    //*/
     node current = node_pool.top();
     node_pool.pop();
 

@@ -485,7 +485,7 @@ class PathPlanner {
         bool* plan_in_time);
 
    private:
-    void   visit(const astate& state);
+    void   setVisit(const astate& state);
     bool   is_visited(const astate& state);
     bool   is_time_out();
     double get_cost_factor(const astate& prev_state,
