@@ -73,8 +73,8 @@ PathPlanner::clothoid_base_primitive_set::get_nexts(
     }
   }
   // rotate and translate the primitives
-  const double cos_a = std::cos(state.a);
-  const double sin_a = std::sin(state.a);
+  const double cos_a = std::cos(state.ang);
+  const double sin_a = std::sin(state.ang);
   const auto   rotate_and_translate =
       [&](const PathPlanner::clothoid_base_primitive& primi) {
         std::vector<astate> new_states;
@@ -85,7 +85,7 @@ PathPlanner::clothoid_base_primitive_set::get_nexts(
           double new_y = sta.x * sin_a / GRID_RESOLUTION +
                          sta.y * cos_a / GRID_RESOLUTION + state.y;
           new_states.emplace_back(
-              new_x, new_y, PathPlanner::wrap_angle_0_2_PI(sta.a + state.a),
+              new_x, new_y, PathPlanner::wrap_angle_0_2_PI(sta.ang + state.ang),
               sta.s + state.s, sta.curvature, sta.is_backward);
         }
         return std::move(PathPlanner::base_primitive(new_states));
@@ -135,8 +135,8 @@ const vector<PathPlanner::base_primitive>
 PathPlanner::arc_base_primitive_set::get_nexts(
     const astate& state, const double current_speed) const {
   // rotate and translate the primitives
-  const double cos_a = std::cos(state.a);
-  const double sin_a = std::sin(state.a);
+  const double cos_a = std::cos(state.ang);
+  const double sin_a = std::sin(state.ang);
   const auto   rotate_and_translate =
       [&](const PathPlanner::arc_base_primitive& primi) {
         std::vector<astate> new_states;
@@ -147,7 +147,7 @@ PathPlanner::arc_base_primitive_set::get_nexts(
           double new_y = sta.x * sin_a / GRID_RESOLUTION +
                          sta.y * cos_a / GRID_RESOLUTION + state.y;
           new_states.emplace_back(
-              new_x, new_y, PathPlanner::wrap_angle_0_2_PI(sta.a + state.a),
+              new_x, new_y, PathPlanner::wrap_angle_0_2_PI(sta.ang + state.ang),
               sta.s + state.s, sta.curvature, sta.is_backward);
         }
         return std::move(PathPlanner::base_primitive(new_states));

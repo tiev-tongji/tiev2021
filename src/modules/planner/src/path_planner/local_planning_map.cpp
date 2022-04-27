@@ -64,7 +64,7 @@ bool PathPlanner::local_planning_map::is_abs_crashed(int x, int y) const {
 
 bool PathPlanner::local_planning_map::is_abs_crashed(
     const astate& state) const {
-  return collision(state.x, state.y, state.a, abs_safe_map, 0.0);
+  return collision(state.x, state.y, state.ang, abs_safe_map, 0.0);
 }
 
 bool PathPlanner::local_planning_map::is_abs_crashed(primitive& prim) const {
@@ -81,7 +81,7 @@ bool PathPlanner::local_planning_map::is_lane_crashed(int x, int y) const {
 
 bool PathPlanner::local_planning_map::is_lane_crashed(
     const astate& state) const {
-  return collision(state.x, state.y, state.a, lane_safe_map, 0.0);
+  return collision(state.x, state.y, state.ang, lane_safe_map, 0.0);
 }
 
 bool PathPlanner::local_planning_map::is_lane_crashed(primitive& prim) const {
@@ -122,8 +122,8 @@ double PathPlanner::local_planning_map::get_heuristic(
       double dis = std::sqrt(sqr_dis(p.x, p.y, state.x, state.y));
       if (dis < center_line_dis) center_line_dis = dis;
     }
-    // guide heading close to ref path (0-2)
-    const double ref_heading_dis = acos((cos(fabs(state.a - ref_near_p.ang))));
+    // guide to the head close to ref path (0-2)
+    const double ref_heading_dis = acos((cos(fabs(state.ang - ref_near_p.ang))));
     // guide to away from obstacles
     const double max_obstacle_affect_dis = 2.5;  // m
     const double obstacle_dis            = std::max(
@@ -145,8 +145,8 @@ double PathPlanner::local_planning_map::get_heuristic(
   const int y_idx              = (int)state.y;
   double    astar_2d_distance  = astar_2d_distance_map[x_idx][y_idx];
   double    rs_dubins_distance = 0;
-  double    q0[3]              = {state.x, state.y, state.a};
-  double    q1[3]              = {target.x, target.y, target.a};
+  double    q0[3]              = {state.x, state.y, state.ang};
+  double    q1[3]              = {target.x, target.y, target.ang};
   if (can_reverse) {
     rs_dubins_distance = getInstance().distance_table_rs->getDistance(q0, q1);
   } else {
@@ -200,7 +200,7 @@ bool PathPlanner::local_planning_map::is_target(const astate& state) const {
         ref_path.back().lane_width / GRID_RESOLUTION *
                 ref_path.back().lane_num +
             end_area_length;
-    bool heading_arrive = std::cos(ref_path.back().ang - state.a) > 0.71;
+    bool heading_arrive = std::cos(ref_path.back().ang - state.ang) > 0.71;
     return distance_arrive && heading_arrive;
   }
   // arrive target
@@ -209,7 +209,7 @@ bool PathPlanner::local_planning_map::is_target(const astate& state) const {
   constexpr double da = 15 / 180.0 * M_PI;
   if (fabs(state.x - target.x) > dx) return false;
   if (fabs(state.y - target.y) > dy) return false;
-  double dangle = wrap_angle_0_2_PI(state.a - target.a);
+  double dangle = wrap_angle_0_2_PI(state.ang - target.ang);
   dangle        = min(dangle, 2 * M_PI - dangle);
   return dangle <= da;
 }

@@ -165,23 +165,23 @@ class PathPlanner {
   // astate is the inner state used by hybrid astar planner
   class astate {
    public:
-    astate() : x(0), y(0), a(0), s(0), curvature(0), is_backward(false){};
+    astate() : x(0), y(0), ang(0), s(0), curvature(0), is_backward(false){};
     astate(double x_, double y_, double a_, double s_, double k_,
            bool is_backward_)
         : x(x_),
           y(y_),
-          a(a_),
+          ang(a_),
           s(s_),
           curvature(k_),
           is_backward(is_backward_){};
     double               x;
     double               y;
-    double               a;
+    double               ang;
     double               s;
     double               curvature;
     bool                 is_backward;
     friend std::ostream& operator<<(std::ostream& out, const astate& state) {
-      out << "astate:{x=" << state.x << " y=" << state.y << " a=" << state.a
+      out << "astate:{x=" << state.x << " y=" << state.y << " a=" << state.ang
           << " s=" << state.s << " k=" << state.curvature
           << " b=" << state.is_backward << "}";
       return out;
@@ -555,6 +555,56 @@ class PathPlanner {
     vector<astate> result;
   } astar_planner;
 
+    class LearnPlanner{
+    public:
+        const std::vector<astate>& plan(
+                const DynamicObjList&          dynamic_obj_list,
+                const std::vector<HDMapPoint>& ref_path, const astate& start_state,
+                double current_speed, bool is_backward_enabled,
+                double (*abs_safe_map)[MAX_COL], double (*lane_safe_map)[MAX_COL],
+                time_t max_duration, const base_primitive_set* base_primitives,
+                bool* plan_in_time);
+
+    private:
+        void InitPlanner(const DynamicObjList&          dynamic_obj_list,
+        const std::vector<HDMapPoint>& ref_path, const astate& start_state,
+        double start_speed_m_s, bool is_backward_enabled,
+        double (*abs_safe_map)[MAX_COL], double (*lane_safe_map)[MAX_COL],
+                time_t max_duration, const base_primitive_set* base_primitives);
+
+
+        void   setVisit(const astate& state);
+        bool   is_visited(const astate& state);
+        bool   is_time_out();
+        double get_cost_factor(const astate& prev_state,
+                               const astate& now_state) const;
+
+        static double getNearestStateCosFromRef(const astate& state, const vector<HDMapPoint>& ref_path);
+        time_t start_time;
+        time_t dead_line;
+        long   iterations;
+
+        astate start_state;
+        double start_speed_m_s;
+        bool   is_backward_enabled;
+
+        static constexpr int ang_num = 360;
+
+        bool node_visited_map[2 * MAX_ROW][2 * MAX_COL][ang_num];
+
+        static constexpr double BACKWARD_COST_FACTOR = 5.0;
+
+        local_planning_map                 planning_map;
+        const base_primitive_set*          base_primitives;
+        block_mem_pool<primitive, 32768>   primitive_pool;
+        priority_queue<node, vector<node>> node_pool;
+        vector<astate>                     analytic_expansion_result;
+
+        vector<astate> result;
+    } learn_planner;
+
+
+
   static constexpr double SPEED_DESCENT_FACTOR = 1.0;  // m/s^2
 
   static inline double wrap_angle_0_2_PI(double a) {
@@ -583,6 +633,10 @@ class PathPlanner {
     const double dy = y_0 - y_1;
     return sqrt(dx * dx + dy * dy);
   }
+
+
+
+
 };
 }  // namespace TiEV
 

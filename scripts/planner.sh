@@ -1,10 +1,10 @@
 #!/bin/bash
-cd ../src/modules/planner
+cd ../src/modules/planner || fail
 if [ ! -d "build" ]
 then
 	mkdir build
 fi
-cd build
+cd build || fail
 cmake .. && make -j8
 if [ $? != 0 ]
 then

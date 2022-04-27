@@ -162,7 +162,7 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
     Pose p;
     p.x        = state.x;
     p.y        = state.y;
-    p.ang      = state.a;
+    p.ang      = state.ang;
     p.s        = state.s;
     p.k        = state.curvature;
     p.backward = state.is_backward;

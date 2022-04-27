@@ -3,6 +3,7 @@ add_library(path_planner STATIC "")
 target_sources(path_planner PRIVATE
     astar_planner.cpp
     tiev_planner.cpp
+    LearnPlanner.cpp
     analytic_expansion_providers.cpp
     local_planning_map.cpp
     primitive_sets.cpp

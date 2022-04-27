@@ -76,7 +76,7 @@ vector<PathPlanner::astate> PathPlanner::base_primitive::generate_arc(
 
     tmp_state.x = sampled_x;
     tmp_state.y = sampled_y;
-    tmp_state.a = alpha;
+    tmp_state.ang = alpha;
 
     sampled_states.push_back(tmp_state);
 
@@ -96,9 +96,9 @@ vector<PathPlanner::astate> PathPlanner::base_primitive::generate_clothoid(
                                          k_step, primi_l);
   astate tmp_state{0.0, 0.0, 0.0, 0.0, begin_curvature, is_backward};
   while (primi_l + PRIMITIVE_SAMPLING_STEP / 2 >= tmp_state.s) {
-    clothoid_curve.eval(tmp_state.s, tmp_state.a, tmp_state.curvature,
+    clothoid_curve.eval(tmp_state.s, tmp_state.ang, tmp_state.curvature,
                         tmp_state.x, tmp_state.y);
-    if (is_backward) tmp_state.a = fmod(tmp_state.a + M_PI, 2 * M_PI);
+    if (is_backward) tmp_state.ang = fmod(tmp_state.ang + M_PI, 2 * M_PI);
     sampled_states.push_back(tmp_state);
     tmp_state.s += PRIMITIVE_SAMPLING_STEP;
   }

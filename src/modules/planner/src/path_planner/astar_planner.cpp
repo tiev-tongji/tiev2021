@@ -222,13 +222,13 @@ const std::vector<PathPlanner::astate>& PathPlanner::AstarPlanner::plan(
 }
 
 void PathPlanner::AstarPlanner::visit(const astate& state) {
-  double a       = PathPlanner::wrap_angle_0_2_PI(state.a);
+  double a       = PathPlanner::wrap_angle_0_2_PI(state.ang);
   int    ang_idx = a / (2 * M_PI / ANGLE_NUM);
   node_visited_map[lround(2 * state.x)][lround(2 * state.y)][ang_idx] = true;
 }
 
 bool PathPlanner::AstarPlanner::is_visited(const astate& state) {
-  double a       = PathPlanner::wrap_angle_0_2_PI(state.a);
+  double a       = PathPlanner::wrap_angle_0_2_PI(state.ang);
   int    ang_idx = a / (2 * M_PI / ANGLE_NUM);
   return node_visited_map[lround(2 * state.x)][lround(2 * state.y)][ang_idx];
 }

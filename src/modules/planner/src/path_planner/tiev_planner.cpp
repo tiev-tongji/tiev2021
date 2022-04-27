@@ -98,7 +98,7 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
       const double sqr_dis = sqrDistance(ref_p.x, ref_p.y, sta.x, sta.y);
       if (sqr_dis < min_dis) {
         min_dis = sqr_dis;
-        cos_val = std::cos(sta.a - ref_p.ang);
+        cos_val = std::cos(sta.ang - ref_p.ang);
       }
     }
     return cos_val;
@@ -207,13 +207,13 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
 }
 
 void PathPlanner::TiEVPlanner::setVisit(const astate& state) {
-  double a       = PathPlanner::wrap_angle_0_2_PI(state.a);
+  double a       = PathPlanner::wrap_angle_0_2_PI(state.ang);
   int    ang_idx = a / (2 * M_PI / ang_num);
   node_visited_map[lround(2 * state.x)][lround(2 * state.y)][ang_idx] = true;
 }
 
 bool PathPlanner::TiEVPlanner::is_visited(const astate& state) {
-  double a       = PathPlanner::wrap_angle_0_2_PI(state.a);
+  double a       = PathPlanner::wrap_angle_0_2_PI(state.ang);
   int    ang_idx = a / (2 * M_PI / ang_num);
   return node_visited_map[lround(2 * state.x)][lround(2 * state.y)][ang_idx];
 }

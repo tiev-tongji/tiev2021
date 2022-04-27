@@ -62,11 +62,11 @@ PathPlanner::dubins_provider::dubins_provider(const astate& _start_state,
                                               double        _max_curvature)
     : dubins_space(_max_curvature, ANALYTIC_EXPANSION_SAMPLING_STEP) {
   start_state =
-      State{_start_state.x, _start_state.y, _start_state.a,
+      State{_start_state.x, _start_state.y, _start_state.ang,
             _start_state.curvature, _start_state.is_backward ? -1.0 : 1.0};
 
   State end_state =
-      State{_end_state.x, _end_state.y, _end_state.a, _end_state.curvature,
+      State{_end_state.x, _end_state.y, _end_state.ang, _end_state.curvature,
             _end_state.is_backward ? -1.0 : 1.0};
 
   controls = dubins_space.get_controls(start_state, end_state);
@@ -90,11 +90,11 @@ PathPlanner::reeds_shepp_provider::reeds_shepp_provider(
     const astate& _start_state, const astate& _end_state, double _max_curvature)
     : rs_space(_max_curvature, ANALYTIC_EXPANSION_SAMPLING_STEP) {
   start_state =
-      State{_start_state.x, _start_state.y, _start_state.a,
+      State{_start_state.x, _start_state.y, _start_state.ang,
             _start_state.curvature, _start_state.is_backward ? -1.0 : 1.0};
 
   State end_state =
-      State{_end_state.x, _end_state.y, _end_state.a, _end_state.curvature,
+      State{_end_state.x, _end_state.y, _end_state.ang, _end_state.curvature,
             _end_state.is_backward ? -1.0 : 1.0};
 
   controls = rs_space.get_controls(start_state, end_state);
@@ -119,11 +119,11 @@ PathPlanner::cc_dubins_path_provider::cc_dubins_path_provider(
     double _max_sigma)
     : cc_dubins_space(_max_curvature, _max_sigma) {
   start_state =
-      State{_start_state.x, _start_state.y, _start_state.a,
+      State{_start_state.x, _start_state.y, _start_state.ang,
             _start_state.curvature, _start_state.is_backward ? -1.0 : 1.0};
 
   State end_state =
-      State{_end_state.x, _end_state.y, _end_state.a, _end_state.curvature,
+      State{_end_state.x, _end_state.y, _end_state.ang, _end_state.curvature,
             _end_state.is_backward ? -1.0 : 1.0};
 
   controls = cc_dubins_space.get_controls(start_state, end_state);
@@ -148,11 +148,11 @@ PathPlanner::hc_reeds_shepp_path_provider::hc_reeds_shepp_path_provider(
     double _max_sigma)
     : hc_rs_space(_max_curvature, _max_sigma) {
   start_state =
-      State{_start_state.x, _start_state.y, _start_state.a,
+      State{_start_state.x, _start_state.y, _start_state.ang,
             _start_state.curvature, _start_state.is_backward ? -1.0 : 1.0};
 
   State end_state =
-      State{_end_state.x, _end_state.y, _end_state.a, _end_state.curvature,
+      State{_end_state.x, _end_state.y, _end_state.ang, _end_state.curvature,
             _end_state.is_backward ? -1.0 : 1.0};
 
   controls = hc_rs_space.get_controls(start_state, end_state);
