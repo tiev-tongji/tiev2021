@@ -141,7 +141,7 @@ const std::vector<PathPlanner::astate>& PathPlanner::AstarPlanner::plan(
       // its parent primitive 'current.ptr'
       primitive& expansion = *(primitive_pool.make(base, current.ptr));
       // LOG(INFO) << "expansion size=" << primitive_pool.size();
-      // LOG(INFO) << "is_visited=" << is_visited(expansion.get_end_state());
+      // LOG(INFO) << "is_visited=" << isVisited(expansion.get_end_state());
 #ifdef VIS_EXPANSION
       // LOG(INFO) << "---expansion k_step="
       //           << expansion.get_end_state().curvature -

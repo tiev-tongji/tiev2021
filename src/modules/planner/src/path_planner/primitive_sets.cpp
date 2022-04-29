@@ -1,5 +1,5 @@
+#include <cmath>
 #include "log.h"
-#include "math.h"
 #include "path_planner.h"
 #include "tievlog.h"
 

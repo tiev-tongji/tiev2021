@@ -574,10 +574,12 @@ class PathPlanner {
 
 
         void   setVisit(const astate& state);
-        bool   is_visited(const astate& state);
+        bool   isVisited(const astate& state);
         bool   is_time_out();
-        double get_cost_factor(const astate& prev_state,
-                               const astate& now_state) const;
+        static double get_cost_factor(const astate& prev_state,
+                               const astate& now_state) ;
+
+        const double max_dcc = -0.5;
 
         static double getNearestStateCosFromRef(const astate& state, const vector<HDMapPoint>& ref_path);
         time_t start_time;
@@ -586,6 +588,7 @@ class PathPlanner {
 
         astate start_state;
         double start_speed_m_s;
+        double current_speed;
         bool   is_backward_enabled;
 
         static constexpr int ang_num = 360;
@@ -596,11 +599,19 @@ class PathPlanner {
 
         local_planning_map                 planning_map;
         const base_primitive_set*          base_primitives;
+        vector<HDMapPoint> ref_path;
         block_mem_pool<primitive, 32768>   primitive_pool;
         priority_queue<node, vector<node>> node_pool;
         vector<astate>                     analytic_expansion_result;
+        primitive_ptr last_primitive_ptr;
+        // last_primitive_ptr points to the last primitive
+        // in the whole primitive link after target is reached
+        // otherwise it is null
 
         vector<astate> result;
+
+        bool SovleRusultPath();
+        bool extendNodeIntoPool(node &current);
     } learn_planner;
 
 

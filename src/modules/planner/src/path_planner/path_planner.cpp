@@ -133,7 +133,7 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
       target_pose.ang == 0) {
     clothoid_base_primitives.prepare(backward_enabled);
     // no target but have reference path
-    result_path = tiev_planner.plan(dynamic_obj_list, ref_path, start_state,
+    result_path = learn_planner.plan(dynamic_obj_list, ref_path, start_state,
                                     nav_info.current_speed, backward_enabled,
                                     abs_safe_map, lane_safe_map,
                                     config.plan_time_limit_ms * 1000,
