@@ -14,7 +14,6 @@ namespace TiEV{
                                     bool _is_backward_enabled, double (*_abs_safe_map)[251], double (*_lane_safe_map)[251],
                                     time_t max_duration, const PathPlanner::base_primitive_set *_base_primitives,
                                     bool *plan_in_time) {
-        LOG(INFO) << "call plan " << endl;
 
         InitPlanner(_dynamic_obj_list,_ref_path,_start_state,
                     _start_speed_m_s,_is_backward_enabled,
