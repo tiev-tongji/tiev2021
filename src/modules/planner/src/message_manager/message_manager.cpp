@@ -409,6 +409,28 @@ void MessageManager::Handler::handleCANINFO(const zcm::ReceiveBuffer* rbuf,
 }
 
 void MessageManager::publishPath(const structAIMPATH& path) {
+  //以下是测试样例  注意num_points值必须与vector值一致
+  // path.num_points = 2;
+  // while(!path.points.empty())
+  //   path.points.pop_back();
+  // TrajectoryPoint a1, a2;
+  // a1.x = 1;
+  // a1.y = 2;
+  // a1.theta = 3;
+  // a1.t = 4;
+  // a1.k = 5;
+  // a1.v = 6;
+  // a1.a = 7;
+  // path.points.push_back(a1);
+  // a2.x = 8;
+  // a2.y = 9;
+  // a2.theta = 10;
+  // a2.t = 11;
+  // a2.k = 12;
+  // a2.v = 13;
+  // a2.a = 14;
+  // path.points.push_back(a2);
+  // //---------------------------------
   zcm_udp.publish("AIMPATH", &path);
   redis_handler.redisPublish("AIMPATH", &path);
 }
