@@ -410,6 +410,7 @@ void MessageManager::Handler::handleCANINFO(const zcm::ReceiveBuffer* rbuf,
 
 void MessageManager::publishPath(const structAIMPATH& path) {
   zcm_udp.publish("AIMPATH", &path);
+  redis_handler.redisPublish("AIMPATH", &path);
 }
 
 void MessageManager::publishRemoteControl(

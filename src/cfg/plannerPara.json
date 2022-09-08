@@ -6,7 +6,7 @@
 	"#roadmap_file": "/home/autolab/tiev/src/cfg/xiqu_tracking.txt",
 	"rs_distance_table_path": "/home/autolab/tiev/src/cfg/reeds_shepp_distance_table",
 	"dubins_distance_table_path": "/home/autolab/tiev/src/cfg/dubins_distance_table",
-	"enable_routing_by_file": 0,
+	"enable_routing_by_file": 1,
 	"#enable_routing_by_file": {
 		"0": "disable routing by roadmap_file, and routing will request routing-server on internet",
 		"1": "enable routing by roadmap_file in car"

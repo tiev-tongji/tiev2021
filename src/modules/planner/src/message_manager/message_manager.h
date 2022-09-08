@@ -14,6 +14,7 @@
 #include "tiev_utils.h"
 #include "tievmsg.h"
 #include "visualization_msg.h"
+#include "redis_publish.h"
 
 namespace TiEV {
 
@@ -118,6 +119,7 @@ class MessageManager {
   Handler  inner_handler;
   zcm::ZCM zcm_ipc{"ipc"};
   zcm::ZCM zcm_udp{""};
+  Redis redis_handler;
 
  public:
   MessageManager(const MessageManager&) = delete;
@@ -125,6 +127,7 @@ class MessageManager {
 
   static MessageManager& getInstance() {
     static MessageManager instance;
+    instance.redis_handler.redisInit();
     return instance;
   }
 
