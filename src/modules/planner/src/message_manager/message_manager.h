@@ -34,6 +34,7 @@ class MessageManager {
 
   void msgReceiveIpc();
   void msgReceiveUdp();
+  void msgReceiveReids();
 
   bool getNavInfo(NavInfo& nav_info);
   bool getMap(LidarMap& lidar_map);
@@ -69,8 +70,7 @@ class MessageManager {
  private:
   class Handler {
    public:
-    void handleNAVINFO(const zcm::ReceiveBuffer* rbuf, const std::string& chan,
-                       const structNAVINFO* msg);
+    void handleNAVINFO(redisReply* reply);
     void handleFUSIONMAP(const zcm::ReceiveBuffer* rbuf,
                          const std::string& chan, const structFUSIONMAP* msg);
     void handleRAINSIGNAL(const zcm::ReceiveBuffer*     rbuf,

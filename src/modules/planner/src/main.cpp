@@ -13,6 +13,7 @@ int main(int argc, char** argv) {
       thread(&MessageManager::msgReceiveIpc, &msg_manager);
   thread msg_receiver_udp =
       thread(&MessageManager::msgReceiveUdp, &msg_manager);
+  thread msg_receiver_redis = thread(&MessageManager::msgReceiveReids, &msg_manager);
   // start send controller path thread
   thread send_traj = thread(sendPath);
   // start routing thread
@@ -21,6 +22,7 @@ int main(int argc, char** argv) {
   runTiEVFSM();
   msg_receiver_ipc.join();
   msg_receiver_udp.join();
+  msg_receiver_redis.join();
   send_traj.join();
   routing_thread.join();
   cout << "Bye~, TiEV autonomous system exited!!!" << endl;
