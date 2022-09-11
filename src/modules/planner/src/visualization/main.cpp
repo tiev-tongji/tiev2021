@@ -9,6 +9,7 @@ int main() {
   thread visualization = thread(&Visualization::visualize, vis);
   thread visualization_receive = thread(&Visualization::msgReceiveUdp, vis);
   thread visualization_receive_ipc = thread(&Visualization::msgReceiveIpc, vis);
+  thread visualization_receive_redis = thread(&Visualization::msgReceiveRedis, vis);
   visualization.join();
   visualization_receive.join();
   visualization_receive_ipc.join();

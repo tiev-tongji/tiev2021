@@ -1022,7 +1022,7 @@ void Visualization::msgReceiveUdp() {
   if (!zcm_udp.good()) return;
 
   zcm_udp.subscribe("FUSIONMAP", &Handler::handleFUSIONMAP, &inner_handler);
-  zcm_udp.subscribe("NAVINFO", &Handler::handleNAVINFO, &inner_handler);
+  //zcm_udp.subscribe("NAVINFO", &Handler::handleNAVINFO, &inner_handler);
   zcm_udp.subscribe("OBJECTLIST", &Handler::handleOBJECTLIST, &inner_handler);
   zcm_udp.subscribe("MsgTrafficLightSignal", &Handler::handleTRAFFICLIGHT,
                     &inner_handler);
@@ -1043,6 +1043,60 @@ void Visualization::msgReceiveIpc() {
                     &inner_handler);
 
   zcm_ipc.run();
+}
+
+void Visualization::msgReceiveRedis(){
+  redisContext *context = redisConnect("124.222.194.135", 4321);
+  redisReply *reply = NULL;
+  if (context->err)
+  {
+      std::cout << "can not connect to redis server" << std::endl;
+      std::cout << "reason:" << context->errstr << std::endl;
+      redisFree(context);
+      context = NULL;
+      return;
+  }
+  // 验证密码
+  redisCommand(context, "AUTH %s", "tjredis!!");
+
+  // 订阅消息
+  reply = (redisReply *)redisCommand(context, "SUBSCRIBE %s", "PSEUDO_NAVINFO");
+  if (NULL == reply || reply->type != REDIS_REPLY_ARRAY) //订阅成功返回一个数组标识
+  {
+      std::cout << "subscribe failed!" << std::endl;
+      freeReplyObject(reply);
+      redisFree(context);
+      context = NULL;
+      return;
+  }
+  freeReplyObject(reply);
+
+  while (1){
+      void *_reply = NULL;
+      if (redisGetReply(context, &_reply) != REDIS_OK)
+      {
+          continue;
+      }
+      reply = (redisReply *)_reply;
+      //如果内容的字符个数为0 则继续
+      if(reply->element[2]->len == 0 || reply->element[1]->len == 0)
+        continue;
+
+      // 0 类型 1 channel 2 内容
+      char * channel = new char[reply->element[1]->len + 1];
+      channel[reply->element[1]->len] = 0;
+      sprintf(channel, "%s", reply->element[1]->str);
+
+
+      if(strcmp(channel, "PSEUDO_NAVINFO") == 0){
+        inner_handler.handleNAVINFO(reply);
+      }
+      // std::cout << "recv message from " << channel << std::endl;
+      delete []channel;
+  }
+  redisFree(context);
+  context = NULL;
+  return;
 }
 
 void Visualization::publishRemoteControl(
@@ -1113,12 +1167,24 @@ void Visualization::Handler::handleSLAMLOC(const zcm::ReceiveBuffer* rbuf,
   slam_loc_mtx.unlock();
 }
 
-void Visualization::Handler::handleNAVINFO(const zcm::ReceiveBuffer* rbuf,
-                                           const std::string&        chan,
-                                           const structNAVINFO*      msg) {
+// void Visualization::Handler::handleNAVINFO(const zcm::ReceiveBuffer* rbuf,
+//                                            const std::string&        chan,
+//                                            const structNAVINFO*      msg) {
+//   nav_mtx.lock();
+//   tmp_nav              = *msg;
+//   update_time_nav_info = getTimeStamp();
+//   nav_mtx.unlock();
+// }
+
+void Visualization::Handler::handleNAVINFO(redisReply *reply) {
   nav_mtx.lock();
-  tmp_nav              = *msg;
   update_time_nav_info = getTimeStamp();
+  tmp_nav.decode(reply->element[2]->str, 0, reply->element[2]->len);
+  freeReplyObject(reply);
   nav_mtx.unlock();
+
+  //以下测试对PSEUDO_NAVINFO的读取
+  // std::cout << "PSEDUO_NAVINFO" << tmp_nav.mAngularRateZ << " " << tmp_nav.mHPOSAccuracy << std::endl;
 }
+
 }  // namespace TiEV

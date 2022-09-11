@@ -346,6 +346,7 @@ void MapManager::updateRefPath(bool need_opposite) {
   if (global_path_nearest_idx < 0) {
     global_path_nearest_idx =
         getGlobalPathNearestIndex(0, global_path.size() - 1);
+    LOG(WARNING) << global_path.size() << ", " << global_path_nearest_idx;
     if (global_path_nearest_idx < 0) {
       ref_path_mutex.unlock();
       global_path_mutex.unlock_shared();

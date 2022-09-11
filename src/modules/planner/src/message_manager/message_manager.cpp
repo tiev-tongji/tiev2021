@@ -20,7 +20,7 @@ bool MessageManager::getNavInfo(NavInfo& nav_info) {
   nav_info.current_speed = 0;
   nav_info.lon           = 0;
   nav_info.lat           = 0;
-  if (current_time - inner_handler.update_time_nav_info < NAV_INFO_TIMEOUT_US) {
+  if (current_time - inner_handler.update_time_nav_info < NAV_INFO_TIMEOUT_US || true) {
     nav_info.detected                      = true;
     nav_info.car_pose.utm_position.utm_x   = inner_handler.tmp_nav.utmX;
     nav_info.car_pose.utm_position.utm_y   = inner_handler.tmp_nav.utmY;
@@ -28,6 +28,7 @@ bool MessageManager::getNavInfo(NavInfo& nav_info) {
     nav_info.current_speed                 = inner_handler.tmp_nav.mSpeed3d;
     nav_info.lon                           = inner_handler.tmp_nav.mLon;
     nav_info.lat                           = inner_handler.tmp_nav.mLat;
+    std::cout << "navinfo: " << inner_handler.tmp_nav.utmX << ", " << inner_handler.tmp_nav.utmY << std::endl;
     if (inner_handler.tmp_nav.mRTKStatus == 1 ||
         inner_handler.tmp_nav.isReckoningVaild) {
       nav_info.reliable = true;
@@ -351,7 +352,7 @@ void MessageManager::Handler::handleNAVINFO(redisReply *reply) {
   freeReplyObject(reply);
 
   //以下测试对PSEUDO_NAVINFO的读取
-  std::cout << "PSEDUO_NAVINFO" << tmp_nav.mAngularRateZ << " " << tmp_nav.mHPOSAccuracy << std::endl;
+  // std::cout << "PSEDUO_NAVINFO" << tmp_nav.mAngularRateZ << " " << tmp_nav.mHPOSAccuracy << std::endl;
 }
 
 void MessageManager::Handler::handleFUSIONMAP(const zcm::ReceiveBuffer* rbuf,
@@ -519,7 +520,7 @@ void MessageManager::msgReceiveReids(){
       if(strcmp(channel, "PSEUDO_NAVINFO") == 0){
         inner_handler.handleNAVINFO(reply);
       }
-      std::cout << "recv message from " << channel << std::endl;
+      // std::cout << "recv message from " << channel << std::endl;
       delete []channel;
   }
   redisFree(context);

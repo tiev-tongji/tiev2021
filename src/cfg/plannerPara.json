@@ -1,6 +1,6 @@
 {
 	"comment": "town05_forward",
-	"roadmap_file": "/home/autolab/tiev/src/cfg/Town03_original.txt",
+	"roadmap_file": "/home/autolab/tiev2021/src/cfg/Town03_original.txt",
 	"#roadmap_file": "/home/autolab/carla_path/Town03_original.txt",
 	"#roadmap_file": "/home/autolab/carla_path/carla_path_Town04.txt",
 	"#roadmap_file": "/home/autolab/tiev/src/cfg/xiqu_tracking.txt",

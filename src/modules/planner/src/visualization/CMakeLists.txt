@@ -14,5 +14,8 @@ target_link_libraries(visualization PUBLIC
     speed_planner 
     message_manager
     zcm 
+    hiredis
+    redis++
+    "/usr/local/lib/libredis++.so.1"
     ${OpenCV_LIBS}
 )

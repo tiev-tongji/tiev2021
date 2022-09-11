@@ -102,6 +102,7 @@ class Visualization {
   void set_speed_view(cv::Mat& speed_mat);
   void msgReceiveUdp();
   void msgReceiveIpc();
+  void msgReceiveRedis();
   void publishRemoteControl(const structREMOTECONTROL& remote_control);
 
  private:
@@ -212,8 +213,9 @@ class Visualization {
   // zcm可视化消息获取
   class Handler {
    public:
-    void handleNAVINFO(const zcm::ReceiveBuffer* rbuf, const std::string& chan,
-                       const structNAVINFO* msg);
+    // void handleNAVINFO(const zcm::ReceiveBuffer* rbuf, const std::string& chan,
+    //                    const structNAVINFO* msg);
+    void handleNAVINFO(redisReply *reply);
     void handleFUSIONMAP(const zcm::ReceiveBuffer* rbuf,
                          const std::string& chan, const structFUSIONMAP* msg);
     void handleTRAFFICLIGHT(const zcm::ReceiveBuffer*    rbuf,

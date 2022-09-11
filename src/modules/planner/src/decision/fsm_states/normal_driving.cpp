@@ -25,6 +25,10 @@ void NormalDriving::update(FullControl& control) {
   const auto start_path = map_manager.getStartMaintainedPath();
   // if we need u-turn, the heading dif weight should be bigger
   const auto& ref_path = map_manager.getForwardRefPath();
+  LOG(INFO) << "ref_path:";
+  for (auto& p : ref_path) {
+    std::cout << p.x << ", " << p.y << std::endl;
+  }
   if (!ref_path.empty()) {
     const bool need_reverse = ref_path.front().getDirectionVec().dot(
                                   map.nav_info.car_pose.getDirectionVec()) < 0;
