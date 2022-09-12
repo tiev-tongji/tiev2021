@@ -1,5 +1,5 @@
 find_package(gRPC CONFIG REQUIRED)
-add_library(routing STATIC "")
+add_library(routing STATIC "" rest_client.cpp)
 target_sources(routing PRIVATE
     Routing.cpp
 )
