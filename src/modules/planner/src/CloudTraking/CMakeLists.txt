@@ -9,7 +9,6 @@ endif()
 #include_directories(${SRC_ROOT_PATH})
 #include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${MOSQUITTO_INCLUDE_DIR})
-
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS proto/TJ_v2x.proto)
 
 

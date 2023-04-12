@@ -434,7 +434,6 @@ void MessageManager::msgReceiveIpc() {
 
 void MessageManager::msgReceiveUdp() {
   if (!zcm_udp.good()) return;
-
   zcm_udp.subscribe("MsgTrafficLightSignal", &Handler::handleTRAFFICLIGHT,
                     &inner_handler);
   zcm_udp.subscribe("NAVINFO", &Handler::handleNAVINFO, &inner_handler);
