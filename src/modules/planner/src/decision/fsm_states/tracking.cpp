@@ -1,12 +1,16 @@
 #include <iostream>
-
+#include <fstream>
 #include "map_manager.h"
 #include "tiev_fsm.h"
 #include "tievlog.h"
-namespace TiEV {
-using namespace std;
 
-void Tracking::enter(Control& control) {
+
+static ofstream file_name;
+namespace TiEV {
+using namespace std; void Tracking::enter(Control& control) { 
+  file_name.open("/home/autolab/tiev/scripts/GT_traj_cir.txt",ios::out); 
+  file_name.setf(ios::fixed,ios::floatfield);
+  file_name.precision(3);
   entry_time = getTimeStamp();
   cout << "entry Tracking..." << endl;
 }
@@ -15,6 +19,16 @@ void Tracking::update(FullControl& control) {
   if ((getTimeStamp() - entry_time) < 50e3) return;
   LOG(INFO) << "Tracking update..." << endl;
   MapManager& map_manager      = MapManager::getInstance();
+  MessageManager& mesg_manager = MessageManager::getInstance();
+  NavInfo cur_nav;
+  if(mesg_manager.getNavInfo(cur_nav) == 0){
+    cerr<<"mesg is unable to get navinfo"<<endl;
+  }
+  auto cur_car_pos = cur_nav.car_pose;
+  file_name  << (cur_car_pos.utm_position.utm_x) <<" "<< cur_car_pos.utm_position.utm_y
+   <<" "<<cur_car_pos.v << " "<< (getTimeStamp() - entry_time) <<endl; 
+
+
   auto&       decision_context = DecisionContext::getInstance();
   // remove the dynamic object
   map_manager.updatePlanningMap(MapManager::DynamicBlockType::NO_BLOCK);
@@ -25,6 +39,7 @@ void Tracking::update(FullControl& control) {
     LOG(WARNING) << "ref_path empty!";
     return;
   }
+
   bool                    first_backward = ref_path.front().backward;
   std::vector<HDMapPoint> first_part;
   std::vector<HDMapPoint> second_part;
@@ -43,7 +58,7 @@ void Tracking::update(FullControl& control) {
   if (first_part.size() < 2 && !second_part.empty()) ref_path = second_part;
 
   double init_s                      = ref_path[0].s;
-  bool   is_testing_backward_driving = true;
+  bool   is_testing_backward_driving = false;
   for (const auto& p : ref_path) {
     Pose tmp(p.x, p.y, p.ang, p.k, p.v, p.a, p.s, p.t, p.backward,
              p.utm_position);
@@ -61,19 +76,8 @@ void Tracking::update(FullControl& control) {
   } else {
     decision_context.setSpeedLimitMPS(map_manager.getCurrentMapSpeed());
   }
+
   decision_context.setMaintainedPath(tracking_path);
-  entry_time = getTimeStamp();
-  /*
-lineInterpolation<Pose>(tracking_path, 1);
-for(int i = 1; i < tracking_path.size(); ++i){
-  Pose &p = tracking_path[i];
-  if(p.s == 0){
-      p.ang = tracking_path[i-1].ang;
-      p.k = tracking_path[i-1].k;
-      p.backward = tracking_path[i-1].backward;
-      p.s = tracking_path[i-1].s+(p-tracking_path[i-1]).len()*GRID_RESOLUTION;
-   }
-}
-*/
+
 }
 }  // namespace TiEV

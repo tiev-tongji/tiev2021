@@ -23,6 +23,8 @@ void runTiEVFSM() {
   // map managet initialization
   MapManager& mapm = MapManager::getInstance();
   if (cfg.enable_routing_by_file) mapm.readGlobalPathFile(cfg.roadmap_file);
+  // add another cfg here
+
   // FSM...
   // Context       context;
   // FSM::Instance machine{ context };
@@ -130,6 +132,7 @@ void sendPath() {
           // convert a backward path to a forward path for speed optimizer
           point.ang = M_PI + point.ang;
         }
+        max_speed = 20/3.6;
         speed_limits.emplace_back(
             point.s,
             std::min(max_speed, max_velocity_for_curvature(average_k)));
@@ -160,25 +163,13 @@ void sendPath() {
         tp.k = p.k;
         tp.t = p.t;
         tp.v = p.v;
-        // limit speed for temporary parking
-        // because speed optimizer fails if path is too short
-        // 50 points means 10m
-        // if (control_path.num_points < 50) {
-        //   if (tp.v < -1) tp.v = -1;
-        //   if (tp.v > 1) tp.v = 1;
-        // }
-        // because aimspeed's type is int
         if (tp.v <= 1 / 3.6 && tp.v > 0.0001) tp.v = 1.1 / 3.6;
         control_path.points.push_back(tp);
       }
     }
 
-    // for (const auto& p : control_path.points) {
-    //   std::cout << "x, y, ang: " << p.x << " , " << p.y << " , " << p.theta
-    //   << std::endl;
-    // }
-
-    MessageManager::getInstance().publishPath(control_path);
+    if (!mm.machine.isActive<CloudTracking>())
+      MessageManager::getInstance().publishPath(control_path);
 
     // visual maintained path
     visVISUALIZATION& vis = MessageManager::getInstance().visualization;

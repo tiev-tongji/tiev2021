@@ -55,7 +55,8 @@ using FSM = M::PeerRoot<
                  S(TemporaryParkingPlanning),  //
                  S(TemporaryStop)              //
                  >,                            //
-    S(Tracking)                                // just for tracking test
+    S(Tracking)
+    ,S(CloudTracking)
     >;
 
 #undef S
@@ -147,6 +148,12 @@ struct TemporaryStop : TiEVState {
 //----------------TemporaryParking Fsm--------------------
 //----------------Tracking State--------------------
 struct Tracking : TiEVState {
+  void enter(Control& control);
+  void update(FullControl& control);
+};
+
+
+struct CloudTracking : TiEVState {
   void enter(Control& control);
   void update(FullControl& control);
 };

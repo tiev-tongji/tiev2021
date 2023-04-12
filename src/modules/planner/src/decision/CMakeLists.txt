@@ -6,10 +6,12 @@ target_sources(decision PRIVATE
     ${SRC_DIR}
 )
 target_include_directories(decision PUBLIC ./)
+
 target_link_libraries(decision PUBLIC 
     planner_context
     map_manager
     path_planner
     lattice_planner
     planner_common
+    CloudSystem
 )
