@@ -5,12 +5,8 @@
 #include "tievlog.h"
 
 
-static ofstream file_name;
 namespace TiEV {
 using namespace std; void Tracking::enter(Control& control) { 
-  file_name.open("/home/autolab/tiev/scripts/GT_traj_cir.txt",ios::out); 
-  file_name.setf(ios::fixed,ios::floatfield);
-  file_name.precision(3);
   entry_time = getTimeStamp();
   cout << "entry Tracking..." << endl;
 }
@@ -25,9 +21,6 @@ void Tracking::update(FullControl& control) {
     cerr<<"mesg is unable to get navinfo"<<endl;
   }
   auto cur_car_pos = cur_nav.car_pose;
-  file_name  << (cur_car_pos.utm_position.utm_x) <<" "<< cur_car_pos.utm_position.utm_y
-   <<" "<<cur_car_pos.v << " "<< (getTimeStamp() - entry_time) <<endl; 
-
 
   auto&       decision_context = DecisionContext::getInstance();
   // remove the dynamic object
@@ -77,6 +70,12 @@ void Tracking::update(FullControl& control) {
     decision_context.setSpeedLimitMPS(map_manager.getCurrentMapSpeed());
   }
 
+  
+
+
+
+
+  std::cout <<" tracking path siz is " << tracking_path.size() << std::endl;
   decision_context.setMaintainedPath(tracking_path);
 
 }

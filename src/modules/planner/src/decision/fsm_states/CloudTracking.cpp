@@ -60,9 +60,12 @@ void CloudTracking::update(FullControl& control) {
   }
   is_first_time = false;
 
-  C2Vinfo cur_car_info = {cur_car.v, cur_car.ang, cur_car.utm_position.utm_x,
+  C2Vinfo cur_car_info = {cur_car.v, cur_car.utm_position.heading, cur_car.utm_position.utm_x,
                           cur_car.utm_position.utm_y};
   sendToCloud(cur_car_info,client);
+  std::cout <<" send with car info " << cur_car.utm_position.utm_x <<"," << cur_car.utm_position.utm_y <<" heading: " << cur_car.utm_position.heading << std::endl;
+
+  usleep(50 * 1e3);
 }
 
 }  // namespace TiEV

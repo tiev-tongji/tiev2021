@@ -1,7 +1,7 @@
 # set -x
 DOCKER_USER=$(id -u ${USER})
 DOCKER_USER_GROUP=$(id -g ${USER})
-TIEV_CONTAINER="tiev"
+TIEV_CONTAINER="tiev_planner"
 
 xhost +local:root 1>/dev/null 2>&1
 

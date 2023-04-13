@@ -16,7 +16,7 @@
 ##################################
 
 #configure tmux
-echo "set-option -g mouse on" | tee ~/.tmux.conf
+#echo "set-option -g mouse on" | tee ~/.tmux.conf
 
 #check the tiev session whether is existing
 tmux has-session -t tiev

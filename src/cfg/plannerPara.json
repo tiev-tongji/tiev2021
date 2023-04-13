@@ -1,17 +1,18 @@
 {
 	"comment": "town05_forward",
-	"roadmap_file": "/home/autolab/tiev/src/cfg/Town03_original.txt",
+	"roadmap_file": "/home/autolab/tiev/scripts/413traj.txt",
+	"#roadmap_file": "/home/autolab/tiev/src/cfg/Town03_original.txt",
 	"#roadmap_file": "/home/autolab/carla_path/Town03_original.txt",
 	"#roadmap_file": "/home/autolab/carla_path/carla_path_Town04.txt",
 	"#roadmap_file": "/home/autolab/tiev/src/cfg/xiqu_tracking.txt",
 	"rs_distance_table_path": "/home/autolab/tiev/src/cfg/reeds_shepp_distance_table",
 	"dubins_distance_table_path": "/home/autolab/tiev/src/cfg/dubins_distance_table",
-	"enable_routing_by_file": 0,
+	"enable_routing_by_file": 1,
 	"#enable_routing_by_file": {
 		"0": "disable routing by roadmap_file, and routing will request routing-server on internet",
 		"1": "enable routing by roadmap_file in car"
 	},
-	"control_mode": 2,
+	"control_mode": 1,
 	"#control_mode_annotation": {
 		"PlanningWithMapMode": 0,
 		"TrackingWithMapMode": 1,

@@ -4,9 +4,9 @@
 # CURR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 # TIEV_ROOT_DIR="${CURR_DIR}"
 TIEV_ROOT_DIR="/home/autolab/tiev2021"
-TIEV_IMAGE="tiev:venus"
-TIEV_CONTAINER="tiev"
-INSIDE_CONTAINER="tiev"
+TIEV_IMAGE="tiev_planner:v1"
+TIEV_CONTAINER="tiev_planner"
+INSIDE_CONTAINER="tiev_planner"
 SHM_SIZE="8G"
 
 function remove_container_if_exists() {
@@ -16,15 +16,15 @@ function remove_container_if_exists() {
         docker stop "${container}" >/dev/null
         docker rm -v -f "${container}" 2>/dev/null
     fi
-    rm -rf /tmp/${USER}
-    mkdir /tmp/${USER}
+    rm -rf /tmp/${USER}/planner
+    mkdir -p /tmp/${USER}/planner
 }
 
-local_volumes="-v /tmp/${USER}:/home/${USER}"
+local_volumes="-v /tmp/${USER}/planner:/home/${USER}"
 local_volumes="${local_volumes} -v $TIEV_ROOT_DIR:/home/${USER}/tiev"
 local_volumes="${local_volumes} -v /dev:/dev"
 local_volumes="${local_volumes} -v /media:/media \
-                    -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
+                    -v /tmp/${USER}/planner/.X11-unix:/tmp/.X11-unix:rw \
                     -v /etc/localtime:/etc/localtime:ro \
                     -v /etc/passwd:/etc/passwd:ro \
                     -v /etc/group:/etc/group:ro \
@@ -55,6 +55,7 @@ nvidia-docker run -itd \
         -e DOCKER_IMG="${TIEV_IMAGE}" \
         ${local_volumes} \
         --net host \
+        --ipc host \
         --gpus all \
         -w /home/${USER}/tiev/scripts \
         --add-host "${INSIDE_CONTAINER}:127.0.0.1" \

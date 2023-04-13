@@ -254,7 +254,7 @@ class Visualization {
   };
 
   Handler  inner_handler;
-  zcm::ZCM zcm_ipc{"ipc"};
+  zcm::ZCM zcm_ipc{""};
   zcm::ZCM zcm_udp{""};
 };
 
