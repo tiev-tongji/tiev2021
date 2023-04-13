@@ -4,8 +4,9 @@ This is heavily based on the NtripPerlClient program written by BKG.
 Then heavily based on a unavco original.
 """
 
-import socket
 import sys
+sys.path.append('/home/autolab/.local/lib/python2.7/site-packages')
+import socket
 import datetime
 import base64
 import time
@@ -78,9 +79,11 @@ class NtripClient(object):
             try:
                self.ser.port=self.serialDev 
                self.ser.baudrate=self.baudRate
+               self.ser.close()
                self.ser.open()
             except:
                print "failed to open serial\n"
+               exit()
 
     def setPosition(self, lat, lon):
         self.flagN="N"
