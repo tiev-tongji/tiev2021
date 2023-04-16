@@ -6,13 +6,20 @@
 
 SecondPython::SecondPython()
 {
+	cout << "caonima" << endl;
+	
 	Py_Initialize();
-
+	
+	cout << "rihuangchang" << endl;
 	PyRun_SimpleString("import sys");
-	PyRun_SimpleString("sys.path.append(\'/home/autolab/tiev/src/modules/second.pytorch/second/pytorch\')");
+	// PyRun_SimpleString("sys.path.append(\'/home/autolab/tiev/src/modules/second.pytorch/second/pytorch\')");
+	PyRun_SimpleString("sys.path.append(\'/home/autolab/tiev/src/modules/OpenPCDet-av2_plus/tools')");
 	//PyRun_SimpleString("sys.path.append(\'/home/autolab/txb/second.pytorch/second/pytorch\')");
 	
-	pymodule = PyImport_ImportModule("SECOND");
+	// pymodule = PyImport_ImportModule("SECOND");
+	cout << "check 1" << endl;
+
+	pymodule = PyImport_ImportModule("detect");
 	PyRun_SimpleString("print(\"hhhhhhhh\")");
 	if(pymodule != NULL)
 	{

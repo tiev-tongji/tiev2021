@@ -22,8 +22,8 @@ find_package(Eigen3)
 #set(PYTHON_INCLUDE_DIRS &{PYTHON_INCLUDE_DIRS} /home/autolab/.conda/envs/second/lib/python3.7/site-packages/numpy/core/include /home/autolab/.conda/envs/second/include/python3.7m) 
 set(PYTHON_INCLUDE_DIRS &{PYTHON_INCLUDE_DIRS} 
 	#/home/autolab/anaconda3/envs/txb-second-torch_1.4/lib/python3.6/site-packages/numpy/core/include 
-	/usr/local/lib/python3.6/dist-packages/numpy/core/include        
-	/usr/include/python3.6)
+	/usr/local/lib/python3.9/dist-packages/numpy/core/include        
+	/usr/include/python3.9)
 #set(PYTHON_INCLUDE_DIRS &{PYTHON_INCLUDE_DIRS} /home/autolab/anaconda3/lib/python3.6/site-packages/numpy/core/include /home/autolab/anaconda3/include/python3.6m) 
 #${EIGEN3_INCLUDE_DIR}
 include_directories(include ${PYTHON_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR})
@@ -52,7 +52,7 @@ add_executable(MultibeamLaser ${GLOBAL_FILES} ${TINY_FILES} ${PERCEPTION_FILES} 
 target_link_libraries(MultibeamLaser
 		#/home/autolab/.conda/envs/second/lib/libpython3.7m.so 
 		#/home/autolab/anaconda3/envs/txb-second-torch_1.4/lib/libpython3.6m.so 
-		/usr/lib/x86_64-linux-gnu/libpython3.6m.so
+		/usr/lib/x86_64-linux-gnu/libpython3.9.so
 		/usr/lib/x86_64-linux-gnu/libtiff.so
 		/usr/local/lib/libzcm.so 
 		${CMAKE_THREAD_LIBS_INIT} 

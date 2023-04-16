@@ -67,13 +67,9 @@ void Tracking::update(FullControl& control) {
   if (is_testing_backward_driving) {
     decision_context.setSpeedLimitMPS(2);
   } else {
+    
     decision_context.setSpeedLimitMPS(map_manager.getCurrentMapSpeed());
   }
-
-  
-
-
-
 
   std::cout <<" tracking path siz is " << tracking_path.size() << std::endl;
   decision_context.setMaintainedPath(tracking_path);

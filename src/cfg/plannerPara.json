@@ -1,6 +1,6 @@
 {
 	"comment": "town05_forward",
-	"roadmap_file": "/home/autolab/tiev/scripts/413traj.txt",
+	"roadmap_file": "/home/autolab/tiev/src/cfg/xiqu_0416_1817.txt",
 	"#roadmap_file": "/home/autolab/tiev/src/cfg/Town03_original.txt",
 	"#roadmap_file": "/home/autolab/carla_path/Town03_original.txt",
 	"#roadmap_file": "/home/autolab/carla_path/carla_path_Town04.txt",
@@ -12,7 +12,7 @@
 		"0": "disable routing by roadmap_file, and routing will request routing-server on internet",
 		"1": "enable routing by roadmap_file in car"
 	},
-	"control_mode": 1,
+	"control_mode": 0,
 	"#control_mode_annotation": {
 		"PlanningWithMapMode": 0,
 		"TrackingWithMapMode": 1,
@@ -25,7 +25,7 @@
 		"BACK": -3,
 		"STOP": 0,
 		"VERYLOW": 8,
-		"LOW": 15,
+		"LOW": 10,
 		"MID": 15,
 		"HIGH": 50,
 		"VERYHIGH": 15

@@ -1,7 +1,7 @@
 #include <perception_types.h>
 #include <grid.h>
 #include <boost/thread/thread.hpp>
-#include "msg/include/structLASERMAP.hpp"
+#include "msg/include/structFUSIONMAP.hpp"
 #include <velocore.h>
 #include "velodyne.h"
 #ifdef MULTITHREAD

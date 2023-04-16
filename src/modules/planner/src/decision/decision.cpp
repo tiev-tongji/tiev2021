@@ -132,7 +132,6 @@ void sendPath() {
           // convert a backward path to a forward path for speed optimizer
           point.ang = M_PI + point.ang;
         }
-        max_speed = 20/3.6;
         speed_limits.emplace_back(
             point.s,
             std::min(max_speed, max_velocity_for_curvature(average_k)));
