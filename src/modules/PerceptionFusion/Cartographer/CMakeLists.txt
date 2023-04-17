@@ -30,6 +30,7 @@ find_package(Boost REQUIRED COMPONENTS iostreams)
 find_package(Ceres REQUIRED COMPONENTS SparseLinearAlgebraLibrary)
 find_package(Eigen3 REQUIRED)
 find_package(LuaGoogle REQUIRED)
+find_package(GMock REQUIRED)
 
 # edit by htf 20.11.10
 include_directories(../../../)
@@ -170,7 +171,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 # TODO(damonkohler): Create a testing library.
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE
   "${GMOCK_INCLUDE_DIRS}")
-target_link_libraries(${PROJECT_NAME} PUBLIC ${GMOCK_LIBRARY})
+message("GMOCK---${GMOCK_LIBRARIES}")
+target_link_libraries(${PROJECT_NAME} PUBLIC ${GMOCK_LIBRARIES})
 
 set(TARGET_COMPILE_FLAGS "${TARGET_COMPILE_FLAGS} ${GOOG_CXX_FLAGS}")
 set_target_properties(${PROJECT_NAME} PROPERTIES

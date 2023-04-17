@@ -557,7 +557,7 @@ void ObjectTracking()
             if(latestNavInfo.mRTKStatus != 1)
                 compensatePitch = pitch;    //default compensate pitch
             else 
-                compensatePitch = latestNavInfo.mPitch;
+                compensatePitch = latestNavInfo.mPitch + pitch; //Fixed by John 2023, without this, the scan will not be fully displayed. 
 
             double yawRad = TiEV::deg2rad(yaw);
             double pitchRad = TiEV::deg2rad(compensatePitch);
@@ -599,9 +599,10 @@ void ObjectTracking()
                 float z = transformPC(2) / 100.0;
                 float intensity = line.intensity_ / 255.0;
 
-                if(fabs(x) < 25 && y < 70 && y > -30) //extend area
+                if(fabs(x) < 25 && y < 70 && y > -30) //extend area //
                 {
                     //cloud coordinate change for Second Net detection
+                    // lidar frame: front y , right x || for detection frame: front x , left y.
                     buffer.push_back(y);
                     buffer.push_back(-x);
                     buffer.push_back(z);
@@ -717,13 +718,13 @@ void paramRead(const string fileName)
     pitch = doc["pitch"].GetDouble();
     roll = doc["roll"].GetDouble();
     dx = doc["dx"].GetDouble();
-    dy = doc["dy"].GetDouble();
+    dy = doc["dy"].GetDouble(); //dy = 0 is ok, since this has been compensated in modules/PerceptionFusion/PerceptionFusion/node.cpp
     dz = doc["dz"].GetDouble();
 }
 
 int main()
 {
-    paramRead(Directory + "param.json");
+    paramRead(Directory + "param.json"); 
     settings.rate_in_hz = 8.0;
     settings.map_cell_threshold = 0.3;
     settings.map_cell_min_hits = 2;

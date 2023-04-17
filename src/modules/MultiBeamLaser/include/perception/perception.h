@@ -40,7 +40,7 @@
 #include "msg/include/BOUNDINGBOX.hpp"
 #include "msg/include/OBJECT.hpp"
 #include "msg/include/structOBJECTLIST.hpp"
-#include "msg/include/structFUSIONMAP.hpp"
+#include "msg/include/structLASERMAP.hpp"
 #include "msg/include/structNAVINFO.hpp"
 #include "msg/include/structSLAMCONTROL.hpp"
 #include "msg/include/point3d.hpp"
@@ -85,7 +85,7 @@ namespace TiEV
         zcm::ZCM pointcloud_pub{"ipc"};
         zcm::ZCM objectlists_pub{"udpm://239.255.76.67:7667?ttl=1"};
 
-        structFUSIONMAP myLaserMap;
+        structLASERMAP myLaserMap;
         structOBJECTLIST myObjectList;
         structPointCloud myPointCloud;
 
@@ -94,7 +94,7 @@ namespace TiEV
 
         void pub_lasermap()
         {
-            lasermap_pub.publish("FUSIONMAP", &myLaserMap);
+            lasermap_pub.publish("LASERMAP", &myLaserMap);
             memset(&myLaserMap, 0, sizeof(myLaserMap));
         }
 

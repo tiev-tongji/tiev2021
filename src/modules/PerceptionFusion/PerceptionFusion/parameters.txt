@@ -14,12 +14,13 @@ LoadMapFlag=1
 #map_filename=/home/autolab/map_logger/route_map/route_map/2018_11_13_1_43
 
 #jiading_xiqu
-map_filename=/home/autolab/tiev/src/modules/PerceptionFusion/PerceptionFusion/build/2022_1_12_14_50
+#map_filename=/home/autolab/tiev/src/modules/PerceptionFusion/PerceptionFusion/build/2022_1_12_14_50
+map_filename=/home/autolab/tiev/src/modules/PerceptionFusion/PerceptionFusion/2023_Xiqutest2023_4_17_11_58
 
 UpdateMapFlag=0
 
-SaveMapFlag=0
-save_path=./
+SaveMapFlag=1
+save_path=/home/autolab/tiev/src/modules/PerceptionFusion/PerceptionFusion/2023_Xiqutest
 #save_path=/home/xlz/data/logger/road_map/
 #save_path=/home/xlz/data/logger/
 #CAUTION! not space!!
@@ -33,7 +34,7 @@ mode=1
 #2. under_ground_mapping
 #3. under_ground_location
 
-debug_show_map=0
+debug_show_map=1
 
 #only for main_competition
 map_filename_above_ground=/home/autolab/map_logger/route_map/route_map/2019_11_15_22_37

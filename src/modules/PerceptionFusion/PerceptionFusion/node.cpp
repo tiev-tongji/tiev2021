@@ -212,8 +212,8 @@ void zcm_ipc_func()
     }
 
     Handler handlerObject;
-    zcm_ipc.subscribe("LASERMAP", &Handler::handleMessage_scan, &handlerObject);
-    zcm_ipc.subscribe("SICKMAP", &Handler::handleMessage_SickMap, &handlerObject);
+    // zcm_ipc.subscribe("LASERMAP", &Handler::handleMessage_scan, &handlerObject);
+    // zcm_ipc.subscribe("SICKMAP", &Handler::handleMessage_SickMap, &handlerObject);
     zcm_ipc.subscribe("CLOUD", &Handler::handleMessage_PointCloud, &handlerObject);
     zcm_ipc.subscribe("LUXMAP", &Handler::handleMessage_LuxMap, &handlerObject);
     zcm_ipc.subscribe("VLPMAP", &Handler::handleMessage_VlpMap, &handlerObject);
@@ -233,6 +233,8 @@ void zcm_udpm_func()
     }
 
     Handler handlerObject;
+    zcm_udpm.subscribe("LASERMAP", &Handler::handleMessage_scan, &handlerObject);
+    zcm_udpm.subscribe("SICKMAP", &Handler::handleMessage_SickMap, &handlerObject);
     zcm_udpm.subscribe("NAVINFO", &Handler::handleMessage_odom, &handlerObject);
     //zcm_udpm.subscribe("OBJECTLIST", &Handler::handleMessage_ObjList, &handlerObject);
     //TODO：待确定消息
@@ -524,7 +526,7 @@ void perception_Node::Add_data(int trajectory_id)
             myCloud.push_back(point_);
 
             //pointcloud move to front-axis
-            double dy = CAR_WHEEL_BASE -IMU_LASER_DISTANCE;
+            double dy = CAR_WHEEL_BASE -IMU_LASER_DISTANCE;  //here compensates the translation from LiDAR to front axle.
             for( int m = 0; m < local_PointCloud.total; m++)
             {
                 Eigen::Vector3f point_tmp(local_PointCloud.frame[m].px_,

@@ -49,7 +49,7 @@ void perception_prep_obstacles( dgc_grid_p grid, vector<std::tr1::shared_ptr<TiE
     
     for (int i = 0; i < num_obstacles; i++) 
     {
-        if (trackobstacles[i]->isDynamic_) 
+        // if (trackobstacles[i]->isDynamic_) 
         {
             if(trackobstacles[i]->trackType_ == OBSTACLE_UNKNOWN)
                 continue;
@@ -94,26 +94,40 @@ void perception_prep_obstacles( dgc_grid_p grid, vector<std::tr1::shared_ptr<TiE
             dynamicObj.obj_type = trackobstacles[i]->trackType_;
             dynamicObj.width = trackobstacles[i]->lastObservation_->width; //y direction 
             dynamicObj.length = trackobstacles[i]->lastObservation_->length; // x direction
-            dynamicObj.theta = trackobstacles[i]->lastObservation_->pose.yaw;
+            
+
             if(latestNavInfo.mRTKStatus == 1)
                 dynamicObj.v = trackobstacles[i]->getVelocity();
             else 
                 dynamicObj.v = 0;
+            // dynamicObj.theta = trackobstacles[i]->lastObservation_->pose.yaw;
+            // dynamicObj.corners.p1.x = trackobstacles[i]->lastObservation_->p1.x;
+            // dynamicObj.corners.p1.y = trackobstacles[i]->lastObservation_->p1.y;
+            // dynamicObj.corners.p2.x = trackobstacles[i]->lastObservation_->p2.x;
+            // dynamicObj.corners.p2.y = trackobstacles[i]->lastObservation_->p2.y;
+            // dynamicObj.corners.p3.x = trackobstacles[i]->lastObservation_->p3.x;
+            // dynamicObj.corners.p3.y = trackobstacles[i]->lastObservation_->p3.y;
+            // dynamicObj.corners.p4.x = trackobstacles[i]->lastObservation_->p4.x;
+            // dynamicObj.corners.p4.y = trackobstacles[i]->lastObservation_->p4.y;
 
-            dynamicObj.corners.p1.x = trackobstacles[i]->lastObservation_->p1.x;
-            dynamicObj.corners.p1.y = trackobstacles[i]->lastObservation_->p1.y;
-            dynamicObj.corners.p2.x = trackobstacles[i]->lastObservation_->p2.x;
-            dynamicObj.corners.p2.y = trackobstacles[i]->lastObservation_->p2.y;
-            dynamicObj.corners.p3.x = trackobstacles[i]->lastObservation_->p3.x;
-            dynamicObj.corners.p3.y = trackobstacles[i]->lastObservation_->p3.y;
-            dynamicObj.corners.p4.x = trackobstacles[i]->lastObservation_->p4.x;
-            dynamicObj.corners.p4.y = trackobstacles[i]->lastObservation_->p4.y;
+            //LiDAR frame(front y , right x) -> planner frame: front x , left y.
+            dynamicObj.theta = trackobstacles[i]->lastObservation_->pose.yaw - M_PI_2;
+            dynamicObj.corners.p1.x = trackobstacles[i]->lastObservation_->p1.y;
+            dynamicObj.corners.p1.y = - trackobstacles[i]->lastObservation_->p1.x;
+            dynamicObj.corners.p2.x = trackobstacles[i]->lastObservation_->p2.y;
+            dynamicObj.corners.p2.y = - trackobstacles[i]->lastObservation_->p2.x;
+            dynamicObj.corners.p3.x = trackobstacles[i]->lastObservation_->p3.y;
+            dynamicObj.corners.p3.y = - trackobstacles[i]->lastObservation_->p3.x;
+            dynamicObj.corners.p4.x = trackobstacles[i]->lastObservation_->p4.y;
+            dynamicObj.corners.p4.y = - trackobstacles[i]->lastObservation_->p4.x;
 
             for(int j = 0; j < 6; ++j)
             {
                 POSITION predictTraj;
-                predictTraj.x = trackobstacles[i]->lastObservation_->predictPose[j].x;
-                predictTraj.y = trackobstacles[i]->lastObservation_->predictPose[j].y;
+                // predictTraj.x = trackobstacles[i]->lastObservation_->predictPose[j].x;
+                // predictTraj.y = trackobstacles[i]->lastObservation_->predictPose[j].y;
+                predictTraj.x = trackobstacles[i]->lastObservation_->predictPose[j].y;
+                predictTraj.y = (-1) * trackobstacles[i]->lastObservation_->predictPose[j].x;
                 dynamicObj.path.emplace_back(predictTraj);
             }
 		    dynamicObj.pathNum = dynamicObj.path.size();

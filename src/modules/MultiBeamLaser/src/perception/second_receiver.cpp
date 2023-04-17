@@ -6,18 +6,13 @@
 
 SecondPython::SecondPython()
 {
-	cout << "caonima" << endl;
-	
 	Py_Initialize();
-	
-	cout << "rihuangchang" << endl;
 	PyRun_SimpleString("import sys");
 	// PyRun_SimpleString("sys.path.append(\'/home/autolab/tiev/src/modules/second.pytorch/second/pytorch\')");
 	PyRun_SimpleString("sys.path.append(\'/home/autolab/tiev/src/modules/OpenPCDet-av2_plus/tools')");
 	//PyRun_SimpleString("sys.path.append(\'/home/autolab/txb/second.pytorch/second/pytorch\')");
 	
 	// pymodule = PyImport_ImportModule("SECOND");
-	cout << "check 1" << endl;
 
 	pymodule = PyImport_ImportModule("detect");
 	PyRun_SimpleString("print(\"hhhhhhhh\")");
@@ -63,8 +58,9 @@ void SecondPython::startReceiver(vector<float> &myBuffer, double timestamp)
 	for(int i = 0; i < objNum; i ++)
 	{
 		int type = *(double *)PyArray_GETPTR2(returnArray, i, 0);
+		//for detection frame -> LiDAR frame 
 		double y = *(double *)PyArray_GETPTR2(returnArray, i, 1);
-		double x = 0.0 - *(double *)PyArray_GETPTR2(returnArray, i, 2);
+		double x = 0.0 - *(double *)PyArray_GETPTR2(returnArray, i, 2);	
 		double z = *(double *)PyArray_GETPTR2(returnArray, i, 3);
 		double length = *(double *)PyArray_GETPTR2(returnArray, i, 4);
 		double width = *(double *)PyArray_GETPTR2(returnArray, i, 5);
@@ -114,7 +110,7 @@ void SecondPython::startReceiver(vector<float> &myBuffer, double timestamp)
 		(*second_obstacle)->time_ = timestamp;
 		(*second_obstacle)->setPose(x, y, z, objyaw, length, width);
 
-		if(0) //draw bounding boxes of second objects 
+		if(1) //draw bounding boxes of second objects 
 		{
 			char bufferprint[50];
 			sprintf(bufferprint, "%.2f", objyaw * rad2deg);

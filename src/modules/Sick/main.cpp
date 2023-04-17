@@ -52,7 +52,7 @@ int main(int argc, const char *argv[])
 	//Sick
 	Sick sick_front, sick_back;
 	sick_front.init_client("192.168.222.22", 2112); //
-	sick_back.init_client("192.168.222.11", 2112);
+	sick_back.init_client("192.168.223.22", 2112);
 	//将噪点坐标读入
 	noisy_init();
 
@@ -74,9 +74,12 @@ int main(int argc, const char *argv[])
 		// 		{
 		// 			cout << j << ' ' << i << endl;
 		// 		}
+		// 		// else
+		// 		// 	cout<<"zero"<<endl;
 		// 	}
 		// }
 		// char ch = getchar();
+		// cout<<sf<<' '<<sb<<endl;
 		if (sb && sf)
 		{
 			myzcm.publish("SICKMAP", &mapData);

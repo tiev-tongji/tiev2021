@@ -1,7 +1,7 @@
 #include <perception_types.h>
 #include <grid.h>
 #include <boost/thread/thread.hpp>
-#include "msg/include/structFUSIONMAP.hpp"
+#include "msg/include/structLASERMAP.hpp"
 #include <velocore.h>
 #include "velodyne.h"
 #ifdef MULTITHREAD
@@ -533,7 +533,8 @@ void set_object1(dgc_grid_p grid)
     {
         for (int j = 0; j < grid->cols; j++) {
             cell = (dgc_perception_map_cell_p) dgc_grid_get_rc_local(grid, i, j);
-            if (cell->obstacle > 0) {
+            if (cell->obstacle > 0) 
+            {
 
                 std::vector<point3d_t> cell_points;
                 points_in_cell(cell, cell_points);

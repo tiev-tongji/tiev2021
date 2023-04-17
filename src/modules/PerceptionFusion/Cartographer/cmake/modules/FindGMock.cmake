@@ -12,6 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+find_library(GTEST_LIBRARIES
+  NAMES gtest
+  ATH_SUFFIXES lib
+)
+
+find_library(GMOCK_A_LIBRARIES
+  NAMES gmock
+  PATH_SUFFIXES lib
+)
+
+
 find_path(GMOCK_INCLUDE_DIRS gmock/gmock.h
   HINTS
     ENV GMOCK_DIR
@@ -61,7 +72,8 @@ endif()
 
 # System-wide installed gmock library might require pthreads.
 find_package(Threads REQUIRED)
-list(APPEND GMOCK_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+#list(APPEND GMOCK_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+list(APPEND GMOCK_LIBRARIES ${GMOCK_A_LIBRARIES} ${GTEST_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(GMock DEFAULT_MSG GMOCK_LIBRARIES

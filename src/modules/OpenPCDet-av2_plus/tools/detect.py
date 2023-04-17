@@ -204,8 +204,11 @@ class CENTERPOINT_RCNN():
 
         # xyz_lidar[:, 2] -= h.reshape(-1) / 2
         xyz_cam = xyz_lidar
+        # should debug the orientation of the detected box
         # xyz_cam[:, 1] += h.reshape(-1) / 2
-        r = -r# - np.pi / 2
+        r = -r - np.pi / 2
+        # r = -r - np.pi
+        # r = -r 
         # return np.concatenate([xyz_cam, l, h, w, r], axis=-1)
         return np.concatenate([xyz_cam, l, w, h, r], axis=-1)
     
