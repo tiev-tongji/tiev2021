@@ -86,13 +86,13 @@ bool MessageManager::getDynamicObjList(DynamicObjList& dynamic_obj_list) {
                 new_obj.type    = (DynamicType)obj.obj_type;
                 new_obj.width   = obj.width;
                 new_obj.length  = obj.length;
-                new_obj.heading = obj.theta + PI / 2;
+                new_obj.heading = obj.theta + PI;
                 normalizeAngle(new_obj.heading);
                 new_obj.corners.resize(4);
                 new_obj.v = obj.v;
 #define copy_point(a, b)                                      \
-    a.x = CAR_CEN_ROW - ((b.y + y_offset) / GRID_RESOLUTION); \
-    a.y = CAR_CEN_COL + b.x / GRID_RESOLUTION;
+    a.x = CAR_CEN_ROW - x / GRID_RESOLUTION;\
+    a.y = CAR_CEN_COL - y / GRID_RESOLUTION;;
                 copy_point(new_obj.corners[0], obj.corners.p1);
                 copy_point(new_obj.corners[1], obj.corners.p2);
                 copy_point(new_obj.corners[2], obj.corners.p3);
@@ -102,9 +102,9 @@ bool MessageManager::getDynamicObjList(DynamicObjList& dynamic_obj_list) {
                     copy_point(new_obj.path[k], obj.path[k]);
                     new_obj.path[k].x =
                         CAR_CEN_ROW
-                        - ((obj.path[k].y + y_offset) / GRID_RESOLUTION);
+                        - ((obj.path[k].x + y_offset) / GRID_RESOLUTION);
                     new_obj.path[k].y =
-                        CAR_CEN_COL + obj.path[k].x / GRID_RESOLUTION;
+                        CAR_CEN_COL - obj.path[k].y / GRID_RESOLUTION;
                     new_obj.path[k].t   = k;
                     new_obj.path[k].ang = new_obj.heading;
                     new_obj.path[k].v   = obj.v;

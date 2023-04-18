@@ -18,8 +18,8 @@ constexpr uint32_t SecondsPerWeek = 60 * 60 * 24 * 7;
 const std::string GPCHC_BEGIN_CHAR = "$";
 const std::string GPCHC_ENDLINE = "\r\n"; // 结束符
 using namespace std;
-zcm::ZCM pubzcm{"udpm://239.255.76.67:7667?ttl=1"};
-// zcm::ZCM pubzcm{"ipc"};
+// zcm::ZCM pubzcm{"udpm://239.255.76.67:7667?ttl=1"};
+zcm::ZCM pubzcm{"ipc"};
 
 
 int main(int argc, char **argv) {

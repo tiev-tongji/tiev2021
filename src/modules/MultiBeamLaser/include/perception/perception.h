@@ -79,11 +79,17 @@ namespace TiEV
     class MyZcm
     {
     public:
+        // zcm::ZCM ipc_sub{"ipc"};
+        // zcm::ZCM lasermap_pub{"udpm://239.255.76.67:7667?ttl=1"};
+        // zcm::ZCM msg_sub{"udpm://239.255.76.67:7667?ttl=1"};
+        // zcm::ZCM pointcloud_pub{"ipc"};
+        // zcm::ZCM objectlists_pub{"udpm://239.255.76.67:7667?ttl=1"};
+
         zcm::ZCM ipc_sub{"ipc"};
-        zcm::ZCM lasermap_pub{"udpm://239.255.76.67:7667?ttl=1"};
-        zcm::ZCM msg_sub{"udpm://239.255.76.67:7667?ttl=1"};
+        zcm::ZCM lasermap_pub{"ipc"};
+        zcm::ZCM msg_sub{"ipc"};
         zcm::ZCM pointcloud_pub{"ipc"};
-        zcm::ZCM objectlists_pub{"udpm://239.255.76.67:7667?ttl=1"};
+        zcm::ZCM objectlists_pub{"ipc"};
 
         structLASERMAP myLaserMap;
         structOBJECTLIST myObjectList;

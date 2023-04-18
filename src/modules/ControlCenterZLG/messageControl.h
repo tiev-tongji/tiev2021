@@ -69,9 +69,12 @@ private:
     STATE zcm_run();
 private:
     messageHandle msgHandle;
-    zcm::ZCM veh_status_pub {"udpm://239.255.76.67:7667?ttl=1"};
-    zcm::ZCM veh_control_sub {"udpm://239.255.76.67:7667?ttl=1"};
-    zcm::ZCM veh_aim_path_sub {"udpm://239.255.76.67:7667?ttl=1"};
+    // zcm::ZCM veh_status_pub {"udpm://239.255.76.67:7667?ttl=1"};
+    // zcm::ZCM veh_control_sub {"udpm://239.255.76.67:7667?ttl=1"};
+    // zcm::ZCM veh_aim_path_sub {"udpm://239.255.76.67:7667?ttl=1"};
+    zcm::ZCM veh_status_pub {"ipc"};
+    zcm::ZCM veh_control_sub {"ipc"};
+    zcm::ZCM veh_aim_path_sub {"ipc"};
 };
 
 #endif // MESSAGE_CONTROL_H_

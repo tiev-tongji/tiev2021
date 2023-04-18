@@ -114,7 +114,7 @@ void init()
 void StanleyContollerThread()
 {
   zcm::ZCM zcm("ipc");
-  zcm::ZCM zcm_udp;
+  zcm::ZCM zcm_udp{"udpm://239.255.76.67:7667?ttl=1"};
   if (!zcm.good())
   {
     cout << "message publish zcm is not good" << endl;
@@ -134,6 +134,12 @@ void StanleyContollerThread()
     cout << "current vel: " << current_velocity_m_s << endl;
     if (zcmreceiver.getControlPath(control_path))
     {
+      int cnt = 0 ;
+      // for(auto& traj_point: control_path){
+      //     cout <<" for (x,y):" << traj_point.x<<','<<traj_point.y <<" with " << (cnt++) << std::endl;
+      //     if(cnt > 50)break;
+      // }
+
       double aim_dis_base = aim_dis_base_forward;
       if (direction == -1)
       {
@@ -163,6 +169,7 @@ void StanleyContollerThread()
     double ay_max;
     if (current_velocity < v_switch_high)
     {
+      std::cout <<" for cur speed " << current_velocity <<" and ms " << current_velocity_m_s << std::endl;
       stanleycontroller.computeWheelAngle(ref_pose, current_pose,
                                           current_velocity_m_s, direction,
                                           current_yawrate, ref_steering_angle);

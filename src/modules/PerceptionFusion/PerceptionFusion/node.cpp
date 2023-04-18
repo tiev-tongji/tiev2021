@@ -35,9 +35,10 @@ float ths = atof( pd.getData("ths").c_str() );
 float diku_utmx = atof( pd.getData("diku_utmx").c_str() );
 float diku_utmy = atof( pd.getData("diku_utmy").c_str() );
 
-float IMU_LASER_DISTANCE =0.83;
 
-zcm::ZCM pub_udpm{"udpm://239.255.76.67:7667?ttl=1"};
+
+zcm::ZCM pub_udpm{"ipc"};
+// zcm::ZCM pub_udpm{"udpm://239.255.76.67:7667?ttl=1"};
 zcm::ZCM pub_ipc{"ipc"};
 
 /*draw obstacle rect*/
@@ -76,6 +77,8 @@ void drawLine(double x1, double y1, double x2, double y2, Scalar sca, cv::Mat im
 /*draw obstacle rect*/
 
 namespace TiEV{
+    float IMU_LASER_DISTANCE = CAR_WHEEL_BASE; // no compensation in fusion module.
+
     bool bStopMapping = false;
     int odom_num = 0;
 
@@ -224,7 +227,8 @@ void zcm_ipc_func()
 
 void zcm_udpm_func()
 {
-    zcm::ZCM zcm_udpm{"udpm://239.255.76.67:7667?ttl=1"};
+    zcm::ZCM zcm_udpm{"ipc"};
+    // zcm::ZCM zcm_udpm{"udpm://239.255.76.67:7667?ttl=1"};
 
     if (!zcm_udpm.good())
     {
@@ -526,7 +530,8 @@ void perception_Node::Add_data(int trajectory_id)
             myCloud.push_back(point_);
 
             //pointcloud move to front-axis
-            double dy = CAR_WHEEL_BASE -IMU_LASER_DISTANCE;  //here compensates the translation from LiDAR to front axle.
+            // double dy = CAR_WHEEL_BASE -IMU_LASER_DISTANCE;  //here compensates the translation from LiDAR to front axle.
+            double dy = 0; //zzy: no compensation in fusion module
             for( int m = 0; m < local_PointCloud.total; m++)
             {
                 Eigen::Vector3f point_tmp(local_PointCloud.frame[m].px_,

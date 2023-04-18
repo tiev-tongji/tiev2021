@@ -49,7 +49,7 @@ public:
 
 // for zcm
 void zcm_func() {
-  zcm::ZCM zcm("");
+  zcm::ZCM zcm("ipc");
   if (!zcm.good())
     return;
   Handler handlerObject;

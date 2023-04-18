@@ -101,14 +101,17 @@ namespace TiEV {
         // length += 2;
         // width += 1;
 
-        double rotationTheta = pose.yaw - M_PI / 2.0;
+        // double rotationTheta = pose.yaw - M_PI / 2.0;
+        double rotationTheta = pose.yaw;// tgx :4.13: for bounding box visualization correct in lasermap
 
         transform( width/2.0,  length/2.0, rotationTheta, pose.x, pose.y, x1, y1);
         transform( width/2.0, -length/2.0, rotationTheta, pose.x, pose.y, x2, y2);
         transform(-width/2.0, -length/2.0, rotationTheta, pose.x, pose.y, x3, y3);
         transform(-width/2.0,  length/2.0, rotationTheta, pose.x, pose.y, x4, y4);
         transform(0,  velocity, rotationTheta, pose.x, pose.y, x_end, y_end);
-
+		// cout << "--------obstacle bounding box--------------\n";
+        // cout<<"x1: "<<x1<<" , x2: "<<x2<<" ,x3: "<<x3<<" x4: "<<x4<<endl;
+        // cout<<"y1: "<<y1<<" , y2: "<<y2<<" ,y3: "<<y3<<" y4: "<<y4<<endl;
         setBoundbox(point2d_t(x1, y1), point2d_t(x2, y2), point2d_t(x3, y3), point2d_t(x4, y4));
 
         Scalar sca;
@@ -156,7 +159,7 @@ namespace TiEV {
             for(int i = 1; i < 6; ++i)
             {
                 double xx, yy;
-                transform(0,  i * velocity, heading, pose.x, pose.y, xx, yy);
+                transform(0,  i * velocity, heading - M_PI_2, pose.x, pose.y, xx, yy);//tgx 2023.4.18 heading->heading - pi/2 for predict path visualization correctness in lasermap
                 predictPose[i].x = xx;
                 predictPose[i].y = yy;
                 myVisual.drawLine(point2d_t(predictPose[i-1].x,predictPose[i-1].y), point2d_t(xx, yy), sca);

@@ -49,7 +49,7 @@ void perception_prep_obstacles( dgc_grid_p grid, vector<std::tr1::shared_ptr<TiE
     
     for (int i = 0; i < num_obstacles; i++) 
     {
-        // if (trackobstacles[i]->isDynamic_) 
+        if (trackobstacles[i]->isDynamic_)//only send Dynamic to planner
         {
             if(trackobstacles[i]->trackType_ == OBSTACLE_UNKNOWN)
                 continue;
@@ -95,6 +95,8 @@ void perception_prep_obstacles( dgc_grid_p grid, vector<std::tr1::shared_ptr<TiE
             dynamicObj.width = trackobstacles[i]->lastObservation_->width; //y direction 
             dynamicObj.length = trackobstacles[i]->lastObservation_->length; // x direction
             
+            
+
 
             if(latestNavInfo.mRTKStatus == 1)
                 dynamicObj.v = trackobstacles[i]->getVelocity();
@@ -120,6 +122,17 @@ void perception_prep_obstacles( dgc_grid_p grid, vector<std::tr1::shared_ptr<TiE
             dynamicObj.corners.p3.y = - trackobstacles[i]->lastObservation_->p3.x;
             dynamicObj.corners.p4.x = trackobstacles[i]->lastObservation_->p4.y;
             dynamicObj.corners.p4.y = - trackobstacles[i]->lastObservation_->p4.x;
+
+            //tracked_obstacle[i]->lastObservation_->p1.x     
+            // std::cout <<" cur heading is " << dynamicObj.theta << std::endl;
+            // std::cout <<" for msg x p1-p4 is " << trackobstacles[i]->lastObservation_->p1.x<<"| " << trackobstacles[i]->lastObservation_->p2.x <<"| " << trackobstacles[i]->lastObservation_->p3.x <<"| "<< trackobstacles[i]->lastObservation_->p4.x <<"| " << std::endl ;
+            // // std::cout <<" for msg y p1-p4 is " << trackobstacles[i]->lastObservation_->p1.y<<"| "trackobstacles[i]->lastObservation_->p1.x;;y <<"| " << dynamicObj.corners.p2.y <<"| " << dynamicObj.corners.p3.y <<"| "<< dynamicObj.corners.p4.y <<" " << std::endl ;
+
+
+            // std::cout <<" cur heading is " << dynamicObj.theta << std::endl;
+            // std::cout <<" for msg x p1-p4 is " << dynamicObj.corners.p1.x <<"| " << dynamicObj.corners.p2.x <<"| " << dynamicObj.corners.p3.x <<"| "<< dynamicObj.corners.p4.x <<"| " << std::endl ;
+            // std::cout <<" for msg y p1-p4 is " << dynamicObj.corners.p1.y <<"| " << dynamicObj.corners.p2.y <<"| " << dynamicObj.corners.p3.y <<"| "<< dynamicObj.corners.p4.y <<" " << std::endl ;
+
 
             for(int j = 0; j < 6; ++j)
             {

@@ -207,13 +207,17 @@ const std::vector<PathPlanner::astate>& PathPlanner::TiEVPlanner::plan(
     }
   }
 
-  LOG(INFO) << "end searching after " << iterations << " iterations";
-  LOG(INFO) << "searching duration: " << (getTimeStamp() - start_time) / 1000
-            << " ms";
 
   if (target_reached) {
     *plan_in_time = true;
   }
+
+  LOG(INFO) << "end searching after " << iterations << " iterations";
+  LOG(INFO) << "searching duration: " << (getTimeStamp() - start_time) / 1000
+            << " ms";
+  LOG(INFO) << "target reached: " << target_reached;
+  LOG(INFO) << "plan in time: " << *plan_in_time;
+  
   // path stores the reversed states list
   vector<astate> path;
 

@@ -48,19 +48,31 @@ void NormalDriving::update(FullControl& control) {
       &result_path);
 
   const auto maintained_path     = decision_context.getMaintainedPath();
-  bool       change_maintainpath = true;
-  bool       is_collision = collision(maintained_path, map.planning_dis_map);
-  // is driving backward
-  if (!maintained_path.empty() && maintained_path.front().backward &&
-      !is_collision) {
-    change_maintainpath = false;
+
+
+  int       collision_pid     = collisionPoseId(maintained_path, map.planning_dis_map);
+  double no_collision_pathlen = 0;
+  bool   is_collision         = (collision_pid != -1);
+  if (!is_collision) {
+    no_collision_pathlen = (maintained_path.empty()?0:maintained_path.back().s);
+  } else {
+    no_collision_pathlen = maintained_path[collision_pid].s;
   }
+  double new_no_collision_pathlen = result_path.empty()?0:result_path.back().s;
+
+  bool       change_maintainpath = true;
+  bool is_backward_mode = (!maintained_path.empty() && maintained_path.front().backward && !is_collision);
+
+  change_maintainpath = (no_collision_pathlen+1e-2 < new_no_collision_pathlen) && (!is_backward_mode);
+
+  /*
   // stay still for too long
   if (decision_context.getMovementInSeconds(5) < 1) {
     change_maintainpath = true;
   }
+  */
   decision_context.setSpeedLimitMPS(map_manager.getCurrentMapSpeed());
-  if (!result_path.empty() && change_maintainpath) {
+  if (!result_path.empty() && change_maintainpath && result_path.back().s > 30) {
     decision_context.setMaintainedPath(result_path);
   }
   decision_context.updatePlannerInfo(map.dynamic_obj_list.dynamic_obj_list);

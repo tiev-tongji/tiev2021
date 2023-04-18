@@ -34,7 +34,7 @@ void Handler::handleNAVINFO(const zcm::ReceiveBuffer *rbuf,
 
 void ZcmReceiver::zcmMsgReceive()
 {
-  zcm::ZCM zcm;
+  zcm::ZCM zcm{"ipc"};
   if (!zcm.good()) {
     std::cout << "zcm is not good! " << std::endl;
     return;

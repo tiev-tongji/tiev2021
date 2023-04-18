@@ -16,15 +16,16 @@ function remove_container_if_exists() {
         docker stop "${container}" >/dev/null
         docker rm -v -f "${container}" 2>/dev/null
     fi
-    rm -rf /tmp/${USER}/planner
-    mkdir -p /tmp/${USER}/planner
+    rm -rf /tmp/${USER}/${TIEV_CONTAINER}
+    mkdir -p /tmp/${USER}/${TIEV_CONTAINER}
 }
 
-local_volumes="-v /tmp/${USER}/planner:/home/${USER}"
+local_volumes="-v /tmp/${USER}/${TIEV_CONTAINER}:/home/${USER}"
 local_volumes="${local_volumes} -v $TIEV_ROOT_DIR:/home/${USER}/tiev"
 local_volumes="${local_volumes} -v /dev:/dev"
 local_volumes="${local_volumes} -v /media:/media \
-                    -v /tmp/${USER}/planner/.X11-unix:/tmp/.X11-unix:rw \
+                    -v /tmp/${USER}/${TIEV_CONTAINER}/.X11-unix:/tmp/.X11-unix:rw \
+                    -v /tmp/:/tmp/ \
                     -v /etc/localtime:/etc/localtime:ro \
                     -v /etc/passwd:/etc/passwd:ro \
                     -v /etc/group:/etc/group:ro \

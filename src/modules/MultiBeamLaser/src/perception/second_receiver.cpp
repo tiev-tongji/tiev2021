@@ -104,7 +104,9 @@ void SecondPython::startReceiver(vector<float> &myBuffer, double timestamp)
 		transform(-width/2.0, -length/2.0, rotationTheta, x, y, x3, y3);
 		transform(-width/2.0,  length/2.0, rotationTheta, x, y, x4, y4);
 		transform(velx, vely, rotationTheta, x, y, x_end, y_end);
-        
+		// cout << "--------second receiver--------------\n";
+        // cout<<"x1: "<<x1<<" , x2: "<<x2<<" ,x3: "<<x3<<" x4: "<<x4<<endl;
+        // cout<<"y1: "<<y1<<" , y2: "<<y2<<" ,y3: "<<y3<<" y4: "<<y4<<endl;
 		std::tr1::shared_ptr<GridObstacle>* second_obstacle = new std::tr1::shared_ptr<GridObstacle>(new GridObstacle(i, grid));
 
 		(*second_obstacle)->time_ = timestamp;

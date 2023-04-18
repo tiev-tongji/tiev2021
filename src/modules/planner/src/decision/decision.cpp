@@ -103,6 +103,7 @@ void sendPath() {
     }
     if (maintained_path.empty()) {
       // send a control path to stop
+      std::cout <<" enter the empty maintained_path " << std::endl;
       control_path.num_points = 10;
       for (int i = 0; i < 10; ++i) {
         TrajectoryPoint tp;

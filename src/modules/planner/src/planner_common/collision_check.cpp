@@ -51,6 +51,19 @@ bool collision(const vector<Pose>& path, const double dis_map[MAX_ROW][MAX_COL],
   return false;
 }
 
+int collisionPoseId(const vector<Pose>& path, const double dis_map[MAX_ROW][MAX_COL],
+               double expansion_r) {
+  double check_interval = 2.0;  // m
+  double next_check_s   = 0;
+  for (int i = 0; i < path.size(); ++i) {
+    const auto& p = path[i];
+    if (p.s < next_check_s) continue;
+    next_check_s = p.s + check_interval;
+    if (collision(p, dis_map, expansion_r)) return i;
+  }
+  return -1;
+}
+
 bool collision(double x, double y, const double dis_map[MAX_ROW][MAX_COL],
                double expansion_r) {
   int x_ = round(x);
