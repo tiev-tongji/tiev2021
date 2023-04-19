@@ -198,6 +198,7 @@ void integrate_sensors( dgc_velodyne_data_p velo)
         }
     }
 
+    //TOOD useless code
     time0 = TiEV::getTimeStamp();
     delta_s = time0 - last_time;
 
@@ -229,7 +230,7 @@ void integrate_sensors( dgc_velodyne_data_p velo)
         }
         else
         {
-            //start track
+            //start tracking
             perception_track_obstacles(obstacles_second, obstacles_tracked, velo->scans->timestamp);
             std::cout << "kalman tracks = " << obstacles_tracked.size() << std::endl;
 
