@@ -26,8 +26,8 @@ using namespace rapidjson;
 #define ONEDEGREE_2_RAD 0.0174533
 #define ENET_H_LEN 0
 
-#define Deg2Rad 0.01745329251994329576923690768     // (PI / 180.0)
-#define Rad2Deg 57.2957795130823208767981548141     // (180.0 / PI)
+// #define Deg2Rad 0.01745329251994329576923690768     // (PI / 180.0)
+// #define Rad2Deg 57.2957795130823208767981548141     // (180.0 / PI)
 
 #define PERCEPTION_MAP_OBSTACLE_FREE         0
 #define PERCEPTION_MAP_OBSTACLE_LOW          1
@@ -296,7 +296,7 @@ void calibrationHDL64()
                         (unsigned char) thisPacket[ENET_H_LEN + 1202] * pow(2, 16) +
                         (unsigned char) thisPacket[ENET_H_LEN + 1201] * pow(2, 8) +
                         (unsigned char) thisPacket[ENET_H_LEN + 1200] * pow(2, 0);
-                    double timestamp1 = (total_us) / pow(10, 6);
+                    double timestamp_packet = (total_us) / pow(10, 6);
                     unsigned char block_id;
                     int block = (unsigned char) thisPacket[ENET_H_LEN + 1 + j * 100] * 16 * 16 +
                         (unsigned char) thisPacket[ENET_H_LEN + j * 100];
@@ -399,7 +399,7 @@ void calibrationHDL64()
                             intensity_dif = intensity - intensity_raw;
                             //****************************intensity calibration done************************************************
 
-                            multibeamFrame.frameData.push_back( hdl64point{ x , y , z , (dis * 0.2), intensity, block_id, spin_now, timestamp1} );
+                            multibeamFrame.frameData.push_back( hdl64point{ x , y , z , (dis * 0.2), intensity, block_id, spin_now, timestamp_packet} );
 
                             beam_n++;
                         }
@@ -479,7 +479,7 @@ void calibrationHDL64()
                             intensity_dif = intensity - intensity_raw;
                             //****************************intensity calibration done************************************************
 
-                            multibeamFrame.frameData.push_back( hdl64point{ x , y , z , (dis * 0.2), intensity, block_id, spin_now, timestamp1} );
+                            multibeamFrame.frameData.push_back( hdl64point{ x , y , z , (dis * 0.2), intensity, block_id, spin_now, timestamp_packet} );
 
                             beam_n++;
                         }
@@ -594,14 +594,19 @@ void ObjectTracking()
                 }
 
                 //cloud to second
+                //TODO Verified? cm to m?
                 float x = transformPC(0) / 100.0;
                 float y = transformPC(1) / 100.0;
                 float z = transformPC(2) / 100.0;
                 float intensity = line.intensity_ / 255.0;
 
+                //TODO Using Common params
                 if(fabs(x) < 25 && y < 70 && y > -30) //extend area
                 {
                     //cloud coordinate change for Second Net detection
+                    //TODO Verified
+                    //Lidar coodinate system (r-f-u -> x-y-z)
+                    //Detector coodinate system (f-l-u -> x-y-z, yaw start from x, ccw is positive, 0~2pi)
                     buffer.push_back(y);
                     buffer.push_back(-x);
                     buffer.push_back(z);
@@ -610,6 +615,7 @@ void ObjectTracking()
             }
 
             //pass the pointcloud, and start detect by second Net and return result
+            //the detector record the timestamp of the input point cloud
             secondNet.startReceiver(buffer, velodyne->scans->timestamp);
 
             buffer.clear();
@@ -698,7 +704,7 @@ void paramRead(const string fileName)
     ifstream in(fileName);
     if(!in.is_open()) {
         cout << "can't open json : " << fileName << endl;
-        assert(false);
+        // LOG(false);
         return;
     }
     stringstream buffer;

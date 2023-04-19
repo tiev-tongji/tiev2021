@@ -6,11 +6,8 @@
 
 SecondPython::SecondPython()
 {
-	cout << "caonima" << endl;
 	
 	Py_Initialize();
-	
-	cout << "rihuangchang" << endl;
 	PyRun_SimpleString("import sys");
 	// PyRun_SimpleString("sys.path.append(\'/home/autolab/tiev/src/modules/second.pytorch/second/pytorch\')");
 	PyRun_SimpleString("sys.path.append(\'/home/autolab/tiev/src/modules/OpenPCDet-av2_plus/tools')");
@@ -60,6 +57,9 @@ void SecondPython::startReceiver(vector<float> &myBuffer, double timestamp)
 	int objNum = PyArray_DIM(returnArray, 0);
 
     obstacles_second.clear();
+    //TODO Verified
+    //Detector coodinate system (f-l-u -> x-y-z, yaw start from x, ccw is positive, 0~2pi)
+    //Lidar coodinate system (r-f-u -> x-y-z)
 	for(int i = 0; i < objNum; i ++)
 	{
 		int type = *(double *)PyArray_GETPTR2(returnArray, i, 0);
@@ -68,6 +68,7 @@ void SecondPython::startReceiver(vector<float> &myBuffer, double timestamp)
 		double z = *(double *)PyArray_GETPTR2(returnArray, i, 3);
 		double length = *(double *)PyArray_GETPTR2(returnArray, i, 4);
 		double width = *(double *)PyArray_GETPTR2(returnArray, i, 5);
+		//NOTE direction is still in Detector coordinate system
 		double direction = *(double *)PyArray_GETPTR2(returnArray, i, 7);
 		if(fabs(x) < 1 && y < 1 && y > -1)
 			continue;
@@ -88,8 +89,9 @@ void SecondPython::startReceiver(vector<float> &myBuffer, double timestamp)
 
 		double velx = 0, vely = 3;
 		if(length < width)
-			swap(length, width); //which max is y, min is the x
+			swap(length, width); //max is y, min is the x
 
+		//TODO change direction from 0~2pi to?? 
 		double objyaw = - direction;// - M_PI_2;
 
 		while(objyaw < - M_PI)

@@ -5,9 +5,10 @@
 #include <global.h>
 #include <sstream> 
 #include <math.h>
+#include "tievlog.h"
 using namespace TiEV;
 using namespace std;
-using namespace std::tr1;
+using namespace std::tr1
 using namespace Eigen;
 
 #define MAX_CAR_SIZE 6
@@ -116,9 +117,11 @@ void KalmanMultiTracker::step(const vector< std::tr1::shared_ptr<Obstacle> >& me
 
 void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& measurements, double timestamp) 
 {
+    //current_timestamp_ is initilized as 0
     prev_timestamp_ = current_timestamp_;
     current_timestamp_ = timestamp;//this frame first package timestamp
 
+    //world coordinate frame: UTM and ENU
     point2d_t carUtmTrans(latestNavInfo.utmX, latestNavInfo.utmY);
     double carYaw = latestNavInfo.mHeading;
 
@@ -134,6 +137,10 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
     if(isNoMeas && isNotracks)
         return;
 
+    //TODO Verify this assertion, because detector should have record the timestamp of the input PC and the timestamp is the timestamp of the PC
+    LOG(WARNING)<<"measurements[0]->time_ == timestamp:"<<measurements[0]->time_ == timestamp;
+
+    //Association
     //compute score matrix by global nearest neighboor
     if(!isNoMeas && !isNotracks) 
     {
@@ -147,6 +154,10 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
             {
                 const std::tr1::shared_ptr<Obstacle>& measurement = measurements[j];
 
+                // TODO Verify this assertion, because all the timestamps are the timestamp of the first packet 
+                LOG(WARNING)<<"measurements[0]->time_ == measurement->time_:"<<(measurements[0]->time_ == measurement->time_);
+
+                // TODO Verify filter's timestamp_ is updated by the measurment time
                 double delta_t = measurement->time_ - track->filter->timestamp_;
 
                 // Compute the prediction for the timestamp of this measurement.
@@ -189,6 +200,7 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
         data_association_.assign(scores, direct_assignment, reverse_assignment);
     }
 
+    // trackers
     int tracker_idx = 0;
     for (auto it = tracks_.begin(); it != tracks_.end(); ++it, ++tracker_idx)
     {
@@ -200,7 +212,11 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
             if((*it)->missed_ >= 10)
                 (*it)->isDynamic_ = false;
 
+            //TODO Verify prev_timestamp_ should be the same of (*it)->filter->timestamp_
             double delta_t = current_timestamp_ - prev_timestamp_;
+            LOG(WARNING)<<"prev_timestamp_ == (*it)->filter->timestamp_):" <<(prev_timestamp_ == (*it)->filter->timestamp_);
+
+
             transition_matrix_mu_(0, 2) = delta_t * cos((*it)->filter->mu_(3));
             transition_matrix_mu_(1, 2) = delta_t * sin((*it)->filter->mu_(3));
             transition_matrix_mu_(3, 4) = delta_t;
@@ -209,6 +225,8 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
             transition_matrix_sigma_(0, 3) = delta_t * (*it)->filter->mu_(2) * sin((*it)->filter->mu_(3)) * -1;
             transition_matrix_sigma_(1, 3) = delta_t * (*it)->filter->mu_(2) * cos((*it)->filter->mu_(3));
             transition_matrix_sigma_(3, 4) = delta_t;
+
+            //TODO Verify the timestamp
 
             (*it)->filter->predict_ekf(transition_matrix_mu_,transition_matrix_sigma_, (*it)->filter->timestamp_ + current_timestamp_ - prev_timestamp_);
 
@@ -248,7 +266,9 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
             (*it)->filter->update(measurements[m]->objWorldPose, measurements[m]->time_);
 
             Eigen::Vector2d kalmanFliterPose((*it)->filter->mu_(0), (*it)->filter->mu_(1)); //new world position update by kalman
-            Eigen::Vector3f srcGlobal(kalmanFliterPose(0), kalmanFliterPose(1), 0), targetLocal;     
+            Eigen::Vector3f srcGlobal(kalmanFliterPose(0), kalmanFliterPose(1), 0), targetLocal; 
+
+            //Local frame    
             (*it)->positionGlobalToLocal(srcGlobal, carUtmTrans, carYaw - M_PI_2, targetLocal);  
 
             (*it)->trackGridXY_ << targetLocal(0), targetLocal(1);
@@ -271,6 +291,7 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
         }
     }
 
+    // 
     for (size_t i = 0; i < measurements.size(); ++i)
     {
         // no tracks or found
@@ -279,14 +300,22 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
         
         VectorXd initial_state = VectorXd::Zero(5);
 
+        // tracking in the world frame UTM ENU
         double x,y;
         measurements[i]->getCenterOfPoints(&x, &y);
         Eigen::Vector3f srcLocal(x, y, 0), targetGlobal;
+
+        //TODO Verify why carYaw - pi/2?
         measurements[i]->positionLocalToGlobal(srcLocal, carUtmTrans, carYaw - M_PI_2, targetGlobal);
         measurements[i]->objWorldPose << targetGlobal(0), targetGlobal(1);
 
         initial_state.segment(0, 2) = measurements[i]->objWorldPose; //initial measurement world pose
+
+        //TODO Verify why carYaw - pi/2?
         initial_state(3) = measurements[i]->pose.yaw + carYaw - M_PI_2;
+
+
+        //Kalman EKF
         std::tr1::shared_ptr<LinearKalmanFilter> new_kf(new LinearKalmanFilter(next_id_,
             measurements[i]->time_, initial_state, initial_sigma_,
             measurement_matrix_, transition_covariance_,
