@@ -185,10 +185,16 @@ void Visualization::visualize() {
     else if (32 == key) {
       remote_control.enabled = 0x01;
     }
+    else if('b' == key){
+      remote_control.enabled = 0x11;
+      LOG(INFO) <<" 'b' to stop the car immly ";
+    }
     if (remote_control.enabled)
       auto_start.copyTo(auto_window);
     else
       auto_end.copyTo(auto_window);
+
+
     publishRemoteControl(remote_control);
   }
   cout << "Exit TiEV Visualization..." << endl;

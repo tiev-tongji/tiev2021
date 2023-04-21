@@ -61,8 +61,8 @@ const std::vector<DynamicObj> DecisionContext::getStaticObsDecision() const {
       obj.type = CAR;
       obj.v    = 0;
       obj.path.emplace_back(point.x, point.y, point.ang, 0, 0, 0);
-      obj.width  = 2;
-      obj.length = 5;
+      obj.width  = 5;
+      obj.length = 2;
       static_obs_decision_result.push_back(obj);
       break;
     }

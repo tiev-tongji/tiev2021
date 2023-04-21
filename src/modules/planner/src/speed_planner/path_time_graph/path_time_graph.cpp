@@ -55,20 +55,50 @@ Box PathTimeGraph::GetDynamicBoundingBox(const Obstacle& obstacle,
 
 SLBoundary PathTimeGraph::ComputeObstacleSLBoundary(
     const std::vector<Vec>& vertices, const std::vector<Pose>& path) {
+
   double start_s(std::numeric_limits<double>::max());
   double end_s(std::numeric_limits<double>::lowest());
   double start_l(std::numeric_limits<double>::max());
   double end_l(std::numeric_limits<double>::lowest());
 
   // LOG(WARNING) << "----Obstale----";
-  for (const auto& point : vertices) {
+  double near_s = 0;
+  double min_l = 1e18;
+  for(const auto& point : vertices){
     std::pair<double, double> sl_point =
         PathMatcher::GetPathFrenetCoordinate(path, point.x(), point.y());
-    start_s = std::fmin(start_s, sl_point.first);
-    end_s   = std::fmax(end_s, sl_point.first);
-    start_l = std::fmin(start_l, sl_point.second);
-    end_l   = std::fmax(end_l, sl_point.second);
+
+    if(min_l > fabs(sl_point.second)) {
+      min_l = fabs(sl_point.second);
+      near_s = sl_point.first; 
+    }
+  }  
+
+  std::vector<Pose> new_path;
+   
+  for (const auto& pose: path) {
+    if(pose.s < near_s)continue;
+    new_path.push_back(pose);
+    if(pose.s > near_s + 5) break;
   }
+
+  if(new_path.empty()){
+    start_s = std::fmin(start_s, -1);
+    end_s   = std::fmax(end_s, -1);
+    start_l = std::fmin(start_l, -100);
+    end_l   = std::fmax(end_l, -100);
+  }
+  else{
+    for (const auto& point : vertices) {
+      std::pair<double, double> sl_point =
+          PathMatcher::GetPathFrenetCoordinate(new_path, point.x(), point.y());
+      start_s = std::fmin(start_s, sl_point.first);
+      end_s   = std::fmax(end_s, sl_point.first);
+      start_l = std::fmin(start_l, sl_point.second);
+      end_l   = std::fmax(end_l, sl_point.second);
+    }
+  }
+  
 
   SLBoundary sl_boundary;
   // remove car head
@@ -76,6 +106,8 @@ SLBoundary PathTimeGraph::ComputeObstacleSLBoundary(
     start_s = std::max(start_s - CAR_FRONT_AXLE_TO_HEAD, 0.1);
     end_s   = std::max(end_s - CAR_FRONT_AXLE_TO_HEAD, 0.1);
   }
+  LOG(INFO) << "range of ls is " << start_s << ", " << end_s << ", " << start_l << ", " << end_l;
+  
   sl_boundary.set_start_s(start_s);
   sl_boundary.set_end_s(end_s);
   sl_boundary.set_start_l(start_l);
@@ -106,7 +138,6 @@ void PathTimeGraph::SetStaticObstacle(Obstacle&                obstacle,
   // for (const auto& i : box.corners()) {
   //   std::cout << i.x() << ' ' << i.y() << std::endl;
   // }
-  // LOG(INFO) << "Static Obstacle";
 
   SLBoundary sl_boundary = ComputeObstacleSLBoundary(box.corners(), path);
   double     left_width  = Default_Path_Width_ * 0.8;
@@ -141,7 +172,7 @@ void PathTimeGraph::SetDynamicObstacle(Obstacle&                obstacle,
   STPoint bottom_right(0, 0);
   STPoint upper_left(0, 0);
   STPoint upper_right(0, 0);
-  // LOG(INFO) << "Dynamic Obstacle";
+  LOG(INFO) << "Dynamic Obstacle";
 
   bool left_edge_set = false;
   while (relative_time < time_range_.second) {

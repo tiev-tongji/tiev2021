@@ -9,7 +9,7 @@ constexpr double GRID_RESOLUTION = 0.2;
 constexpr double PI              = 3.1415926535898;
 constexpr double inf             = 1e8;
 constexpr double CAR_R           = 5.5;  // m
-constexpr double CAR_MAX_K       = 1 / CAR_R;
+constexpr double CAR_MAX_K       = 1.0 / CAR_R;
 constexpr int    ANGLE_NUM       = 72;
 
 constexpr double MIN_OVERTAKE_SPEED = 5;  // mps

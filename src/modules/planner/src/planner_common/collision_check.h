@@ -13,7 +13,7 @@ namespace TiEV {
 constexpr float CAR_WHEEL_BASE = 2.3;
 constexpr float CAR_LENGTH     = 3.9;  //(m)
 // constexpr float CAR_WIDTH              = 1.15;  //(m)
-constexpr float CAR_WIDTH              = 1.2;   //(m)
+constexpr float CAR_WIDTH              = 1.4;   //(m)
 constexpr float CAR_FRONT_AXLE_TO_HEAD = 1.02;  //(m)
 constexpr float CAR_BUMPER_LENGTH      = 0.3;   //(m)
 

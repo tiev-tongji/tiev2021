@@ -15,6 +15,7 @@ namespace TiEV {
 
 class PathSmoother {
  public:
+  static constexpr double kappaMax_ = 0; //supposed to be 0.1818
   PathSmoother() = default;
 
   PathSmoother(double learning_rate, double max_iteration, double weight_smooth,
@@ -24,8 +25,8 @@ class PathSmoother {
         wSmoothness(weight_smooth),
         wCurvature(weight_curvature),
         wObstacle(weight_obstacle),
-        kappaMax(0.1818),
-        obsDMax(COLLISION_CIRCLE_SMALL_R / GRID_RESOLUTION),
+        kappaMax(kappaMax_),
+        obsDMax(3 / GRID_RESOLUTION),
         width(MAX_ROW),
         height(MAX_COL) {
           memcpy(this->planning_dis_map, planning_dis_map_, sizeof(this->planning_dis_map));
@@ -38,8 +39,8 @@ class PathSmoother {
         wSmoothness(weight_smooth),
         wCurvature(weight_curvature),
         wObstacle(weight_obstacle),
-        kappaMax(0.1818),
-        obsDMax(COLLISION_CIRCLE_SMALL_R / GRID_RESOLUTION),
+        kappaMax(kappaMax_),
+        obsDMax(3 / GRID_RESOLUTION),
         width(MAX_ROW),
         height(MAX_COL) {}
   // api

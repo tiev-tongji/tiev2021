@@ -195,7 +195,7 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
       path_before_smooth.emplace_back(p.x, p.y);
     }
     double learning_rate(0.25), max_iteration(500), weight_smooth(1),
-        weight_curvature(1), weight_obstacle(10);
+        weight_curvature(1), weight_obstacle(0);
     // double learning_rate(0.24915), max_iteration(500), weight_smooth(1),
     //     weight_curvature(1), weight_obstacle(0);
     PathSmoother ps(learning_rate, max_iteration, weight_smooth,
@@ -249,9 +249,10 @@ bool PathPlanner::plan(std::vector<Pose>* result) {
       p_back.updateGlobalCoordinate(nav_info.car_pose);
     }
 
-// #define VIS_SMOOTHED_PATH
+#define VIS_SMOOTHED_PATH
 #ifdef VIS_SMOOTHED_PATH
     cv::namedWindow("smoothed_path", cv::WINDOW_KEEPRATIO);
+    cv::resizeWindow("smoothed_path", 1100, 900);
     cv::Mat img = cv::Mat(MAX_ROW, MAX_COL, CV_8UC3, {255, 255, 255});
     for (int r = 0; r < MAX_ROW; ++r) {
       for (int c = 0; c < MAX_COL; ++c) {

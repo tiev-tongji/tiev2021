@@ -115,6 +115,7 @@ int main(int argc, char **argv) {
                         //    gps_status_high = gps.status / 10;
                             std::cout << "GPS Heaing_deg:" << gps.heading << std::endl;
                             std::cout << "Nav Heaing_deg:" << msg_nav_temp.mHeading / pi * 180 << std::endl;
+                            std::cout<<"x-aixs acc: "<< msg_nav_temp.mAx <<" || y-aixs acc: "<< msg_nav_temp.mAy<<" || z-aixs acc: "<< gps.acceleration_z * 9.7964 <<endl;
                            // gps_status_low = gps.status - 10 * gps_status_high;
                             if (gps.status == 42 || gps.status == 82) {
                                 msg_nav_temp.mRTKStatus = 1;

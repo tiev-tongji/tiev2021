@@ -20,8 +20,9 @@ std::string convertToStr(const C2VinfoTran &converted_info) {
   cn::seisys::v2x::pb::VsmData vsmData;
   cn::seisys::v2x::pb::Position3D *self_pos =
       new cn::seisys::v2x::pb::Position3D;
-  self_pos->set_lon(converted_info.utmY);
-  self_pos->set_lat(converted_info.utmX);
+  self_pos->set_lon(converted_info.utmX);
+  self_pos->set_lat(converted_info.utmY);
+  vsmData.set_obuid("1");
   vsmData.set_allocated_pos(self_pos);
   vsmData.set_speed(converted_info.speed);
   vsmData.set_heading(converted_info.heading_angle);

@@ -37,6 +37,8 @@ bool init_start_CAN(const CAN_DEV_INFO &can_device, VCI_INIT_CONFIG &config,
                     const short &CAN0, const short &CAN1) {
   // OpenCAN
   // enable_control_ = true;
+  VCI_CloseDevice(VCI_USBCAN2, 0);
+
   if (!VCI_OpenDevice(can_device.devType, can_device.devIndex, 0)) {
     INFO("VCI_OpenDevice failed!");
     return 0;
@@ -126,6 +128,7 @@ int main(int argc, char *argv[]) {
   remote_controller.startReceiving();
 
   bool enable_pc_control = false;
+  bool brake_pc_control = false;
   veh_info_t veh_pc_control_info;
 
   bool is_break = false;
@@ -140,7 +143,11 @@ int main(int argc, char *argv[]) {
   while (1) {
     // 获取ZCM发送过来的信息
     // pitch_max = veh_nav_info.angle_pitch;
-    msgControl.get_remote_control_msg(&enable_pc_control);
+    char pc_control_signal(0);
+    msgControl.get_remote_control_msg(&pc_control_signal);
+    std::cout <<" rev " << (int)pc_control_signal << std::endl;
+    enable_pc_control = (pc_control_signal & 0x01);
+    brake_pc_control  = (pc_control_signal & 0x10);
     msgControl.get_veh_control_msg(&veh_pc_control_info);
     msgControl.get_nav_info_msg(&veh_nav_info);
     msgControl.get_aim_path_msg(&K);
@@ -158,7 +165,6 @@ int main(int argc, char *argv[]) {
 
     // 获取ESR结果并发送
     esr_control.esrObjInfoLock();
-    msgControl.pub_esr_objinfo_msg(esr_control.getEsrObjInfoPtr());
     esr_control.esrObjInfoUnLock();
 
     // 获取车身CAN信息
@@ -190,8 +196,14 @@ int main(int argc, char *argv[]) {
     DCUMessage dcuMsg;
     // std::cout<< "isbreak: " << is_break << std:endl;
     // std::cout<< "ACC speed_torque: " << speed_torque <<std::endl;
-    if (remote_controller.isBrake()) {
-      dcuMsg.AimPressure = 5.;
+
+
+
+
+    if (remote_controller.isBrake() || brake_pc_control) {
+      std::cout <<" signal tell me to brake " << std::endl;
+      dcuMsg.AimPressure = 10;
+      speed_torque = 0;
     }
     else if (is_break == true && enable_pc_control) {
       dcuMsg.AimPressure = fmin(80.0, fabs(speed_torque));

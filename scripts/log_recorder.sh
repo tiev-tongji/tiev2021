@@ -1,0 +1,3 @@
+#!/bin/bash
+zcm-logger -u ipc -c NAVINFO -c FUSIONMAP -c OBJECTLIST -c AIMPATH -c VISUALIZATION -c CANCONTROL -c CANINFO
+

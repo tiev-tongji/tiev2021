@@ -20,7 +20,7 @@ namespace TiEV {
 const std::string SERVER_ADDRESS("tcp://221.181.123.244:22683");
 const std::string CLIENT_ID("cloudpub_01");
 const std::string TOPIC("cloudproc_02");
-const std::string TOPIC_SEND("topic/test/mec2cloud/00");
+const std::string TOPIC_SEND("v2x/v1/obu/001/vsmdata/up");
 const std::string USERNAME("cloudpub_01");
 const std::string PASSWORD("Coudpub@pub_01!");
 const int QOS = 1;

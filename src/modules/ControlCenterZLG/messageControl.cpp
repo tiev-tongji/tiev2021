@@ -56,7 +56,8 @@ STATE messageControl::get_nav_info_msg(nav_info_t* nav_info){
     return ret;
 }
 
-STATE messageControl::get_remote_control_msg(bool* remote_control){
+STATE messageControl::get_remote_control_msg(char * remote_control){
+
     STATE ret = msgHandle.get_remote_control_msg(remote_control);
     return ret;
 }
@@ -99,7 +100,7 @@ STATE messageHandle::get_nav_info_msg(nav_info_t* nav_info){
     return CC_OK;
 }
 
-STATE messageHandle::get_remote_control_msg(bool* remote_control){
+STATE messageHandle::get_remote_control_msg(char* remote_control){
     std::lock_guard<std::mutex> lk(remote_control_lock);
     *remote_control = remote_control_;
     return CC_OK;

@@ -31,7 +31,7 @@
 class messageHandle{
 public:
     STATE get_veh_control_msg(veh_info_t* veh_info);
-    STATE get_remote_control_msg(bool* remote_control);
+    STATE get_remote_control_msg(char* remote_control);
     STATE get_nav_info_msg(nav_info_t* nav_info);
     STATE get_veh_aimpath(float* curvature_);
 public:
@@ -45,7 +45,7 @@ public:
     veh_info_t veh_info_;
     nav_info_t nav_info_;
     float curvature_;
-    bool remote_control_ = false;
+    char remote_control_ = false;
     std::mutex veh_info_lock;
     std::mutex remote_control_lock;
     std::mutex nav_info_lock;
@@ -59,7 +59,7 @@ public:
 public:
     STATE init();
     STATE get_veh_control_msg(veh_info_t* veh_info);
-    STATE get_remote_control_msg(bool* remote_control);
+    STATE get_remote_control_msg(char* remote_control);
     STATE pub_veh_status_msg(veh_info_t& veh_info);
     STATE get_nav_info_msg(nav_info_t* nav_info);
     //STATE pub_esr_map_msg(structESRMAP* esr_map);

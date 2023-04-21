@@ -40,12 +40,11 @@ static mutex path_planner_mtx;
 const static double primi_l = 1.0;  // m
 // for generate clothoid arc
 const static std::vector<double> k_list = {
-    -5.0 / 4.0 * CAR_MAX_K, -CAR_MAX_K,
+    -CAR_MAX_K,
     -3.0 / 4.0 * CAR_MAX_K, -1.0 / 2.0 * CAR_MAX_K,
     -1.0 / 4.0 * CAR_MAX_K, 0.0,
     1.0 / 4.0 * CAR_MAX_K,  1.0 / 2.0 * CAR_MAX_K,
-    3.0 / 4.0 * CAR_MAX_K,  CAR_MAX_K,
-    5.0 / 4.0 * CAR_MAX_K,
+    3.0 / 4.0 * CAR_MAX_K,  CAR_MAX_K
 };
 const static std::vector<double> k_step_list = {0.0,
                                                 -1.0 / 4.0 * CAR_MAX_K,

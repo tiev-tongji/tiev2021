@@ -81,7 +81,7 @@ bool PathPlanner::local_planning_map::is_lane_crashed(int x, int y) const {
 
 bool PathPlanner::local_planning_map::is_lane_crashed(
     const astate& state) const {
-  return collision(state.x, state.y, state.a, lane_safe_map, 0.0);
+  return collision(state.x, state.y, state.a, lane_safe_map, 0.1);
 }
 
 bool PathPlanner::local_planning_map::is_lane_crashed(primitive& prim) const {
