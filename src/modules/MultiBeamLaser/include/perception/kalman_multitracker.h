@@ -9,6 +9,7 @@
 #include <linear_kalman_filter.h>
 #include "data_association.hpp"
 
+#define MISSED_TOL 10 //if greater than this TOL an track is marked as static. TODO move to param
 class KalmanMultiTracker {
  private:
   //! The the next id_ value to assign to a LinearKalmanFilter.
