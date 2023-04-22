@@ -56,19 +56,16 @@ void SecondPython::startReceiver(vector<float> &myBuffer, double timestamp)
 	returnArray = (PyArrayObject *)PyArray_FROM_OTF(return_value1, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
 	int objNum = PyArray_DIM(returnArray, 0);
 
-    obstacles_second.clear();
-    //TODO Verified
-    //Detector coodinate system (f-l-u -> x-y-z, yaw start from x, ccw is positive, 0~2pi)
+    detected_obstacles.clear();
     //Lidar coodinate system (r-f-u -> x-y-z)
 	for(int i = 0; i < objNum; i ++)
 	{
 		int type = *(double *)PyArray_GETPTR2(returnArray, i, 0);
-		double y = *(double *)PyArray_GETPTR2(returnArray, i, 1);
-		double x = 0.0 - *(double *)PyArray_GETPTR2(returnArray, i, 2);
+		double x = *(double *)PyArray_GETPTR2(returnArray, i, 1);
+		double y = *(double *)PyArray_GETPTR2(returnArray, i, 2);
 		double z = *(double *)PyArray_GETPTR2(returnArray, i, 3);
 		double length = *(double *)PyArray_GETPTR2(returnArray, i, 4);
 		double width = *(double *)PyArray_GETPTR2(returnArray, i, 5);
-		//NOTE direction is still in Detector coordinate system
 		double direction = *(double *)PyArray_GETPTR2(returnArray, i, 7);
 		if(fabs(x) < 1 && y < 1 && y > -1)
 			continue;
@@ -88,11 +85,10 @@ void SecondPython::startReceiver(vector<float> &myBuffer, double timestamp)
 		 */
 
 		double velx = 0, vely = 3;
-		if(length < width)
-			swap(length, width); //max is y, min is the x
+		// if(length < width)
+			// swap(length, width); //max is y, min is the x
 
-		//TODO change direction from 0~2pi to?? 
-		double objyaw = - direction;// - M_PI_2;
+		double objyaw = direction;// - M_PI_2;
 
 		while(objyaw < - M_PI)
 		{
@@ -102,21 +98,19 @@ void SecondPython::startReceiver(vector<float> &myBuffer, double timestamp)
 		{
 			objyaw -= M_PI * 2;
 		}
+ 
+		std::tr1::shared_ptr<Obstacle>* deteced_obstacle = new std::tr1::shared_ptr<Obstacle>(new Obstacle(timestamp));
+		(*deteced_obstacle)->Set_pose(x, y, z, objyaw, length, width);
 
+		//VISUAL DEBUG
 		double x1,y1,x2,y2,x3,y3,x4,y4,x_end,y_end;
-		double rotationTheta = objyaw - M_PI_2;//-direction; //objyaw - M_PI_2;
-		transform( width/2.0,  length/2.0, rotationTheta, x, y, x1, y1);
-		transform( width/2.0, -length/2.0, rotationTheta, x, y, x2, y2);
-		transform(-width/2.0, -length/2.0, rotationTheta, x, y, x3, y3);
-		transform(-width/2.0,  length/2.0, rotationTheta, x, y, x4, y4);
+		double rotationTheta = objyaw;//-direction; //objyaw - M_PI_2;
+		transform( length/2.0,  width/2.0, rotationTheta, x, y, x1, y1);
+		transform( length/2.0, -width/2.0, rotationTheta, x, y, x2, y2);
+		transform(-length/2.0, -width/2.0, rotationTheta, x, y, x3, y3);
+		transform(-length/2.0,  width/2.0, rotationTheta, x, y, x4, y4);
 		transform(velx, vely, rotationTheta, x, y, x_end, y_end);
-        
-		std::tr1::shared_ptr<GridObstacle>* second_obstacle = new std::tr1::shared_ptr<GridObstacle>(new GridObstacle(i, grid));
-
-		(*second_obstacle)->time_ = timestamp;
-		(*second_obstacle)->setPose(x, y, z, objyaw, length, width);
-
-		if(0) //draw bounding boxes of second objects 
+       	if(0) //draw bounding boxes of second objects 
 		{
 			char bufferprint[50];
 			sprintf(bufferprint, "%.2f", objyaw * rad2deg);
@@ -132,22 +126,22 @@ void SecondPython::startReceiver(vector<float> &myBuffer, double timestamp)
 		switch (type)
 		{
 			case OBSTACLE_CAR :
-			(*second_obstacle)->second_type = OBSTACLE_CAR;
+			(*deteced_obstacle)->Get_type() = OBSTACLE_CAR;
 			break;
 
 			case OBSTACLE_BICYCLIST :
-			(*second_obstacle)->second_type = OBSTACLE_BICYCLIST;
+			(*deteced_obstacle)->Get_type() = OBSTACLE_BICYCLIST;
 			break;
 
 			case OBSTACLE_PEDESTRIAN :
-			(*second_obstacle)->second_type = OBSTACLE_PEDESTRIAN;
+			(*deteced_obstacle)->Get_type() = OBSTACLE_PEDESTRIAN;
 			break;
 
 			default :
-			(*second_obstacle)->second_type = OBSTACLE_UNKNOWN;
+			(*deteced_obstacle)->Get_type() = OBSTACLE_UNKNOWN;
 		}
-		(*second_obstacle)->classified_this_frame_ = true;
-		obstacles_second.push_back(*second_obstacle);
+		// (*deteced_obstacle)->classified_this_frame_ = true;
+		detected_obstacles.push_back(*deteced_obstacle);
 	}
 	Py_XDECREF(np_arg);
 	Py_XDECREF(return_value1);

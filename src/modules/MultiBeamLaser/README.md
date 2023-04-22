@@ -21,7 +21,7 @@
 - #####param files: 
 	- **param.json**
 		+ sourcePointcloudEnable : whether show the source pointcloud in grid map, default false;
-		+ dynamicObjectsEnable : whether show the dynamic obstacles in grid map, default true;
+		+ is_mot_enable : whether show the dynamic obstacles in grid map, default true;
 		+ overpass_height : not important, default 1.5;
 		+ z_resolution : decide which point belongs to obstacle, the larger the value, the more obstacles but the more noise, default 0.3;
 		+ z_obstacle_height : decide which cell in grid belongs to obstacle, the smaller the value, the more obstacles, default 0.09;

@@ -11,81 +11,79 @@
 #include "obstacle.h"
 #include <linear_kalman_filter.h>
 
-namespace TiEV {
+namespace TiEV
+{
 
-class TrackedObstacle : public Obstacle {
-private:
-  int confidence_;
-  int pedestrian_label_count;
+  #define PREDICT_HORIZON 6 // TODO move to param
+  class TrackedObstacle : public Obstacle
+  {
+  private:
+    int confidence_;
+    // int pedestrian_label_count;
 
-  int num_observations_;
+    int num_observations_;
 
-  double timestamp_first_;       // time of earliest observation
-  double timestamp_prediction_;  // time of most recent prediction
+    // double timestamp_first_;      // time of earliest observation
+    // double timestamp_prediction_; // time of most recent prediction
 
-  double x_velocity_;
-  double y_velocity_;
-  double angular_velocity;
+    // velocity-based motion model
+    double velocity_;
+    double angular_velocity_;
 
-  Eigen::VectorXf prior_log_odds_; //Prior log odds for each class. The indices here correspond to those in booster->class_map_.  
-  Eigen::VectorXf log_odds_; //Log odds for each class, updated via incorporateBoostingResponse.
-protected:
-  virtual void populatePoints();
+    // Eigen::VectorXf prior_log_odds_; // Prior log odds for each class. The indices here correspond to those in booster->class_map_.
+    // Eigen::VectorXf log_odds_;       // Log odds for each class, updated via incorporateBoostingResponse.
 
-public:
+  public:
+    bool isDynamic_;
+    int typeArr_[128];
+    int missed_;
 
-  bool isDynamic_;
-  int typeArr_[128];
-  int missed_;
-  double trackTheta_;
-  dgc_obstacle_type trackType_;
-  
-  std::vector<point2d_t> trackUtmTrajectory_;
-  Eigen::Vector2d trackUtmXY_;
-  Eigen::Vector2d trackGridXY_;
+    std::vector<point2d_t> trackLocalTrajectory_;
+    std::vector<point2d_t> trackUtmTrajectory_;
+    std::tr1::shared_ptr<LinearKalmanFilter> filter;
+    
+    //This tracked object's latest observation
+    std::tr1::shared_ptr<Obstacle> lastObservation_;
 
-  std::tr1::shared_ptr<LinearKalmanFilter> filter;
-  std::tr1::shared_ptr<Obstacle> lastObservation_;
-  TrackedObstacle(int id, std::tr1::shared_ptr<Obstacle> observation, double timestamp);
-  TrackedObstacle(const TrackedObstacle& o);
-  virtual ~TrackedObstacle();
- 
-  void setTypeNum(dgc_obstacle_type type);
-  dgc_obstacle_type getTypeConfidence();
+  public:
+    TrackedObstacle(double timestamp);
+    TrackedObstacle(int id, std::tr1::shared_ptr<Obstacle> observation, double timestamp);
+    TrackedObstacle(const TrackedObstacle &o);
+    virtual ~TrackedObstacle();
 
-  void dynamicClassify(const point2d_t &translation, double rotationAngle);
+    void setTypeNum(dgc_obstacle_type type);
+    dgc_obstacle_type getTypeConfidence();
 
-  void update(std::tr1::shared_ptr<Obstacle>, double timestamp);
-  void update(double timestamp);
+    void dynamicClassify(const point2d_t &translation, double rotationAngle);
 
-  void setConfidence(int times) { 
-    confidence_ += times; 
-    if(confidence_ < 0) 
+    // void update(std::tr1::shared_ptr<Obstacle>, double timestamp);
+    // void update(double timestamp);
+
+    void setConfidence(int times)
+    {
+      confidence_ += times;
+      if (confidence_ < 0)
         confidence_ = 0;
-    if(confidence_ > 10) 
+      if (confidence_ > 10)
         confidence_ = 10;
-  }
-  int getConfidence() {return confidence_;} 
-  
-  int getNumObservations() { return num_observations_; }
-  
-  double getXVel() const;
-  double getYVel() const;
+    }
+    int getConfidence() { return confidence_; }
 
-  double getVelocity() const;
-  double getAngularVel() const;
+    int getNumObservations() { return num_observations_; }
 
-  Eigen::VectorXf getLogOdds() { return log_odds_; }
-  std::tr1::shared_ptr<Obstacle> getLastObservation() { return lastObservation_; }
+    double getVelocity() const;
+    double getAngularVel() const;
 
-  virtual int  getSize() { return 0; }
-  double timestamp_observation_; // time of most recent observation
+    // Eigen::VectorXf getLogOdds() { return log_odds_; }
+    std::tr1::shared_ptr<Obstacle> getLastObservation() { return lastObservation_; }
 
-  virtual void markDynamic(dgc_grid_p grid, unsigned short counter);
-  void estimateModel();
+    // virtual int getSize() { return 0; }
 
-  float maxHeight();
-};
+    virtual void markDynamic();
+    // void estimateModel();
+
+    // float maxHeight();
+  };
 
 }
 

@@ -1,6 +1,6 @@
 {
 	"sourcePointcloudEnable" : false,
-	"dynamicObjectsEnable" : true,
+	"is_mot_enable" : true,
 
 	"overpass_height" : 1.5,
 	"z_resolution" : 0.3,

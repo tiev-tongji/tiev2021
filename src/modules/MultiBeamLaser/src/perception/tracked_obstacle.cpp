@@ -71,22 +71,25 @@ namespace TiEV {
         return newtype;	
    } 
 
-    void TrackedObstacle::estimateModel()
-    {
-        if (trackType_ == OBSTACLE_PEDESTRIAN) {
-            width = 1.0;
-            length = 1.0;
-        } 
-        else
-        {
-            bounding_box(this, pose.yaw, 0.5, 0.5);
-        }
-    }
+    // void TrackedObstacle::estimateModel()
+    // {
+    //     if (Get_type() == OBSTACLE_PEDESTRIAN) {
+    //         width = 1.0;
+    //         length = 1.0;
+    //     } 
+    //     else
+    //     {
+    //         bounding_box(this, pose_.yaw, 0.5, 0.5);
+    //     }
+    // }
+
+    TrackedObstacle::TrackedObstacle(double timestamp) :
+    Get_timestamp()(timestamp){}
 
     TrackedObstacle::TrackedObstacle(int id, std::tr1::shared_ptr<Obstacle> observation, double timestamp) :
             Obstacle(*observation),//*observation
             lastObservation_(observation),
-            pedestrian_label_count(0),
+            // pedestrian_label_count(0),
             num_observations_(0)
             {
                 confidence_ = 0;
@@ -101,10 +104,10 @@ namespace TiEV {
             Obstacle(o),
             lastObservation_(o.lastObservation_),
             num_observations_(o.num_observations_),
-            timestamp_first_(o.timestamp_first_),
-            timestamp_prediction_(o.timestamp_prediction_),
-            timestamp_observation_(o.timestamp_observation_),
-            log_odds_(o.log_odds_)
+            // timestamp_first_(o.timestamp_first_),
+            // timestamp_prediction_(o.timestamp_prediction_),
+            // timestamp_observation_(o.timestamp_observation_),
+            // log_odds_(o.log_odds_)
             {
                 assert(num_observations_ > 0);
                 memset(typeArr_, 0, sizeof(typeArr_));
@@ -120,7 +123,7 @@ namespace TiEV {
         {
             trackUtmTrajectory_.erase(trackUtmTrajectory_.begin());
         }
-        trackUtmTrajectory_.push_back(point2d_t(trackUtmXY_(0), trackUtmXY_(1)));
+        trackUtmTrajectory_.push_back(point2d_t(global_pose_(0), global_pose_(1)));
 
         int trajSize = trackUtmTrajectory_.size();
 
@@ -131,9 +134,9 @@ namespace TiEV {
 
         for (int i = 0; i < trajSize; ++i)
         {
-            Eigen::Vector3f srcGlobal(trackUtmTrajectory_[i].x, trackUtmTrajectory_[i].y, 0), targetLocal;     
-            positionGlobalToLocal(srcGlobal, translation, rotationAngle, targetLocal);       
-            trackLocalTrajectory[i] = (point2d_t(targetLocal(0), targetLocal(1)));
+            Eigen::Vector3f global_pose(trackUtmTrajectory_[i].x, trackUtmTrajectory_[i].y, 0), local_pose;     
+            positionGlobalToLocal(global_pose, translation, rotationAngle, local_pose);       
+            trackLocalTrajectory[i] = (point2d_t(local_pose(0), local_pose(1)));
 
             if(i > 0)
             {
@@ -147,19 +150,19 @@ namespace TiEV {
 
         int confidenceInc = -1;
 
-        if(lastObservation_->second_type == 0) //car
+        if(lastObservation_->Get_type() == OBSTACLE_CAR) //car
         {
             if(disdelta > MinCarDisThres && getVelocity() > MinCarVelThres)
                 confidenceInc = 1;
         }
 
-        if(lastObservation_->second_type == 1) //bicyclist
+        if(lastObservation_->Get_type() == OBSTACLE_BICYCLIST) //bicyclist
         {
             if(disdelta > MinBicDisThres && getVelocity() > MinBicVelThres)
                 confidenceInc = 1;
         }
 
-        if(lastObservation_->second_type == 2) //people
+        if(lastObservation_->Get_type() == OBSTACLE_PEDESTRIAN) //people
         {
             if(disdelta > MinPedDisThres && getVelocity() > MinPedVelThres)
                 confidenceInc = 1;
@@ -178,10 +181,10 @@ namespace TiEV {
             double globalObjYaw;
             if(latestNavInfo.mRTKStatus == 1)
             {
-                // if(lastObservation_->second_type == 0 && 
+                // if(lastObservation_->Get_type() == 0 && 
                 //   ( getVelocity() < MinVelYawThres || disdelta < MinCarDisThres))
                 // {
-                //     trackTheta_ = lastObservation_->pose.yaw;
+                //     pose_.yaw = lastObservation_->pose_.yaw;
                 //         return;
                 // }
 
@@ -190,92 +193,139 @@ namespace TiEV {
                 // else 
                 //     globalObjYaw = atan2(diffRelativeObj(1), diffRelativeObj(0));
                 globalObjYaw = filter->mu_(3);
-                trackTheta_ = globalObjYaw - rotationAngle - M_PI_2;
-                if (filter->mu_(2) < 0) trackTheta_ = trackTheta_ + M_PI ;
+                pose_.yaw = globalObjYaw - rotationAngle - M_PI_2;
+                if (filter->mu_(2) < 0) pose_.yaw = pose_.yaw + M_PI ;
             }
             else 
             {
-                trackTheta_ = lastObservation_->pose.yaw;
+                pose_.yaw = lastObservation_->pose_.yaw;
                 return;
             }
 
-            while(trackTheta_ > M_PI)
+            while(pose_.yaw > M_PI)
             {
-                trackTheta_ -= 2 * M_PI;
+                pose_.yaw -= 2 * M_PI;
             }
-            while(trackTheta_ < -M_PI)
+            while(pose_.yaw < -M_PI)
             {
-                trackTheta_ += 2 * M_PI;
+                pose_.yaw += 2 * M_PI;
             }
         }
         else {
-            trackTheta_ = lastObservation_->pose.yaw;
+            pose_.yaw = lastObservation_->pose_.yaw;
         }
     }
 
 
-    void TrackedObstacle::update(double timestamp)
-    {
-        pose.x = trackGridXY_(0);
-        pose.y = trackGridXY_(1);
-        x_velocity_ = abs(filter->mu_[2]);
-        angular_velocity = filter->mu_[4];
-        y_velocity_ = 0;
-        missed_++;
-    }
+    // void TrackedObstacle::update(double timestamp)
+    // {
+    //     pose_.x = trackGridXY_(0);
+    //     pose_.y = trackGridXY_(1);
+    //     velocity_ = abs(filter->mu_[2]);
+    //     angular_velocity_ = filter->mu_[4];
+    //     missed_++;
+    // }
 
-    void TrackedObstacle::update(std::tr1::shared_ptr<Obstacle> obstacle, double timestamp)
-    {
-        lastObservation_ = obstacle;
-        timestamp_observation_ = obstacle->time_;
-        num_observations_++;
+    // void TrackedObstacle::update(std::tr1::shared_ptr<Obstacle> obstacle, double timestamp)
+    // {
+    //     lastObservation_ = obstacle;
+    //     timestamp_observation_ = obstacle->Get_timestamp();
+    //     num_observations_++;
 
-        pose.x = trackGridXY_(0);
-        pose.y = trackGridXY_(1);
-        x_velocity_ = abs(filter->mu_[2]);
-        angular_velocity = filter->mu_[4];
-        y_velocity_ = 0;
-        missed_ = 0;
-    }
-
-
-    double TrackedObstacle::getXVel() const {
-        return x_velocity_;
-    }
-
-    double TrackedObstacle::getYVel() const {
-        return y_velocity_;
-    }
+    //     pose_.x = trackGridXY_(0);
+    //     pose_.y = trackGridXY_(1);
+    //     velocity_ = abs(filter->mu_[2]);
+    //     angular_velocity_ = filter->mu_[4];
+    //     missed_ = 0;
+    // }
 
     double TrackedObstacle::getVelocity() const {
-        return range(getXVel(), getYVel());
+        return velocity_;
     }
 
     double TrackedObstacle::getAngularVel() const
     {
-      return angular_velocity;
+      return angular_velocity_;
     }
     
-    void TrackedObstacle::markDynamic(dgc_grid_p grid, unsigned short counter) {
-        lastObservation_->pose.x = pose.x;
-        lastObservation_->pose.y = pose.y;
+    void TrackedObstacle::markDynamic() {
 
-        lastObservation_->width = width;
-        lastObservation_->length = length;
-        
-        lastObservation_->pose.yaw = this->trackTheta_;
-        lastObservation_->second_type = this->trackType_;
+        lastObservation_->Set_pose(pose_.x, pose_.y, pose_.z, pose_.yaw, length_, width_);
+        lastObservation_->Set_type(this->Get_type());
+        // transform( length_/2.0,  width_/2.0, pose_.yaw, pose_.x, pose_.y, x1, y1);
+        // transform( length_/2.0, -width_/2.0, pose_.yaw, pose_.x, pose_.y, x2, y2);
+        // transform(-length_/2.0, -width_/2.0, pose_.yaw, pose_.x, pose_.y, x3, y3);
+        // transform(-length_/2.0,  width_/2.0, pose_.yaw, pose_.x, pose_.y, x4, y4);
 
-        lastObservation_->markDynamic(grid, counter, this->getVelocity(), this->trackTheta_, this->angular_velocity, this->isDynamic_);
+        // // lastObservation_->setBoundbox(point2d_t(x1, y1), point2d_t(x2, y2), point2d_t(x3, y3), point2d_t(x4, y4));
+
+        Scalar sca;
+        switch(Get_type())
+        {
+            case OBSTACLE_CAR:
+            {
+                sca = Scalar(0,0,255);
+                break;
+            }
+            case OBSTACLE_BICYCLIST:
+            {
+                sca = Scalar(0,255,0);
+                break;
+            }
+            case OBSTACLE_PEDESTRIAN:
+            {
+                sca = Scalar(0,255,255);
+                break;
+            }
+            default : 
+            {
+                sca = Scalar(0,50,50);
+                break;
+            }
+        }
+                
+        if( isDynamic_ && Get_type() != 127)
+        {
+            myVisual.drawLine(Get_boundbox().p1, Get_boundbox().p2, sca);
+            myVisual.drawLine(Get_boundbox().p2, Get_boundbox().p3, sca);
+            myVisual.drawLine(Get_boundbox().p3, Get_boundbox().p4, sca);
+            myVisual.drawLine(Get_boundbox().p4, Get_boundbox().p1, sca);
+
+            // fill the trajectory
+            trackLocalTrajectory_.push_back(pose_);
+            trackGlobalTrajectory_.push_back(global_pose_);
+
+            double tmp_local_heading = Get_pose().yaw;
+            double tmp_global_heading = Get_global_pose().yaw;
+            for (int i = 1; i < PREDICT_HORIZON; ++i)
+            {
+                double xx, yy;
+
+                // local
+                transform(i * velocity_, 0, tmp_local_heading, Get_pose().x, Get_pose().y, xx, yy);
+                trackLocalTrajectory_.push_back(point2d_t(xx, yy));
+                // draw in local
+                myVisual.drawLine(trackLocalTrajectory_[i - 1], point2d_t(xx, yy), sca);
+                myVisual.drawCircle(point2d_t(xx, yy), sca, 1);
+
+                //global
+                transform(i * velocity_, 0, tmp_global_heading, Get_global_pose().x, Get_global_pose().y, xx, yy);
+                trackGlobalTrajectory_.push_back(point2d_t(xx, yy));
+
+                //
+                tmp_local_heading += getAngularVel();
+                tmp_global_heading += getAngularVel();
+            }
+
+        }
     }
+    // void TrackedObstacle::populatePoints() {
+    //     this->points_ = lastObservation_->getPoints();
+    // }
 
-    void TrackedObstacle::populatePoints() {
-        this->points_ = lastObservation_->getPoints();
-    }
-
-    float TrackedObstacle::maxHeight() {
-        return 0.0; // TODO:??
-    }
+    // float TrackedObstacle::maxHeight() {
+    //     return 0.0; // TODO:??
+    // }
 
 }
 

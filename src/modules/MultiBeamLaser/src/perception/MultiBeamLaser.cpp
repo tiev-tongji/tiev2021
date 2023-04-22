@@ -38,8 +38,8 @@ using namespace rapidjson;
 
 
 dgc_perception_map_cells_p      obstacles_s;
-std::vector<std::tr1::shared_ptr<Obstacle> >        obstacles_second;
-std::vector<std::tr1::shared_ptr<TrackedObstacle> > obstacles_tracked;
+std::vector<std::tr1::shared_ptr<Obstacle> >        detected_obstacles;
+std::vector<std::tr1::shared_ptr<TrackedObstacle> > tracked_obstacles;
 
 double                          velodyne_ts          = 0;
 dgc_velodyne_data_p             velodyne;
@@ -53,7 +53,7 @@ perception_settings_t           settings;
 unsigned short                  counter = 0;
 
 bool            sourcePointcloudEnable = false;
-bool            dynamicObjectsEnable = true;
+bool            is_mot_enable = true;
 structNAVINFO   latestNavInfo;
 Handler         handler;
 mutex           packet_mutex;
@@ -713,7 +713,7 @@ void paramRead(const string fileName)
     doc.Parse(buffer.str().c_str());
 
     sourcePointcloudEnable = doc["sourcePointcloudEnable"].GetBool();
-    dynamicObjectsEnable = doc["dynamicObjectsEnable"].GetBool();
+    is_mot_enable = doc["is_mot_enable"].GetBool();
 
     settings.overpass_height = doc["overpass_height"].GetDouble();
     settings.z_resolution = doc["z_resolution"].GetDouble();

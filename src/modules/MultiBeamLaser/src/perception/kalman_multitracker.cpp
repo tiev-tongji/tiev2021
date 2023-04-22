@@ -101,7 +101,7 @@ void KalmanMultiTracker::prune(double timestamp_current)
         }
 
         //when the tracked obj is far from our car left and right( > 10m) or back( > 20m) or forward( > 70m), delete it
-        if(fabs((*it)->pose.x) > 20 || (*it)->pose.y < -20 || (*it)->pose.y > 70 || (*it)->missed_ > 20) {
+        if(fabs((*it)->Get_pose().x) > 20 || (*it)->Get_pose().y < -20 || (*it)->Get_pose().y > 70 || (*it)->missed_ > 20) {
             it = tracks_.erase(it);
             it--;
             continue;
@@ -128,21 +128,18 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
     std::unordered_map<int, int> direct_assignment;
     std::unordered_map<int, int> reverse_assignment;
 
-    bool isNoMeas = false, isNotracks = false;
-    if(measurements.empty())
-        isNoMeas = true;
-    if(tracks_.empty())
-        isNotracks = true;
+    bool is_no_measure = measurements.empty();
+    bool is_no_tracks = tracks_.empty();
 
-    if(isNoMeas && isNotracks)
+    if(is_no_measure && is_no_tracks)
         return;
 
     //TODO Verify this assertion, because detector should have record the timestamp of the input PC and the timestamp is the timestamp of the PC
-    LOG(WARNING)<<"measurements[0]->time_ == timestamp:"<<measurements[0]->time_ == timestamp;
+    LOG(WARNING)<<"measurements[0]->Get_timestamp() == timestamp:"<<measurements[0]->Get_timestamp() == timestamp;
 
     //Association
     //compute score matrix by global nearest neighboor
-    if(!isNoMeas && !isNotracks) 
+    if(!is_no_measure && !is_no_tracks) 
     {
         MatrixXd scores((int)tracks_.size(), (int)measurements.size());
         list<std::tr1::shared_ptr<TrackedObstacle> >::iterator it = tracks_.begin();
@@ -155,14 +152,12 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
                 const std::tr1::shared_ptr<Obstacle>& measurement = measurements[j];
 
                 // TODO Verify this assertion, because all the timestamps are the timestamp of the first packet 
-                LOG(WARNING)<<"measurements[0]->time_ == measurement->time_:"<<(measurements[0]->time_ == measurement->time_);
+                LOG(WARNING)<<"measurements[0]->Get_timestamp() == measurement->Get_timestamp():"<<(measurements[0]->Get_timestamp() == measurement->Get_timestamp());
 
                 // TODO Verify filter's timestamp_ is updated by the measurment time
-                double delta_t = measurement->time_ - track->filter->timestamp_;
+                double delta_t = measurement->Get_timestamp() - track->filter->timestamp_;
 
                 // Compute the prediction for the timestamp of this measurement.
-                // transition_matrix_(0, 2) = delta_t;
-                // transition_matrix_(1, 3) = delta_t;
                 transition_matrix_sigma_(0, 2) = delta_t * cos(track->filter->mu_(3));
                 transition_matrix_sigma_(1, 2) = delta_t * sin(track->filter->mu_(3));
                 transition_matrix_sigma_(0, 3) = delta_t * track->filter->mu_(2) * sin(track->filter->mu_(3)) * -1;
@@ -171,27 +166,18 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
 
                 VectorXd mu_bar(2);
 
-                // double vel = track->getVelocity();
+                //TODO What is this?
                 int augment = 1;
                 mu_bar(0) = augment * delta_t * track->filter->mu_(2) * cos(track->filter->mu_(3)) + track->filter->mu_(0);
                 mu_bar(1) = augment * delta_t * track->filter->mu_(2) * sin(track->filter->mu_(3)) + track->filter->mu_(1);
 
-                // mu_bar(0) = augment * delta_t * track->filter->mu_(2) + track->filter->mu_(0);
-                // mu_bar(1) = augment * delta_t * track->filter->mu_(3) + track->filter->mu_(1); 
-
-                double x, y;
-                measurement->getCenterOfPoints(&x, &y); 
-                Eigen::Vector3f srcLocal(x, y, 0), targetGlobal;
-                measurement->positionLocalToGlobal(srcLocal, carUtmTrans, carYaw - M_PI_2, targetGlobal);
-
-                measurement->objWorldPose << targetGlobal(0), targetGlobal(1); //measurement world pose
-
-                VectorXd innovation = mu_bar - measurement->objWorldPose;
+                //obstacle pose in global frame
+                VectorXd innovation = mu_bar - measurement->Get_global_pose();
 
                 MatrixXd sigma_bar = transition_matrix_sigma_ * track->filter->sigma_ * transition_matrix_sigma_.transpose() + track->filter->transition_covariance_;
                 MatrixXd sigma_bar_inv_pos = sigma_bar.block(0, 0, 2, 2).inverse(); // The covariance matrix for the marginal of a Gaussian is just that block of the full covariance matrix.
                 double tempscore = exp(-0.5 * (innovation.transpose() * sigma_bar_inv_pos * innovation)[0]) / sqrt(( 2 * M_PI * sigma_bar.block(0, 0, 2, 2)).determinant());
-                if(track->trackType_ == measurement->second_type)
+                if(track->Get_type() == measurement->Get_type())
                     scores(i, j) = tempscore;
                 else
                     scores(i, j) = 0.0;
@@ -205,11 +191,11 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
     for (auto it = tracks_.begin(); it != tracks_.end(); ++it, ++tracker_idx)
     {
         //no measurement or not found
-        if (isNoMeas || direct_assignment.find(tracker_idx) == direct_assignment.end()) 
+        if (is_no_measure || direct_assignment.find(tracker_idx) == direct_assignment.end()) 
         {
             (*it)->missed_++;
 
-            if((*it)->missed_ >= 10)
+            if((*it)->missed_ >= MISSED_TOL)
                 (*it)->isDynamic_ = false;
 
             //TODO Verify prev_timestamp_ should be the same of (*it)->filter->timestamp_
@@ -231,28 +217,28 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
             (*it)->filter->predict_ekf(transition_matrix_mu_,transition_matrix_sigma_, (*it)->filter->timestamp_ + current_timestamp_ - prev_timestamp_);
 
             Eigen::Vector2d kalmanFliterPose((*it)->filter->mu_(0), (*it)->filter->mu_(1)); //new world pose prediction by kalman
-            Eigen::Vector3f srcGlobal(kalmanFliterPose(0), kalmanFliterPose(1), 0), targetLocal;     
-            (*it)->positionGlobalToLocal(srcGlobal, carUtmTrans, carYaw - M_PI_2, targetLocal);  
+            Eigen::Vector3d global_pose(kalmanFliterPose(0), kalmanFliterPose(1), 0); 
+            Eigen::Vector3d local_pose =  (*it)->positionGlobalToLocal(global_pose, carUtmTrans, carYaw - M_PI_2);  
+            
+            (*it)->Get_global_pose() = kalmanFliterPose;
+            (*it)->Get_type() = (*it)->getTypeConfidence();
 
-            (*it)->trackGridXY_ << targetLocal(0), targetLocal(1);
-            (*it)->trackUtmXY_ = kalmanFliterPose;
-            (*it)->trackType_ = (*it)->getTypeConfidence();
-
-            (*it)->update(current_timestamp_);
+            (*it)->Get_pose().x = local_pose.x;
+            (*it)->Get_pose().y = local_pose.y;
+            (*it)->velocity_ = abs(filter->mu_[2]);
+            (*it)->angular_velocity_ = filter->mu_[4];
+            (*it)->missed_++;
 
             (*it)->dynamicClassify(carUtmTrans, carYaw - M_PI_2);
-
         }
         else // found matched measurement
         {
             int m = direct_assignment.find(tracker_idx)->second;
 
-            double delta_t = measurements[m]->time_ - (*it)->filter->timestamp_;
+            double delta_t = measurements[m]->Get_timestamp() - (*it)->filter->timestamp_;
 
             (*it)->missed_ = 0;  
 
-            // transition_matrix_(0, 2) = delta_time;
-            // transition_matrix_(1, 3) = delta_time;
             transition_matrix_mu_(0, 2) = delta_t * cos((*it)->filter->mu_(3));
             transition_matrix_mu_(1, 2) = delta_t * sin((*it)->filter->mu_(3));
             transition_matrix_mu_(3, 4) = delta_t;
@@ -262,74 +248,76 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
             transition_matrix_sigma_(1, 3) = delta_t * (*it)->filter->mu_(2) * cos((*it)->filter->mu_(3));
             transition_matrix_sigma_(3, 4) = delta_t;
 
-            (*it)->filter->predict_ekf(transition_matrix_mu_,transition_matrix_sigma_, measurements[m]->time_);//call linear kalman to update the mu_ and sigma_
-            (*it)->filter->update(measurements[m]->objWorldPose, measurements[m]->time_);
+            (*it)->filter->predict_ekf(transition_matrix_mu_,transition_matrix_sigma_, measurements[m]->Get_timestamp());//call linear kalman to update the mu_ and sigma_
+            (*it)->filter->update(measurements[m]->Get_global_pose(), measurements[m]->Get_timestamp());
 
             Eigen::Vector2d kalmanFliterPose((*it)->filter->mu_(0), (*it)->filter->mu_(1)); //new world position update by kalman
-            Eigen::Vector3f srcGlobal(kalmanFliterPose(0), kalmanFliterPose(1), 0), targetLocal; 
+            Eigen::Vector3d global_pose(kalmanFliterPose(0), kalmanFliterPose(1), 0);
+            Eigen::Vector3d local_pose = (*it)->positionGlobalToLocal(global_pose, carUtmTrans, carYaw - M_PI_2);  
 
-            //Local frame    
-            (*it)->positionGlobalToLocal(srcGlobal, carUtmTrans, carYaw - M_PI_2, targetLocal);  
+            (*it)->Get_global_pose() = kalmanFliterPose;
+            (*it)->setTypeNum(measurements[m]->Get_type());
+            (*it)->Get_type() = (*it)->getTypeConfidence();
 
-            (*it)->trackGridXY_ << targetLocal(0), targetLocal(1);
-            (*it)->trackUtmXY_ = kalmanFliterPose;
-            (*it)->setTypeNum(measurements[m]->second_type);
-            (*it)->trackType_ = (*it)->getTypeConfidence();
+            (*it)->lastObservation_ = measurements[m];
+            (*it)->num_observations_++;
 
-            (*it)->update(measurements[m], measurements[m]->time_);//update the obj 
+            (*it)->Get_pose().x = local_pose.x;
+            (*it)->Get_pose().y = local_pose.y;
+            (*it)->velocity_ = abs(filter->mu_[2]);
+            (*it)->angular_velocity_ = filter->mu_[4];
+            (*it)->missed_ = 0;
 
             (*it)->dynamicClassify(carUtmTrans, carYaw - M_PI_2);
 
+            //LOG
             if((*it)->getVelocity() > 30000) {
                 printf("---------------------------------------------\n");
                 printf("Position uncertainty: %f\n", (*it)->filter->getPositionUncertainty());
                 cout << "-------\n" << (*it)->filter->sigma_ << endl << "--------\n";
                 cout << "-------\n" << (*it)->filter->mu_ << endl << "--------\n";
                 printf("num_obs: %d\n", (*it)->getNumObservations());
-                printf("pos: %f %f\n", (*it)->pose.x, (*it)->pose.y);
+                printf("pos: %f %f\n", (*it)->Get_pose().x, (*it)->Get_pose().y);
             }
         }
     }
 
-    // 
+    // new track
     for (size_t i = 0; i < measurements.size(); ++i)
     {
         // no tracks or found
-        if (!isNotracks && reverse_assignment.find(i) != reverse_assignment.end()) 
+        if (!is_no_tracks && reverse_assignment.find(i) != reverse_assignment.end()) 
             continue;
         
         VectorXd initial_state = VectorXd::Zero(5);
 
-        // tracking in the world frame UTM ENU
-        double x,y;
-        measurements[i]->getCenterOfPoints(&x, &y);
-        Eigen::Vector3f srcLocal(x, y, 0), targetGlobal;
-
-        //TODO Verify why carYaw - pi/2?
-        measurements[i]->positionLocalToGlobal(srcLocal, carUtmTrans, carYaw - M_PI_2, targetGlobal);
-        measurements[i]->objWorldPose << targetGlobal(0), targetGlobal(1);
-
-        initial_state.segment(0, 2) = measurements[i]->objWorldPose; //initial measurement world pose
-
-        //TODO Verify why carYaw - pi/2?
-        initial_state(3) = measurements[i]->pose.yaw + carYaw - M_PI_2;
-
+        //world position
+        initial_state.segment(0, 2) = measurments[i]->Get_global_pose(); 
+        //world yaw
+        initial_state(3) = measurements[i]->Get_global_pose()[2];
 
         //Kalman EKF
         std::tr1::shared_ptr<LinearKalmanFilter> new_kf(new LinearKalmanFilter(next_id_,
-            measurements[i]->time_, initial_state, initial_sigma_,
+            measurements[i]->Get_timestamp(), initial_state, initial_sigma_,
             measurement_matrix_, transition_covariance_,
             measurement_covariance_));
 
         std::tr1::shared_ptr<TrackedObstacle> new_obs(new TrackedObstacle(next_id_, measurements[i], current_timestamp_));
         new_obs->filter = new_kf;
-        new_obs->trackUtmXY_ = measurements[i]->objWorldPose;
+        new_obs->Get_global_pose() = measurements[i]->Get_global_pose();
         new_obs->isDynamic_ = false;
-        new_obs->trackGridXY_ << x , y; //initial track local grid pose
 
-        new_obs->update(measurements[i], measurements[i]->time_);
-        new_obs->setTypeNum(measurements[i]->second_type);
-        new_obs->trackType_ = measurements[i]->second_type;
+        new_obs->lastObservation_ = measurements[i];
+        new_obs->num_observations_++;
+
+        new_obs->Get_pose() = measurements[i]->Get_pose();
+        new_obs->velocity_ = abs(filter->mu_[2]);
+        new_obs->angular_velocity_ = filter->mu_[4];
+        new_obs->missed_ = 0;
+
+
+        new_obs->setTypeNum(measurements[i]->Get_type());
+        new_obs->Get_type() = measurements[i]->Get_type();
 
         tracks_.push_front(new_obs);
         ++next_id_;

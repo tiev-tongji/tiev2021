@@ -573,7 +573,7 @@ void set_object1(dgc_grid_p grid)
         }
     }
 
-    if (!dynamicObjectsEnable)
+    if (!is_mot_enable)
     {
         myVisual.show_image1();
         myzcm.pub_lasermap();

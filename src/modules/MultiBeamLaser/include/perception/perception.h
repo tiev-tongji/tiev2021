@@ -184,7 +184,7 @@ namespace TiEV
 extern MyVisualization myVisual;
 extern MyZcm myzcm;
 extern bool sourcePointcloudEnable;
-extern bool dynamicObjectsEnable;
+extern bool is_mot_enable;
 extern structNAVINFO latestNavInfo;
 extern Handler handler;
 extern vector<point3d> sourceGridCloud;
@@ -208,8 +208,8 @@ extern laser_scan_p nscan;
 
 extern dgc_perception_map_cells_p obstacles_s;
 
-extern std::vector<std::tr1::shared_ptr<TiEV::TrackedObstacle>> obstacles_tracked;
-extern std::vector<std::tr1::shared_ptr<TiEV::Obstacle>> obstacles_second;
+extern std::vector<std::tr1::shared_ptr<TiEV::TrackedObstacle>> tracked_obstacles;
+extern std::vector<std::tr1::shared_ptr<TiEV::Obstacle>> detected_obstacles;
 
 extern std::vector<dgc_perception_map_region_p> regions;
 

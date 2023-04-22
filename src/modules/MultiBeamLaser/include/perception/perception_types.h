@@ -30,6 +30,13 @@ struct point2d_t{
   }
 };// point2d_t;
 
+typedef struct{
+  point2d_t p1;
+  point2d_t p2;
+  point2d_t p3;
+  point2d_t p4;
+} bbox2d_t
+
 typedef struct {
   double                                x;
   double                                y;
