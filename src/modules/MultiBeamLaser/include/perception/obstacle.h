@@ -62,6 +62,8 @@ namespace TiEV
     Eigen::Vector3d Get_global_pose();
     dgc_obstacle_type Get_type();
     double Get_timestamp();
+    double Get_width();
+    double Get_length();
   };
 
   // class GridObstacle : public Obstacle {

@@ -161,6 +161,14 @@ namespace TiEV {
     {
         return time_;
     }
+    double Obstacle::Get_width()
+    {
+        return width_;
+    }
+    double Obstacle::Get_length()
+    {
+        return length_;
+    }
     // bool Obstacle::getCenterOfPoints(double *x, double *y)
     // {
     //     // if (points_.size() == 0) {

@@ -37,11 +37,13 @@ bool IsPointInRect(const point2d_t& p1, const point2d_t& p2, const point2d_t &p3
     return GetCross(p1,p2,p) * GetCross(p3,p4,p) >= 0 && GetCross(p2,p3,p) * GetCross(p4,p1,p) >= 0;  
 }  
 
-void perception_prep_obstacles( dgc_grid_p grid, vector<std::tr1::shared_ptr<TiEV::TrackedObstacle> > trackobstacles)
+
+// TODO change to world frame
+void perception_prep_obstacles( dgc_grid_p grid, vector<std::tr1::shared_ptr<TiEV::TrackedObstacle> > vec_tracked_obstacles)
 {
     myzcm.myObjectList.timestamp = TiEV::getTimeStamp();
     myzcm.myObjectList.data_source = 1;//this result come from mutibeamlazer 2 from vision
-    int num_obstacles = trackobstacles.size();
+    int num_obstacles = vec_tracked_obstacles.size();
 
     int count = 0;
     int r1, c1, r2, c2, r3, c3, r4, c4;
@@ -49,15 +51,15 @@ void perception_prep_obstacles( dgc_grid_p grid, vector<std::tr1::shared_ptr<TiE
     
     for (int i = 0; i < num_obstacles; i++) 
     {
-        if (trackobstacles[i]->isDynamic_) 
+        if (vec_tracked_obstacles[i]->isDynamic_) 
         {
-            if(trackobstacles[i]->Get_type() == OBSTACLE_UNKNOWN)
+            if(vec_tracked_obstacles[i]->Get_type() == OBSTACLE_UNKNOWN)
                 continue;
 
-            myVisual.getRowCol(trackobstacles[i]->lastObservation_->p1, r1, c1);
-            myVisual.getRowCol(trackobstacles[i]->lastObservation_->p2, r2, c2);
-            myVisual.getRowCol(trackobstacles[i]->lastObservation_->p3, r3, c3);
-            myVisual.getRowCol(trackobstacles[i]->lastObservation_->p4, r4, c4);
+            myVisual.getRowCol(vec_tracked_obstacles[i]->lastObservation_->Get_boundbox().p1, r1, c1);
+            myVisual.getRowCol(vec_tracked_obstacles[i]->lastObservation_->Get_boundbox().p2, r2, c2);
+            myVisual.getRowCol(vec_tracked_obstacles[i]->lastObservation_->Get_boundbox().p3, r3, c3);
+            myVisual.getRowCol(vec_tracked_obstacles[i]->lastObservation_->Get_boundbox().p4, r4, c4);
             rmin = std::min(std::min(std::min(r1, r2), r3), r4); 
             rmax = std::max(std::max(std::max(r1, r2), r3), r4); 
             cmin = std::min(std::min(std::min(c1, c2), c3), c4); 
@@ -87,34 +89,44 @@ void perception_prep_obstacles( dgc_grid_p grid, vector<std::tr1::shared_ptr<TiE
                 }
             }
 
-            //define dynamic obect
+            //define dynamic obect in global frame
             OBJECT dynamicObj;
 
             dynamicObj.id = count;
-            dynamicObj.obj_type = trackobstacles[i]->Get_type();
-            dynamicObj.width = trackobstacles[i]->lastObservation_->width; //y direction 
-            dynamicObj.length = trackobstacles[i]->lastObservation_->length; // x direction
-            dynamicObj.theta = trackobstacles[i]->lastObservation_->Get_pose().yaw;
+            dynamicObj.obj_type = vec_tracked_obstacles[i]->Get_type();
+            dynamicObj.width = vec_tracked_obstacles[i]->lastObservation_->Get_width();  
+            dynamicObj.length = vec_tracked_obstacles[i]->lastObservation_->Get_length();
+            dynamicObj.theta = vec_tracked_obstacles[i]->lastObservation_->Get_global_pose().yaw;
 
             if(latestNavInfo.mRTKStatus == 1)
-                dynamicObj.v = trackobstacles[i]->getVelocity();
+                dynamicObj.v = vec_tracked_obstacles[i]->getVelocity();
             else 
                 dynamicObj.v = 0;
 
-            dynamicObj.corners.p1_.x = trackobstacles[i]->lastObservation_->p1_.x;
-            dynamicObj.corners.p1_.y = trackobstacles[i]->lastObservation_->p1_.y;
-            dynamicObj.corners.p2_.x = trackobstacles[i]->lastObservation_->p2_.x;
-            dynamicObj.corners.p2_.y = trackobstacles[i]->lastObservation_->p2_.y;
-            dynamicObj.corners.p3_.x = trackobstacles[i]->lastObservation_->p3_.x;
-            dynamicObj.corners.p3_.y = trackobstacles[i]->lastObservation_->p3_.y;
-            dynamicObj.corners.p4_.x = trackobstacles[i]->lastObservation_->p4_.x;
-            dynamicObj.corners.p4_.y = trackobstacles[i]->lastObservation_->p4_.y;
+            dynamicObj.corners.p1_.x = vec_tracked_obstacles[i]->lastObservation_->Get_global_boundbox().p1.x;
+            dynamicObj.corners.p1_.y = vec_tracked_obstacles[i]->lastObservation_->Get_global_boundbox().p1.y;
+            dynamicObj.corners.p2_.x = vec_tracked_obstacles[i]->lastObservation_->Get_global_boundbox().p2.x;
+            dynamicObj.corners.p2_.y = vec_tracked_obstacles[i]->lastObservation_->Get_global_boundbox().p2.y;
+            dynamicObj.corners.p3_.x = vec_tracked_obstacles[i]->lastObservation_->Get_global_boundbox().p3.x;
+            dynamicObj.corners.p3_.y = vec_tracked_obstacles[i]->lastObservation_->Get_global_boundbox().p3.y;
+            dynamicObj.corners.p4_.x = vec_tracked_obstacles[i]->lastObservation_->Get_global_boundbox().p4.x;
+            dynamicObj.corners.p4_.y = vec_tracked_obstacles[i]->lastObservation_->Get_global_boundbox().p4.y;
 
-            for(int j = 0; j < 6; ++j)
+            for(int j = 0; j < PREDICT_HORIZON; ++j)
             {
                 POSITION predictTraj;
-                predictTraj.x = trackobstacles[i]->lastObservation_->predictPose[j].x;
-                predictTraj.y = trackobstacles[i]->lastObservation_->predictPose[j].y;
+                //LOG
+                LOG<<"lastObservation_ == tracted objects: " << vec_tracked_obstacles[i]->lastObservation_->Get_pose() == vec_tracked_obstacles[i] ->Get_pose();
+
+                LOG<<"lastObservation_ == tracted objects: " << vec_tracked_obstacles[i]->lastObservation_->Get_global_pose() == vec_tracked_obstacles[i] ->Get_global_pose();
+                
+                LOG<<"lastObservation_ == tracted objects: " << vec_tracked_obstacles[i]->lastObservation_->Get_global_boundbox() == vec_tracked_obstacles[i] ->Get_global_boundbox();
+
+                //TODO verifiy UTM
+                // predictTraj.x = vec_tracked_obstacles[i]->lastObservation_->predictPose[j].x;
+                // predictTraj.y = vec_tracked_obstacles[i]->lastObservation_->predictPose[j].y;
+                predictTraj.x = vec_tracked_obstacles[i]->trackUtmTrajectory_[j].x;
+                predictTraj.y = vec_tracked_obstacles[i]->trackUtmTrajectory_[j].y;
                 dynamicObj.path.emplace_back(predictTraj);
             }
 		    dynamicObj.pathNum = dynamicObj.path.size();

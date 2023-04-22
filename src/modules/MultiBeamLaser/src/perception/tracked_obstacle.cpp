@@ -184,7 +184,7 @@ namespace TiEV {
                 // if(lastObservation_->Get_type() == 0 && 
                 //   ( getVelocity() < MinVelYawThres || disdelta < MinCarDisThres))
                 // {
-                //     pose_.yaw = lastObservation_->pose_.yaw;
+                //     pose_.yaw = lastObservation_->Get_pose().yaw;
                 //         return;
                 // }
 
@@ -198,7 +198,7 @@ namespace TiEV {
             }
             else 
             {
-                pose_.yaw = lastObservation_->pose_.yaw;
+                pose_.yaw = lastObservation_->Get_pose().yaw;
                 return;
             }
 
@@ -212,7 +212,7 @@ namespace TiEV {
             }
         }
         else {
-            pose_.yaw = lastObservation_->pose_.yaw;
+            pose_.yaw = lastObservation_->Get_pose().yaw;
         }
     }
 
