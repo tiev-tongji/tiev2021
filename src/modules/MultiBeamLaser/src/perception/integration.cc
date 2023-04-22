@@ -49,7 +49,7 @@ void perception_prep_obstacles( dgc_grid_p grid, vector<std::tr1::shared_ptr<TiE
     
     for (int i = 0; i < num_obstacles; i++) 
     {
-        if (trackobstacles[i]->isDynamic_)//only send Dynamic to planner
+        if (trackobstacles[i]->isDynamic_) 
         {
             if(trackobstacles[i]->trackType_ == OBSTACLE_UNKNOWN)
                 continue;
@@ -94,25 +94,12 @@ void perception_prep_obstacles( dgc_grid_p grid, vector<std::tr1::shared_ptr<TiE
             dynamicObj.obj_type = trackobstacles[i]->trackType_;
             dynamicObj.width = trackobstacles[i]->lastObservation_->width; //y direction 
             dynamicObj.length = trackobstacles[i]->lastObservation_->length; // x direction
-            
-            
-
-
+            dynamicObj.theta = trackobstacles[i]->lastObservation_->pose.yaw;
             if(latestNavInfo.mRTKStatus == 1)
                 dynamicObj.v = trackobstacles[i]->getVelocity();
             else 
                 dynamicObj.v = 0;
-            // dynamicObj.theta = trackobstacles[i]->lastObservation_->pose.yaw;
-            // dynamicObj.corners.p1.x = trackobstacles[i]->lastObservation_->p1.x;
-            // dynamicObj.corners.p1.y = trackobstacles[i]->lastObservation_->p1.y;
-            // dynamicObj.corners.p2.x = trackobstacles[i]->lastObservation_->p2.x;
-            // dynamicObj.corners.p2.y = trackobstacles[i]->lastObservation_->p2.y;
-            // dynamicObj.corners.p3.x = trackobstacles[i]->lastObservation_->p3.x;
-            // dynamicObj.corners.p3.y = trackobstacles[i]->lastObservation_->p3.y;
-            // dynamicObj.corners.p4.x = trackobstacles[i]->lastObservation_->p4.x;
-            // dynamicObj.corners.p4.y = trackobstacles[i]->lastObservation_->p4.y;
 
-            //LiDAR frame(front y , right x) -> planner frame: front x , left y.
             dynamicObj.theta = trackobstacles[i]->lastObservation_->pose.yaw - M_PI_2;
             dynamicObj.corners.p1.x = trackobstacles[i]->lastObservation_->p1.y;
             dynamicObj.corners.p1.y = - trackobstacles[i]->lastObservation_->p1.x;
@@ -123,16 +110,15 @@ void perception_prep_obstacles( dgc_grid_p grid, vector<std::tr1::shared_ptr<TiE
             dynamicObj.corners.p4.x = trackobstacles[i]->lastObservation_->p4.y;
             dynamicObj.corners.p4.y = - trackobstacles[i]->lastObservation_->p4.x;
 
-            //tracked_obstacle[i]->lastObservation_->p1.x     
-            // std::cout <<" cur heading is " << dynamicObj.theta << std::endl;
-            // std::cout <<" for msg x p1-p4 is " << trackobstacles[i]->lastObservation_->p1.x<<"| " << trackobstacles[i]->lastObservation_->p2.x <<"| " << trackobstacles[i]->lastObservation_->p3.x <<"| "<< trackobstacles[i]->lastObservation_->p4.x <<"| " << std::endl ;
-            // // std::cout <<" for msg y p1-p4 is " << trackobstacles[i]->lastObservation_->p1.y<<"| "trackobstacles[i]->lastObservation_->p1.x;;y <<"| " << dynamicObj.corners.p2.y <<"| " << dynamicObj.corners.p3.y <<"| "<< dynamicObj.corners.p4.y <<" " << std::endl ;
+            // dynamicObj.corners.p1.x = trackobstacles[i]->lastObservation_->p1.x;
 
-
-            // std::cout <<" cur heading is " << dynamicObj.theta << std::endl;
-            // std::cout <<" for msg x p1-p4 is " << dynamicObj.corners.p1.x <<"| " << dynamicObj.corners.p2.x <<"| " << dynamicObj.corners.p3.x <<"| "<< dynamicObj.corners.p4.x <<"| " << std::endl ;
-            // std::cout <<" for msg y p1-p4 is " << dynamicObj.corners.p1.y <<"| " << dynamicObj.corners.p2.y <<"| " << dynamicObj.corners.p3.y <<"| "<< dynamicObj.corners.p4.y <<" " << std::endl ;
-
+            // dynamicObj.corners.p1.y = trackobstacles[i]->lastObservation_->p1.y;
+            // dynamicObj.corners.p2.x = trackobstacles[i]->lastObservation_->p2.x;
+            // dynamicObj.corners.p2.y = trackobstacles[i]->lastObservation_->p2.y;
+            // dynamicObj.corners.p3.x = trackobstacles[i]->lastObservation_->p3.x;
+            // dynamicObj.corners.p3.y = trackobstacles[i]->lastObservation_->p3.y;
+            // dynamicObj.corners.p4.x = trackobstacles[i]->lastObservation_->p4.x;
+            // dynamicObj.corners.p4.y = trackobstacles[i]->lastObservation_->p4.y;
 
             for(int j = 0; j < 6; ++j)
             {
@@ -225,6 +211,7 @@ void integrate_sensors( dgc_velodyne_data_p velo)
         }
     }
 
+    //TOOD useless code
     time0 = TiEV::getTimeStamp();
     delta_s = time0 - last_time;
 
@@ -256,7 +243,7 @@ void integrate_sensors( dgc_velodyne_data_p velo)
         }
         else
         {
-            //start track
+            //start tracking
             perception_track_obstacles(obstacles_second, obstacles_tracked, velo->scans->timestamp);
             std::cout << "kalman tracks = " << obstacles_tracked.size() << std::endl;
 

@@ -114,6 +114,8 @@ namespace TiEV {
 
     }
 
+    //translation is the UTM coord of ego car
+    //roationAngle is the yaw of ego car in ENU
     void TrackedObstacle::dynamicClassify(const point2d_t &translation, double rotationAngle)
     {
         if(trackUtmTrajectory_.size() > 8)
@@ -190,8 +192,10 @@ namespace TiEV {
                 // else 
                 //     globalObjYaw = atan2(diffRelativeObj(1), diffRelativeObj(0));
                 globalObjYaw = filter->mu_(3);
-                trackTheta_ = globalObjYaw - rotationAngle - M_PI_2; // fixed by xuebo , right
-                // trackTheta_ = globalObjYaw - rotationAngle; // Fixed Zhongyang , wrong
+
+                //chage to lidar frame
+                trackTheta_ = globalObjYaw - rotationAngle;
+                // If velocity < 0 by mistake due to detection heading wrong, can still have right predicted trajectory direction for visualization. 
                 if (filter->mu_(2) < 0) trackTheta_ = trackTheta_ + M_PI ;
             }
             else 

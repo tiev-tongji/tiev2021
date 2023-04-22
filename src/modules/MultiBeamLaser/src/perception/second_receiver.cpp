@@ -6,6 +6,7 @@
 
 SecondPython::SecondPython()
 {
+	
 	Py_Initialize();
 	PyRun_SimpleString("import sys");
 	// PyRun_SimpleString("sys.path.append(\'/home/autolab/tiev/src/modules/second.pytorch/second/pytorch\')");
@@ -13,6 +14,7 @@ SecondPython::SecondPython()
 	//PyRun_SimpleString("sys.path.append(\'/home/autolab/txb/second.pytorch/second/pytorch\')");
 	
 	// pymodule = PyImport_ImportModule("SECOND");
+	cout << "check 1" << endl;
 
 	pymodule = PyImport_ImportModule("detect");
 	PyRun_SimpleString("print(\"hhhhhhhh\")");
@@ -55,12 +57,13 @@ void SecondPython::startReceiver(vector<float> &myBuffer, double timestamp)
 	int objNum = PyArray_DIM(returnArray, 0);
 
     obstacles_second.clear();
+
+    //Lidar coodinate system (r-f-u -> x-y-z)
 	for(int i = 0; i < objNum; i ++)
 	{
 		int type = *(double *)PyArray_GETPTR2(returnArray, i, 0);
-		//for detection frame -> LiDAR frame 
-		double y = *(double *)PyArray_GETPTR2(returnArray, i, 1);
-		double x = 0.0 - *(double *)PyArray_GETPTR2(returnArray, i, 2);	
+		double x = *(double *)PyArray_GETPTR2(returnArray, i, 1);
+		double y = *(double *)PyArray_GETPTR2(returnArray, i, 2);
 		double z = *(double *)PyArray_GETPTR2(returnArray, i, 3);
 		double length = *(double *)PyArray_GETPTR2(returnArray, i, 4);
 		double width = *(double *)PyArray_GETPTR2(returnArray, i, 5);
@@ -79,34 +82,40 @@ void SecondPython::startReceiver(vector<float> &myBuffer, double timestamp)
 		//model_dir_apo_all
 		/*
 		 *   direction = 0 when x car back, and clockwise
-		 *	double objyaw = 0 - direction - M_PI_2;
 		 */
+		
 
-		double velx = 0, vely = 3;
+		//enforce the dector to output correct dimension
+		// if(length < width)
+			// swap(length, width); //max is y, min is the x
+
+		//keep the direction from detector
+		double objyaw = direction;
 		if(length < width)
 			swap(length, width); //which max is y, min is the x
+									
+		
+		// while(objyaw < - M_PI)
+		// {
+		// 	objyaw += M_PI * 2;
+		// }
+		// while(objyaw > M_PI)
+		// {
+		// 	objyaw -= M_PI * 2;
+		// }
 
-		double objyaw = - direction;// - M_PI_2;
-
-		while(objyaw < - M_PI)
-		{
-			objyaw += M_PI * 2;
-		}
-		while(objyaw > M_PI)
-		{
-			objyaw -= M_PI * 2;
-		}
-
+		// generate box in Lidar frame
 		double x1,y1,x2,y2,x3,y3,x4,y4,x_end,y_end;
-		double rotationTheta = objyaw - M_PI_2;//-direction; //objyaw - M_PI_2;
-		transform( width/2.0,  length/2.0, rotationTheta, x, y, x1, y1);
-		transform( width/2.0, -length/2.0, rotationTheta, x, y, x2, y2);
-		transform(-width/2.0, -length/2.0, rotationTheta, x, y, x3, y3);
-		transform(-width/2.0,  length/2.0, rotationTheta, x, y, x4, y4);
+		double rotationTheta = objyaw;
+		transform( length/2.0,  width/2.0, rotationTheta, x, y, x1, y1);
+		transform( length/2.0, -width/2.0, rotationTheta, x, y, x2, y2);
+		transform(-length/2.0, -width/2.0, rotationTheta, x, y, x3, y3);
+		transform(-length/2.0,  width/2.0, rotationTheta, x, y, x4, y4);
+
+		//draw the arrow
+		double velx = 3, vely = 0;
 		transform(velx, vely, rotationTheta, x, y, x_end, y_end);
-		// cout << "--------second receiver--------------\n";
-        // cout<<"x1: "<<x1<<" , x2: "<<x2<<" ,x3: "<<x3<<" x4: "<<x4<<endl;
-        // cout<<"y1: "<<y1<<" , y2: "<<y2<<" ,y3: "<<y3<<" y4: "<<y4<<endl;
+        
 		std::tr1::shared_ptr<GridObstacle>* second_obstacle = new std::tr1::shared_ptr<GridObstacle>(new GridObstacle(i, grid));
 
 		(*second_obstacle)->time_ = timestamp;

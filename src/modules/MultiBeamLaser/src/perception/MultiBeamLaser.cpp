@@ -26,8 +26,8 @@ using namespace rapidjson;
 #define ONEDEGREE_2_RAD 0.0174533
 #define ENET_H_LEN 0
 
-#define Deg2Rad 0.01745329251994329576923690768     // (PI / 180.0)
-#define Rad2Deg 57.2957795130823208767981548141     // (180.0 / PI)
+// #define Deg2Rad 0.01745329251994329576923690768     // (PI / 180.0)
+// #define Rad2Deg 57.2957795130823208767981548141     // (180.0 / PI)
 
 #define PERCEPTION_MAP_OBSTACLE_FREE         0
 #define PERCEPTION_MAP_OBSTACLE_LOW          1
@@ -296,7 +296,7 @@ void calibrationHDL64()
                         (unsigned char) thisPacket[ENET_H_LEN + 1202] * pow(2, 16) +
                         (unsigned char) thisPacket[ENET_H_LEN + 1201] * pow(2, 8) +
                         (unsigned char) thisPacket[ENET_H_LEN + 1200] * pow(2, 0);
-                    double timestamp1 = (total_us) / pow(10, 6);
+                    double timestamp_packet = (total_us) / pow(10, 6);
                     unsigned char block_id;
                     int block = (unsigned char) thisPacket[ENET_H_LEN + 1 + j * 100] * 16 * 16 +
                         (unsigned char) thisPacket[ENET_H_LEN + j * 100];
@@ -399,7 +399,7 @@ void calibrationHDL64()
                             intensity_dif = intensity - intensity_raw;
                             //****************************intensity calibration done************************************************
 
-                            multibeamFrame.frameData.push_back( hdl64point{ x , y , z , (dis * 0.2), intensity, block_id, spin_now, timestamp1} );
+                            multibeamFrame.frameData.push_back( hdl64point{ x , y , z , (dis * 0.2), intensity, block_id, spin_now, timestamp_packet} );
 
                             beam_n++;
                         }
@@ -479,7 +479,7 @@ void calibrationHDL64()
                             intensity_dif = intensity - intensity_raw;
                             //****************************intensity calibration done************************************************
 
-                            multibeamFrame.frameData.push_back( hdl64point{ x , y , z , (dis * 0.2), intensity, block_id, spin_now, timestamp1} );
+                            multibeamFrame.frameData.push_back( hdl64point{ x , y , z , (dis * 0.2), intensity, block_id, spin_now, timestamp_packet} );
 
                             beam_n++;
                         }
@@ -594,23 +594,26 @@ void ObjectTracking()
                 }
 
                 //cloud to second
+                //TODO Verified? cm to m?
                 float x = transformPC(0) / 100.0;
                 float y = transformPC(1) / 100.0;
                 float z = transformPC(2) / 100.0;
                 float intensity = line.intensity_ / 255.0;
 
-                if(fabs(x) < 25 && y < 70 && y > -30) //extend area //
+                //TODO Using Common params
+                if(fabs(x) < 25 && y < 70 && y > -30) //extend area
                 {
                     //cloud coordinate change for Second Net detection
-                    // lidar frame: front y , right x || for detection frame: front x , left y.
+                    //Lidar coodinate system (r-f-u -> x-y-z)
+                    buffer.push_back(x);
                     buffer.push_back(y);
-                    buffer.push_back(-x);
                     buffer.push_back(z);
                     buffer.push_back(intensity);
                 }
             }
 
             //pass the pointcloud, and start detect by second Net and return result
+            //the detector record the timestamp of the input point cloud
             secondNet.startReceiver(buffer, velodyne->scans->timestamp);
 
             buffer.clear();
@@ -699,7 +702,7 @@ void paramRead(const string fileName)
     ifstream in(fileName);
     if(!in.is_open()) {
         cout << "can't open json : " << fileName << endl;
-        assert(false);
+        // LOG(false);
         return;
     }
     stringstream buffer;
@@ -718,13 +721,13 @@ void paramRead(const string fileName)
     pitch = doc["pitch"].GetDouble();
     roll = doc["roll"].GetDouble();
     dx = doc["dx"].GetDouble();
-    dy = doc["dy"].GetDouble(); //dy = 0 is ok, since this has been compensated in modules/PerceptionFusion/PerceptionFusion/node.cpp
+    dy = doc["dy"].GetDouble();//dy = -1.5 for compensation
     dz = doc["dz"].GetDouble();
 }
 
 int main()
 {
-    paramRead(Directory + "param.json"); 
+    paramRead(Directory + "param.json");
     settings.rate_in_hz = 8.0;
     settings.map_cell_threshold = 0.3;
     settings.map_cell_min_hits = 2;
@@ -748,8 +751,8 @@ int main()
     settings.map_size_x = TiEV::GRID_RESOLUTION * TiEV::GRID_ROW;
     settings.map_size_y = TiEV::GRID_RESOLUTION * TiEV::GRID_COL;
     //this is for kalman tracker 
-    settings.kf_settings.correspondence_threshold = 1e-40;
-    settings.kf_settings.pruning_threshold = 0.3;
+    settings.kf_settings.correspondence_threshold = 1e-40;//no use
+    settings.kf_settings.pruning_threshold = 0.3;//no use
     settings.kf_settings.measurement_variance = 0.1;
     settings.kf_settings.position_variance = 0.7;//0.1;
     settings.kf_settings.velocity_variance = 0.001;
@@ -757,7 +760,7 @@ int main()
     settings.kf_settings.heading_velocity_variance = 0.01;
     settings.kf_settings.initial_position_variance = 0.05;
     settings.kf_settings.initial_velocity_variance = 1.0;
-    settings.kf_settings.initial_heading_variance = 0.5;
+    settings.kf_settings.initial_heading_variance = 0.5;//0.5
     settings.kf_settings.initial_heading_velocity_variance = 0.5;
 
     settings.use_velodyne = 1;

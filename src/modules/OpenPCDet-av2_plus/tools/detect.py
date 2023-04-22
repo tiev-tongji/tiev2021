@@ -33,7 +33,7 @@ def parse_config():
     parser = argparse.ArgumentParser(description='arg parser')
     parser.add_argument('--cfg_file', type=str, default='/home/autolab/tiev/src/modules/OpenPCDet-av2_plus/tools/cfgs/argoverse2_models/centerpoint.yaml',
                         help='specify the config for demo')
-    parser.add_argument('--ckpt', type=str, default="/home/autolab/tiev/src/modules/OpenPCDet-av2_plus/checkpoint_epoch_39.pth", help='specify the pretrained model')
+    parser.add_argument('--ckpt', type=str, default="/home/autolab/tiev/src/modules/OpenPCDet-av2_plus/checkpoint_epoch_70.pth", help='specify the pretrained model')
     # parser.add_argument('--cfg_file', type=str, default='/home/autolab/huyinghao/projects/tiev_plus_lidar/OpenPCDet_plus/tools/cfgs/argoverse2_models/centerpoint.yaml',
     #                     help='specify the config for demo')
     # parser.add_argument('--ckpt', type=str, default="/home/autolab/huyinghao/projects/log/opendet_av2/centerpoint/wo_map/checkpoint_epoch_20.pth", help='specify the pretrained model')
@@ -165,39 +165,13 @@ class CENTERPOINT_RCNN():
         pts_hom = np.hstack((pts, np.ones((pts.shape[0], 1), dtype=np.float32)))
         return pts_hom
 
-    '''
-    # def lidar_to_rect(self, pts_lidar):
-    #     """
-    #     :param pts_lidar: (N, 3)
-    #     :return pts_rect: (N, 3)
-    #     """
-    #     pts_lidar_hom = self.cart_to_hom(pts_lidar)
-    #     pts_rect = np.dot(pts_lidar_hom, np.dot(self.2C.T, self.R0.T))
-    #     # pts_rect = reduce(np.dot, (pts_lidar_hom, self.2C.T, self.R0.T))
-    #     return pts_rect
 
-    # def boxes3d_lidar_to_kitti_camera(self, boxes3d_lidar, calib):
-    #     """
-    #     :param boxes3d_lidar: (N, 7) [x, y, z, dx, dy, dz, heading], (x, y, z) is the box center
-    #     :param calib:
-    #     :return:
-    #         boxes3d_camera: (N, 7) [x, y, z, l, h, w, r] in rect camera coords
-    #     """
-    #     xyz_lidar = boxes3d_lidar[:, 0:3]
-    #     l, w, h, r = boxes3d_lidar[:, 3:4], boxes3d_lidar[:, 4:5], boxes3d_lidar[:, 5:6], boxes3d_lidar[:, 6:7]
-
-    #     xyz_lidar[:, 2] -= h.reshape(-1) / 2
-    #     xyz_cam = calib.lidar_to_rect(xyz_lidar)
-    #     # xyz_cam[:, 1] += h.reshape(-1) / 2
-    #     r = -r - np.pi / 2
-    #     return np.concatenate([xyz_cam, l, h, w, r], axis=-1)
-    '''
     def boxes3d_lidar_to_kitti_camera(self, boxes3d_lidar):
         """
         :param boxes3d_lidar: (N, 7) [x, y, z, dx, dy, dz, heading], (x, y, z) is the box center
         :param calib:
         :return:
-            boxes3d_camera: (N, 7) [x, y, z, l, h, w, r] in rect camera coords
+            boxes3d_camera: (N, 7) [x, y, z, l, w, h, r] in rect camera coords
         """
         xyz_lidar = boxes3d_lidar[:, 0:3]
         l, w, h, r = boxes3d_lidar[:, 3:4], boxes3d_lidar[:, 4:5], boxes3d_lidar[:, 5:6], boxes3d_lidar[:, 6:7]
@@ -206,7 +180,10 @@ class CENTERPOINT_RCNN():
         xyz_cam = xyz_lidar
         # should debug the orientation of the detected box
         # xyz_cam[:, 1] += h.reshape(-1) / 2
-        r = -r - np.pi / 2
+        # r = -r - np.pi / 2
+        mask_r = r<0
+        r[mask_r]+=np.pi*2
+        
         # r = -r - np.pi
         # r = -r 
         # return np.concatenate([xyz_cam, l, h, w, r], axis=-1)
@@ -265,7 +242,7 @@ class CENTERPOINT_RCNN():
             ret_dict.append(pred_dict['location'][i][0])
             ret_dict.append(pred_dict['location'][i][1])
             ret_dict.append(pred_dict['location'][i][2])
-            # 形状[l, h, w]
+            # 形状[l, w, h]
             ret_dict.append(pred_dict['dimensions'][i][0])
             ret_dict.append(pred_dict['dimensions'][i][1])
             ret_dict.append(pred_dict['dimensions'][i][2])
@@ -292,10 +269,12 @@ class CENTERPOINT_RCNN():
         # batch_dict1['voxel_coords'] = np.hstack((np.zeros((batch_dict1['oxel_coords'].shape[0], 1)), batch_dict1['voxel_coords']))
         data_dict['batch_size'] = 1
         data_dict = self.collate_batch(data_dict)
+        import time
+        t1 = time.time()
         load_data_to_gpu(data_dict)
         with torch.no_grad():
             pred_dicts, ret_dict = self.model(data_dict)
-
+        print(time.time() - t1)
         annos = self.generate_prediction_dicts(data_dict, pred_dicts[0], self.class_names)
 
         return annos
@@ -305,8 +284,10 @@ centerpoint_rcnn = CENTERPOINT_RCNN()
 def get_boxes(databin):
     s_time = time.time()
     result = centerpoint_rcnn.detect(databin)
+    
     e_time = time.time()
     print(e_time - s_time)
+    #np.savetxt(str(time.time())+'_.txt',result)
     return result
 
 def detect_test():
