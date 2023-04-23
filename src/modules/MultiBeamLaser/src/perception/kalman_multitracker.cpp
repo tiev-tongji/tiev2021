@@ -196,7 +196,7 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
             (*it)->missed_++;
 
             if((*it)->missed_ >= MISSED_TOL)
-                (*it)->isDynamic_ = false;
+                (*it)->is_dynamic_ = false;
 
             //TODO Verify prev_timestamp_ should be the same of (*it)->filter->timestamp_
             double delta_t = current_timestamp_ - prev_timestamp_;
@@ -259,19 +259,20 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
             (*it)->angular_velocity_ = filter->mu_[4];
 
             //maintain the lastest measurement
-            (*it)->lastObservation_ = measurements[m];
+            (*it)->last_observation_ = measurements[m];
+            (*it)->last_observations_.push(measurements[m]);
             (*it)->num_observations_++;
             (*it)->missed_ = 0;
 
             (*it)->Dynamic_obj_classifier();
 
             //LOG
-            if((*it)->getVelocity() > 30000) {
+            if((*it)->Get_velocity() > 30000) {
                 printf("---------------------------------------------\n");
                 printf("Position uncertainty: %f\n", (*it)->filter->getPositionUncertainty());
                 cout << "-------\n" << (*it)->filter->sigma_ << endl << "--------\n";
                 cout << "-------\n" << (*it)->filter->mu_ << endl << "--------\n";
-                printf("num_obs: %d\n", (*it)->getNumObservations());
+                printf("num_obs: %d\n", (*it)->Get_num_observations());
                 printf("pos: %f %f\n", (*it)->Get_pose().x, (*it)->Get_pose().y);
             }
         }
@@ -299,10 +300,11 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
 
         std::tr1::shared_ptr<TrackedObstacle> new_obs(new TrackedObstacle(next_id_, measurements[i]));
         new_obs->filter = new_kf;
-        new_obs->isDynamic_ = false;
+        new_obs->is_dynamic_ = false;
 
         //maintain the lastest measurement
-        new_obs->lastObservation_ = measurements[i];
+        new_obs->last_observation_ = measurements[i];
+        new_obs->last_observations_.push(measurements[i]);
         new_obs->num_observations_++;
 
         new_obs->Set_pose(measurements[i]->Get_pose());

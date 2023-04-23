@@ -14,7 +14,23 @@
 namespace TiEV
 {
 
-  #define PREDICT_HORIZON 6 // TODO move to param
+#define PREDICT_HORIZON 6 // TODO move to param
+#define SLIDING_WINDOW 100 //
+
+  // fixed sized queue from stackoverflow
+  template <typename T, int MaxLen, typename Container = std::deque<T>>
+  class FixedQueue : public std::queue<T, Container>
+  {
+  public:
+    void push(const T &value)
+    {
+      if (this->size() == MaxLen)
+      {
+        this->c.pop_front();
+      }
+      std::queue<T, Container>::push(value);
+    }
+  };
   class TrackedObstacle : public Obstacle
   {
   private:
@@ -36,16 +52,18 @@ namespace TiEV
     // Eigen::VectorXf log_odds_;       // Log odds for each class, updated via incorporateBoostingResponse.
 
   public:
-    bool isDynamic_;
-    int typeArr_[128];
+    bool is_dynamic_;
+    int type_filter_[128];
     int missed_;
 
     // std::vector<point2d_t> trackLocalTrajectory_;
-    std::vector<point2d_t> trackGlobalTrajectory_;
+    std::vector<point2d_t> track_global_trajectory_;
     std::tr1::shared_ptr<LinearKalmanFilter> filter;
     
+    //This tracked object's all observations
+    FixedQueue<std::tr1::shared_ptr<Obstacle>, SLIDING_WINDOW> last_observations_;
     //This tracked object's latest observation
-    std::tr1::shared_ptr<Obstacle> lastObservation_;
+    std::tr1::shared_ptr<Obstacle> last_observation_;
 
   public:
     TrackedObstacle(double timestamp);
@@ -69,13 +87,13 @@ namespace TiEV
     void setConfidence(int times);
     int getConfidence() { return dynamic_confidence_; }
 
-    int getNumObservations() { return num_observations_; }
+    int Get_num_observations() { return num_observations_; }
 
-    double getVelocity() const;
+    double Get_velocity() const;
     double getAngularVel() const;
 
     // Eigen::VectorXf getLogOdds() { return log_odds_; }
-    std::tr1::shared_ptr<Obstacle> getLastObservation() { return lastObservation_; }
+    std::tr1::shared_ptr<Obstacle> getLastObservation() { return last_observation_; }
 
     // virtual int getSize() { return 0; }
 

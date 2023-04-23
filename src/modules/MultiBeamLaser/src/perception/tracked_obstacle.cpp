@@ -35,11 +35,11 @@ namespace TiEV {
        if(newtype == OBSTACLE_UNKNOWN)
        {
            dgc_obstacle_type temptype = getTypeConfidence();
-           typeArr_[(int)temptype]++;
+           type_filter_[(int)temptype]++;
        }
        else
        {
-           typeArr_[(int)newtype]++;
+           type_filter_[(int)newtype]++;
        }
     }
 
@@ -50,9 +50,9 @@ namespace TiEV {
         int maxIndex = 127;
         for(int index = 0; index < 3; index++ )
         {
-           if(typeArr_[index] > maxType)
+           if(type_filter_[index] > maxType)
            { 
-              maxType = typeArr_[index];
+              maxType = type_filter_[index];
               maxIndex = index;
            }
         }
@@ -92,13 +92,13 @@ namespace TiEV {
     TrackedObstacle::TrackedObstacle(int id, std::tr1::shared_ptr<Obstacle> observation) :
             id_(id),
             Obstacle(*observation),//*observation
-            lastObservation_(observation),
+            last_observation_(observation),
             // pedestrian_label_count(0),
             num_observations_(0)
             {
                 dynamic_confidence_ = 0;
                 missed_ = 0;
-                memset(typeArr_, 0, sizeof(typeArr_));
+                memset(type_filter_, 0, sizeof(type_filter_));
             }
 
 /*
@@ -109,10 +109,10 @@ namespace TiEV {
     //         dynamic_confidence_(o.dynamic_confidence_),
     //         velocity_(o.velocity_),
     //         angular_velocity_(o.angular_velocity_),
-    //         isDynamic_(o.isDynamic_),
+    //         is_dynamic_(o.is_dynamic_),
     //         missed_(o.missed_),
 
-    //         lastObservation_(o.lastObservation_),
+    //         last_observation_(o.last_observation_),
     //         num_observations_(o.num_observations_),
     //         // timestamp_first_(o.timestamp_first_),
     //         // timestamp_prediction_(o.timestamp_prediction_),
@@ -120,7 +120,7 @@ namespace TiEV {
     //         // log_odds_(o.log_odds_)
     //         {
     //             assert(num_observations_ > 0);
-    //             memset(typeArr_, 0, sizeof(typeArr_));
+    //             memset(type_filter_, 0, sizeof(type_filter_));
     //        }
 
     TrackedObstacle::~TrackedObstacle() {
@@ -138,14 +138,14 @@ namespace TiEV {
     void TrackedObstacle::Dynamic_obj_classifier()
     {
     //    // TODO what is this?
-    //    if (trackGlobalTrajectory_.size() > 8)
+    //    if (track_global_trajectory_.size() > 8)
     //    {
-    //         trackGlobalTrajectory_.erase(trackGlobalTrajectory_.begin());
+    //         track_global_trajectory_.erase(track_global_trajectory_.begin());
     //    }
 
-    //    trackGlobalTrajectory_.push_back(point2d_t(global_pose_(0), global_pose_(1)));
+    //    track_global_trajectory_.push_back(point2d_t(global_pose_(0), global_pose_(1)));
 
-    //    int trajSize = trackGlobalTrajectory_.size();
+    //    int trajSize = track_global_trajectory_.size();
 
     //    double disdelta = 0;
 
@@ -153,13 +153,13 @@ namespace TiEV {
 
     //    for (int i = 0; i < trajSize; ++i)
     //    {
-    //         Eigen::Vector3f global_pose(trackGlobalTrajectory_[i].x, trackGlobalTrajectory_[i].y, 0), local_pose;
+    //         Eigen::Vector3f global_pose(track_global_trajectory_[i].x, track_global_trajectory_[i].y, 0), local_pose;
     //         positionGlobalToLocal(global_pose, translation, rotationAngle, local_pose);
     //         trackLocalTrajectory[i] = (point2d_t(local_pose(0), local_pose(1)));
 
     //         if (i > 0)
     //         {
-    //           disdelta += hypot(trackGlobalTrajectory_[i].x - trackGlobalTrajectory_[i - 1].x, trackGlobalTrajectory_[i].y - trackGlobalTrajectory_[i - 1].y);
+    //           disdelta += hypot(track_global_trajectory_[i].x - track_global_trajectory_[i - 1].x, track_global_trajectory_[i].y - track_global_trajectory_[i - 1].y);
     //           // Scalar sca = Scalar(255, 255, 0);
     //           // myVisual.drawLine(trackLocalTrajectory[i-1], trackLocalTrajectory[i], sca);
     //         }
@@ -169,48 +169,48 @@ namespace TiEV {
 
         int confidenceInc = -1;
 
-        if(lastObservation_->Get_type() == OBSTACLE_CAR) //car
+        if(Get_type() == OBSTACLE_CAR) //car
         {
-            // if(disdelta > MinCarDisThres && getVelocity() > MinCarVelThres)
+            // if(disdelta > MinCarDisThres && Get_velocity() > MinCarVelThres)
                 // confidenceInc = 1;
-            if(getNumObservations() > MinCarObsThres && getVelocity() > MinCarVelThres)   confidenceInc = 1;
+            if(Get_num_observations() > MinCarObsThres && Get_velocity() > MinCarVelThres)   confidenceInc = 1;
         }
 
-        if(lastObservation_->Get_type() == OBSTACLE_BICYCLIST) //bicyclist
+        if(Get_type() == OBSTACLE_BICYCLIST) //bicyclist
         {
-            // if(disdelta > MinBicDisThres && getVelocity() > MinBicVelThres)
+            // if(disdelta > MinBicDisThres && Get_velocity() > MinBicVelThres)
                 // confidenceInc = 1;
-            if(getNumObservations() > MinBicObsThres && getVelocity() > MinBicVelThres)   confidenceInc = 1;
+            if(Get_num_observations() > MinBicObsThres && Get_velocity() > MinBicVelThres)   confidenceInc = 1;
         }
 
-        if(lastObservation_->Get_type() == OBSTACLE_PEDESTRIAN) //people
+        if(Get_type() == OBSTACLE_PEDESTRIAN) //people
         {
-            // if(disdelta > MinPedDisThres && getVelocity() > MinPedVelThres)
+            // if(disdelta > MinPedDisThres && Get_velocity() > MinPedVelThres)
                 // confidenceInc = 1;
-            if(getNumObservations() > MinPedObsThres && getVelocity() > MinBicVelThres)   confidenceInc = 1;
+            if(Get_num_observations() > MinPedObsThres && Get_velocity() > MinBicVelThres)   confidenceInc = 1;
         }
 
         setConfidence(confidenceInc);
-        isDynamic_ = dynamic_confidence_ > MinDynaObjConf ? true : false;
+        is_dynamic_ = dynamic_confidence_ > MinDynaObjConf ? true : false;
 
-        // if(isDynamic_)
+        // if(is_dynamic_)
         // {
         //     // Vector2d diffRelativeObj;
         //     // int from = trajSize - 1, to = max(0, trajSize - 6);
-        //     // diffRelativeObj(0) = trackGlobalTrajectory_[from].x - trackGlobalTrajectory_[to].x;
-        //     // diffRelativeObj(1) = trackGlobalTrajectory_[from].y - trackGlobalTrajectory_[to].y;
+        //     // diffRelativeObj(0) = track_global_trajectory_[from].x - track_global_trajectory_[to].x;
+        //     // diffRelativeObj(1) = track_global_trajectory_[from].y - track_global_trajectory_[to].y;
 
         //     double globalObjYaw;
         //     if(latestNavInfo.mRTKStatus == 1)
         //     {
-        //         // if(lastObservation_->Get_type() == 0 && 
-        //         //   ( getVelocity() < MinVelYawThres || disdelta < MinCarDisThres))
+        //         // if(last_observation_->Get_type() == 0 && 
+        //         //   ( Get_velocity() < MinVelYawThres || disdelta < MinCarDisThres))
         //         // {
-        //         //     pose_.yaw = lastObservation_->Get_pose().yaw;
+        //         //     pose_.yaw = last_observation_->Get_pose().yaw;
         //         //         return;
         //         // }
 
-        //         // if(getVelocity() < MinVelYawThres)
+        //         // if(Get_velocity() < MinVelYawThres)
         //         //     globalObjYaw = atan2(getYVel(), getXVel());
         //         // else 
         //         //     globalObjYaw = atan2(diffRelativeObj(1), diffRelativeObj(0));
@@ -220,7 +220,7 @@ namespace TiEV {
         //     }
         //     else 
         //     {
-        //         pose_.yaw = lastObservation_->Get_pose().yaw;
+        //         pose_.yaw = last_observation_->Get_pose().yaw;
         //         return;
         //     }
 
@@ -234,7 +234,7 @@ namespace TiEV {
         //     }
         // }
         // else {
-        //     pose_.yaw = lastObservation_->Get_pose().yaw;
+        //     pose_.yaw = last_observation_->Get_pose().yaw;
         // }
     }
 
@@ -249,7 +249,7 @@ namespace TiEV {
 
     // void TrackedObstacle::update(std::tr1::shared_ptr<Obstacle> obstacle, double timestamp)
     // {
-    //     lastObservation_ = obstacle;
+    //     last_observation_ = obstacle;
     //     timestamp_observation_ = obstacle->Get_timestamp();
     //     num_observations_++;
 
@@ -260,7 +260,7 @@ namespace TiEV {
     //     missed_ = 0;
     // }
 
-    double TrackedObstacle::getVelocity() const {
+    double TrackedObstacle::Get_velocity() const {
         return velocity_;
     }
 
@@ -271,14 +271,13 @@ namespace TiEV {
     
     void TrackedObstacle::markDynamic() {
 
-        lastObservation_->Set_pose(pose_.x, pose_.y, pose_.z, pose_.yaw, length_, width_);
-        lastObservation_->Set_type(this->Get_type());
+        // last_observation_->Set_pose(pose_.x, pose_.y, pose_.z, pose_.yaw, length_, width_);
+        // last_observation_->Set_type(this->Get_type());
         // transform( length_/2.0,  width_/2.0, pose_.yaw, pose_.x, pose_.y, x1, y1);
         // transform( length_/2.0, -width_/2.0, pose_.yaw, pose_.x, pose_.y, x2, y2);
         // transform(-length_/2.0, -width_/2.0, pose_.yaw, pose_.x, pose_.y, x3, y3);
         // transform(-length_/2.0,  width_/2.0, pose_.yaw, pose_.x, pose_.y, x4, y4);
-
-        // // lastObservation_->setBoundbox(point2d_t(x1, y1), point2d_t(x2, y2), point2d_t(x3, y3), point2d_t(x4, y4));
+        // // last_observation_->setBoundbox(point2d_t(x1, y1), point2d_t(x2, y2), point2d_t(x3, y3), point2d_t(x4, y4));
 
         Scalar sca;
         switch(Get_type())
@@ -305,7 +304,7 @@ namespace TiEV {
             }
         }
                 
-        if( isDynamic_ && Get_type() != 127)
+        if( is_dynamic_ && Get_type() != 127)
         {
             myVisual.drawLine(Get_boundbox().p1, Get_boundbox().p2, sca);
             myVisual.drawLine(Get_boundbox().p2, Get_boundbox().p3, sca);
@@ -314,7 +313,7 @@ namespace TiEV {
 
             // fill the trajectory
             // trackLocalTrajectory_.push_back(pose_);
-            trackGlobalTrajectory_.push_back(global_pose_);
+            track_global_trajectory_.push_back(global_pose_);
 
             double tmp_local_heading = Get_pose().yaw;
             double tmp_global_heading = Get_global_pose().yaw;
@@ -332,7 +331,7 @@ namespace TiEV {
 
                 //global
                 transform(i * velocity_, 0, tmp_global_heading, Get_global_pose().x, Get_global_pose().y, xx, yy);
-                trackGlobalTrajectory_.push_back(point2d_t(xx, yy));
+                track_global_trajectory_.push_back(point2d_t(xx, yy));
 
                 //
                 tmp_local_heading += getAngularVel();
@@ -342,7 +341,7 @@ namespace TiEV {
         }
     }
     // void TrackedObstacle::populatePoints() {
-    //     this->points_ = lastObservation_->getPoints();
+    //     this->points_ = last_observation_->getPoints();
     // }
 
     // float TrackedObstacle::maxHeight() {
