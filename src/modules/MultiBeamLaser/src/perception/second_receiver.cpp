@@ -126,19 +126,19 @@ void SecondPython::startReceiver(vector<float> &myBuffer, double timestamp)
 		switch (type)
 		{
 			case OBSTACLE_CAR :
-			(*deteced_obstacle)->Get_type() = OBSTACLE_CAR;
+			(*deteced_obstacle)->Set_type(OBSTACLE_CAR);
 			break;
 
 			case OBSTACLE_BICYCLIST :
-			(*deteced_obstacle)->Get_type() = OBSTACLE_BICYCLIST;
+			(*deteced_obstacle)->Set_type(OBSTACLE_BICYCLIST);
 			break;
 
 			case OBSTACLE_PEDESTRIAN :
-			(*deteced_obstacle)->Get_type() = OBSTACLE_PEDESTRIAN;
+			(*deteced_obstacle)->Set_type(OBSTACLE_PEDESTRIAN);
 			break;
 
 			default :
-			(*deteced_obstacle)->Get_type() = OBSTACLE_UNKNOWN;
+			(*deteced_obstacle)->Set_type(OBSTACLE_UNKNOWN);
 		}
 		// (*deteced_obstacle)->classified_this_frame_ = true;
 		detected_obstacles.push_back(*deteced_obstacle);

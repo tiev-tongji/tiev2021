@@ -18,7 +18,7 @@ dgc_pose_t zero_pose = {0,0,0,0,0,0};
 namespace TiEV {
 
     Obstacle::Obstacle(double time_stamp) :
-            time_(time_stamp)
+            time_(time_stamp),
             pose_(zero_pose),
             length_(0.0),
             width_(0.0),
@@ -33,6 +33,10 @@ namespace TiEV {
             length_(o.length),
             width_(o.width),
             type_(o.type_),
+            time_(o.time_),
+            bbox_(o.bbox_),
+            global_pose_(o.global_pose_),
+            global_bbox_(o.global_bbox_)
     {
 
 
@@ -106,6 +110,15 @@ namespace TiEV {
         pose_.y = y;
         pose_.yaw = yaw;
 
+        while (pose_.yaw > M_PI)
+        {
+            pose_.yaw -= 2 * M_PI;
+        }
+        while (pose_.yaw < -M_PI)
+        {
+            pose_.yaw += 2 * M_PI;
+        }
+
         //local bbox
         double x1,y1,x2,y2,x3,y3,x4,y4;
 
@@ -121,16 +134,27 @@ namespace TiEV {
 
         //global pose
         Eigen::Vector3d local_pose(pose_.x, pose_.y, 0);
-        global_pose_ = positionLocalToGlobal(local_pose, latestNavInfo.utmX, latestNavInfo.utmY, latestNavInfo.mHeading - M_PI_2);
-        //global yaw
+        global_pose_ = positionLocalToGlobal(local_pose, point2d_t(latestNavInfo.utmX, latestNavInfo.utmY), latestNavInfo.mHeading - M_PI_2);
+        // global yaw
         global_pose_[2] = yaw + latestNavInfo.mHeading - M_PI_2;
 
-        //global bbox
-       global_bbox_.p1 = positionLocalToGlobal(bbox_.p1, latestNavInfo.utmX, latestNavInfo.utmY, latestNavInfo.mHeading - M_PI_2);
-       global_bbox_.p2 = positionLocalToGlobal(bbox_.p2, latestNavInfo.utmX, latestNavInfo.utmY, latestNavInfo.mHeading - M_PI_2);
-       global_bbox_.p3 = positionLocalToGlobal(bbox_.p3, latestNavInfo.utmX, latestNavInfo.utmY, latestNavInfo.mHeading - M_PI_2);
-       global_bbox_.p4 = positionLocalToGlobal(bbox_.p4, latestNavInfo.utmX, latestNavInfo.utmY, latestNavInfo.mHeading - M_PI_2);
+        // global bbox
+        global_bbox_.p1 = positionLocalToGlobal(bbox_.p1, point2d_t(latestNavInfo.utmX, latestNavInfo.utmY), latestNavInfo.mHeading - M_PI_2);
+        global_bbox_.p2 = positionLocalToGlobal(bbox_.p2, point2d_t(latestNavInfo.utmX, latestNavInfo.utmY), latestNavInfo.mHeading - M_PI_2);
+        global_bbox_.p3 = positionLocalToGlobal(bbox_.p3, point2d_t(latestNavInfo.utmX, latestNavInfo.utmY), latestNavInfo.mHeading - M_PI_2);
+        global_bbox_.p4 = positionLocalToGlobal(bbox_.p4, point2d_t(latestNavInfo.utmX, latestNavInfo.utmY), latestNavInfo.mHeading - M_PI_2);
+    }
 
+
+    void Obstacle::Set_pose(double x, double y, double yaw)
+    {
+        Set_pose(x, y, 0, yaw, length_, width_);
+    }
+
+    void Obstacle::Set_global_pose(double x, double y, double yaw)
+    {
+        point2d_t tmp_local_pose = positionGlobalToLocal(point2d_t(x, y), point2d_t(latestNavInfo.utmX, latestNavInfo.utmY), latestNavInfo.mHeading - M_PI_2)
+        Set_pose(tmp_local_pose.x, tmp_local_pose.y, 0, yaw - latestNavInfo.mHeading - M_PI_2);
     }
 
     void Obstacle::Set_type(dgc_obstacle_type type)

@@ -217,19 +217,16 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
             (*it)->filter->predict_ekf(transition_matrix_mu_,transition_matrix_sigma_, (*it)->filter->timestamp_ + current_timestamp_ - prev_timestamp_);
 
             Eigen::Vector2d kalmanFliterPose((*it)->filter->mu_(0), (*it)->filter->mu_(1)); //new world pose prediction by kalman
-            Eigen::Vector3d global_pose(kalmanFliterPose(0), kalmanFliterPose(1), 0); 
-            Eigen::Vector3d local_pose =  (*it)->positionGlobalToLocal(global_pose, carUtmTrans, carYaw - M_PI_2);  
+            // Eigen::Vector3d global_pose(kalmanFliterPose(0), kalmanFliterPose(1), 0); 
+            // Eigen::Vector3d local_pose =  (*it)->positionGlobalToLocal(global_pose, carUtmTrans, carYaw - M_PI_2);  
             
-            (*it)->Get_global_pose() = kalmanFliterPose;
-            (*it)->Get_type() = (*it)->getTypeConfidence();
-
-            (*it)->Get_pose().x = local_pose.x;
-            (*it)->Get_pose().y = local_pose.y;
+            (*it)->Set_global_pose(kalmanFliterPose(0), kalmanFliterPose(1), kalmanFliterPose(3)); 
+            (*it)->Set_type((*it)->getTypeConfidence());
             (*it)->velocity_ = abs(filter->mu_[2]);
             (*it)->angular_velocity_ = filter->mu_[4];
             (*it)->missed_++;
 
-            (*it)->dynamicClassify(carUtmTrans, carYaw - M_PI_2);
+            (*it)->Dynamic_obj_classifier();
         }
         else // found matched measurement
         {
@@ -252,23 +249,21 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
             (*it)->filter->update(measurements[m]->Get_global_pose(), measurements[m]->Get_timestamp());
 
             Eigen::Vector2d kalmanFliterPose((*it)->filter->mu_(0), (*it)->filter->mu_(1)); //new world position update by kalman
-            Eigen::Vector3d global_pose(kalmanFliterPose(0), kalmanFliterPose(1), 0);
-            Eigen::Vector3d local_pose = (*it)->positionGlobalToLocal(global_pose, carUtmTrans, carYaw - M_PI_2);  
+            // Eigen::Vector3d global_pose(kalmanFliterPose(0), kalmanFliterPose(1), 0);
+            // Eigen::Vector3d local_pose = (*it)->positionGlobalToLocal(global_pose, carUtmTrans, carYaw - M_PI_2);  
 
-            (*it)->Get_global_pose() = kalmanFliterPose;
+            (*it)->Set_global_pose(kalmanFliterPose(0), kalmanFliterPose(1), kalmanFliterPose(3)); 
             (*it)->setTypeNum(measurements[m]->Get_type());
-            (*it)->Get_type() = (*it)->getTypeConfidence();
-
-            (*it)->lastObservation_ = measurements[m];
-            (*it)->num_observations_++;
-
-            (*it)->Get_pose().x = local_pose.x;
-            (*it)->Get_pose().y = local_pose.y;
+            (*it)->Set_type((*it)->getTypeConfidence());
             (*it)->velocity_ = abs(filter->mu_[2]);
             (*it)->angular_velocity_ = filter->mu_[4];
+
+            //maintain the lastest measurement
+            (*it)->lastObservation_ = measurements[m];
+            (*it)->num_observations_++;
             (*it)->missed_ = 0;
 
-            (*it)->dynamicClassify(carUtmTrans, carYaw - M_PI_2);
+            (*it)->Dynamic_obj_classifier();
 
             //LOG
             if((*it)->getVelocity() > 30000) {
@@ -292,7 +287,7 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
         VectorXd initial_state = VectorXd::Zero(5);
 
         //world position
-        initial_state.segment(0, 2) = measurments[i]->Get_global_pose(); 
+        initial_state.segment(0, 2) = measurments[i]->Get_global_pose().x; 
         //world yaw
         initial_state(3) = measurements[i]->Get_global_pose()[2];
 
@@ -302,22 +297,22 @@ void KalmanMultiTracker::update(const vector< std::tr1::shared_ptr<Obstacle> >& 
             measurement_matrix_, transition_covariance_,
             measurement_covariance_));
 
-        std::tr1::shared_ptr<TrackedObstacle> new_obs(new TrackedObstacle(next_id_, measurements[i], current_timestamp_));
+        std::tr1::shared_ptr<TrackedObstacle> new_obs(new TrackedObstacle(next_id_, measurements[i]));
         new_obs->filter = new_kf;
-        new_obs->Get_global_pose() = measurements[i]->Get_global_pose();
         new_obs->isDynamic_ = false;
 
+        //maintain the lastest measurement
         new_obs->lastObservation_ = measurements[i];
         new_obs->num_observations_++;
 
-        new_obs->Get_pose() = measurements[i]->Get_pose();
+        new_obs->Set_pose(measurements[i]->Get_pose());
         new_obs->velocity_ = abs(filter->mu_[2]);
         new_obs->angular_velocity_ = filter->mu_[4];
         new_obs->missed_ = 0;
 
 
         new_obs->setTypeNum(measurements[i]->Get_type());
-        new_obs->Get_type() = measurements[i]->Get_type();
+        new_obs->Set_type(measurements[i]->Get_type());
 
         tracks_.push_front(new_obs);
         ++next_id_;

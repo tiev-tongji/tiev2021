@@ -125,8 +125,8 @@ void perception_prep_obstacles( dgc_grid_p grid, vector<std::tr1::shared_ptr<TiE
                 //TODO verifiy UTM
                 // predictTraj.x = vec_tracked_obstacles[i]->lastObservation_->predictPose[j].x;
                 // predictTraj.y = vec_tracked_obstacles[i]->lastObservation_->predictPose[j].y;
-                predictTraj.x = vec_tracked_obstacles[i]->trackUtmTrajectory_[j].x;
-                predictTraj.y = vec_tracked_obstacles[i]->trackUtmTrajectory_[j].y;
+                predictTraj.x = vec_tracked_obstacles[i]->trackGlobalTrajectory_[j].x;
+                predictTraj.y = vec_tracked_obstacles[i]->trackGlobalTrajectory_[j].y;
                 dynamicObj.path.emplace_back(predictTraj);
             }
 		    dynamicObj.pathNum = dynamicObj.path.size();

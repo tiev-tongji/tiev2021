@@ -18,7 +18,9 @@ namespace TiEV
   class TrackedObstacle : public Obstacle
   {
   private:
-    int confidence_;
+    int id_;
+
+    int dynamic_confidence_;
     // int pedestrian_label_count;
 
     int num_observations_;
@@ -38,8 +40,8 @@ namespace TiEV
     int typeArr_[128];
     int missed_;
 
-    std::vector<point2d_t> trackLocalTrajectory_;
-    std::vector<point2d_t> trackUtmTrajectory_;
+    // std::vector<point2d_t> trackLocalTrajectory_;
+    std::vector<point2d_t> trackGlobalTrajectory_;
     std::tr1::shared_ptr<LinearKalmanFilter> filter;
     
     //This tracked object's latest observation
@@ -47,27 +49,25 @@ namespace TiEV
 
   public:
     TrackedObstacle(double timestamp);
-    TrackedObstacle(int id, std::tr1::shared_ptr<Obstacle> observation, double timestamp);
-    TrackedObstacle(const TrackedObstacle &o);
+    TrackedObstacle(int id, std::tr1::shared_ptr<Obstacle> observation);
+    // TrackedObstacle(const TrackedObstacle &o);
     virtual ~TrackedObstacle();
 
     void setTypeNum(dgc_obstacle_type type);
     dgc_obstacle_type getTypeConfidence();
 
-    void dynamicClassify(const point2d_t &translation, double rotationAngle);
+    void Dynamic_obj_classifier();
 
     // void update(std::tr1::shared_ptr<Obstacle>, double timestamp);
     // void update(double timestamp);
-
-    void setConfidence(int times)
-    {
-      confidence_ += times;
-      if (confidence_ < 0)
-        confidence_ = 0;
-      if (confidence_ > 10)
-        confidence_ = 10;
+    void Set_id(int id){
+      id_ = id;
     }
-    int getConfidence() { return confidence_; }
+    int Get_id(){
+      return id_;
+    }
+    void setConfidence(int times);
+    int getConfidence() { return dynamic_confidence_; }
 
     int getNumObservations() { return num_observations_; }
 
