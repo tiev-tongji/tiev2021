@@ -4,10 +4,10 @@
 
 	"overpass_height" : 1.5,
 	"z_resolution" : 0.3,
-	"z_obstacle_height" : 0.15,
+	"z_obstacle_height" : 0.09,
 	
 	"yaw" : -2.7,
-	"pitch" : -2.9, 
+	"pitch" : -2.9,
 	"roll" : 0.8,
 	"dx" : 0,
 	"dy" : -1.5,
